@@ -15,14 +15,15 @@ const RootNavigator = () => {
 
   return (
     <Stack.Navigator screenOptions={{headerShown: false}}>
-      <Stack.Screen
+     {token ?  <Stack.Screen
         name={'DrawerNavigator'}
         component={DrawerNavigator}
       />
-      {/* <Stack.Screen
+      :
+      <Stack.Screen
         name={screenNames.AUTH_NAVIGATION}
         component={AuthNavigator}
-      /> */}
+      />}
       {/* {token ?
                 <Stack.Screen name={screenNames.MAIN_NAVIGATION} component={MainNavigator} />
                 :

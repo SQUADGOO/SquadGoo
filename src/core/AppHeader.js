@@ -1,80 +1,69 @@
-import {
-  StyleSheet,
-  View,
-  TouchableOpacity,
-  ImageBackground,
-  StatusBar
-} from 'react-native'
-import React from 'react'
+import React, { Children } from 'react'
+import { View, StyleSheet, TouchableOpacity, StatusBar, ImageBackground, Image } from 'react-native'
 import { LinearGradient } from 'react-native-linear-gradient'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
 import AppText, { Variant } from '@/core/AppText'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import globalStyles from '@/styles/globalStyles'
-import { Images } from '@/assets'
+import { Icons, Images } from '@/assets'
+import { useNavigation } from '@react-navigation/native'
 
 const AppHeader = ({
-  title = "Dashboard",
+  title = '',
+  showBackButton = true,
+  onBackPress,
+  rightComponent = null,
+  stepIndicator = null,
+  gradientColors = ['#8B5CF6', '#EC4899'],
+  statusBarStyle = 'light-content',
+  backgroundColor = 'transparent',
+  showTopIcons = true,
   onMenuPress,
   onNotificationPress,
   onSearchPress,
   notificationCount = 0,
-  backgroundImage = Images.header, // Optional: You can pass your custom background image
-  showNotificationDot = true
+  useImageBackground = true,
+  children
 }) => {
   const insets = useSafeAreaInsets()
+  const navigation = useNavigation()
 
-  const HeaderContent = () => (
-    <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="transparent"
-        translucent
-      />
+  const handleBackPress = () => {
+    if (onBackPress) {
+      onBackPress()
+    } else {
+      navigation.goBack()
+    }
+  }
 
-      {/* Header Content */}
-      <View style={styles.headerContent}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-
-
-
+  const renderContent = () => (
+    <>
+      {showTopIcons && (
+        <View style={styles.topIconsContainer}>
           {/* Left Side - Menu Button */}
           <TouchableOpacity
+
             style={styles.iconButton}
-            onPress={onMenuPress}
+            onPress={() => navigation.openDrawer()}
             activeOpacity={0.7}
           >
-            <View style={styles.menuIcon}>
-              <View style={styles.menuDot} />
-              <View style={styles.menuDot} />
-              <View style={styles.menuDot} />
-              <View style={styles.menuDot} />
-            </View>
+            <Image source={Icons.menu} style={styles.iconStyle} />
           </TouchableOpacity>
 
-          {/* Notification Icon */}
+          {/* Right Side - Notification & Search Icons */}
           <View style={globalStyles.flexRow}>
-
-
             <TouchableOpacity
               style={styles.iconButton}
               onPress={onNotificationPress}
               activeOpacity={0.7}
             >
-              <VectorIcons
-                name={iconLibName.Ionicons}
-                iconName="notifications-outline"
-                size={24}
-                color="#FFFFFF"
-              />
-              {(showNotificationDot || notificationCount > 0) && (
-                <View style={styles.notificationDot}>
-                  {notificationCount > 0 && (
-                    <AppText variant={Variant.smallCaption} style={styles.notificationText}>
-                      {notificationCount > 9 ? '9+' : notificationCount}
-                    </AppText>
-                  )}
+              <Image source={Icons.notification} style={styles.iconStyle} />
+              {notificationCount > 0 && (
+                <View style={styles.notificationBadge}>
+                  <AppText variant={Variant.caption} style={styles.badgeText}>
+                    {notificationCount > 99 ? '99+' : notificationCount}
+                  </AppText>
                 </View>
               )}
             </TouchableOpacity>
@@ -84,145 +73,160 @@ const AppHeader = ({
               onPress={onSearchPress}
               activeOpacity={0.7}
             >
-              <VectorIcons
-                name={iconLibName.Ionicons}
-                iconName="search-outline"
-                size={24}
-                color="#FFFFFF"
-              />
+              <Image source={Icons.search} style={styles.iconStyle} />
             </TouchableOpacity>
           </View>
         </View>
-        
-        {/* Center - Title */}
-        <View style={styles.titleContainer}>
-          <AppText variant={Variant.title} style={styles.headerTitle}>
-            {title}
-          </AppText>
-        </View>
+      )}
 
+      <View style={styles.headerContent}>
+        {showBackButton && (
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={handleBackPress}
+            activeOpacity={0.7}
+          >
+            <VectorIcons
+              name={iconLibName.Ionicons}
+              iconName="arrow-back"
+              size={24}
+              color="#FFFFFF"
+            />
+          </TouchableOpacity>
+        )}
+        
+        <AppText variant={Variant.title} style={[
+          styles.headerTitle,
+          !showBackButton && styles.headerTitleNoBack
+          , {fontWeight: 'bold'}
+        ]}>
+          {title}
+        </AppText>
+        
+        {rightComponent ? (
+          <View style={styles.rightComponent}>
+            {rightComponent}
+          </View>
+        ) : stepIndicator ? (
+          <AppText variant={Variant.bodyMedium} style={styles.stepIndicator}>
+            {stepIndicator}
+          </AppText>
+        ) : (
+          <View style={styles.placeholder} />
+        )}
       </View>
-    </View>
+    </>
   )
 
-  if (backgroundImage) {
-    return (
-      <ImageBackground source={backgroundImage} style={styles.container}>
-        <HeaderContent />
-      </ImageBackground>
-    )
-  }
-
   return (
-    <LinearGradient
-      colors={['#8B5CF6', '#EC4899']} // Purple to Pink gradient
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
-      <HeaderContent />
-    </LinearGradient>
+    <>
+      <StatusBar 
+        barStyle={statusBarStyle} 
+        backgroundColor={backgroundColor} 
+        translucent 
+      />
+    
+        <View style={styles.headerWrapper}>
+          <ImageBackground 
+            source={Images.header} 
+            style={[styles.header, { paddingTop: insets.top }]}
+            imageStyle={styles.headerImageStyle}
+          >
+            <View style={{paddingHorizontal: wp(4)}}>
+            {renderContent()}
+          {children && children}
+
+            </View>
+          </ImageBackground>
+        </View>
+      
+    </>
   )
 }
 
 export default AppHeader
 
 const styles = StyleSheet.create({
-  container: {
-    height: hp(20),
-    borderBottomLeftRadius: hp(4),
-    borderBottomRightRadius: hp(4),
+  headerWrapper: {
     overflow: 'hidden',
+    borderBottomLeftRadius: hp(3),
+    borderBottomRightRadius: hp(3),
+  },
+  header: {
+    paddingVertical: hp(2.5),
+  },
+  gradientHeader: {
+    borderBottomLeftRadius: hp(6),
+    borderBottomRightRadius: hp(6),
+  },
+  headerImageStyle: {
+    resizeMode: 'cover',
+  },
+  topIconsContainer: {
+    
+    flexDirection: 'row', 
+    justifyContent: 'space-between',  
+    paddingVertical: hp(1.2),
+    alignItems: 'center',
   },
   headerContent: {
-    justifyContent: 'space-around',
-    // backgroundColor: 'red',
-    flex: 1,
-  },  
-  headerContainer: {
-    flex: 1,
-    padding: 20,
-    position: 'relative',
-    justifyContent: 'space-between',
-  },
-  decorativeShapes: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  shape1: {
-    position: 'absolute',
-    top: hp(-5),
-    right: wp(-15),
-    width: wp(40),
-    height: wp(40),
-    borderRadius: wp(20),
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  shape2: {
-    position: 'absolute',
-    top: hp(5),
-    right: wp(-5),
-    width: wp(25),
-    height: wp(25),
-    borderRadius: wp(12.5),
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  topIconsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: wp(6),
-    paddingTop: hp(1),
-    zIndex: 2,
+    // paddingHorizontal: wp(4),
+    paddingTop: hp(1.5),
+    paddingBottom: hp(0.5),
+  },
+  backButton: {
+    padding: wp(2),
+  },
+  headerTitle: {
+    color: '#FFFFFF',
+    fontSize: getFontSize(20),
+    flex: 1,
+    marginLeft: wp(3),
+    fontWeight: '600',
+  },
+  headerTitleNoBack: {
+    marginLeft: 0,
+    // textAlign: 'center',
+  },
+  stepIndicator: {
+    color: '#FFFFFF',
+    fontSize: getFontSize(16),
+  },
+  rightComponent: {
+    alignItems: 'flex-end',
+  },
+  placeholder: {
+    width: wp(10),
   },
   iconButton: {
     padding: wp(2),
     position: 'relative',
   },
-  menuIcon: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  iconStyle: {
     width: wp(6),
     height: wp(6),
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    resizeMode: 'contain'
   },
-  menuDot: {
-    width: wp(1.2),
-    height: wp(1.2),
-    backgroundColor: '#FFFFFF',
-    borderRadius: wp(0.6),
-    margin: wp(0.2),
-  },
-  titleContainer: {
-    // paddingHorizontal: wp(6),
-    // paddingBottom: hp(2),
-    zIndex: 2,
-  },
-  headerTitle: {
-    color: '#FFFFFF',
-    fontSize: getFontSize(26),
-    fontWeight: 'bold',
-  },
-  notificationDot: {
+  notificationBadge: {
     position: 'absolute',
-    top: wp(1),
-    right: wp(1),
-    backgroundColor: '#FF6B35',
+    top: wp(0.5),
+    right: wp(0.5),
+    backgroundColor: '#FF3B30',
     borderRadius: wp(2.5),
-    minWidth: wp(4),
-    height: wp(4),
+    minWidth: wp(4.5),
+    height: wp(4.5),
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
+    paddingHorizontal: wp(0.8),
+    borderWidth: 1.5,
     borderColor: '#FFFFFF',
   },
-  notificationText: {
+  badgeText: {
     color: '#FFFFFF',
-    fontSize: getFontSize(10),
+    fontSize: getFontSize(9),
     fontWeight: 'bold',
   },
 })

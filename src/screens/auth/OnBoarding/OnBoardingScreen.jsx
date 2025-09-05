@@ -166,7 +166,7 @@ const OnBoardingScreen = ({ navigation }) => {
                             console.log('Skip onboarding');
                         }}
                     >
-                        <AppText style={styles.skipText}>Skip</AppText>
+                        {/* <AppText style={styles.skipText}>Skip</AppText> */}
                     </TouchableOpacity>
                 )}
             </View>

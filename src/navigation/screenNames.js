@@ -16,6 +16,25 @@ export const screenNames = {
   // SIGN_IN: 'sign_in',
   // HOME: 'Home',
   Tab_NAVIGATION: 'tab_navigation',
+  ACTIVE_JOB_OFFERS: 'active_job_offers',
+  JOB_PREVIEW: 'job_preview',
+  QUICK_SEARCH: 'quick_search',
+  MANUAL_SEARCH: 'manual_search',
+  
+  ACCOUNT_DETAILS: 'account_details',
+  PURCHASE_COINS: 'purchase_coins',
+  WITHDRAW_COINS: 'withdraw_coins',
+  BANK_DETAILS: 'bank_details',
+  FORM_SUMMARY: 'form_summary',
+
+  WALLET_STACK: 'wallet_stack', 
+
+  MESSAGES: 'messages',
+
+  ABILITY_TO_WORK: 'ability_to_work',
+  STEP_TWO: 'step_two',
+  STEP_THREE: 'step_three',
+
   // FORGOT_PASSWORD: 'forgot_password',
   // CHECK_EMAIL: 'check_email',
   // CREATE_PASSWORD: 'create_password',

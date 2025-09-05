@@ -17,6 +17,8 @@ import FormField from '@/core/FormField'
 import AppButton from '@/core/AppButton'
 import AppText, { Variant } from '@/core/AppText'
 import VerificationSuccessModal from '@/components/VerificationSuccessModal'
+import { store } from '@/store/store'
+import { login } from '@/store/authSlice'
 
 const EmailVerification = ({ navigation, route }) => {
   const [resendTimer, setResendTimer] = useState(0)
@@ -113,7 +115,12 @@ const EmailVerification = ({ navigation, route }) => {
 
   const handleGotoDashboard = () => {
     // Navigate to dashboard/home screen
-    navigation.navigate('Dashboard') // or 'Home' or your main app screen
+     // or 'Home' or your main app screen
+     store.dispatch(login({
+      token: 'token',
+      userInfo: {email: 'recruiter@gmail.com', password: 'Recruiter@123'},
+      role: 'recruiter'
+     }))
   }
 
   const handleCloseModal = () => {

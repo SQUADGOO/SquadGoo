@@ -19,6 +19,9 @@ import { signinRules } from '@/utilities/validationSchemas'
 import AppButton from '@/core/AppButton'
 import AppText, { Variant } from '@/core/AppText'
 import { screenNames } from '@/navigation/screenNames'
+import { store } from '@/store/store'
+import { login } from '@/store/authSlice'
+import { showToast, toastTypes } from '@/utilities/toastConfig'
 
 const SignIn = ({ navigation }) => {
   const [rememberMe, setRememberMe] = useState(true);
@@ -36,9 +39,21 @@ const SignIn = ({ navigation }) => {
   const handleLogin = async (data) => {
     try {
       console.log('Login with:', data);
+        const { email, password } = methods.getValues();
+    // Add social login logic here
+    if((email == 'recruiter@gmail.com' || email == 'Recruiter@gmail.com' && password == 'Recruiter@123') )
+      {
+        store?.dispatch(login({
+          token: 'token',
+          userInfo: {email: email, password: password},
+          role: 'recruiter'
+        }))
+      } else {
+        showToast('Invalid email or password', 'error', toastTypes.error)
+      }
       // Add your login logic here
       // Example: await signInUser(data.email, data.password, rememberMe)
-      Alert.alert('Success', 'Login successful!')
+      // Alert.alert('Success', 'Login successful!')
       // navigation.navigate('Home') // Navigate to your home screen
     } catch (error) {
       Alert.alert('Error', 'Login failed. Please try again.')
@@ -47,7 +62,7 @@ const SignIn = ({ navigation }) => {
   };
 
   const handleSocialLogin = (provider) => {
-    // Add social login logic here
+  
     console.log('Login with:', provider);
   };
 

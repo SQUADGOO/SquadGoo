@@ -15,6 +15,7 @@ const getFontSize = baseSize => {
 
 const typography = {
   heading: {fontSize: getFontSize(24), fontWeight: 'bold'},
+  label: {fontSize: getFontSize(14), },
   body: {fontSize: getFontSize(16)},
   caption: {fontSize: getFontSize(12)},
 };

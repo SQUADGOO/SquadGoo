@@ -29,6 +29,7 @@ const AppInputField = ({
   timeInput = false,
   onPressTimeInput,
   multiline = false,
+  onPressField,
   ...props
 }) => {
   const inputRef = useRef();
@@ -37,14 +38,15 @@ const AppInputField = ({
     textAlign: 'left',
     flexDirection: 'row',
   };
+  console.log('value', value);
 
   const handlePress = () => {
-    if (timeInput) onPressTimeInput?.();
+    if (onPressField) onPressField?.();
     else inputRef.current?.focus();
   };
 
   const renderInputContent = () => {
-    if (timeInput) {
+    if (onPressField) {
       return (
         <AppText
           numberOfLines={1}

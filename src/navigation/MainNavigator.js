@@ -13,6 +13,9 @@ const MainNavigator = () => {
         name={screenNames.DRAWER_NAVIGATION}
         component={DrawerNavigator}
       />
+
+    
+
      
     </Stack.Navigator>
   );

@@ -81,10 +81,12 @@ const SignUp = ({ navigation }) => {
   }
 
   const handleSignUp = async (data) => {
+
     if (!acceptTerms) {
       Alert.alert('Terms Required', 'Please accept the Terms and Conditions to continue.')
       return
     }
+    
 
     try {
       const signupData = {
@@ -97,6 +99,7 @@ const SignUp = ({ navigation }) => {
       // Add your signup logic here
       // Example: await signUpUser(signupData)
       Alert.alert('Success', 'Account created successfully!')
+      navigation.navigate(screenNames.VERIFY_EMAIL)
       // navigation.navigate('Home') or verification screen
     } catch (error) {
       Alert.alert('Error', 'Sign up failed. Please try again.')

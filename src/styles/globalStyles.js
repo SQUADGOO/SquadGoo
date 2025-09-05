@@ -92,6 +92,9 @@ const globalStyles = StyleSheet.create({
     backgroundColor: colors.white,
     paddingHorizontal: wp(4),
   },
+  labelFont: {
+    fontSize: getFontSize(14),
+  },
 });
 
 export default globalStyles;

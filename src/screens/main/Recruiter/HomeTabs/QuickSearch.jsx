@@ -1,14 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 
-const FindStaff = () => {
+const QuickSearch = () => {
   return (
     <View>
-      <Text>FindStaff</Text>
+      <Text>QuickSearch</Text>
     </View>
   )
 }
 
-export default FindStaff
+export default QuickSearch
 
 const styles = StyleSheet.create({})
