@@ -28,6 +28,23 @@ import Messages from './main/chat/Messages';
 import AbilityToWork from './main/Recruiter/ManualSearchSteps/AbilityToWork';
 import StepThree from './main/Recruiter/ManualSearchSteps/StepThree';
 import StepTwo from './main/Recruiter/ManualSearchSteps/StepTwo';
+import MainDashboard from './main/Recruiter/DashBoard/MainDashboard';
+import LaborPoolScreen from './main/Recruiter/LaborPool/LaborPool';
+import SquadPoolScreen from './main/Recruiter/LaborPool/SquadPool';
+import Contractors from './main/Recruiter/LaborPool/Contractors';
+import ActiveOffers from './main/Recruiter/CurrentOffers/ActiveOffers';
+import DraftedOffers from './main/Recruiter/CurrentOffers/DraftedOffers';
+import CompletedOffers from './main/Recruiter/CurrentOffers/CompletedOffers';
+import ExpiredOffers from './main/Recruiter/CurrentOffers/ExpiredOffers';
+import StaffPreferences from './main/Recruiter/Settings/StaffPreferences';
+import UpdateMain from './main/Recruiter/Update/UpdateMain';
+import UpdateSecond from './main/Recruiter/Update/UpdateSecond';
+import UpdateThird from './main/Recruiter/Update/UpdateThird';
+import Notifcations from './main/Recruiter/Notifications';
+import StepOne from './main/Recruiter/QuickSearch/StepOne';
+import StepTwoQuickSearch from './main/Recruiter/QuickSearch/StepTwo';
+import StepThreeQuickSearch from './main/Recruiter/QuickSearch/StepThree';
+import StepFourQuickSearch from './main/Recruiter/QuickSearch/StepFour';
 // Tab Screens
 
 export {
@@ -60,5 +77,23 @@ export {
   
   AbilityToWork,
   StepThree,
-  StepTwo
+  StepTwo,
+  MainDashboard,
+  LaborPoolScreen,
+  SquadPoolScreen,
+  Contractors,
+  ActiveOffers,
+  DraftedOffers,
+  CompletedOffers,
+  ExpiredOffers,
+  StaffPreferences,
+  UpdateMain,
+  UpdateSecond,
+  UpdateThird,
+  Notifcations,
+  StepOne,
+  StepTwoQuickSearch,
+  StepThreeQuickSearch,
+  StepFourQuickSearch
+
 };

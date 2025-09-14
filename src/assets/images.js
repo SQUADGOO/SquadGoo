@@ -6,9 +6,11 @@ export default Images = {
   topIllustration: require('./images/auth/top-illustration.png'),
   signinBg: require('./images/auth/signinBg.png'),
   emailverified: require('./images/auth/email-verified.png'),
+  avatar: require('./images/laborpool/Avatar.png'),
 
   //mainheader
   header: require('./images/mainheader/header.png'),
+  map: require('./images/update/map.png'),
 
 
 };

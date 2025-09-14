@@ -34,7 +34,7 @@ const FindStaff = ({ navigation }) => {
   }
 
   const handleQuickSearch = () => {
-    navigation.navigate('QuickSearch')
+    navigation.navigate(screenNames.QUICK_SEARCH_STEPONE)
   }
 
   const SearchOption = ({ 

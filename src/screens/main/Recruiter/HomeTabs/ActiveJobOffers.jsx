@@ -111,7 +111,7 @@ const ActiveJobOffersScreen = ({ navigation }) => {
   const handleUpdate = (job) => {
     console.log('Update job:', job.title)
     // Navigate to job update screen
-    navigation.navigate('UpdateJob', { jobId: job.id })
+    navigation.navigate(screenNames.UPDATE_MAIN, { jobId: job.id })
   }
 
   const handleViewCandidates = (job) => {

@@ -6,6 +6,8 @@ import AppText, { Variant } from '@/core/AppText'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { store } from '@/store/store'
 import { logout } from '@/store/authSlice'
+import icons from '@/assets/icons'
+import { screenNames } from '../navigation/screenNames'
 
 const CustomDrawer = ({
   userProfile = {
@@ -29,51 +31,124 @@ const CustomDrawer = ({
     }))
   }
 
- const getMenuItemsByRole = (role) => {
+  const getMenuItemsByRole = (role) => {
     if (role === 'Recruiter') {
       return [
         {
-          key: 'my-profile',
-          title: 'My Profile',
-          icon: 'person-outline',
-          iconLib: iconLibName.Ionicons,
-          route: 'MyProfile'
+          key: 'dashboard',
+          title: 'Dashboard',
+          iconImage: icons.menu,
+          route: screenNames.MAIN_DASHBOARD,
         },
         {
-          key: 'my-documents',
-          title: 'My Documents',
-          icon: 'document-text-outline',
+          key: 'find-staff',
+          title: 'Find a Staff',
+          icon: 'people-outline',
           iconLib: iconLibName.Ionicons,
-          route: 'MyDocuments'
+          expandable: true,
+          subItems: [
+            { key: 'quick-search', title: 'Quick Search', icon: 'search-outline' },
+            { key: 'manual-search', title: 'Manual Search', icon: 'search-circle-outline' },
+          ],
         },
         {
-          key: 'my-reviews',
-          title: 'My Reviews',
-          icon: 'star-outline',
+          key: 'labor-pools',
+          title: 'Labor Pools',
+          icon: 'layers-outline',
           iconLib: iconLibName.Ionicons,
-          route: 'MyReviews'
+          expandable: true,
+          subItems: [
+            { key: 'labor-pool', title: 'Labor Pool', icon: 'briefcase-outline' ,  route: screenNames.LABOR_POOL},
+            { key: 'squad-pool', title: 'Squad Pool', icon: 'people-circle-outline' ,route: screenNames.SQUAD_POOL},
+            { key: 'contractors', title: 'Contractors', icon: 'hammer-outline',route: screenNames.CONTRACTORS },
+            { key: 'employees', title: 'Employees', icon: 'person-outline' },
+          ],
         },
         {
-          key: 'my-transactions',
-          title: 'My Transactions',
-          icon: 'card-outline',
+          key: 'current-offers',
+          title: 'Current Offers',
+          icon: 'pricetags-outline',
           iconLib: iconLibName.Ionicons,
-          route: 'MyTransactions'
+          expandable: true,
+          subItems: [
+            { key: 'active-offers', title: 'Active', icon: 'checkmark-circle-outline' , route: screenNames.ACTIVE_OFFERS },
+            { key: 'completed-offers', title: 'Completed', icon: 'checkmark-done-outline' , route: screenNames.COMPLETED_OFFERS },
+            { key: 'expired-offers', title: 'Expired', icon: 'time-outline' , route: screenNames.EXPIRED_OFFERS },
+            { key: 'drafted-offers', title: 'Drafted', icon: 'document-outline' , route: screenNames.DRAFTED_OFFERS },
+          ],
         },
         {
-          key: 'my-requests',
-          title: 'My Requests',
-          icon: 'list-outline',
+          key: 'settings',
+          title: 'Settings',
+          icon: 'settings-outline',
           iconLib: iconLibName.Ionicons,
-          route: 'MyRequests'
+          expandable: true,
+          subItems: [
+            { key: 'staff-preferences', title: 'Staff Preferences', icon: 'options-outline', route: screenNames.STAFF_PREFERENCES },
+            { key: 'app-settings', title: 'App Settings', icon: 'phone-portrait-outline' },
+            { key: 'account-settings', title: 'Account Settings', icon: 'person-circle-outline' },
+          ],
+        },
+        {
+          key: 'account-upgrades',
+          title: 'Account Upgrades',
+          icon: 'diamond-outline',
+          iconLib: iconLibName.Ionicons,
+          route: 'AccountUpgrades',
         },
         {
           key: 'support',
           title: 'Support',
           icon: 'help-circle-outline',
           iconLib: iconLibName.Ionicons,
-          route: 'Support'
-        }
+          route: 'Support',
+        },
+        {
+          key: 'notifications',
+          title: 'Notifications',
+          icon: 'notifications-outline',
+          iconLib: iconLibName.Ionicons,
+          route: 'Notifications',
+        },
+        {
+          key: 'chat',
+          title: 'Chat',
+          icon: 'chatbubble-outline',
+          iconLib: iconLibName.Ionicons,
+          route: 'Chat',
+        },
+        {
+          key: 'wallet',
+          title: 'Wallet',
+          icon: 'wallet-outline',
+          iconLib: iconLibName.Ionicons,
+          route: 'Wallet',
+        },
+        {
+          key: 'reports',
+          title: 'Reports & Statics',
+          icon: 'bar-chart-outline',
+          iconLib: iconLibName.Ionicons,
+          expandable: true,
+          subItems: [
+            { key: 'earning-reports', title: 'Earning Reports', icon: 'cash-outline' },
+            { key: 'rating-reports', title: 'Rating Reports', icon: 'star-outline' },
+          ],
+        },
+        {
+          key: 'marketplace',
+          title: 'Marketplace',
+          icon: 'storefront-outline',
+          iconLib: iconLibName.Ionicons,
+          route: 'Marketplace',
+        },
+        {
+          key: 'logout',
+          title: 'Log out',
+          icon: 'log-out-outline',
+          iconLib: iconLibName.Ionicons,
+          route: 'Logout',
+        },
       ]
     }
 
@@ -96,7 +171,7 @@ const CustomDrawer = ({
         title: 'Dashboard',
         icon: 'apps-outline',
         iconLib: iconLibName.Ionicons,
-        route: 'Dashboard'
+        route: screenNames.MAIN_DASHBOARD,
       },
       {
         key: 'account-upgrades',
@@ -173,7 +248,7 @@ const CustomDrawer = ({
     <View style={styles.profileSection}>
       <View style={styles.profileContainer}>
         <View style={styles.avatarContainer}>
-          <Image 
+          <Image
             source={{ uri: userProfile.avatar }}
             style={styles.avatar}
           />
@@ -188,7 +263,7 @@ const CustomDrawer = ({
             </View>
           )}
         </View>
-        
+
         <View style={styles.userInfo}>
           <AppText variant={Variant.subTitle} style={styles.userName}>
             {userProfile.name}
@@ -209,7 +284,7 @@ const CustomDrawer = ({
 
   const renderMenuItem = (item) => {
     const isExpanded = expandedSections[item.key]
-    
+
     return (
       <View key={item.key} style={styles.menuItemContainer}>
         <TouchableOpacity
@@ -217,7 +292,7 @@ const CustomDrawer = ({
           onPress={() => {
             if (item.expandable) {
               toggleSection(item.key)
-            } else if (item.route && onNavigate) {
+            } else if (item.route) {
               onNavigate(item.route)
             }
           }}
@@ -225,12 +300,20 @@ const CustomDrawer = ({
         >
           <View style={styles.menuItemLeft}>
             <View style={styles.iconContainer}>
-              <VectorIcons
-                name={item.iconLib || iconLibName.Ionicons}
-                iconName={item.icon}
-                size={20}
-                color={colors.gray || '#6B7280'}
-              />
+              {item.iconImage ? (
+                <Image
+                  source={item.iconImage}
+                  style={styles.menuIconImage}
+                  resizeMode="contain"
+                />
+              ) : (
+                <VectorIcons
+                  name={item.iconLib || iconLibName.Ionicons}
+                  iconName={item.icon}
+                  size={20}
+                  color={colors.primary || '#6B7280'}
+                />
+              )}
             </View>
             <AppText variant={Variant.body} style={styles.menuItemText}>
               {item.title}
@@ -254,7 +337,14 @@ const CustomDrawer = ({
               <TouchableOpacity
                 key={subItem.key}
                 style={styles.subMenuItem}
-                onPress={() => onNavigate && onNavigate(subItem.key)}
+             onPress={() => {
+  if (subItem.route) {
+      onNavigate(subItem.route)
+    } else {
+     onNavigate(subItem.key) // fallback
+   }
+ }}
+
                 activeOpacity={0.7}
               >
                 <View style={styles.subMenuBullet} />
@@ -296,14 +386,14 @@ const CustomDrawer = ({
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {renderUserProfile()}
-      
-      <ScrollView 
+
+      <ScrollView
         style={styles.menuContainer}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.menuContent}
       >
         {menuItems.map(renderMenuItem)}
-        
+
         <View style={styles.separator} />
         {renderLogoutButton()}
       </ScrollView>
@@ -323,6 +413,11 @@ const styles = StyleSheet.create({
     paddingVertical: hp(3),
     borderBottomWidth: 1,
     borderBottomColor: colors.grayE8 || '#F3F4F6',
+  },
+  menuIconImage: {
+    width: wp(4),
+    height: wp(4),
+    tintColor: colors.primary || '#6B7280',
   },
   profileContainer: {
     flexDirection: 'row',
@@ -431,7 +526,7 @@ const styles = StyleSheet.create({
     width: wp(1.5),
     height: wp(1.5),
     borderRadius: wp(0.75),
-    backgroundColor: colors.gray || '#9CA3AF',
+    backgroundColor: colors.primary || '#9CA3AF',
     marginRight: wp(3),
   },
   subMenuText: {

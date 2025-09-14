@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import globalStyles from '@/styles/globalStyles'
 import { Icons, Images } from '@/assets'
 import { useNavigation } from '@react-navigation/native'
+import { screenNames } from '@/navigation/screenNames'
 
 const AppHeader = ({
   title = '',
@@ -55,7 +56,7 @@ const AppHeader = ({
           <View style={globalStyles.flexRow}>
             <TouchableOpacity
               style={styles.iconButton}
-              onPress={onNotificationPress}
+              onPress={()=>navigation.navigate(screenNames.NOTICATIONS)}
               activeOpacity={0.7}
             >
               <Image source={Icons.notification} style={styles.iconStyle} />
