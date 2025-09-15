@@ -8,6 +8,7 @@ import { store } from '@/store/store'
 import { logout } from '@/store/authSlice'
 import icons from '@/assets/icons'
 import { screenNames } from '../navigation/screenNames'
+import { useSelector } from 'react-redux'
 
 const CustomDrawer = ({
   userProfile = {
@@ -22,7 +23,9 @@ const CustomDrawer = ({
 }) => {
   const insets = useSafeAreaInsets()
   const [expandedSections, setExpandedSections] = useState({})
-  const role = 'Recruiter'
+
+  // 🔹 Get current user info from Redux
+  const { userInfo, role } = useSelector((state) => state.auth)
 
   const toggleSection = (sectionKey) => {
     setExpandedSections(prev => ({
@@ -150,9 +153,7 @@ const CustomDrawer = ({
           route: 'Logout',
         },
       ]
-    }
-
-    // Default menu for Job Seeker and other roles
+    } else if(role === 'jobseeker'){
     return [
       {
         key: 'settings',
@@ -240,9 +241,13 @@ const CustomDrawer = ({
         route: 'Marketplace'
       }
     ]
+    }
+
+    // Default menu for Job Seeker and other roles
+
   }
 
-  const menuItems = getMenuItemsByRole(userProfile.role)
+  const menuItems = getMenuItemsByRole(role)
 
   const renderUserProfile = () => (
     <View style={styles.profileSection}>
@@ -269,7 +274,7 @@ const CustomDrawer = ({
             {userProfile.name}
           </AppText>
           <AppText variant={Variant.bodySmall} style={styles.userRole}>
-            {userProfile.role}
+            {role}
           </AppText>
         </View>
 
