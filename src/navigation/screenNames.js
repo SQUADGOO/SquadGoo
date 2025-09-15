@@ -46,7 +46,7 @@ export const screenNames = {
   UPDATE_MAIN: 'update_main',
   UPDATE_SECOND: 'update_second',
   UPDATE_THIRD: 'update_third',
-  NOTICATIONS: 'notifications',
+  NOTIFICATIONS: 'notifications',
   QUICK_SEARCH_STEPONE:'quick_search_stepone',
 QUICK_SEARCH_STEPTWO:'manual_search_steptwo',
 QUICK_SEARCH_STEPTHREE:'manual_search_stepthree',

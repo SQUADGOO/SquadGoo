@@ -12,12 +12,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name={screenNames.DRAWER_NAVIGATION}
         component={DrawerNavigator}
-      />
-
-
-    
-
-     
+      /> 
     </Stack.Navigator>
   );
 };

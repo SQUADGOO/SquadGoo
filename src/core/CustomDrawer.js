@@ -8,6 +8,7 @@ import { store } from '@/store/store'
 import { logout } from '@/store/authSlice'
 import icons from '@/assets/icons'
 import { screenNames } from '../navigation/screenNames'
+import { useNavigation } from '@react-navigation/native'
 
 const CustomDrawer = ({
   userProfile = {
@@ -20,6 +21,7 @@ const CustomDrawer = ({
   onNavigate,
   onLogout
 }) => {
+  const navigation = useNavigation()
   const insets = useSafeAreaInsets()
   const [expandedSections, setExpandedSections] = useState({})
   const role = 'Recruiter'
@@ -47,8 +49,8 @@ const CustomDrawer = ({
           iconLib: iconLibName.Ionicons,
           expandable: true,
           subItems: [
-            { key: 'quick-search', title: 'Quick Search', icon: 'search-outline' },
-            { key: 'manual-search', title: 'Manual Search', icon: 'search-circle-outline' },
+            { key: 'quick-search', title: 'Quick Search', icon: 'search-outline', route: screenNames.QUICK_SEARCH_STEPONE },
+            { key: 'manual-search', title: 'Manual Search', icon: 'search-circle-outline', route: screenNames.MANUAL_SEARCH },
           ],
         },
         {
@@ -108,21 +110,21 @@ const CustomDrawer = ({
           title: 'Notifications',
           icon: 'notifications-outline',
           iconLib: iconLibName.Ionicons,
-          route: 'Notifications',
+          route: screenNames.NOTIFICATIONS,
         },
         {
           key: 'chat',
           title: 'Chat',
           icon: 'chatbubble-outline',
           iconLib: iconLibName.Ionicons,
-          route: 'Chat',
+          route: screenNames.CHAT,
         },
         {
           key: 'wallet',
           title: 'Wallet',
           icon: 'wallet-outline',
           iconLib: iconLibName.Ionicons,
-          route: 'Wallet',
+          route: screenNames.WALLET_STACK,
         },
         {
           key: 'reports',
@@ -142,13 +144,13 @@ const CustomDrawer = ({
           iconLib: iconLibName.Ionicons,
           route: 'Marketplace',
         },
-        {
-          key: 'logout',
-          title: 'Log out',
-          icon: 'log-out-outline',
-          iconLib: iconLibName.Ionicons,
-          route: 'Logout',
-        },
+        // {
+        //   key: 'logout',
+        //   title: 'Log out',
+        //   icon: 'log-out-outline',
+        //   iconLib: iconLibName.Ionicons,
+        //   route: 'Logout',
+        // },
       ]
     }
 
@@ -192,21 +194,21 @@ const CustomDrawer = ({
         title: 'Notifications',
         icon: 'notifications-outline',
         iconLib: iconLibName.Ionicons,
-        route: 'Notifications'
+        route: screenNames.NOTIFICATIONS
       },
       {
         key: 'chat',
         title: 'Chat',
         icon: 'chatbubble-outline',
         iconLib: iconLibName.Ionicons,
-        route: 'Chat'
+        route: screenNames.CHAT,
       },
       {
         key: 'wallet',
         title: 'Wallet',
         icon: 'wallet-outline',
         iconLib: iconLibName.Ionicons,
-        route: 'Wallet'
+        route: screenNames.WALLET_STACK
       },
       {
         key: 'job-pool',
@@ -293,6 +295,22 @@ const CustomDrawer = ({
             if (item.expandable) {
               toggleSection(item.key)
             } else if (item.route) {
+              if(item?.route == screenNames.CHAT) {
+                console.log('dfhsjkfksd')
+                console.log(screenNames.Tab_NAVIGATION, screenNames.CHAT);
+
+                navigation.navigate(screenNames.DRAWER_NAVIGATION, {
+                screen: screenNames.Tab_NAVIGATION,
+                params: { screen: screenNames.CHAT },
+                })
+                return
+              } else if(item?.route == screenNames.WALLET_STACK) {
+                navigation.navigate(screenNames.DRAWER_NAVIGATION, {
+                screen: screenNames.Tab_NAVIGATION,
+                params: { screen: screenNames.WALLET_STACK },
+                })
+                return
+              }
               onNavigate(item.route)
             }
           }}

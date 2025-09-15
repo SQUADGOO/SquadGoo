@@ -162,6 +162,9 @@ const PurchaseCoins = ({ navigation }) => {
 
           {/* Expiry and CVC */}
           <View style={styles.cardRow}>
+            <View style={{width: '30%'}}>
+
+           
             <FormField
               name="expiryDate"
               placeholder="MM / YY"
@@ -175,6 +178,10 @@ const PurchaseCoins = ({ navigation }) => {
               }}
               inputWrapperStyle={[styles.formFieldWrapper, styles.halfInput]}
             />
+             </View>
+
+             <View style={{width: '30%'}}>
+
             
             <FormField
               name="cvc"
@@ -190,6 +197,7 @@ const PurchaseCoins = ({ navigation }) => {
               }}
               inputWrapperStyle={[styles.formFieldWrapper, styles.halfInput]}
             />
+             </View>
           </View>
         </View>
 

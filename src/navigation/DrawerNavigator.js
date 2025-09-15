@@ -107,7 +107,7 @@ const DrawerNavigator = () => {
         component={ui.UpdateThird}
       />
        <Drawer.Screen
-        name={screenNames.NOTICATIONS}
+        name={screenNames.NOTIFICATIONS}
         component={ui.Notifcations}
       />
 

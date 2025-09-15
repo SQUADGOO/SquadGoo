@@ -56,7 +56,7 @@ const AppHeader = ({
           <View style={globalStyles.flexRow}>
             <TouchableOpacity
               style={styles.iconButton}
-              onPress={()=>navigation.navigate(screenNames.NOTICATIONS)}
+              onPress={()=>navigation.navigate(screenNames.NOTIFICATIONS)}
               activeOpacity={0.7}
             >
               <Image source={Icons.notification} style={styles.iconStyle} />
