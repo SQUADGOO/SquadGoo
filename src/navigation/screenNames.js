@@ -5,6 +5,7 @@ export const screenNames = {
   AUTH_NAVIGATION: 'auth_navigation',
   MAIN_NAVIGATION: 'main_navigation',
   DRAWER_NAVIGATION: 'drawer_navigator',
+  JOBSEEKER_DRAWER: 'jobseeker_drawer',
   SIGN_IN: 'sign_in',
   ON_BOARDING: 'on_boarding',
   SIGN_UP: 'sign_up',
@@ -51,6 +52,29 @@ export const screenNames = {
 QUICK_SEARCH_STEPTWO:'manual_search_steptwo',
 QUICK_SEARCH_STEPTHREE:'manual_search_stepthree',
 QUICK_SEARCH_STEPFOUR:'manual_search_stepfour',
+  JOBSEEKER_SETTINGS:'jobseeker_settings',
+
+   JOB_SETTINGS: 'job_settings',
+  APP_SETTINGS: 'app_settings',
+  SQUAD_SETTINGS: 'squad_settings',
+
+  ACCOUNT_UPGRADE: 'account_upgrade',
+  SUPPORT: 'support',
+
+  PROFILE: 'profile',
+  BASIC_DETAILS: 'BasicDetails',
+  ADDRESS: 'Address',
+  CONTACT_DETAILS: 'ContactDetails',
+  TAX_INFO: 'TaxInfo',
+  VISA_DETAILS: 'VisaDetails',
+  KYC_KYB: 'KycKyb',
+  EXTRA_QUALIFICATIONS: 'ExtraQualifications',
+  BIO: 'BioScreen',
+  SOCIAL_MEDIA: 'SocialMedia',
+  PASSWORD: 'PasswordScreen',
+  KYC_KYB_DOC:'kyc_kyb_doc',
+  KYC_KYB_SUBMIT:'kyc_kyb_submit'
+  
 
 
 

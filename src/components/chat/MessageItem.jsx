@@ -1,47 +1,49 @@
-import React from 'react'
-import { View, StyleSheet, TouchableOpacity, Image } from 'react-native'
-import { colors, hp, wp, getFontSize } from '@/theme'
-import AppText, { Variant } from '@/core/AppText'
+import React from 'react';
+import {View, StyleSheet, TouchableOpacity, Image} from 'react-native';
+import {colors, hp, wp, getFontSize} from '@/theme';
+import AppText, {Variant} from '@/core/AppText';
 
-const MessageItem = ({
-  item,
-  onPress,
-  showBorder = true,
-  containerStyle
-}) => {
-  const renderGroupAvatar = (groupMembers) => (
+const MessageItem = ({item, onPress, showBorder = true, containerStyle}) => {
+  const renderGroupAvatar = groupMembers => (
     <View style={styles.groupAvatarContainer}>
       <View style={styles.groupAvatarGrid}>
-        <Image source={{ uri: groupMembers[0] }} style={styles.groupAvatarItem1} />
-        <Image source={{ uri: groupMembers[1] }} style={styles.groupAvatarItem2} />
-        <Image source={{ uri: groupMembers[2] }} style={styles.groupAvatarItem3} />
+        <Image
+          source={{uri: groupMembers[0]}}
+          style={styles.groupAvatarItem1}
+        />
+        <Image
+          source={{uri: groupMembers[1]}}
+          style={styles.groupAvatarItem2}
+        />
+        <Image
+          source={{uri: groupMembers[2]}}
+          style={styles.groupAvatarItem3}
+        />
       </View>
       {item.isOnline && <View style={styles.onlineIndicator} />}
     </View>
-  )
+  );
 
   const renderSingleAvatar = (avatar, isOnline) => (
     <View style={styles.avatarContainer}>
-      <Image source={{ uri: avatar }} style={styles.avatar} />
+      <Image source={{uri: avatar}} style={styles.avatar} />
       {isOnline && <View style={styles.onlineIndicator} />}
     </View>
-  )
+  );
 
   return (
     <TouchableOpacity
       style={[
         styles.messageItem,
         showBorder && styles.messageItemBorder,
-        containerStyle
+        containerStyle,
       ]}
       onPress={() => onPress && onPress(item)}
-      activeOpacity={0.7}
-    >
+      activeOpacity={0.7}>
       {/* Avatar */}
-      {item.isGroup ? 
-        renderGroupAvatar(item.groupMembers) : 
-        renderSingleAvatar(item.avatar, item.isOnline)
-      }
+      {item.isGroup
+        ? renderGroupAvatar(item.groupMembers)
+        : renderSingleAvatar(item.avatar, item.isOnline)}
 
       {/* Message Content */}
       <View style={styles.messageContent}>
@@ -50,21 +52,22 @@ const MessageItem = ({
             {item.name}
           </AppText>
           <View>
-
-          <AppText variant={Variant.caption} style={styles.timestamp}>
-            {item.timestamp}
-          </AppText>
-          {/* Unread Count */}
-      
+            <AppText variant={Variant.caption} style={styles.timestamp}>
+              {item.timestamp}
+            </AppText>
+            {/* Unread Count */}
           </View>
         </View>
-        
-        <AppText variant={Variant.body} style={styles.lastMessage} numberOfLines={1}>
+
+        <AppText
+          variant={Variant.body}
+          style={styles.lastMessage}
+          numberOfLines={1}>
           {item.lastMessage}
         </AppText>
       </View>
 
-{/* {item.unreadCount > 0 && (
+      {/* {item.unreadCount > 0 && (
         <View style={styles.unreadBadge}>
           <AppText variant={Variant.caption} style={styles.unreadCount}>
             {item.unreadCount}
@@ -73,10 +76,10 @@ const MessageItem = ({
       )}
        */}
     </TouchableOpacity>
-  )
-}
+  );
+};
 
-export default MessageItem
+export default MessageItem;
 
 const styles = StyleSheet.create({
   messageItem: {
@@ -168,7 +171,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   timestamp: {
-   color: colors.textPrimary,
+    color: colors.textPrimary,
     fontSize: getFontSize(11),
   },
   lastMessage: {
@@ -194,4 +197,4 @@ const styles = StyleSheet.create({
     fontSize: getFontSize(11),
     fontWeight: 'bold',
   },
-})
+});

@@ -45,6 +45,28 @@ import StepOne from './main/Recruiter/QuickSearch/StepOne';
 import StepTwoQuickSearch from './main/Recruiter/QuickSearch/StepTwo';
 import StepThreeQuickSearch from './main/Recruiter/QuickSearch/StepThree';
 import StepFourQuickSearch from './main/Recruiter/QuickSearch/StepFour';
+import JobSeekerSettings from './main/JobSeeker/Settings/Settings';
+
+import JobSettings from './main/Recruiter/Settings/JobSettings';
+import AppSettings from './main/Recruiter/Settings/AppSettings';
+import SquadSettings from './main/Recruiter/Settings/SquadSettings';
+import AccountUpgrade from './main/Recruiter/AccountUpgrade';
+import Support from './main/Recruiter/Support';
+
+import Profile from './main/Recruiter/profile/Profile';
+import BasicDetails from './main/Recruiter/profile/BasicDetails';
+import Address from './main/Recruiter/profile/Address';
+import ContactDetails from './main/Recruiter/profile/ContactDetails';
+import TaxInformation from './main/Recruiter/profile/TaxInformation';
+import VisaDetails from './main/Recruiter/profile/VisaDetails';
+import KycVerification from './main/Recruiter/profile/kyc/KycVerification';
+import JobQualification from './main/Recruiter/profile/JobQualification';
+import Biography from './main/Recruiter/profile/Biography';
+import SocialMedia from './main/Recruiter/profile/SocialMedia';
+import Password from './main/Recruiter/profile/Password';
+import KycDocument from './main/Recruiter/profile/kyc/KycDocument';
+import KycSubmit from './main/Recruiter/profile/kyc/KycSubmit';
+
 // Tab Screens
 
 export {
@@ -74,7 +96,7 @@ export {
 
   WalletStack,
   Messages,
-  
+
   AbilityToWork,
   StepThree,
   StepTwo,
@@ -94,6 +116,25 @@ export {
   StepOne,
   StepTwoQuickSearch,
   StepThreeQuickSearch,
-  StepFourQuickSearch
+  StepFourQuickSearch,
+  JobSeekerSettings,
+  JobSettings,
+  AppSettings,
+  SquadSettings,
+  AccountUpgrade,
+  Support,
+  Profile,
+  BasicDetails,
+  Address,
+  ContactDetails,
+  TaxInformation,
+  VisaDetails,
+  KycVerification,
+  JobQualification,
+  Biography,
+  SocialMedia,
+  Password,
+  KycDocument,
+  KycSubmit
 
 };

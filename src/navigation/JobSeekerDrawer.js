@@ -9,7 +9,7 @@ import * as ui from '@/screens';
 
 const Drawer = createDrawerNavigator();
 
-const DrawerNavigator = () => {
+const JobSeekerDrawerNavigator = () => {
   return (
     <Drawer.Navigator
       drawerContent={props => <CustomDrawer {...props}  onNavigate={(route) => props.navigation.navigate(route)}
@@ -127,56 +127,15 @@ const DrawerNavigator = () => {
         name={screenNames.QUICK_SEARCH_STEPFOUR}
         component={ui.StepFourQuickSearch}
       />
-  <Drawer.Screen
-        name={screenNames.CHAT}
-        component={ui.Chat}
-      />
-  <Drawer.Screen
-        name={screenNames.Wallet}
-        component={ui.Wallet}
-      />
-       <Drawer.Screen name={screenNames.BASIC_DETAILS} component={ui.BasicDetails} />
-      <Drawer.Screen name={screenNames.ADDRESS} component={ui.Address} />
-      <Drawer.Screen name={screenNames.CONTACT_DETAILS} component={ui.ContactDetails} />
-      <Drawer.Screen name={screenNames.TAX_INFO} component={ui.TaxInformation} />
-      <Drawer.Screen name={screenNames.VISA_DETAILS} component={ui.VisaDetails} />
-      <Drawer.Screen name={screenNames.KYC_KYB} component={ui.KycVerification} />
-      <Drawer.Screen name={screenNames.EXTRA_QUALIFICATIONS} component={ui.JobQualification} />
-      <Drawer.Screen name={screenNames.BIO} component={ui.Biography} />
-      <Drawer.Screen name={screenNames.SOCIAL_MEDIA} component={ui.SocialMedia} />
-      <Drawer.Screen name={screenNames.PASSWORD} component={ui.Password} />
-      <Drawer.Screen name={screenNames.PROFILE} component={ui.Profile} />
-      <Drawer.Screen name={screenNames.KYC_KYB_DOC} component={ui.KycDocument} />
-      <Drawer.Screen name={screenNames.KYC_KYB_SUBMIT} component={ui.KycSubmit} />
-
-        <Drawer.Screen
-        name={screenNames.JOB_SETTINGS}
-        component={ui.JobSettings}
-      />
       <Drawer.Screen
-        name={screenNames.APP_SETTINGS}
-        component={ui.AppSettings}
+        name={screenNames.JOBSEEKER_SETTINGS}
+        component={ui.JobSeekerSettings}
       />
-      <Drawer.Screen
-        name={screenNames.SQUAD_SETTINGS}
-        component={ui.SquadSettings}
-      />
-
-      <Drawer.Screen
-        name={screenNames.ACCOUNT_UPGRADE}
-        component={ui.AccountUpgrade}
-      />
-      <Drawer.Screen
-        name={screenNames.SUPPORT}
-        component={ui.Support}
-      />
-
-       
     </Drawer.Navigator>
   );
 };
 
-export default DrawerNavigator;
+export default JobSeekerDrawerNavigator;
 
 const styles = StyleSheet.create({
   drawerStyle: {

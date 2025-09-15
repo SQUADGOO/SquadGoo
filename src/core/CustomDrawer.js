@@ -9,6 +9,7 @@ import { logout } from '@/store/authSlice'
 import icons from '@/assets/icons'
 import { screenNames } from '../navigation/screenNames'
 import { useSelector } from 'react-redux'
+import { useNavigation } from '@react-navigation/native'
 
 const CustomDrawer = ({
   userProfile = {
@@ -23,9 +24,10 @@ const CustomDrawer = ({
 }) => {
   const insets = useSafeAreaInsets()
   const [expandedSections, setExpandedSections] = useState({})
-
+const navigation= useNavigation()
   // 🔹 Get current user info from Redux
   const { userInfo, role } = useSelector((state) => state.auth)
+  console.log('User Info from Redux:', userInfo, 'Role:', role)
 
   const toggleSection = (sectionKey) => {
     setExpandedSections(prev => ({
@@ -34,126 +36,130 @@ const CustomDrawer = ({
     }))
   }
 
-  const getMenuItemsByRole = (role) => {
-    if (role === 'Recruiter') {
-      return [
-        {
-          key: 'dashboard',
-          title: 'Dashboard',
-          iconImage: icons.menu,
-          route: screenNames.MAIN_DASHBOARD,
-        },
-        {
-          key: 'find-staff',
-          title: 'Find a Staff',
-          icon: 'people-outline',
-          iconLib: iconLibName.Ionicons,
-          expandable: true,
-          subItems: [
-            { key: 'quick-search', title: 'Quick Search', icon: 'search-outline' },
-            { key: 'manual-search', title: 'Manual Search', icon: 'search-circle-outline' },
-          ],
-        },
-        {
-          key: 'labor-pools',
-          title: 'Labor Pools',
-          icon: 'layers-outline',
-          iconLib: iconLibName.Ionicons,
-          expandable: true,
-          subItems: [
-            { key: 'labor-pool', title: 'Labor Pool', icon: 'briefcase-outline' ,  route: screenNames.LABOR_POOL},
-            { key: 'squad-pool', title: 'Squad Pool', icon: 'people-circle-outline' ,route: screenNames.SQUAD_POOL},
-            { key: 'contractors', title: 'Contractors', icon: 'hammer-outline',route: screenNames.CONTRACTORS },
-            { key: 'employees', title: 'Employees', icon: 'person-outline' },
-          ],
-        },
-        {
-          key: 'current-offers',
-          title: 'Current Offers',
-          icon: 'pricetags-outline',
-          iconLib: iconLibName.Ionicons,
-          expandable: true,
-          subItems: [
-            { key: 'active-offers', title: 'Active', icon: 'checkmark-circle-outline' , route: screenNames.ACTIVE_OFFERS },
-            { key: 'completed-offers', title: 'Completed', icon: 'checkmark-done-outline' , route: screenNames.COMPLETED_OFFERS },
-            { key: 'expired-offers', title: 'Expired', icon: 'time-outline' , route: screenNames.EXPIRED_OFFERS },
-            { key: 'drafted-offers', title: 'Drafted', icon: 'document-outline' , route: screenNames.DRAFTED_OFFERS },
-          ],
-        },
-        {
-          key: 'settings',
-          title: 'Settings',
-          icon: 'settings-outline',
-          iconLib: iconLibName.Ionicons,
-          expandable: true,
-          subItems: [
-            { key: 'staff-preferences', title: 'Staff Preferences', icon: 'options-outline', route: screenNames.STAFF_PREFERENCES },
-            { key: 'app-settings', title: 'App Settings', icon: 'phone-portrait-outline' },
-            { key: 'account-settings', title: 'Account Settings', icon: 'person-circle-outline' },
-          ],
-        },
-        {
-          key: 'account-upgrades',
-          title: 'Account Upgrades',
-          icon: 'diamond-outline',
-          iconLib: iconLibName.Ionicons,
-          route: 'AccountUpgrades',
-        },
-        {
-          key: 'support',
-          title: 'Support',
-          icon: 'help-circle-outline',
-          iconLib: iconLibName.Ionicons,
-          route: 'Support',
-        },
-        {
-          key: 'notifications',
-          title: 'Notifications',
-          icon: 'notifications-outline',
-          iconLib: iconLibName.Ionicons,
-          route: 'Notifications',
-        },
-        {
-          key: 'chat',
-          title: 'Chat',
-          icon: 'chatbubble-outline',
-          iconLib: iconLibName.Ionicons,
-          route: 'Chat',
-        },
-        {
-          key: 'wallet',
-          title: 'Wallet',
-          icon: 'wallet-outline',
-          iconLib: iconLibName.Ionicons,
-          route: 'Wallet',
-        },
-        {
-          key: 'reports',
-          title: 'Reports & Statics',
-          icon: 'bar-chart-outline',
-          iconLib: iconLibName.Ionicons,
-          expandable: true,
-          subItems: [
-            { key: 'earning-reports', title: 'Earning Reports', icon: 'cash-outline' },
-            { key: 'rating-reports', title: 'Rating Reports', icon: 'star-outline' },
-          ],
-        },
-        {
-          key: 'marketplace',
-          title: 'Marketplace',
-          icon: 'storefront-outline',
-          iconLib: iconLibName.Ionicons,
-          route: 'Marketplace',
-        },
-        {
-          key: 'logout',
-          title: 'Log out',
-          icon: 'log-out-outline',
-          iconLib: iconLibName.Ionicons,
-          route: 'Logout',
-        },
-      ]
-    } else if(role === 'jobseeker'){
+const getMenuItemsByRole = (role) => {
+  if (role?.toLowerCase() === 'recruiter') {
+    return [
+      {
+        key: 'dashboard',
+        title: 'Dashboard',
+        iconImage: icons.menu,
+        route: screenNames.MAIN_DASHBOARD, // unified route
+      },
+      {
+        key: 'find-staff',
+        title: 'Find a Staff',
+        icon: 'people-outline',
+        iconLib: iconLibName.Ionicons,
+        expandable: true,
+        subItems: [
+          { key: 'quick-search', title: 'Quick Search', icon: 'search-outline', route: screenNames.QUICK_SEARCH_STEPONE },
+          { key: 'manual-search', title: 'Manual Search', icon: 'search-circle-outline', route: screenNames.MANUAL_SEARCH },
+        ],
+      },
+      {
+        key: 'labor-pools',
+        title: 'Labor Pools',
+        icon: 'layers-outline',
+        iconLib: iconLibName.Ionicons,
+        expandable: true,
+        subItems: [
+          { key: 'labor-pool', title: 'Labor Pool', icon: 'briefcase-outline', route: screenNames.LABOR_POOL },
+          { key: 'squad-pool', title: 'Squad Pool', icon: 'people-circle-outline', route: screenNames.SQUAD_POOL },
+          { key: 'contractors', title: 'Contractors', icon: 'hammer-outline', route: screenNames.CONTRACTORS },
+          { key: 'employees', title: 'Employees', icon: 'person-outline', route: 'Employees' },
+        ],
+      },
+      {
+        key: 'current-offers',
+        title: 'Current Offers',
+        icon: 'pricetags-outline',
+        iconLib: iconLibName.Ionicons,
+        expandable: true,
+        subItems: [
+          { key: 'active-offers', title: 'Active', icon: 'checkmark-circle-outline', route: screenNames.ACTIVE_OFFERS },
+          { key: 'completed-offers', title: 'Completed', icon: 'checkmark-done-outline', route: screenNames.COMPLETED_OFFERS },
+          { key: 'expired-offers', title: 'Expired', icon: 'time-outline', route: screenNames.EXPIRED_OFFERS },
+          { key: 'drafted-offers', title: 'Drafted', icon: 'document-outline', route: screenNames.DRAFTED_OFFERS },
+        ],
+      },
+      {
+        key: 'settings',
+        title: 'Settings',
+        icon: 'settings-outline',
+        iconLib: iconLibName.Ionicons,
+        expandable: true,
+        subItems: [
+          { key: 'job-settings', title: 'Job Settings', icon: 'briefcase-outline', route: screenNames.JOB_SETTINGS },
+          { key: 'staff-preferences', title: 'Staff Preferences', icon: 'options-outline', route: screenNames.STAFF_PREFERENCES },
+          { key: 'app-settings', title: 'App Settings', icon: 'phone-portrait-outline', route: screenNames.APP_SETTINGS },
+          { key: 'squad-settings', title: 'Squad Settings', icon: 'people-outline', route: screenNames.SQUAD_SETTINGS },
+          { key: 'account-settings', title: 'Account Settings', icon: 'person-circle-outline', route: 'AccountSettings' },
+        ],
+      },
+      {
+        key: 'account-upgrades',
+        title: 'Account Upgrades',
+        icon: 'diamond-outline',
+        iconLib: iconLibName.Ionicons,
+        route: screenNames.ACCOUNT_UPGRADE,
+      },
+      {
+        key: 'support',
+        title: 'Support',
+        icon: 'help-circle-outline',
+        iconLib: iconLibName.Ionicons,
+        route: screenNames.SUPPORT,
+      },
+      {
+        key: 'notifications',
+        title: 'Notifications',
+        icon: 'notifications-outline',
+        iconLib: iconLibName.Ionicons,
+        route: screenNames.NOTICATIONS,
+      },
+      {
+        key: 'chat',
+        title: 'Chat',
+        icon: 'chatbubble-outline',
+        iconLib: iconLibName.Ionicons,
+        route: screenNames.CHAT,
+      },
+      {
+        key: 'wallet',
+        title: 'Wallet',
+        icon: 'wallet-outline',
+        iconLib: iconLibName.Ionicons,
+        route: screenNames.Wallet,
+      },
+      {
+        key: 'reports',
+        title: 'Reports & Statics',
+        icon: 'bar-chart-outline',
+        iconLib: iconLibName.Ionicons,
+        expandable: true,
+        subItems: [
+          { key: 'earning-reports', title: 'Earning Reports', icon: 'cash-outline', route: 'EarningReports' },
+          { key: 'rating-reports', title: 'Rating Reports', icon: 'star-outline', route: 'RatingReports' },
+        ],
+      },
+      {
+        key: 'marketplace',
+        title: 'Marketplace',
+        icon: 'storefront-outline',
+        iconLib: iconLibName.Ionicons,
+        route: 'Marketplace',
+      },
+      {
+        key: 'logout',
+        title: 'Log out',
+        icon: 'log-out-outline',
+        iconLib: iconLibName.Ionicons,
+        route: 'Logout',
+      },
+    ]
+  }
+
+  if (role?.toLowerCase() === 'jobseeker') {
     return [
       {
         key: 'settings',
@@ -162,10 +168,10 @@ const CustomDrawer = ({
         iconLib: iconLibName.Ionicons,
         expandable: true,
         subItems: [
-          { key: 'job-settings', title: 'Job Settings', icon: 'briefcase-outline' },
-          { key: 'app-settings', title: 'App Settings', icon: 'phone-portrait-outline' },
-          { key: 'squad-settings', title: 'Squad Settings', icon: 'people-outline' }
-        ]
+          { key: 'job-settings', title: 'Job Settings', icon: 'briefcase-outline', route: screenNames.JOBSEEKER_SETTINGS },
+          { key: 'app-settings', title: 'App Settings', icon: 'phone-portrait-outline', route: 'AppSettings' },
+          { key: 'squad-settings', title: 'Squad Settings', icon: 'people-outline', route: 'SquadSettings' },
+        ],
       },
       {
         key: 'dashboard',
@@ -179,35 +185,35 @@ const CustomDrawer = ({
         title: 'Account Upgrades',
         icon: 'diamond-outline',
         iconLib: iconLibName.Ionicons,
-        route: 'AccountUpgrades'
+        route: 'AccountUpgrades',
       },
       {
         key: 'support',
         title: 'Support',
         icon: 'help-circle-outline',
         iconLib: iconLibName.Ionicons,
-        route: 'Support'
+        route: 'Support',
       },
       {
         key: 'notifications',
         title: 'Notifications',
         icon: 'notifications-outline',
         iconLib: iconLibName.Ionicons,
-        route: 'Notifications'
+        route: 'Notifications',
       },
       {
         key: 'chat',
         title: 'Chat',
         icon: 'chatbubble-outline',
         iconLib: iconLibName.Ionicons,
-        route: 'Chat'
+        route: 'Chat',
       },
       {
         key: 'wallet',
         title: 'Wallet',
         icon: 'wallet-outline',
         iconLib: iconLibName.Ionicons,
-        route: 'Wallet'
+        route: 'Wallet',
       },
       {
         key: 'job-pool',
@@ -216,10 +222,10 @@ const CustomDrawer = ({
         iconLib: iconLibName.Ionicons,
         expandable: true,
         subItems: [
-          { key: 'active-jobs', title: 'Active Jobs', icon: 'checkmark-circle-outline' },
-          { key: 'completed-jobs', title: 'Completed Jobs', icon: 'checkmark-done-outline' },
-          { key: 'draft-jobs', title: 'Draft Jobs', icon: 'document-outline' }
-        ]
+          { key: 'active-jobs', title: 'Active Jobs', icon: 'checkmark-circle-outline', route: 'ActiveJobs' },
+          { key: 'completed-jobs', title: 'Completed Jobs', icon: 'checkmark-done-outline', route: 'CompletedJobs' },
+          { key: 'draft-jobs', title: 'Draft Jobs', icon: 'document-outline', route: 'DraftJobs' },
+        ],
       },
       {
         key: 'reports',
@@ -228,31 +234,32 @@ const CustomDrawer = ({
         iconLib: iconLibName.Ionicons,
         expandable: true,
         subItems: [
-          { key: 'job-reports', title: 'Job Reports', icon: 'document-text-outline' },
-          { key: 'earnings-report', title: 'Earnings Report', icon: 'cash-outline' },
-          { key: 'performance', title: 'Performance Analytics', icon: 'analytics-outline' }
-        ]
+          { key: 'job-reports', title: 'Job Reports', icon: 'document-text-outline', route: 'JobReports' },
+          { key: 'earnings-report', title: 'Earnings Report', icon: 'cash-outline', route: 'EarningsReport' },
+          { key: 'performance', title: 'Performance Analytics', icon: 'analytics-outline', route: 'PerformanceAnalytics' },
+        ],
       },
       {
         key: 'marketplace',
         title: 'Marketplace',
         icon: 'storefront-outline',
         iconLib: iconLibName.Ionicons,
-        route: 'Marketplace'
-      }
+        route: 'Marketplace',
+      },
     ]
-    }
-
-    // Default menu for Job Seeker and other roles
-
   }
+
+  // fallback for any other role
+  return []
+}
+
 
   const menuItems = getMenuItemsByRole(role)
 
   const renderUserProfile = () => (
     <View style={styles.profileSection}>
       <View style={styles.profileContainer}>
-        <View style={styles.avatarContainer}>
+        <TouchableOpacity onPress={() => navigation.navigate(screenNames.PROFILE)} style={styles.avatarContainer}>
           <Image
             source={{ uri: userProfile.avatar }}
             style={styles.avatar}
@@ -267,7 +274,7 @@ const CustomDrawer = ({
               />
             </View>
           )}
-        </View>
+        </TouchableOpacity>
 
         <View style={styles.userInfo}>
           <AppText variant={Variant.subTitle} style={styles.userName}>
@@ -397,7 +404,7 @@ const CustomDrawer = ({
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.menuContent}
       >
-        {menuItems.map(renderMenuItem)}
+        {menuItems?.map(renderMenuItem)}
 
         <View style={styles.separator} />
         {renderLogoutButton()}
