@@ -18,11 +18,16 @@ const JobSeekerDrawerNavigator = () => {
         headerShown: false,
         drawerStyle: styles.drawerStyle,
       }}>
-      <Drawer.Screen name={screenNames.Tab_NAVIGATION} component={TabNavigator} />
-            <Drawer.Screen
-        name={screenNames.JOB_PREVIEW}
-        component={JobPreview}
+      <Drawer.Screen
+        name={screenNames.JOBSEEKER_TAB}
+        component={ui.JobSeekerTabNavigator}
       />
+
+             <Drawer.Screen
+        name={screenNames.JOB_SEEKER_DASHBOARD}
+        component={ui.JobSeekerDashboard}
+      />
+ 
             <Drawer.Screen
         name={screenNames.QUICK_SEARCH}
         component={ui.QuickSearch}
@@ -40,6 +45,10 @@ const JobSeekerDrawerNavigator = () => {
         <Drawer.Screen
         name={screenNames.MESSAGES}
         component={ui.Messages}
+      />
+          <Drawer.Screen
+        name={screenNames.CHAT}
+        component={ui.Chat}
       />
         <Drawer.Screen
         name={screenNames.ABILITY_TO_WORK}
@@ -128,8 +137,40 @@ const JobSeekerDrawerNavigator = () => {
         component={ui.StepFourQuickSearch}
       />
       <Drawer.Screen
-        name={screenNames.JOBSEEKER_SETTINGS}
-        component={ui.JobSeekerSettings}
+        name={screenNames.JOB_SETTINGS}
+        component={ui.JobSettings}
+      />
+       <Drawer.Screen
+        name={screenNames.APP_SETTINGS}
+        component={ui.AppSettings}
+      />
+           <Drawer.Screen
+        name={screenNames.SQUAD_SETTINGS}
+        component={ui.SquadSettings}
+      />
+
+            <Drawer.Screen
+        name={screenNames.ACCOUNT_UPGRADE}
+        component={ui.AccountUpgrade}
+      />
+
+            <Drawer.Screen
+        name={screenNames.SUPPORT}
+        component={ui.Support}
+      />
+
+      <Drawer.Screen  
+        name={screenNames.Wallet}
+        component={ui.Wallet}
+      />
+   
+      <Drawer.Screen  
+        name={screenNames.MARKET_PLACE}
+        component={ui.MarketPlace}
+      />
+        <Drawer.Screen  
+        name={screenNames.PRODUCT_DETAILS}
+        component={ui.ProductDetails}
       />
     </Drawer.Navigator>
   );

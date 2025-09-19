@@ -17,6 +17,7 @@ export const screenNames = {
   // SIGN_IN: 'sign_in',
   // HOME: 'Home',
   Tab_NAVIGATION: 'tab_navigation',
+  JOBSEEKER_TAB: 'jobseeker_tab',
   ACTIVE_JOB_OFFERS: 'active_job_offers',
   JOB_PREVIEW: 'job_preview',
   QUICK_SEARCH: 'quick_search',
@@ -73,9 +74,11 @@ QUICK_SEARCH_STEPFOUR:'manual_search_stepfour',
   SOCIAL_MEDIA: 'SocialMedia',
   PASSWORD: 'PasswordScreen',
   KYC_KYB_DOC:'kyc_kyb_doc',
-  KYC_KYB_SUBMIT:'kyc_kyb_submit'
-  
-
+  KYC_KYB_SUBMIT:'kyc_kyb_submit',
+  JOB_SEEKER_DASHBOARD:'job_seeker_dashboard',
+  WORK_EXPERIENCE:'work_experience',
+  MARKET_PLACE:'market_place',
+PRODUCT_DETAILS:'product_details',
 
 
   // FORGOT_PASSWORD: 'forgot_password',

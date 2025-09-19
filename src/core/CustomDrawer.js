@@ -10,6 +10,7 @@ import icons from '@/assets/icons'
 import { screenNames } from '../navigation/screenNames'
 import { useSelector } from 'react-redux'
 import { useNavigation } from '@react-navigation/native'
+import MarketPlace from '@/screens/main/JobSeeker/DashBoard/MarketPlace/MarketPlace'
 
 const CustomDrawer = ({
   userProfile = {
@@ -43,7 +44,7 @@ const getMenuItemsByRole = (role) => {
         key: 'dashboard',
         title: 'Dashboard',
         iconImage: icons.menu,
-        route: screenNames.MAIN_DASHBOARD, // unified route
+        route: screenNames.JOBSEEKER_DRAWER, // unified route
       },
       {
         key: 'find-staff',
@@ -147,7 +148,7 @@ const getMenuItemsByRole = (role) => {
         title: 'Marketplace',
         icon: 'storefront-outline',
         iconLib: iconLibName.Ionicons,
-        route: 'Marketplace',
+        route: MarketPlace,
       },
       {
         key: 'logout',
@@ -168,9 +169,9 @@ const getMenuItemsByRole = (role) => {
         iconLib: iconLibName.Ionicons,
         expandable: true,
         subItems: [
-          { key: 'job-settings', title: 'Job Settings', icon: 'briefcase-outline', route: screenNames.JOBSEEKER_SETTINGS },
-          { key: 'app-settings', title: 'App Settings', icon: 'phone-portrait-outline', route: 'AppSettings' },
-          { key: 'squad-settings', title: 'Squad Settings', icon: 'people-outline', route: 'SquadSettings' },
+          { key: 'job-settings', title: 'Job Settings', icon: 'briefcase-outline', route: screenNames.JOB_SETTINGS },
+          { key: 'app-settings', title: 'App Settings', icon: 'phone-portrait-outline', route: screenNames.APP_SETTINGS },
+          { key: 'squad-settings', title: 'Squad Settings', icon: 'people-outline', route: screenNames.SQUAD_SETTINGS },
         ],
       },
       {
@@ -178,42 +179,42 @@ const getMenuItemsByRole = (role) => {
         title: 'Dashboard',
         icon: 'apps-outline',
         iconLib: iconLibName.Ionicons,
-        route: screenNames.MAIN_DASHBOARD,
+        route: screenNames.JOB_SEEKER_DASHBOARD,
       },
       {
         key: 'account-upgrades',
         title: 'Account Upgrades',
         icon: 'diamond-outline',
         iconLib: iconLibName.Ionicons,
-        route: 'AccountUpgrades',
+        route: screenNames.ACCOUNT_UPGRADE,
       },
       {
         key: 'support',
         title: 'Support',
         icon: 'help-circle-outline',
         iconLib: iconLibName.Ionicons,
-        route: 'Support',
+        route: screenNames.SUPPORT,
       },
       {
         key: 'notifications',
         title: 'Notifications',
         icon: 'notifications-outline',
         iconLib: iconLibName.Ionicons,
-        route: 'Notifications',
+        route: screenNames.NOTICATIONS,
       },
       {
         key: 'chat',
         title: 'Chat',
         icon: 'chatbubble-outline',
         iconLib: iconLibName.Ionicons,
-        route: 'Chat',
+        route: screenNames.CHAT,
       },
       {
         key: 'wallet',
         title: 'Wallet',
         icon: 'wallet-outline',
         iconLib: iconLibName.Ionicons,
-        route: 'Wallet',
+        route: screenNames.Wallet,
       },
       {
         key: 'job-pool',
@@ -222,9 +223,9 @@ const getMenuItemsByRole = (role) => {
         iconLib: iconLibName.Ionicons,
         expandable: true,
         subItems: [
-          { key: 'active-jobs', title: 'Active Jobs', icon: 'checkmark-circle-outline', route: 'ActiveJobs' },
-          { key: 'completed-jobs', title: 'Completed Jobs', icon: 'checkmark-done-outline', route: 'CompletedJobs' },
-          { key: 'draft-jobs', title: 'Draft Jobs', icon: 'document-outline', route: 'DraftJobs' },
+          { key: 'active-jobs', title: 'Active Jobs', icon: 'checkmark-circle-outline', route: screenNames.ACTIVE_OFFERS  },
+          { key: 'completed-jobs', title: 'Completed Jobs', icon: 'checkmark-done-outline', route: screenNames.COMPLETED_OFFERS  },
+          { key: 'draft-jobs', title: 'Draft Jobs', icon: 'document-outline', route: screenNames.DRAFTED_OFFERS  },
         ],
       },
       {
@@ -244,7 +245,7 @@ const getMenuItemsByRole = (role) => {
         title: 'Marketplace',
         icon: 'storefront-outline',
         iconLib: iconLibName.Ionicons,
-        route: 'Marketplace',
+        route: screenNames.MARKET_PLACE,
       },
     ]
   }

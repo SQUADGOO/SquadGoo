@@ -45,8 +45,6 @@ import StepOne from './main/Recruiter/QuickSearch/StepOne';
 import StepTwoQuickSearch from './main/Recruiter/QuickSearch/StepTwo';
 import StepThreeQuickSearch from './main/Recruiter/QuickSearch/StepThree';
 import StepFourQuickSearch from './main/Recruiter/QuickSearch/StepFour';
-import JobSeekerSettings from './main/JobSeeker/Settings/Settings';
-
 import JobSettings from './main/Recruiter/Settings/JobSettings';
 import AppSettings from './main/Recruiter/Settings/AppSettings';
 import SquadSettings from './main/Recruiter/Settings/SquadSettings';
@@ -66,6 +64,11 @@ import SocialMedia from './main/Recruiter/profile/SocialMedia';
 import Password from './main/Recruiter/profile/Password';
 import KycDocument from './main/Recruiter/profile/kyc/KycDocument';
 import KycSubmit from './main/Recruiter/profile/kyc/KycSubmit';
+import JobSeekerTabNavigator from '@/navigation/JobSeekerTab';
+import WorkExperienceScreen from './main/JobSeeker/DashBoard/TabScreens/WorkExperience';
+import JobSeekerDashboard from './main/JobSeeker/DashBoard/Dashboard';
+import MarketPlace from './main/JobSeeker/DashBoard/MarketPlace/MarketPlace';
+import ProductDetails from './main/JobSeeker/DashBoard/MarketPlace/ProductDetails';
 
 // Tab Screens
 
@@ -117,7 +120,6 @@ export {
   StepTwoQuickSearch,
   StepThreeQuickSearch,
   StepFourQuickSearch,
-  JobSeekerSettings,
   JobSettings,
   AppSettings,
   SquadSettings,
@@ -135,6 +137,9 @@ export {
   SocialMedia,
   Password,
   KycDocument,
-  KycSubmit
-
+  KycSubmit,
+  JobSeekerTabNavigator,
+JobSeekerDashboard,
+MarketPlace,
+ProductDetails
 };
