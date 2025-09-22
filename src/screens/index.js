@@ -69,7 +69,7 @@ import WorkExperienceScreen from './main/JobSeeker/DashBoard/TabScreens/WorkExpe
 import JobSeekerDashboard from './main/JobSeeker/DashBoard/Dashboard';
 import MarketPlace from './main/JobSeeker/DashBoard/MarketPlace/MarketPlace';
 import ProductDetails from './main/JobSeeker/DashBoard/MarketPlace/ProductDetails';
-
+import KycBusiness from './main/Recruiter/profile/kyc/KycBusiness';
 // Tab Screens
 
 export {
@@ -141,5 +141,6 @@ export {
   JobSeekerTabNavigator,
 JobSeekerDashboard,
 MarketPlace,
-ProductDetails
+ProductDetails,
+KycBusiness,
 };

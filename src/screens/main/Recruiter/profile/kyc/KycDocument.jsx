@@ -1,287 +1,291 @@
+// screens/KycVerification.tsx
+import React from 'react';
 import {
-  StyleSheet,
   View,
-  Animated,
-  Image,
+  StyleSheet,
   TouchableOpacity,
+  ScrollView,
+  Image,
 } from 'react-native';
-import React, {useRef, useEffect} from 'react';
-import AppHeader from '@/core/AppHeader';
-import AppText, {Variant} from '@/core/AppText';
-import {colors, wp, hp} from '@/theme';
-import AppButton from '@/core/AppButton';
-import Scrollable from '@/core/Scrollable';
-import icons from '@/assets/icons';
 import {useNavigation} from '@react-navigation/native';
-import {screenNames} from '@/navigation/screenNames';
+import {colors, getFontSize, hp, wp} from '@/theme';
+import AppText, {Variant} from '@/core/AppText';
+import AppHeader from '@/core/AppHeader';
+import { Icons } from '@/assets';
+import { screenNames } from '@/navigation/screenNames';
 
-const UploadCard = ({title}) => {
-  return (
-    <View style={{marginBottom: hp(2)}}>
-      <AppText variant={Variant.bodybold} style={styles.sectionTitle}>
-        {title}
-      </AppText>
-      <View style={styles.uploadCard}>
-        <Image
-          source={icons.save}
-          style={{width: wp(10), height: wp(10), borderRadius: wp(15)}}
-        />
-        <AppText
-          variant={Variant.bodybold}
-          style={{textAlign: 'center', color: colors.black}}>
-          Drag and drop your file here, or click to browse
-        </AppText>
-        <AppButton
-          text="Choose File"
-          style={{
-            borderWidth: 1,
-            borderColor: colors.text,
-            width: wp(45),
-            height: hp(4.5),
-            backgroundColor: colors.white,
-          }}
-          textStyle={{color: colors.text}}
-          onPress={() => console.log('Choose File pressed')}
-        />
-      </View>
-    </View>
-  );
-};
-
-const KycDocument = () => {
+const KycVerification = () => {
   const navigation = useNavigation();
-  const progress = 0.5; // example progress (50%)
-  const animatedValue = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    Animated.timing(animatedValue, {
-      toValue: progress,
-      duration: 500,
-      useNativeDriver: false,
-    }).start();
-  }, [progress]);
-
-  const widthInterpolated = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0%', '100%'],
-  });
-
-  const documents = [
-    'NRIC/Passport',
-    'Selfie with ID',
-    'Proof of Address',
-    'Business Registration',
-    'Tax Certificate',
+  const uploadFields = [
+    {label: 'NRIC/Passport'},
+    {label: 'Selfie with ID'},
+    {label: 'Proof of Address'},
+    {label: 'Business Registration'},
+    {label: 'Tax Certificate'},
   ];
 
   return (
-    <>
+    <ScrollView style={{flex: 1, backgroundColor: colors.white}}>
+      {/* Header */}
       <AppHeader showTopIcons={false} title="KYC/KYB Verification" />
-      <Scrollable>
-        <View style={{flex: 1, padding: wp(4), backgroundColor: colors.white}}>
-          <AppText variant={Variant.bodybold} style={styles.sectionTitle}>
-            KYC & KYB Verification
-          </AppText>
-          <AppText variant={Variant.caption} style={styles.sectionSubtitle}>
-            Complete your identity and business verification
-          </AppText>
 
-          {/* Progress Bar */}
-          <View style={{marginVertical: hp(2)}}>
-            <View style={styles.labelRow}>
-              <AppText variant={Variant.caption} style={styles.labelLeft}>
-                Overall Progress
-              </AppText>
-              <AppText variant={Variant.caption} style={styles.labelRight}>
-                0% Complete
-              </AppText>
-            </View>
-            <View style={styles.progressBackground}>
-              <Animated.View
-                style={[styles.progressFill, {width: widthInterpolated}]}
-              />
-            </View>
+      <View style={styles.container}>
+        {/* Title */}
+        <AppText variant={Variant.h2} style={styles.title}>
+          KYC & KYB Verification
+        </AppText>
+        <AppText variant={Variant.body} style={styles.subtitle}>
+          Complete your identity and business verification
+        </AppText>
+
+        {/* Progress bar */}
+        <View style={styles.progressRow}>
+          <AppText style={styles.progressText}>Overall Progress</AppText>
+          <AppText style={styles.progressText}>0% Complete</AppText>
+        </View>
+        <View style={styles.progressBar} />
+
+        {/* Stepper */}
+        <View style={styles.stepperContainer}>
+          {/* Labels */}
+          <View style={styles.labelsRow}>
+            {['Personal KYC', 'Business KYC', 'Documents', 'Review'].map(
+              (tab, index) => (
+                <AppText
+                  key={tab}
+                  style={[
+                    styles.stepLabel,
+                    index < 3 ? styles.activeLabel : styles.inactiveLabel,
+                  ]}>
+                  {tab}
+                </AppText>
+              ),
+            )}
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              width: wp(90),
-              alignItems: 'flex-start',
-              gap: wp(14),
-              top: hp(1.5),
-            }}>
-            <AppText variant={Variant.caption} color={colors.primary}>
-              Personal KYC
-            </AppText>
-            <AppText variant={Variant.caption} color={colors.primary}>
-              Documents
-            </AppText>
-            <AppText variant={Variant.caption} style={styles.sectionSubtitle}>
-              Review
-            </AppText>
-          </View>
-          <View style={{marginBottom: hp(1)}}>
-            <View
-              style={{
-                flexDirection: 'row',
-                width: wp(90),
-                justifyContent: 'space-between',
-              }}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: wp(1),
-                }}>
+          {/* Dots & lines */}
+          <View style={styles.dotsRow}>
+            {['1', '2', '3', '4'].map((_, index, arr) => (
+              <React.Fragment key={index}>
                 <View
-                  style={{
-                    height: 12,
-                    width: 12,
-                    backgroundColor: colors.primary,
-                    borderRadius: 75,
-                  }}
+                  style={[
+                    styles.dot,
+                    {
+                      backgroundColor:
+                        index < 3 ? colors.primary : '#D9D9D9',
+                    },
+                  ]}
                 />
-                <View
-                  style={{
-                    height: 1,
-                    backgroundColor: colors.primary,
-                    width: wp(23),
-                  }}
-                />
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: wp(1),
-                }}>
-                <View
-                  style={{
-                    height: 12,
-                    width: 12,
-                    backgroundColor: colors.primary,
-                    borderRadius: 75,
-                  }}
-                />
-                <View
-                  style={{
-                    height: 1,
-                    backgroundColor: colors.primary,
-                    width: wp(23),
-                  }}
-                />
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: wp(1),
-                }}>
-                <View
-                  style={{
-                    height: 12,
-                    width: 12,
-                    backgroundColor: colors.primary,
-                    borderRadius: 75,
-                  }}
-                />
-                <View
-                  style={{
-                    height: 1,
-                    backgroundColor: colors.primary,
-                    width: wp(23),
-                  }}
-                />
-              </View>
-            </View>
-          </View>
-
-          {documents.map((doc, index) => (
-            <UploadCard key={index} title={doc} />
-          ))}
-
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-around',
-              marginTop: hp(2),
-            }}>
-            <AppButton
-              text="Previous"
-              style={{
-                borderWidth: 1,
-                borderColor: colors.primary,
-                width: wp(45),
-                height: hp(4.5),
-                backgroundColor: colors.white,
-              }}
-              textStyle={{color: colors.primary}}
-            />
-            <AppButton
-              onPress={() =>
-                navigation.navigate('DrawerNavigator', {
-                  screen: screenNames.KYC_KYB_SUBMIT,
-                })
-              }
-              text="Next"
-              style={{
-                borderWidth: 1,
-                borderColor: colors.primary,
-                width: wp(45),
-                height: hp(4.5),
-                backgroundColor: colors.primary,
-              }}
-              textStyle={{color: colors.white}}
-            />
+                {index < arr.length - 1 && (
+                  <View
+                    style={[
+                      styles.line,
+                      {
+                        backgroundColor:
+                          index < 2 ? colors.primary : '#D9D9D9',
+                      },
+                    ]}
+                  />
+                )}
+              </React.Fragment>
+            ))}
           </View>
         </View>
-      </Scrollable>
-    </>
+
+        {/* Section Title */}
+        <AppText variant={Variant.h3} style={styles.sectionTitle}>
+          Document Upload
+        </AppText>
+        <AppText variant={Variant.body} style={styles.sectionSubtitle}>
+          Upload required documents for verification. All documents must be
+          clear and readable.
+        </AppText>
+
+        {/* Upload Fields */}
+        {uploadFields.map((field, index) => (
+          <View key={index} style={styles.uploadBox}>
+            <AppText style={styles.uploadLabel}>{field.label}</AppText>
+            <View style={styles.uploadArea}>
+            <Image style={styles.save} source={Icons.save}/>
+
+              <AppText style={styles.uploadText}>
+                Drag and drop your file here, or click to browse
+              </AppText>
+              <TouchableOpacity style={styles.chooseFileButton}>
+                <AppText style={styles.chooseFileText}>Choose File</AppText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ))}
+
+        {/* Buttons */}
+        <View style={styles.buttonRow}>
+          <TouchableOpacity style={styles.prevButton}>
+            <AppText style={styles.prevText}>Previous</AppText>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={()=>navigation.navigate(screenNames.KYC_KYB_SUBMIT)} style={styles.nextButton}>
+            <AppText style={styles.nextText}>Next</AppText>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </ScrollView>
   );
 };
 
-export default KycDocument;
+export default KycVerification;
 
 const styles = StyleSheet.create({
-  sectionTitle: {
-    marginTop: 12,
-    marginBottom: 4,
+  container: {
+    padding: wp(5),
+  },
+  title: {
+    fontSize: getFontSize(18),
+    fontWeight: '700',
+    marginBottom: hp(0.5),
     color: colors.black,
   },
-  sectionSubtitle: {
-    marginBottom: 16,
-    color: colors.text1,
-    textAlign: 'left',
+  subtitle: {
+    color: '#6C7A92',
+    marginBottom: hp(2.5),
+    fontSize: getFontSize(13),
   },
-  labelRow: {
+  progressRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: hp(1),
+  },
+  progressText: {
+    fontSize: getFontSize(12),
+    color: '#6C7A92',
+  },
+  progressBar: {
+    height: 4,
+    backgroundColor: '#D9D9D9',
+    borderRadius: 2,
+    marginBottom: hp(3),
+  },
+
+  stepperContainer: {
+    marginTop: 4,
+    marginBottom: hp(3),
+  },
+  labelsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 6,
+    paddingHorizontal: 4,
   },
-  labelLeft: {
-    color: colors.text,
+  stepLabel: {
+    fontSize: 11,
+    fontWeight: '500',
   },
-  labelRight: {
-    color: colors.text,
+  activeLabel: {
+    color: '#FF8C00',
   },
-  progressBackground: {
-    height: hp(1),
-    backgroundColor: colors.gray,
-    borderRadius: hp(1),
-    overflow: 'hidden',
+  inactiveLabel: {
+    color: '#C0C0C0',
   },
-  progressFill: {
-    height: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: hp(1),
-  },
-  uploadCard: {
-    borderWidth: 1,
-    borderColor: colors.gray,
-    borderRadius: 8,
-    padding: wp(3),
+  dotsRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: hp(2),
+    justifyContent: 'space-between',
+    width: '95%',
+    alignSelf: 'center',
   },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  line: {
+    height: 2,
+    flex: 1,
+  },
+
+  sectionTitle: {
+    fontSize: getFontSize(15),
+    fontWeight: '700',
+    marginBottom: hp(0.5),
+    color: '#3B2E57',
+  },
+  sectionSubtitle: {
+    color: '#6C7A92',
+    marginBottom: hp(2),
+    fontSize: getFontSize(12),
+  },
+
+  uploadBox: {
+    marginBottom: hp(2),
+  },
+  uploadLabel: {
+    fontSize: getFontSize(13),
+    fontWeight: '600',
+    marginBottom: hp(1),
+    color: '#3B2E57',
+  },
+  uploadArea: {
+    borderWidth: 1,
+    borderColor: '#D9D9D9',
+    borderRadius: 10,
+    padding: hp(3),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  uploadText: {
+    fontSize: getFontSize(12),
+    color: '#6C7A92',
+    textAlign: 'center',
+    marginBottom: hp(2),
+    marginTop: hp(2),
+  },
+  chooseFileButton: {
+    borderWidth: 1,
+    borderColor: '#A0A0A0',
+    borderRadius: 6,
+    paddingVertical: hp(1),
+    paddingHorizontal: wp(6),
+  },
+  chooseFileText: {
+    fontSize: getFontSize(13),
+    color: '#3B2E57',
+    fontWeight: '500',
+  },
+
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: hp(4),
+  },
+  prevButton: {
+    borderWidth: 1,
+    borderColor: '#FF8C00',
+    borderRadius: 8,
+    width: '48%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(1.8),
+  },
+  prevText: {
+    color: '#FF8C00',
+    fontSize: getFontSize(14),
+    fontWeight: '600',
+  },
+  nextButton: {
+    backgroundColor: '#FF8C00',
+    borderRadius: 8,
+    width: '48%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(1.8),
+  },
+  nextText: {
+    color: '#fff',
+    fontSize: getFontSize(14),
+    fontWeight: '600',
+  },
+  save:{
+    height:38,
+    width:38,
+  }
 });

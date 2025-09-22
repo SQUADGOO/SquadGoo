@@ -6,6 +6,7 @@ import {
   Image,
   TouchableOpacity,
   ImageBackground,
+  Text,
 } from 'react-native';
 import AppText, {Variant} from '@/core/AppText';
 import {colors, getFontSize, hp, wp} from '@/theme';
@@ -16,6 +17,7 @@ import {useNavigation} from '@react-navigation/native';
 import icons from '@/assets/icons';
 import MenuCard from '@/components/Recruiter/MenuCard';
 import Scrollable from '@/core/Scrollable';
+import { fonts } from '@/assets/fonts';
 
 const Profile = () => {
   const navigation = useNavigation();
@@ -61,9 +63,9 @@ const Profile = () => {
 
             <View style={{flex: 1, marginLeft: wp(4)}}>
               <View style={{flexDirection: 'row', width: wp(45)}}>
-                <AppText variant={Variant.bodybold} style={styles.name}>
+                <Text  style={styles.name}>
                   Alex Linderson
-                </AppText>
+                </Text>
                 <Image
                   source={icons.time}
                   style={{height: 20, width: 20, left: wp(1)}}
@@ -96,34 +98,32 @@ const Profile = () => {
             </View>
           </View>
 
-          <Spacer size={16} />
+          <Spacer size={35} />
 
           <View style={styles.infoRow}>
-            <Image source={icons.msg} style={{height: 18, width: 22}} />
+            <Image resizeMode='contain' source={icons.msg} style={{height: 18, width: 22}} />
             <AppText variant={Variant.caption} style={styles.infoText}>
-              Email: jobseeker@yopmail.com
+              Email: <Text style={{fontFamily:fonts.poppinsSemiBold}}> jobseeker@yopmail.com</Text>
             </AppText>
           </View>
 
-          <Spacer size={8} />
 
           <View style={styles.infoRow}>
-            <Image source={icons.call} style={{height: 18, width: 22}} />
+            <Image resizeMode='contain' source={icons.call} style={{height: 18, width: 22}} />
             <AppText variant={Variant.caption} style={styles.infoText}>
-              Phone: +61 5875767524
+              Phone: <Text style={{fontFamily:fonts.poppinsSemiBold}}>+61 5875767524</Text>
             </AppText>
           </View>
 
-          <Spacer size={8} />
 
           <View style={styles.infoRow}>
-            <Image source={icons.pf} style={{height: 22, width: 22}} />
+            <Image resizeMode='contain' source={icons.pf} style={{height: 22, width: 22}} />
             <AppText variant={Variant.caption} style={styles.infoText}>
               Profile Status:{' '}
-              <AppText style={{color: colors.error}}>Incomplete</AppText>
+              <Text style={{fontFamily:fonts.poppinsSemiBold}}>Incomplete</Text>
             </AppText>
             <TouchableOpacity style={{marginLeft: 'auto'}}>
-              <Image source={icons.edit} style={{height: 22, width: 22}} />
+              <Image resizeMode='contain' source={icons.edit} style={{height: 22, width: 22}} />
             </TouchableOpacity>
           </View>
         </ImageBackground>
@@ -170,6 +170,7 @@ const styles = StyleSheet.create({
   name: {
     color: colors.white,
     fontSize: getFontSize(18),
+  fontFamily: fonts.poppinsSemiBold,
   },
   subtitle: {
     color: colors.white,
@@ -178,9 +179,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: hp(1),
+    marginLeft: wp(2),
   },
   infoText: {
-    marginLeft: 8,
+    marginLeft: wp(5),
     color: colors.white,
   },
 });

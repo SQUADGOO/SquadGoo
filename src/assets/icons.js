@@ -14,6 +14,12 @@ export default Icons = {
     notification: require('./icons/header/notification.png'),
     search: require('./icons/header/search.png'),
 
+    msg: require('./icons/profile/msg.png'),
+    call: require('./icons/profile/call.png'),
+    pf: require('./icons/profile/pf.png'),
+    edit: require('./icons/profile/edit.png'),
+    save: require('./icons/profile/save.png'),
+
     //wallet icons
 
     excelexport: require('./icons/wallet/excelexport.png'),

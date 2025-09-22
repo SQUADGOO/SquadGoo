@@ -1,11 +1,12 @@
 // components/MenuCard.js
 import React from 'react';
-import {StyleSheet, View, TouchableOpacity, FlatList} from 'react-native';
+import {StyleSheet, View, TouchableOpacity, FlatList, Text} from 'react-native';
 import AppText, {Variant} from '@/core/AppText';
-import {colors, wp} from '@/theme';
+import {colors, getFontSize, wp} from '@/theme';
 import VectorIcons, {iconLibName} from '@/theme/vectorIcon';
 import {useNavigation} from '@react-navigation/native';
 import { screenNames } from '@/navigation/screenNames';
+import { fonts } from '@/assets/fonts';
 
 const menuItems = [
   {label: 'Basic details', route: screenNames.BASIC_DETAILS},
@@ -27,9 +28,9 @@ const MenuCard = () => {
     <TouchableOpacity
       style={styles.menuItem}
       onPress={() => navigation.navigate(item.route)}>
-      <AppText variant={Variant.body} style={styles.menuText}>
+      <Text  style={styles.menuText}>
         {item.label}
-      </AppText>
+      </Text>
       <VectorIcons
         name={iconLibName.AntDesign}
         iconName="right"
@@ -71,7 +72,9 @@ const styles = StyleSheet.create({
   },
   menuText: {
     flex: 1,
-    color: colors.black,
+    color: colors.text,
+    fontFamily:fonts.poppinsMedium,
+    fontSize: getFontSize(16),
   },
   separator: {
     height: 1,

@@ -44,7 +44,7 @@ const getMenuItemsByRole = (role) => {
         key: 'dashboard',
         title: 'Dashboard',
         iconImage: icons.menu,
-        route: screenNames.JOBSEEKER_DRAWER, // unified route
+        route: screenNames.MAIN_DASHBOARD, // unified route
       },
       {
         key: 'find-staff',

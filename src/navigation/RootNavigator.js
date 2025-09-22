@@ -8,7 +8,7 @@ import MainNavigator from "./MainNavigator";
 import TabNavigator from "./TabNavigator";
 import DrawerNavigator from "./DrawerNavigator";
 import JobSeekerDrawerNavigator from "./JobSeekerDrawer";
-import { Profile } from "@/screens";
+import { Address, BasicDetails, Biography, ContactDetails, JobQualification, KycBusiness, KycDocument, KycSubmit, KycVerification, Password, Profile, SocialMedia, TaxInformation, VisaDetails } from "@/screens";
 
 const Stack = createStackNavigator();
 
@@ -45,6 +45,20 @@ const RootNavigator = () => {
           name={screenNames.PROFILE}
           component={Profile}
         />
+         <Stack.Screen name={screenNames.BASIC_DETAILS} component={BasicDetails} />
+              <Stack.Screen name={screenNames.ADDRESS} component={Address} />
+              <Stack.Screen name={screenNames.CONTACT_DETAILS} component={ContactDetails} />
+              <Stack.Screen name={screenNames.TAX_INFO} component={TaxInformation} />
+              <Stack.Screen name={screenNames.VISA_DETAILS} component={VisaDetails} />
+              <Stack.Screen name={screenNames.KYC_KYB} component={KycVerification} />
+              <Stack.Screen name={screenNames.EXTRA_QUALIFICATIONS} component={JobQualification} />
+              <Stack.Screen name={screenNames.BIO} component={Biography} />
+              <Stack.Screen name={screenNames.SOCIAL_MEDIA} component={SocialMedia} />
+              <Stack.Screen name={screenNames.PASSWORD} component={Password} />
+              <Stack.Screen name={screenNames.KYC_KYB_DOC} component={KycDocument} />
+              <Stack.Screen name={screenNames.KYC_KYB_SUBMIT} component={KycSubmit} />
+              <Stack.Screen name={screenNames.KYC_BUSINESS} component={KycBusiness} />
+
     </Stack.Navigator>
   );
 };

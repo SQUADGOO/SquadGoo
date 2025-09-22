@@ -15,7 +15,7 @@ import AppText, {Variant} from '@/core/AppText';
 import AppHeader from '@/core/AppHeader';
 import { screenNames } from '@/navigation/screenNames';
 
-const KycVerification = () => {
+const KycBusiness = () => {
   const navigation = useNavigation();
 
   return (
@@ -48,7 +48,7 @@ const KycVerification = () => {
         key={tab}
         style={[
           styles.stepLabel,
-          index === 0 ? styles.activeLabel : styles.inactiveLabel,
+        (index === 0 || index === 1) ? styles.activeLabel : styles.inactiveLabel,
         ]}>
         {tab}
       </AppText>
@@ -63,17 +63,18 @@ const KycVerification = () => {
         <View
           style={[
             styles.dot,
-            { backgroundColor: index === 0 ? colors.primary : '#D9D9D9' },
+            { backgroundColor: (index === 0 || index === 1) ? colors.primary : '#D9D9D9' },
           ]}
         />
         {/* Line (not after last dot) */}
         {index < arr.length - 1 && (
-          <View
-            style={[
-              styles.line,
-              { backgroundColor: index === 0 ? colors.primary : '#D9D9D9' },
-            ]}
-          />
+        <View
+  style={[
+    styles.line,
+    { backgroundColor: (index === 0 || index === 1) ? colors.primary : '#D9D9D9' },
+  ]}
+/>
+
         )}
       </React.Fragment>
     ))}
@@ -83,20 +84,20 @@ const KycVerification = () => {
 
         {/* Section Title */}
         <AppText variant={Variant.h3} style={styles.sectionTitle}>
-          Personal Information
+  Business Information
         </AppText>
         <AppText variant={Variant.body} style={styles.sectionSubtitle}>
-          Provide your personal details for identity verification
+    Provide your business details for company verification
         </AppText>
 
         {/* Input Fields */}
         {[
-          {label: 'Full Name (as per ID)', placeholder: 'John Doe'},
-          {label: 'NRIC/Passport Number', placeholder: 'JG12345678'},
-          {label: 'Nationality', placeholder: 'USA'},
-          {label: 'Occupation', placeholder: 'Software Engineer'},
-          {label: 'Monthly Income (SGD)', placeholder: '5000'},
-          {label: 'Source of Funds', placeholder: 'Employment'},
+          {label: 'Business Name', placeholder: 'John Doe'},
+          {label: 'Registration No.', placeholder: 'JG12345678'},
+          {label: 'Business Type', placeholder: 'USA'},
+          {label: 'Years of Operation', placeholder: 'Software Engineer'},
+          {label: 'Business Address', placeholder: '5000'},
+          {label: 'Annual Revenue (SGD)', placeholder: 'Employment'},
         ].map((field, index) => (
           <View key={index} style={{marginTop: hp(2)}}>
             <AppText style={styles.inputLabel}>{field.label}</AppText>
@@ -113,7 +114,7 @@ const KycVerification = () => {
           <TouchableOpacity style={styles.prevButton}>
             <AppText style={styles.prevText}>Previous</AppText>
           </TouchableOpacity>
-          <TouchableOpacity onPress={()=>navigation.navigate(screenNames.KYC_BUSINESS)} style={styles.nextButton}>
+          <TouchableOpacity onPress={()=>navigation.navigate(screenNames.KYC_KYB_DOC)} style={styles.nextButton}>
             <AppText style={styles.nextText}>Next</AppText>
           </TouchableOpacity>
         </View>
@@ -122,7 +123,7 @@ const KycVerification = () => {
   );
 };
 
-export default KycVerification;
+export default KycBusiness;
 
 const styles = StyleSheet.create({
   header: {
@@ -202,7 +203,6 @@ marginTop: hp(2), },
     color: '#6C7A92',
     marginBottom: hp(2),
     fontSize: getFontSize(12),
-
   },
   inputLabel: {
     fontSize: getFontSize(13),

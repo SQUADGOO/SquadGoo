@@ -79,6 +79,7 @@ QUICK_SEARCH_STEPFOUR:'manual_search_stepfour',
   WORK_EXPERIENCE:'work_experience',
   MARKET_PLACE:'market_place',
 PRODUCT_DETAILS:'product_details',
+KYC_BUSINESS:'kyc_business',
 
 
   // FORGOT_PASSWORD: 'forgot_password',
