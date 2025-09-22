@@ -23,7 +23,7 @@ export const colors = {
   yellowBg: 'rgba(239, 190, 18, 0.1)',
   white: '#FFFFFF',
   whiteF8: '#F8F8F8',
-  
+
   borderGray: '#D5D7DA',
   grayE8: '#e8e8ea',
   white01: 'rgba(255, 255, 255, 0.1)',
@@ -32,4 +32,12 @@ export const colors = {
   gray02: 'rgba(162, 161, 168, 0.2)',
   red01: 'rgba(244, 91, 105, 0.1)',
   black04: 'rgba(0, 0, 0, 0.4)',
+
+  text: '#65789A',
+  text1:'#604478',
+  orange: '#feecd8',
+
+  gold:'#E17100',
+  platinum:"#A631FB",
+  gold:"#D08700"
 };

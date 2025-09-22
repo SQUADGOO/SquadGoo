@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {LogBox, StyleSheet} from 'react-native';
 import React, {useEffect} from 'react';
 import {Provider} from 'react-redux';
 import {NavigationContainer} from '@react-navigation/native';
@@ -10,6 +10,8 @@ import toastConfig from './src/utilities/toastConfig';
 import {store} from './src/store/store';
 import {navigationRef} from './src/navigation/navigationRef';
 import { enableScreens } from 'react-native-screens';
+
+LogBox.ignoreAllLogs(true);
 
 enableScreens();
 

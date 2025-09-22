@@ -36,30 +36,47 @@ const SignIn = ({ navigation }) => {
 
   const { handleSubmit, formState: { isSubmitting } } = methods
 
-  const handleLogin = async (data) => {
-    try {
-      console.log('Login with:', data);
-        const { email, password } = methods.getValues();
-    // Add social login logic here
-    if((email == 'recruiter@gmail.com' || email == 'Recruiter@gmail.com' && password == 'Recruiter@123') )
-      {
-        store?.dispatch(login({
+const handleLogin = async (data) => {
+  try {
+    console.log('Login with:', data);
+    const { email, password } = methods.getValues();
+
+    // Recruiter credentials
+    if (
+      (email === 'recruiter@gmail.com' || email === 'Recruiter@gmail.com') &&
+      password === 'Recruiter@123'
+    ) {
+      store?.dispatch(
+        login({
           token: 'token',
-          userInfo: {email: email, password: password},
-          role: 'recruiter'
-        }))
-      } else {
-        showToast('Invalid email or password', 'error', toastTypes.error)
-      }
-      // Add your login logic here
-      // Example: await signInUser(data.email, data.password, rememberMe)
-      // Alert.alert('Success', 'Login successful!')
-      // navigation.navigate('Home') // Navigate to your home screen
-    } catch (error) {
-      Alert.alert('Error', 'Login failed. Please try again.')
-      console.error('Login error:', error)
+          userInfo: { email, password },
+          role: 'recruiter',
+        })
+      );
     }
-  };
+    // Jobseeker credentials
+    else if (
+      (email === 'jobseeker@gmail.com' || email === 'Jobseeker@gmail.com') &&
+      password === 'Jobseeker@123'
+    ) {
+      store?.dispatch(
+        login({
+          token: 'token',
+          userInfo: { email, password },
+          role: 'jobseeker',
+        })
+      );
+    }
+    // Invalid credentials
+    else {
+      showToast('Invalid email or password', 'error', toastTypes.error);
+    }
+  } catch (error) {
+    Alert.alert('Error', 'Login failed. Please try again.');
+    console.error('Login error:', error);
+  }
+};
+
 
   const handleSocialLogin = (provider) => {
   

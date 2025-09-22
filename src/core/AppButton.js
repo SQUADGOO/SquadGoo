@@ -79,7 +79,7 @@ const AppButton = ({
 export default memo(AppButton);
 const styles = StyleSheet.create({
   container: {
-    height: hp(5.8),
+    height: hp(5.5),
     borderRadius: hp(3),
     ...globalStyles.columnCenter,
     borderRadius: hp(1),

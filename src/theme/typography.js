@@ -1,4 +1,4 @@
-import {Dimensions} from 'react-native';
+import { Dimensions } from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -14,10 +14,10 @@ const getFontSize = baseSize => {
 };
 
 const typography = {
-  heading: {fontSize: getFontSize(24), fontWeight: 'bold'},
-  label: {fontSize: getFontSize(14), },
-  body: {fontSize: getFontSize(16)},
-  caption: {fontSize: getFontSize(12)},
+  heading: { fontSize: getFontSize(24), fontWeight: 'bold' },
+  label: { fontSize: getFontSize(14), },
+  body: { fontSize: getFontSize(16) },
+  caption: { fontSize: getFontSize(12) },
 };
 
-export {getFontSize, typography, wp, hp};
+export { getFontSize, typography, wp, hp };

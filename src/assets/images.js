@@ -11,6 +11,10 @@ export default Images = {
   //mainheader
   header: require('./images/mainheader/header.png'),
   map: require('./images/update/map.png'),
+  phead: require('./images/mainheader/phead.png'),
+  car:require('./images/MarkertPlace/car.png'),
+  phone:require('./images/MarkertPlace/phone.png'),
+  mc:require('./images/Mc.png'),
 
 
 };
