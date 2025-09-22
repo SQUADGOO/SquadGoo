@@ -172,6 +172,18 @@ const JobSeekerDrawerNavigator = () => {
         name={screenNames.PRODUCT_DETAILS}
         component={ui.ProductDetails}
       />
+        <Drawer.Screen  
+        name={screenNames.ADD_EXPERIENCE}
+        component={ui.AddExperience}
+      />
+          <Drawer.Screen
+        name={screenNames.ADD_JOB_STEP1}
+        component={ui.AddJobStep1}
+      />
+          <Drawer.Screen
+        name={screenNames.ADD_JOB_STEP2}
+        component={ui.AddJobStep2}
+      />
     </Drawer.Navigator>
   );
 };

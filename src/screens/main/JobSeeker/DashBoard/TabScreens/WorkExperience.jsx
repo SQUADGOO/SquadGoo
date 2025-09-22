@@ -1,14 +1,15 @@
 import AppHeader from '@/core/AppHeader';
+import { screenNames } from '@/navigation/screenNames';
 import { hp } from '@/theme';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const WorkExperienceScreen = () => {
+const WorkExperienceScreen = ({navigation}) => {
   return (
     <ScrollView style={styles.container}>
-   <AppHeader showBackButton={false} title='Work Experience'/>
+   <AppHeader onPlusPress={()=>navigation.navigate(screenNames.ADD_EXPERIENCE)} showPlusIcon={true} showBackButton={false} title='Work Experience'/>
       <View style={styles.headerRow}>
         <Text style={styles.jobTitle}>Bricklayer</Text>
         <TouchableOpacity>

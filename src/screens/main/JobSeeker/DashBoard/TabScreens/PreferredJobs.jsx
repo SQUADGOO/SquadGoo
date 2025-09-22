@@ -1,9 +1,10 @@
 import AppHeader from '@/core/AppHeader';
+import { screenNames } from '@/navigation/screenNames';
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const PreferredJobs = () => {
+const PreferredJobs = ({navigation}) => {
   const availability = [
     { day: 'Monday', from: '15:22', to: '23:22' },
     { day: 'Tuesday', from: '15:22', to: '23:22' },
@@ -16,7 +17,7 @@ const PreferredJobs = () => {
 
   return (
     <ScrollView style={styles.container}>
-        <AppHeader showBackButton={false} title='Preferred Jobs'/>
+        <AppHeader onPlusPress={()=>navigation.navigate(screenNames.ADD_JOB_STEP1)} showPlusIcon={true} showBackButton={false} title='Preferred Jobs'/>
           <View style={styles.headerRow}>
                 <Text style={styles.jobTitle}>Event Coordinator</Text>
                 <TouchableOpacity>

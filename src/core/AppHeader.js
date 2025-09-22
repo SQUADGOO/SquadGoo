@@ -23,8 +23,10 @@ const AppHeader = ({
   onMenuPress,
   onNotificationPress,
   onSearchPress,
+  onPlusPress,
   notificationCount = 0,
   useImageBackground = true,
+  showPlusIcon = false,   // <-- NEW PROP
   children
 }) => {
   const insets = useSafeAreaInsets()
@@ -44,7 +46,6 @@ const AppHeader = ({
         <View style={styles.topIconsContainer}>
           {/* Left Side - Menu Button */}
           <TouchableOpacity
-
             style={styles.iconButton}
             onPress={() => navigation.openDrawer()}
             activeOpacity={0.7}
@@ -56,7 +57,7 @@ const AppHeader = ({
           <View style={globalStyles.flexRow}>
             <TouchableOpacity
               style={styles.iconButton}
-              onPress={()=>navigation.navigate(screenNames.NOTICATIONS)}
+              onPress={() => navigation.navigate(screenNames.NOTICATIONS)}
               activeOpacity={0.7}
             >
               <Image source={Icons.notification} style={styles.iconStyle} />
@@ -96,18 +97,19 @@ const AppHeader = ({
           </TouchableOpacity>
         )}
         
-        <AppText variant={Variant.title} style={[
-          styles.headerTitle,
-          !showBackButton && styles.headerTitleNoBack
-          , {fontWeight: 'bold'}
-        ]}>
+        <AppText
+          variant={Variant.title}
+          style={[
+            styles.headerTitle,
+            !showBackButton && styles.headerTitleNoBack,
+            { fontWeight: 'bold' }
+          ]}
+        >
           {title}
         </AppText>
         
         {rightComponent ? (
-          <View style={styles.rightComponent}>
-            {rightComponent}
-          </View>
+          <View style={styles.rightComponent}>{rightComponent}</View>
         ) : stepIndicator ? (
           <AppText variant={Variant.bodyMedium} style={styles.stepIndicator}>
             {stepIndicator}
@@ -127,23 +129,33 @@ const AppHeader = ({
         translucent 
       />
     
-        <View style={styles.headerWrapper}>
-          <ImageBackground 
-            source={Images.header} 
-            style={[styles.header, { paddingTop: insets.top }]}
-            imageStyle={styles.headerImageStyle}
-          >
-            <View style={{paddingHorizontal: wp(4)}}>
+      <View style={styles.headerWrapper}>
+        <ImageBackground 
+          source={Images.header} 
+          style={[styles.header, { paddingTop: insets.top }]}
+          imageStyle={styles.headerImageStyle}
+        >
+          <View style={{ paddingHorizontal: wp(4) }}>
             {renderContent()}
-          {children && children}
+            {children && children}
+          </View>
 
-            </View>
-          </ImageBackground>
-        </View>
-      
+          {/* Plus Icon Floating in Bottom-Right */}
+          {showPlusIcon && (
+            <TouchableOpacity
+              style={styles.plusIconButton}
+              onPress={onPlusPress}
+              activeOpacity={0.7}
+            >
+              <Image source={Icons.plus} style={styles.iconStyle} />
+            </TouchableOpacity>
+          )}
+        </ImageBackground>
+      </View>
     </>
   )
 }
+
 
 export default AppHeader
 
@@ -229,5 +241,15 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: getFontSize(9),
     fontWeight: 'bold',
+  },
+   plusIconButton: {
+    position: 'absolute',
+    bottom: hp(1.5),   // space from bottom of header
+    right: wp(4),      // space from right
+    borderRadius: wp(6),
+    padding: wp(2),
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
   },
 })

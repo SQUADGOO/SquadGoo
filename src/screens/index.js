@@ -70,6 +70,9 @@ import JobSeekerDashboard from './main/JobSeeker/DashBoard/Dashboard';
 import MarketPlace from './main/JobSeeker/DashBoard/MarketPlace/MarketPlace';
 import ProductDetails from './main/JobSeeker/DashBoard/MarketPlace/ProductDetails';
 import KycBusiness from './main/Recruiter/profile/kyc/KycBusiness';
+import AddExperience from './main/JobSeeker/DashBoard/TabScreens/AddExperince/AddExpericnce';
+import AddJobStep1 from './main/JobSeeker/DashBoard/TabScreens/AddExperince/AddJobStep1';
+import AddJobStep2 from './main/JobSeeker/DashBoard/TabScreens/AddExperince/AddJobStep2';
 // Tab Screens
 
 export {
@@ -143,4 +146,7 @@ JobSeekerDashboard,
 MarketPlace,
 ProductDetails,
 KycBusiness,
+AddExperience,
+AddJobStep1,
+AddJobStep2
 };

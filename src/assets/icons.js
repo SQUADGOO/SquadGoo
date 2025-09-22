@@ -27,4 +27,5 @@ export default Icons = {
     purchasecoins: require('./icons/wallet/purchasecoins.png'),
     referredcoins: require('./icons/wallet/referredcoins.png'),
     refertoearn: require('./icons/wallet/refertoearn.png'),
+    plus: require('./icons/plus.png'),
 };
