@@ -7,9 +7,11 @@ import {
   FlatList,
   Modal,
   TextInput,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useForm, FormProvider } from 'react-hook-form';
+import ImagePicker from 'react-native-image-crop-picker';
 import { colors, getFontSize, hp, wp } from '@/theme';
 import AppHeader from '@/core/AppHeader';
 import AppText, { Variant } from '@/core/AppText';
@@ -30,16 +32,40 @@ const SquadSettings = () => {
 
   const { watch, setValue, handleSubmit, reset } = methods;
 
-  const [groups, setGroups] = useState([]); // Groups list
+  const [groups, setGroups] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [profileImage, setProfileImage] = useState(null);
 
   const taxType = watch('taxType');
 
+  // pick image with cropper
+  const handlePickImage = async () => {
+    try {
+      const img = await ImagePicker.openPicker({
+        width: 400,
+        height: 400,
+        cropping: true,
+        cropperCircleOverlay: true,
+        mediaType: 'photo',
+      });
+      setProfileImage(img.path);
+    } catch (err) {
+      console.log('Image pick cancelled', err);
+    }
+  };
+
   const handleCreateGroup = (data) => {
-    if (!data.name) return; // basic validation
-    const newGroup = { ...data, id: Date.now().toString() };
+    if (!data.name) return;
+
+    const newGroup = {
+      ...data,
+      id: Date.now().toString(),
+      image: profileImage,
+    };
+
     setGroups([...groups, newGroup]);
     reset();
+    setProfileImage(null);
     setModalVisible(false);
   };
 
@@ -49,6 +75,18 @@ const SquadSettings = () => {
       onPress={() =>
         navigation.navigate(screenNames.GROUP_DETAIL, { group: item })
       }>
+      {item.image ? (
+        <Image source={{ uri: item.image }} style={styles.groupImage} />
+      ) : (
+        <View style={styles.groupImagePlaceholder}>
+          <VectorIcons
+            name="Feather"
+            iconName="users"
+            size={20}
+            color={colors.gray}
+          />
+        </View>
+      )}
       <View style={{ flex: 1 }}>
         <AppText variant={Variant.h3} style={styles.groupTitle}>
           {item.name}
@@ -77,7 +115,6 @@ const SquadSettings = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <AppHeader
         title="Squad Settings"
         showTopIcons={false}
@@ -93,7 +130,6 @@ const SquadSettings = () => {
         }
       />
 
-      {/* Groups List */}
       {groups.length === 0 ? (
         <View style={styles.emptyContainer}>
           <AppText variant={Variant.h3} style={styles.emptyText}>
@@ -124,6 +160,19 @@ const SquadSettings = () => {
                 Create Squad
               </AppText>
 
+              {/* Profile Image Picker */}
+              <TouchableOpacity
+                style={styles.imagePicker}
+                onPress={handlePickImage}>
+                {profileImage ? (
+                  <Image source={{ uri: profileImage }} style={styles.preview} />
+                ) : (
+                  <AppText style={{ color: colors.gray }}>
+                    Upload Squad Image
+                  </AppText>
+                )}
+              </TouchableOpacity>
+
               <TextInput
                 placeholder="Squad Name"
                 value={watch('name')}
@@ -137,11 +186,8 @@ const SquadSettings = () => {
                 onChangeText={(t) => setValue('description', t)}
                 style={styles.input}
                 placeholderTextColor={colors.gray}
-                
-
               />
 
-              {/* Tax Type (styled same as AvailabilityScreen) */}
               <AppText variant={Variant.h2} style={styles.sectionTitle}>
                 Required Tax type
               </AppText>
@@ -171,7 +217,6 @@ const SquadSettings = () => {
                 onChangeText={(t) => setValue('experience', t)}
                 style={styles.input}
                 placeholderTextColor={colors.gray}
-
               />
 
               <View style={styles.modalButtons}>
@@ -221,6 +266,23 @@ const styles = StyleSheet.create({
     padding: wp(4),
     marginBottom: hp(1.5),
   },
+  groupImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: wp(3),
+  },
+  groupImagePlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: wp(3),
+    borderWidth: 1,
+    borderColor: colors.lightGray,
+  },
   groupTitle: {
     color: colors.secondary,
     fontWeight: '600',
@@ -247,6 +309,20 @@ const styles = StyleSheet.create({
     color: colors.secondary,
     marginBottom: hp(2),
     textAlign: 'center',
+  },
+  imagePicker: {
+    height: 120,
+    borderWidth: 1,
+    borderColor: colors.lightGray,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: hp(1.5),
+  },
+  preview: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
   },
   input: {
     borderWidth: 1,

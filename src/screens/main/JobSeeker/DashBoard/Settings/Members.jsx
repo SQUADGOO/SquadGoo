@@ -6,27 +6,62 @@ import {
   TouchableOpacity,
   TextInput,
   StyleSheet,
+  Image,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { colors, hp, wp } from "@/theme";
 import AppHeader from "@/core/AppHeader";
 import AppText, { Variant } from "@/core/AppText";
-import AppButton from "@/core/AppButton";
 import VectorIcons from "@/theme/vectorIcon";
 import { screenNames } from "@/navigation/screenNames";
 
 const dummyMembers = [
-  { id: "1", name: "Ali Khan" },
-  { id: "2", name: "Sara Ahmed" },
-  { id: "3", name: "Bilal Sheikh" },
-  { id: "4", name: "Fatima Noor" },
-  { id: "5", name: "Hassan Raza" },
+  {
+    id: "1",
+    name: "Ali Khan",
+    job: "Electrician",
+    experience: "3 years",
+    image:
+      "https://randomuser.me/api/portraits/men/1.jpg",
+  },
+  {
+    id: "2",
+    name: "Sara Ahmed",
+    job: "Software Engineer",
+    experience: "5 years",
+    image:
+      "https://randomuser.me/api/portraits/women/2.jpg",
+  },
+  {
+    id: "3",
+    name: "Bilal Sheikh",
+    job: "Plumber",
+    experience: "2 years",
+    image:
+      "https://randomuser.me/api/portraits/men/3.jpg",
+  },
+  {
+    id: "4",
+    name: "Fatima Noor",
+    job: "Designer",
+    experience: "4 years",
+    image:
+      "https://randomuser.me/api/portraits/women/4.jpg",
+  },
+  {
+    id: "5",
+    name: "Hassan Raza",
+    job: "Driver",
+    experience: "6 years",
+    image:
+      "https://randomuser.me/api/portraits/men/5.jpg",
+  },
 ];
 
 const Members = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { onDone, existingMembers } = route.params || {};
+  const { existingMembers = [] } = route.params || {};
 
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(existingMembers);
@@ -44,13 +79,12 @@ const Members = () => {
   );
 
   const handleDone = () => {
-  navigation.navigate({
-    name: screenNames.SQUAD_SETTINGS,
-    params: { updatedGroup: { id: route.params.groupId, members: selected } },
-    merge: true,
-  });
-};
-
+    navigation.navigate({
+      name: screenNames.SQUAD_SETTINGS,
+      params: { updatedGroup: { id: route.params.groupId, members: selected } },
+      merge: true,
+    });
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.white }}>
@@ -75,6 +109,7 @@ const Members = () => {
           value={search}
           onChangeText={setSearch}
           style={styles.searchInput}
+          placeholderTextColor={colors.gray}
         />
       </View>
 
@@ -86,12 +121,26 @@ const Members = () => {
           const isSelected = selected.some((m) => m.id === item.id);
           return (
             <TouchableOpacity
-              style={styles.memberCard}
+              style={[styles.memberCard, isSelected && styles.selectedCard]}
               onPress={() => toggleSelect(item)}
             >
-              <AppText variant={Variant.body} style={{ flex: 1 }}>
-                {item.name}
-              </AppText>
+              {/* Profile Image */}
+              <Image source={{ uri: item.image }} style={styles.memberImage} />
+
+              {/* Info */}
+              <View style={{ flex: 1 }}>
+                <AppText variant={Variant.body} style={styles.memberName}>
+                  {item.name}
+                </AppText>
+                <AppText variant={Variant.bodySmall} style={styles.memberJob}>
+                  {item.job}
+                </AppText>
+                <AppText variant={Variant.bodySmall} style={styles.memberExp}>
+                  {item.experience}
+                </AppText>
+              </View>
+
+              {/* Check Icon */}
               {isSelected && (
                 <VectorIcons
                   name="Feather"
@@ -129,8 +178,30 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.lightGray,
-    borderRadius: 8,
+    borderRadius: 10,
     padding: wp(3),
-    marginBottom: hp(1),
+    marginBottom: hp(1.5),
+  },
+  selectedCard: {
+    borderWidth: 2,
+    borderColor: colors.primary,
+  },
+  memberImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: wp(3),
+  },
+  memberName: {
+    color: colors.secondary,
+    fontWeight: "600",
+  },
+  memberJob: {
+    color: colors.primary,
+    marginTop: 2,
+  },
+  memberExp: {
+    color: colors.gray,
+    marginTop: 2,
   },
 });

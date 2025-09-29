@@ -1,5 +1,5 @@
 // screens/GroupDetail.jsx
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   StyleSheet,
@@ -7,38 +7,87 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
-} from 'react-native';
-import { useRoute } from '@react-navigation/native';
-import { colors, hp, wp } from '@/theme';
-import AppHeader from '@/core/AppHeader';
-import AppText, { Variant } from '@/core/AppText';
-import AppButton from '@/core/AppButton';
-import VectorIcons from '@/theme/vectorIcon';
+  Image,
+  Alert,
+} from "react-native";
+import { useRoute, useNavigation } from "@react-navigation/native";
+import { colors, hp, wp } from "@/theme";
+import AppHeader from "@/core/AppHeader";
+import AppText, { Variant } from "@/core/AppText";
+import AppButton from "@/core/AppButton";
+import VectorIcons from "@/theme/vectorIcon";
 
 const GroupDetail = () => {
   const route = useRoute();
+  const navigation = useNavigation();
   const { group } = route.params; // passed from SquadSettings
 
   const [members, setMembers] = useState([
-    { id: '1', name: 'John Doe' },
-    { id: '2', name: 'Jane Smith' },
+    {
+      id: "1",
+      name: "John Doe",
+      job: "Software Engineer",
+      experience: "3 years",
+      image: "https://randomuser.me/api/portraits/men/1.jpg",
+    },
+    {
+      id: "2",
+      name: "Jane Smith",
+      job: "UI/UX Designer",
+      experience: "2 years",
+      image: "https://randomuser.me/api/portraits/women/2.jpg",
+    },
   ]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [newMember, setNewMember] = useState('');
+  const [newMember, setNewMember] = useState("");
 
   const addMember = () => {
     if (!newMember.trim()) return;
-    setMembers([...members, { id: Date.now().toString(), name: newMember }]);
-    setNewMember('');
+    setMembers([
+      ...members,
+      {
+        id: Date.now().toString(),
+        name: newMember,
+        job: "Unknown",
+        experience: "N/A",
+        image: "https://via.placeholder.com/150",
+      },
+    ]);
+    setNewMember("");
     setModalVisible(false);
+  };
+
+  const deleteGroup = () => {
+    Alert.alert(
+      "Delete Group",
+      "Are you sure you want to delete this group?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            navigation.goBack(); // Go back after delete
+          },
+        },
+      ]
+    );
   };
 
   const renderMember = ({ item }) => (
     <View style={styles.memberCard}>
-      <VectorIcons name="Feather" iconName="user" size={20} color={colors.secondary} />
-      <AppText variant={Variant.bodyMedium} style={styles.memberName}>
-        {item.name}
-      </AppText>
+      <Image source={{ uri: item.image }} style={styles.memberImage} />
+      <View style={{ flex: 1, marginLeft: wp(3) }}>
+        <AppText variant={Variant.bodyMedium} style={styles.memberName}>
+          {item.name}
+        </AppText>
+        <AppText variant={Variant.bodySmall} style={styles.memberJob}>
+          {item.job}
+        </AppText>
+        <AppText variant={Variant.bodySmall} style={styles.memberExp}>
+          {item.experience}
+        </AppText>
+      </View>
     </View>
   );
 
@@ -50,9 +99,23 @@ const GroupDetail = () => {
         showTopIcons={false}
         rightComponent={
           <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <VectorIcons name="Feather" iconName="user-plus" size={24} color="#FFF" />
+            <VectorIcons
+              name="Feather"
+              iconName="user-plus"
+              size={24}
+              color="#FFF"
+            />
           </TouchableOpacity>
         }
+      />
+
+      {/* Group Image */}
+      <Image
+        source={{
+          uri:
+            group.image || "https://via.placeholder.com/500x250.png?text=Group",
+        }}
+        style={styles.groupImage}
       />
 
       {/* Group Info */}
@@ -61,29 +124,52 @@ const GroupDetail = () => {
           {group.name}
         </AppText>
         <AppText variant={Variant.bodySmall} style={styles.groupDesc}>
-          {group.description || 'No description'}
+          {group.description || "No description"}
         </AppText>
 
         <View style={styles.infoRow}>
-          <VectorIcons name="MaterialIcons" iconName="receipt" size={18} color={colors.secondary} />
+          <VectorIcons
+            name="MaterialIcons"
+            iconName="receipt"
+            size={18}
+            color={colors.secondary}
+          />
           <AppText style={styles.groupDetailText}>
             <AppText style={styles.label}>Tax Info: </AppText>
-            {group.taxInfo || 'N/A'}
+            {group.taxInfo || "N/A"}
           </AppText>
         </View>
 
         <View style={styles.infoRow}>
-          <VectorIcons name="Ionicons" iconName="briefcase-outline" size={18} color={colors.secondary} />
+          <VectorIcons
+            name="Ionicons"
+            iconName="briefcase-outline"
+            size={18}
+            color={colors.secondary}
+          />
           <AppText style={styles.groupDetailText}>
             <AppText style={styles.label}>Experience: </AppText>
-            {group.experience || 'N/A'}
+            {group.experience || "N/A"}
           </AppText>
         </View>
+
+        {/* Delete Button */}
+        <AppButton
+          text="Delete Group"
+          onPress={deleteGroup}
+          style={{ marginTop: hp(2), backgroundColor: colors.red,width:'50%',height:hp(5) }}
+          textColor="#FFF"
+        />
       </View>
 
       {/* Members List */}
       <View style={styles.membersHeader}>
-        <VectorIcons name="Feather" iconName="users" size={20} color={colors.secondary} />
+        <VectorIcons
+          name="Feather"
+          iconName="users"
+          size={20}
+          color={colors.secondary}
+        />
         <AppText variant={Variant.h3} style={styles.membersTitle}>
           Squad Members
         </AppText>
@@ -104,12 +190,18 @@ const GroupDetail = () => {
             </AppText>
 
             <View style={styles.inputRow}>
-              <VectorIcons name="Feather" iconName="user" size={20} color={colors.gray} />
+              <VectorIcons
+                name="Feather"
+                iconName="user"
+                size={20}
+                color={colors.gray}
+              />
               <TextInput
                 placeholder="Member Name"
                 value={newMember}
                 onChangeText={setNewMember}
                 style={styles.input}
+                placeholderTextColor={colors.gray}
               />
             </View>
 
@@ -140,6 +232,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
   },
+  groupImage: {
+    width: "100%",
+    height: hp(25),
+    resizeMode: "cover",
+  },
   groupInfo: {
     padding: wp(4),
     borderBottomWidth: 1,
@@ -154,8 +251,8 @@ const styles = StyleSheet.create({
     marginBottom: hp(1.5),
   },
   infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: hp(0.5),
   },
   groupDetailText: {
@@ -163,12 +260,12 @@ const styles = StyleSheet.create({
     marginLeft: wp(2),
   },
   label: {
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.secondary,
   },
   membersHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: wp(4),
     marginTop: hp(2),
     marginBottom: hp(1),
@@ -178,23 +275,36 @@ const styles = StyleSheet.create({
     color: colors.secondary,
   },
   memberCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: wp(4),
     marginHorizontal: wp(4),
     marginBottom: hp(1),
     backgroundColor: colors.lightGray,
     borderRadius: 10,
   },
+  memberImage: {
+    width: wp(12),
+    height: wp(12),
+    borderRadius: wp(6),
+  },
   memberName: {
-    marginLeft: wp(2),
     color: colors.secondary,
-    fontWeight: '500',
+    fontWeight: "600",
+  },
+  memberJob: {
+    color: colors.gray,
+    marginTop: hp(0.3),
+  },
+  memberExp: {
+    color: colors.gray,
+    marginTop: hp(0.2),
+    fontStyle: "italic",
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: '#00000077',
-    justifyContent: 'center',
+    backgroundColor: "#00000077",
+    justifyContent: "center",
     padding: wp(6),
   },
   modalContent: {
@@ -205,11 +315,11 @@ const styles = StyleSheet.create({
   modalTitle: {
     color: colors.secondary,
     marginBottom: hp(2),
-    textAlign: 'center',
+    textAlign: "center",
   },
   inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
     borderColor: colors.lightGray,
     borderRadius: 8,
@@ -223,7 +333,7 @@ const styles = StyleSheet.create({
     color: colors.secondary,
   },
   modalButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginTop: hp(2),
   },
 });
