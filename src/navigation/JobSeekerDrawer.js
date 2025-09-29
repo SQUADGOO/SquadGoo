@@ -184,6 +184,20 @@ const JobSeekerDrawerNavigator = () => {
         name={screenNames.ADD_JOB_STEP2}
         component={ui.AddJobStep2}
       />
+             <Drawer.Screen
+        name={screenNames.SQUAD_SETTINGS_Groups}
+        component={ui.SquadSettingsGroups}
+      />
+
+              <Drawer.Screen
+        name={screenNames.GROUP_DETAIL}
+        component={ui.GroupDetail}
+      />
+              <Drawer.Screen
+        name={screenNames.MEMBERS}
+        component={ui.Members}
+      />
+      
     </Drawer.Navigator>
   );
 };
