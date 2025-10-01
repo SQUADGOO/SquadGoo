@@ -117,7 +117,7 @@ const AddExperience = () => {
         </AppText>
 
         {/* Save Button */}
-        <TouchableOpacity style={styles.saveButton}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.saveButton}>
           <AppText style={styles.saveText}>Save</AppText>
         </TouchableOpacity>
       </View>

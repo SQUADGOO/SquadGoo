@@ -82,14 +82,17 @@ const styles = StyleSheet.create({
     borderRadius: hp(0.15),
   },
   tabItemStyle: {
-    width: 'auto', // Auto width for content
+    width: wp(45), // Auto width for content
     paddingHorizontal: wp(5),
+    // backgroundColor: 'red',
+    
   },
   tabBarContentStyle: {
     paddingHorizontal: wp(4),
   },
   tabLabel: {
     fontSize: getFontSize(14),
+    // width: wp(40),
     fontWeight: 'bold',
     textAlign: 'center',
   },

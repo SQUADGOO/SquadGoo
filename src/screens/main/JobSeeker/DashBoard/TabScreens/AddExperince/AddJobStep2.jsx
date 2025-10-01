@@ -50,7 +50,8 @@ const AddJobStep2 = () => {
 
   const onSubmit = (data) => {
     console.log('Availability Data:', data);
-    navigation.navigate(screenNames.REVIEW, { formData: data });
+    // navigation.navigate(screenNames.REVIEW, { formData: data });
+    navigation.goBack();
   };
 
   return (
