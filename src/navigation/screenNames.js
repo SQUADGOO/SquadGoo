@@ -83,6 +83,9 @@ KYC_BUSINESS:'kyc_business',
 ADD_EXPERIENCE:'add_experience',
 ADD_JOB_STEP1:'add_job_step1',
 ADD_JOB_STEP2:'add_job_step2',
+SQUAD_SETTINGS_Groups:'squad_settings_groups',
+GROUP_DETAIL:'group_detail',
+MEMBERS:'members',
 
 
   // FORGOT_PASSWORD: 'forgot_password',

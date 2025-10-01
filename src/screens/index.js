@@ -73,6 +73,9 @@ import KycBusiness from './main/Recruiter/profile/kyc/KycBusiness';
 import AddExperience from './main/JobSeeker/DashBoard/TabScreens/AddExperince/AddExpericnce';
 import AddJobStep1 from './main/JobSeeker/DashBoard/TabScreens/AddExperince/AddJobStep1';
 import AddJobStep2 from './main/JobSeeker/DashBoard/TabScreens/AddExperince/AddJobStep2';
+import SquadSettingsGroups from './main/JobSeeker/DashBoard/Settings/Groups';
+import GroupDetail from './main/JobSeeker/DashBoard/Settings/GroupDetail';
+import Members from './main/JobSeeker/DashBoard/Settings/Members';
 // Tab Screens
 
 export {
@@ -148,5 +151,8 @@ ProductDetails,
 KycBusiness,
 AddExperience,
 AddJobStep1,
-AddJobStep2
+AddJobStep2,
+SquadSettingsGroups,
+GroupDetail,
+Members
 };
