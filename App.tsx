@@ -10,12 +10,15 @@ import toastConfig from './src/utilities/toastConfig';
 import {store} from './src/store/store';
 import {navigationRef} from './src/navigation/navigationRef';
 import { enableScreens } from 'react-native-screens';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 LogBox.ignoreAllLogs(true);
 
 enableScreens();
 
 const App = () => {
+
+  const queryClient = new QueryClient();
   // useEffect(() => {
   //   requestUserPermission()
   //   getFCMToken()
@@ -28,6 +31,7 @@ const App = () => {
   // }, [])
 
   return (
+    <QueryClientProvider client={queryClient}>
     <NetworkProvider>
       <Provider store={store}>
         <NavigationContainer ref={navigationRef}>
@@ -37,6 +41,7 @@ const App = () => {
         </NavigationContainer>
       </Provider>
     </NetworkProvider>
+    </QueryClientProvider>
   );
 };
 

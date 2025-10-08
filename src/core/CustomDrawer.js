@@ -11,24 +11,18 @@ import { screenNames } from '../navigation/screenNames'
 import { useSelector } from 'react-redux'
 import { useNavigation } from '@react-navigation/native'
 import MarketPlace from '@/screens/main/JobSeeker/DashBoard/MarketPlace/MarketPlace'
+import FastImageView from './FastImageView'
 
 const CustomDrawer = ({
-  userProfile = {
-    name: 'Olivia Rhye',
-    role: 'Recruiter',
-    // role: 'Job Seeker',
-    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b578?w=100&h=100&fit=crop&crop=face',
-    isVerified: true
-  },
   onNavigate,
   onLogout
 }) => {
   const insets = useSafeAreaInsets()
   const [expandedSections, setExpandedSections] = useState({})
-const navigation= useNavigation()
+  const navigation = useNavigation()
   // 🔹 Get current user info from Redux
   const { userInfo, role } = useSelector((state) => state.auth)
-  console.log('User Info from Redux:', userInfo, 'Role:', role)
+  // console.log('User Info from Redux:', userInfo, 'Role:', role)
 
   const toggleSection = (sectionKey) => {
     setExpandedSections(prev => ({
@@ -37,222 +31,222 @@ const navigation= useNavigation()
     }))
   }
 
-const getMenuItemsByRole = (role) => {
-  if (role?.toLowerCase() === 'recruiter') {
-    return [
-      {
-        key: 'dashboard',
-        title: 'Dashboard',
-        iconImage: icons.menu,
-        route: screenNames.MAIN_DASHBOARD, // unified route
-      },
-      {
-        key: 'find-staff',
-        title: 'Find a Staff',
-        icon: 'people-outline',
-        iconLib: iconLibName.Ionicons,
-        expandable: true,
-        subItems: [
-          { key: 'quick-search', title: 'Quick Search', icon: 'search-outline', route: screenNames.QUICK_SEARCH_STEPONE },
-          { key: 'manual-search', title: 'Manual Search', icon: 'search-circle-outline', route: screenNames.MANUAL_SEARCH },
-        ],
-      },
-      {
-        key: 'labor-pools',
-        title: 'Labor Pools',
-        icon: 'layers-outline',
-        iconLib: iconLibName.Ionicons,
-        expandable: true,
-        subItems: [
-          { key: 'labor-pool', title: 'Labor Pool', icon: 'briefcase-outline', route: screenNames.LABOR_POOL },
-          { key: 'squad-pool', title: 'Squad Pool', icon: 'people-circle-outline', route: screenNames.SQUAD_POOL },
-          { key: 'contractors', title: 'Contractors', icon: 'hammer-outline', route: screenNames.CONTRACTORS },
-          { key: 'employees', title: 'Employees', icon: 'person-outline', route: 'Employees' },
-        ],
-      },
-      {
-        key: 'current-offers',
-        title: 'Current Offers',
-        icon: 'pricetags-outline',
-        iconLib: iconLibName.Ionicons,
-        expandable: true,
-        subItems: [
-          { key: 'active-offers', title: 'Active', icon: 'checkmark-circle-outline', route: screenNames.ACTIVE_OFFERS },
-          { key: 'completed-offers', title: 'Completed', icon: 'checkmark-done-outline', route: screenNames.COMPLETED_OFFERS },
-          { key: 'expired-offers', title: 'Expired', icon: 'time-outline', route: screenNames.EXPIRED_OFFERS },
-          { key: 'drafted-offers', title: 'Drafted', icon: 'document-outline', route: screenNames.DRAFTED_OFFERS },
-        ],
-      },
-      {
-        key: 'settings',
-        title: 'Settings',
-        icon: 'settings-outline',
-        iconLib: iconLibName.Ionicons,
-        expandable: true,
-        subItems: [
-          { key: 'job-settings', title: 'Job Settings', icon: 'briefcase-outline', route: screenNames.JOB_SETTINGS },
-          { key: 'staff-preferences', title: 'Staff Preferences', icon: 'options-outline', route: screenNames.STAFF_PREFERENCES },
-          { key: 'app-settings', title: 'App Settings', icon: 'phone-portrait-outline', route: screenNames.APP_SETTINGS },
-          { key: 'squad-settings', title: 'Squad Settings', icon: 'people-outline', route: screenNames.SQUAD_SETTINGS },
-          { key: 'account-settings', title: 'Account Settings', icon: 'person-circle-outline', route: 'AccountSettings' },
-        ],
-      },
-      {
-        key: 'account-upgrades',
-        title: 'Account Upgrades',
-        icon: 'diamond-outline',
-        iconLib: iconLibName.Ionicons,
-        route: screenNames.ACCOUNT_UPGRADE,
-      },
-      {
-        key: 'support',
-        title: 'Support',
-        icon: 'help-circle-outline',
-        iconLib: iconLibName.Ionicons,
-        route: screenNames.SUPPORT,
-      },
-      {
-        key: 'notifications',
-        title: 'Notifications',
-        icon: 'notifications-outline',
-        iconLib: iconLibName.Ionicons,
-        route: screenNames.NOTICATIONS,
-      },
-      {
-        key: 'chat',
-        title: 'Chat',
-        icon: 'chatbubble-outline',
-        iconLib: iconLibName.Ionicons,
-        route: screenNames.CHAT,
-      },
-      {
-        key: 'wallet',
-        title: 'Wallet',
-        icon: 'wallet-outline',
-        iconLib: iconLibName.Ionicons,
-        route: screenNames.Wallet,
-      },
-      {
-        key: 'reports',
-        title: 'Reports & Statics',
-        icon: 'bar-chart-outline',
-        iconLib: iconLibName.Ionicons,
-        expandable: true,
-        subItems: [
-          { key: 'earning-reports', title: 'Earning Reports', icon: 'cash-outline', route: 'EarningReports' },
-          { key: 'rating-reports', title: 'Rating Reports', icon: 'star-outline', route: 'RatingReports' },
-        ],
-      },
-      {
-        key: 'marketplace',
-        title: 'Marketplace',
-        icon: 'storefront-outline',
-        iconLib: iconLibName.Ionicons,
-        route: MarketPlace,
-      },
-      {
-        key: 'logout',
-        title: 'Log out',
-        icon: 'log-out-outline',
-        iconLib: iconLibName.Ionicons,
-        route: 'Logout',
-      },
-    ]
-  }
+  const getMenuItemsByRole = (role) => {
+    if (role?.toLowerCase() === 'recruiter') {
+      return [
+        {
+          key: 'dashboard',
+          title: 'Dashboard',
+          iconImage: icons.menu,
+          route: screenNames.MAIN_DASHBOARD, // unified route
+        },
+        {
+          key: 'find-staff',
+          title: 'Find a Staff',
+          icon: 'people-outline',
+          iconLib: iconLibName.Ionicons,
+          expandable: true,
+          subItems: [
+            { key: 'quick-search', title: 'Quick Search', icon: 'search-outline', route: screenNames.QUICK_SEARCH_STEPONE },
+            { key: 'manual-search', title: 'Manual Search', icon: 'search-circle-outline', route: screenNames.MANUAL_SEARCH },
+          ],
+        },
+        {
+          key: 'labor-pools',
+          title: 'Labor Pools',
+          icon: 'layers-outline',
+          iconLib: iconLibName.Ionicons,
+          expandable: true,
+          subItems: [
+            { key: 'labor-pool', title: 'Labor Pool', icon: 'briefcase-outline', route: screenNames.LABOR_POOL },
+            { key: 'squad-pool', title: 'Squad Pool', icon: 'people-circle-outline', route: screenNames.SQUAD_POOL },
+            { key: 'contractors', title: 'Contractors', icon: 'hammer-outline', route: screenNames.CONTRACTORS },
+            { key: 'employees', title: 'Employees', icon: 'person-outline', route: 'Employees' },
+          ],
+        },
+        {
+          key: 'current-offers',
+          title: 'Current Offers',
+          icon: 'pricetags-outline',
+          iconLib: iconLibName.Ionicons,
+          expandable: true,
+          subItems: [
+            { key: 'active-offers', title: 'Active', icon: 'checkmark-circle-outline', route: screenNames.ACTIVE_OFFERS },
+            { key: 'completed-offers', title: 'Completed', icon: 'checkmark-done-outline', route: screenNames.COMPLETED_OFFERS },
+            { key: 'expired-offers', title: 'Expired', icon: 'time-outline', route: screenNames.EXPIRED_OFFERS },
+            { key: 'drafted-offers', title: 'Drafted', icon: 'document-outline', route: screenNames.DRAFTED_OFFERS },
+          ],
+        },
+        {
+          key: 'settings',
+          title: 'Settings',
+          icon: 'settings-outline',
+          iconLib: iconLibName.Ionicons,
+          expandable: true,
+          subItems: [
+            { key: 'job-settings', title: 'Job Settings', icon: 'briefcase-outline', route: screenNames.JOB_SETTINGS },
+            { key: 'staff-preferences', title: 'Staff Preferences', icon: 'options-outline', route: screenNames.STAFF_PREFERENCES },
+            { key: 'app-settings', title: 'App Settings', icon: 'phone-portrait-outline', route: screenNames.APP_SETTINGS },
+            { key: 'squad-settings', title: 'Squad Settings', icon: 'people-outline', route: screenNames.SQUAD_SETTINGS },
+            { key: 'account-settings', title: 'Account Settings', icon: 'person-circle-outline', route: 'AccountSettings' },
+          ],
+        },
+        {
+          key: 'account-upgrades',
+          title: 'Account Upgrades',
+          icon: 'diamond-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.ACCOUNT_UPGRADE,
+        },
+        {
+          key: 'support',
+          title: 'Support',
+          icon: 'help-circle-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.SUPPORT,
+        },
+        {
+          key: 'notifications',
+          title: 'Notifications',
+          icon: 'notifications-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.NOTICATIONS,
+        },
+        {
+          key: 'chat',
+          title: 'Chat',
+          icon: 'chatbubble-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.CHAT,
+        },
+        {
+          key: 'wallet',
+          title: 'Wallet',
+          icon: 'wallet-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.Wallet,
+        },
+        {
+          key: 'reports',
+          title: 'Reports & Statics',
+          icon: 'bar-chart-outline',
+          iconLib: iconLibName.Ionicons,
+          expandable: true,
+          subItems: [
+            { key: 'earning-reports', title: 'Earning Reports', icon: 'cash-outline', route: 'EarningReports' },
+            { key: 'rating-reports', title: 'Rating Reports', icon: 'star-outline', route: 'RatingReports' },
+          ],
+        },
+        {
+          key: 'marketplace',
+          title: 'Marketplace',
+          icon: 'storefront-outline',
+          iconLib: iconLibName.Ionicons,
+          route: MarketPlace,
+        },
+        {
+          key: 'logout',
+          title: 'Log out',
+          icon: 'log-out-outline',
+          iconLib: iconLibName.Ionicons,
+          route: 'Logout',
+        },
+      ]
+    }
 
-  if (role?.toLowerCase() === 'jobseeker') {
-    return [
-      {
-        key: 'settings',
-        title: 'Settings',
-        icon: 'settings-outline',
-        iconLib: iconLibName.Ionicons,
-        expandable: true,
-        subItems: [
-          { key: 'job-settings', title: 'Job Settings', icon: 'briefcase-outline', route: screenNames.JOB_SETTINGS },
-          { key: 'app-settings', title: 'App Settings', icon: 'phone-portrait-outline', route: screenNames.APP_SETTINGS },
-          { key: 'squad-settings', title: 'Squad Settings', icon: 'people-outline', route: screenNames.SQUAD_SETTINGS },
-        ],
-      },
-      {
-        key: 'dashboard',
-        title: 'Dashboard',
-        icon: 'apps-outline',
-        iconLib: iconLibName.Ionicons,
-        route: screenNames.JOB_SEEKER_DASHBOARD,
-      },
-      {
-        key: 'account-upgrades',
-        title: 'Account Upgrades',
-        icon: 'diamond-outline',
-        iconLib: iconLibName.Ionicons,
-        route: screenNames.ACCOUNT_UPGRADE,
-      },
-      {
-        key: 'support',
-        title: 'Support',
-        icon: 'help-circle-outline',
-        iconLib: iconLibName.Ionicons,
-        route: screenNames.SUPPORT,
-      },
-      {
-        key: 'notifications',
-        title: 'Notifications',
-        icon: 'notifications-outline',
-        iconLib: iconLibName.Ionicons,
-        route: screenNames.NOTICATIONS,
-      },
-      {
-        key: 'chat',
-        title: 'Chat',
-        icon: 'chatbubble-outline',
-        iconLib: iconLibName.Ionicons,
-        route: screenNames.CHAT,
-      },
-      {
-        key: 'wallet',
-        title: 'Wallet',
-        icon: 'wallet-outline',
-        iconLib: iconLibName.Ionicons,
-        route: screenNames.Wallet,
-      },
-      {
-        key: 'job-pool',
-        title: 'Job Pool',
-        icon: 'mail-outline',
-        iconLib: iconLibName.Ionicons,
-        expandable: true,
-        subItems: [
-          { key: 'active-jobs', title: 'Active Jobs', icon: 'checkmark-circle-outline', route: screenNames.ACTIVE_OFFERS  },
-          { key: 'completed-jobs', title: 'Completed Jobs', icon: 'checkmark-done-outline', route: screenNames.COMPLETED_OFFERS  },
-          { key: 'draft-jobs', title: 'Draft Jobs', icon: 'document-outline', route: screenNames.DRAFTED_OFFERS  },
-        ],
-      },
-      {
-        key: 'reports',
-        title: 'Reports & Statics',
-        icon: 'bar-chart-outline',
-        iconLib: iconLibName.Ionicons,
-        expandable: true,
-        subItems: [
-          { key: 'job-reports', title: 'Job Reports', icon: 'document-text-outline', route: 'JobReports' },
-          { key: 'earnings-report', title: 'Earnings Report', icon: 'cash-outline', route: 'EarningsReport' },
-          { key: 'performance', title: 'Performance Analytics', icon: 'analytics-outline', route: 'PerformanceAnalytics' },
-        ],
-      },
-      {
-        key: 'marketplace',
-        title: 'Marketplace',
-        icon: 'storefront-outline',
-        iconLib: iconLibName.Ionicons,
-        route: screenNames.MARKET_PLACE,
-      },
-    ]
-  }
+    if (role?.toLowerCase() === 'job_seeker') {
+      return [
+        {
+          key: 'settings',
+          title: 'Settings',
+          icon: 'settings-outline',
+          iconLib: iconLibName.Ionicons,
+          expandable: true,
+          subItems: [
+            { key: 'job-settings', title: 'Job Settings', icon: 'briefcase-outline', route: screenNames.JOB_SETTINGS },
+            { key: 'app-settings', title: 'App Settings', icon: 'phone-portrait-outline', route: screenNames.APP_SETTINGS },
+            { key: 'squad-settings', title: 'Squad Settings', icon: 'people-outline', route: screenNames.SQUAD_SETTINGS },
+          ],
+        },
+        {
+          key: 'dashboard',
+          title: 'Dashboard',
+          icon: 'apps-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.JOB_SEEKER_DASHBOARD,
+        },
+        {
+          key: 'account-upgrades',
+          title: 'Account Upgrades',
+          icon: 'diamond-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.ACCOUNT_UPGRADE,
+        },
+        {
+          key: 'support',
+          title: 'Support',
+          icon: 'help-circle-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.SUPPORT,
+        },
+        {
+          key: 'notifications',
+          title: 'Notifications',
+          icon: 'notifications-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.NOTICATIONS,
+        },
+        {
+          key: 'chat',
+          title: 'Chat',
+          icon: 'chatbubble-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.CHAT,
+        },
+        {
+          key: 'wallet',
+          title: 'Wallet',
+          icon: 'wallet-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.Wallet,
+        },
+        {
+          key: 'job-pool',
+          title: 'Job Pool',
+          icon: 'mail-outline',
+          iconLib: iconLibName.Ionicons,
+          expandable: true,
+          subItems: [
+            { key: 'active-jobs', title: 'Active Jobs', icon: 'checkmark-circle-outline', route: screenNames.ACTIVE_OFFERS },
+            { key: 'completed-jobs', title: 'Completed Jobs', icon: 'checkmark-done-outline', route: screenNames.COMPLETED_OFFERS },
+            { key: 'draft-jobs', title: 'Draft Jobs', icon: 'document-outline', route: screenNames.DRAFTED_OFFERS },
+          ],
+        },
+        {
+          key: 'reports',
+          title: 'Reports & Statics',
+          icon: 'bar-chart-outline',
+          iconLib: iconLibName.Ionicons,
+          expandable: true,
+          subItems: [
+            { key: 'job-reports', title: 'Job Reports', icon: 'document-text-outline', route: 'JobReports' },
+            { key: 'earnings-report', title: 'Earnings Report', icon: 'cash-outline', route: 'EarningsReport' },
+            { key: 'performance', title: 'Performance Analytics', icon: 'analytics-outline', route: 'PerformanceAnalytics' },
+          ],
+        },
+        {
+          key: 'marketplace',
+          title: 'Marketplace',
+          icon: 'storefront-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.MARKET_PLACE,
+        },
+      ]
+    }
 
-  // fallback for any other role
-  return []
-}
+    // fallback for any other role
+    return []
+  }
 
 
   const menuItems = getMenuItemsByRole(role)
@@ -261,11 +255,13 @@ const getMenuItemsByRole = (role) => {
     <View style={styles.profileSection}>
       <View style={styles.profileContainer}>
         <TouchableOpacity onPress={() => navigation.navigate(screenNames.PROFILE)} style={styles.avatarContainer}>
-          <Image
-            source={{ uri: userProfile.avatar }}
-            style={styles.avatar}
-          />
-          {userProfile.isVerified && (
+          {userInfo?.profile_picture &&
+            <FastImageView
+              source={{ uri: userInfo?.profile_picture }}
+              style={styles.avatar}
+              resizeMode={'contain'}
+            />}
+          {userInfo?.isVerified && (
             <View style={styles.verificationBadge}>
               <VectorIcons
                 name={iconLibName.Ionicons}
@@ -279,7 +275,7 @@ const getMenuItemsByRole = (role) => {
 
         <View style={styles.userInfo}>
           <AppText variant={Variant.subTitle} style={styles.userName}>
-            {userProfile.name}
+            {userInfo.name}
           </AppText>
           <AppText variant={Variant.bodySmall} style={styles.userRole}>
             {role}
@@ -350,13 +346,13 @@ const getMenuItemsByRole = (role) => {
               <TouchableOpacity
                 key={subItem.key}
                 style={styles.subMenuItem}
-             onPress={() => {
-  if (subItem.route) {
-      onNavigate(subItem.route)
-    } else {
-     onNavigate(subItem.key) // fallback
-   }
- }}
+                onPress={() => {
+                  if (subItem.route) {
+                    onNavigate(subItem.route)
+                  } else {
+                    onNavigate(subItem.key) // fallback
+                  }
+                }}
 
                 activeOpacity={0.7}
               >
@@ -444,6 +440,7 @@ const styles = StyleSheet.create({
     width: wp(12),
     height: wp(12),
     borderRadius: wp(7),
+    resizeMode: 'contain',
     backgroundColor: colors.grayE8 || '#F3F4F6',
   },
   verificationBadge: {

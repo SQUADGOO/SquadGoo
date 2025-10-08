@@ -28,9 +28,9 @@ const MenuCard = () => {
     <TouchableOpacity
       style={styles.menuItem}
       onPress={() => navigation.navigate(item.route)}>
-      <Text  style={styles.menuText}>
+      <AppText  style={styles.menuText}>
         {item.label}
-      </Text>
+      </AppText>
       <VectorIcons
         name={iconLibName.AntDesign}
         iconName="right"
@@ -67,18 +67,18 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 18,
     paddingHorizontal: wp(3),
   },
   menuText: {
     flex: 1,
     color: colors.text,
     fontFamily:fonts.poppinsMedium,
-    fontSize: getFontSize(16),
+    fontSize: getFontSize(14),
   },
   separator: {
     height: 1,
-    backgroundColor: colors.gray,
+    backgroundColor: '#EBE8EC',
     marginHorizontal: wp(3),
   },
 });

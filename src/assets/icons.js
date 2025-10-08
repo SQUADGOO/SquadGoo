@@ -16,7 +16,7 @@ export default Icons = {
 
     msg: require('./icons/profile/msg.png'),
     call: require('./icons/profile/call.png'),
-    pf: require('./icons/profile/pf.png'),
+    pf: require('./icons/profile/profile.png'),
     edit: require('./icons/profile/edit.png'),
     save: require('./icons/profile/save.png'),
 

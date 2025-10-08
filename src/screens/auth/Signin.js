@@ -20,11 +20,12 @@ import AppButton from '@/core/AppButton'
 import AppText, { Variant } from '@/core/AppText'
 import { screenNames } from '@/navigation/screenNames'
 import { store } from '@/store/store'
-import { login } from '@/store/authSlice'
 import { showToast, toastTypes } from '@/utilities/toastConfig'
+import { useLogin } from '@/api/auth/auth.query'
 
 const SignIn = ({ navigation }) => {
   const [rememberMe, setRememberMe] = useState(true);
+  const { mutate: login, isPending, isError } = useLogin();
   
   // Initialize form methods
   const methods = useForm({
@@ -38,9 +39,10 @@ const SignIn = ({ navigation }) => {
 
 const handleLogin = async (data) => {
   try {
-    console.log('Login with:', data);
     const { email, password } = methods.getValues();
-
+    console.log('Login with:', data);
+    await login({ email, password });
+    return
     // Recruiter credentials
     if (
       (email === 'recruiter@gmail.com' || email === 'Recruiter@gmail.com') &&
@@ -161,8 +163,7 @@ const handleLogin = async (data) => {
               bgColor={colors.primary}
               text="Log in"
               onPress={handleSubmit(handleLogin)}
-              isLoading={isSubmitting}
-              disabled={isSubmitting}
+              isLoading={isPending}
               />
               </View>
               {/* <TouchableOpacity 
