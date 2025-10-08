@@ -76,6 +76,8 @@ import AddJobStep2 from './main/JobSeeker/DashBoard/TabScreens/AddExperince/AddJ
 import SquadSettingsGroups from './main/JobSeeker/DashBoard/Settings/Groups';
 import GroupDetail from './main/JobSeeker/DashBoard/Settings/GroupDetail';
 import Members from './main/JobSeeker/DashBoard/Settings/Members';
+
+import EditProfile from './main/Recruiter/profile/EditProfile';
 // Tab Screens
 
 export {
@@ -154,5 +156,6 @@ AddJobStep1,
 AddJobStep2,
 SquadSettingsGroups,
 GroupDetail,
-Members
+Members,
+EditProfile,
 };

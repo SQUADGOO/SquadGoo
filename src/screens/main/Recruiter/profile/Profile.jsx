@@ -21,6 +21,7 @@ import { fonts } from '@/assets/fonts';
 import AppHeader from '@/core/AppHeader';
 import { useSelector } from 'react-redux';
 import FastImageView from '@/core/FastImageView';
+import { screenNames } from '@/navigation/screenNames';
 
 const Profile = () => {
   const navigation = useNavigation();
@@ -30,106 +31,108 @@ const Profile = () => {
   };
 
   return (
-    <Scrollable>
-      <View style={{ backgroundColor: colors.white, flex: 1 }}>
+    <>
+      <AppHeader
+        onBackPress={handleBackPress}
+        showBackButton={true}
+        rightComponent={false}
+        showTopIcons={false}
+        title='My Profile'
+        children={
+          <View style={styles.headerCard}>
 
-        <AppHeader
-          onBackPress={handleBackPress}
-          showBackButton={true}
-          rightComponent={false}
-          showTopIcons={false}
-          title='My Profile'
-          children={
-            <View style={styles.headerCard}>
-
-              <View style={[styles.row, {marginVertical: 15, bottom: 5} ]}>
-                <View>
-                  <FastImageView
-                    source={{ uri: userInfo?.profile_picture }}
-                    style={styles.avatar}
-                  // resizeMode={'contain'}
+            <View style={[styles.row, { marginVertical: 15, bottom: 5 }]}>
+              <View>
+                <FastImageView
+                  source={{ uri: userInfo?.profile_picture }}
+                  style={styles.avatar}
+                // resizeMode={'contain'}
+                />
+                <TouchableOpacity style={styles.cameraButton}>
+                  <Image
+                    source={icons.cam}
+                    style={{ height: 30, width: 30, left: wp(1.5) }}
                   />
-                  <TouchableOpacity style={styles.cameraButton}>
-                    <Image
-                      source={icons.cam}
-                      style={{ height: 30, width: 30, left: wp(1.5) }}
-                    />
-                  </TouchableOpacity>
-                </View>
-
-                <View style={{ flex: 1, marginLeft: wp(4) }}>
-                  <View style={{ flexDirection: 'row', width: wp(45) }}>
-                    <Text style={styles.name}>
-                      {userInfo?.name || 'John Doe'}
-                    </Text>
-                    <Image
-                      source={icons.time}
-                      style={{ height: 20, width: 20, left: wp(1) }}
-                    />
-                  </View>
-                  <AppText variant={Variant.caption} style={styles.subtitle}>
-                    #Jobseeker-721543730
-                  </AppText>
-
-                  <Spacer size={8} />
-
-                  <View style={styles.row}>
-                    {Array.from({ length: 5 }).map((_, index) => (
-                      <VectorIcons
-                        key={index}
-                        name={iconLibName.Ionicons}
-                        iconName="star"
-                        size={14}
-                        color={colors.primary}
-                        style={{ marginRight: 2 }}
-                      />
-                    ))}
-                    <AppText
-                      variant={Variant.caption}
-                      style={{ marginLeft: 4 }}
-                      color={colors.white}>
-                      4.9 (20 reviews)
-                    </AppText>
-                  </View>
-                </View>
-              </View>
-
-              {/* <Spacer size={20} /> */}
-
-              <View style={styles.infoRow}>
-                <Image resizeMode='contain' source={icons.msg} style={{ height: 18, width: 18 }} />
-                <AppText variant={Variant.caption} style={styles.infoText}>
-                  Email: <Text style={{ fontFamily: fonts.poppinsSemiBold }}>{userInfo?.email}</Text>
-                </AppText>
-              </View>
-
-
-              <View style={styles.infoRow}>
-                <Image resizeMode='contain' source={icons.call} style={{ height: 18, width: 18 }} />
-                <AppText variant={Variant.caption} style={styles.infoText}>
-                  Phone: <Text style={{ fontFamily: fonts.poppinsSemiBold }}>+61 5875767524</Text>
-                </AppText>
-              </View>
-
-
-              <View style={styles.infoRow}>
-                <Image resizeMode='contain' source={icons.pf} style={{ height: 18, width: 18 }} />
-                <AppText variant={Variant.caption} style={styles.infoText}>
-                  Profile Status:{' '}
-                  <Text style={{ fontFamily: fonts.poppinsSemiBold }}>Incomplete</Text>
-                </AppText>
-                <TouchableOpacity style={{ marginLeft: 'auto' }}>
-                  <Image resizeMode='contain' source={icons.edit} style={{ height: 22, width: 22 }} />
                 </TouchableOpacity>
               </View>
+
+              <View style={{ flex: 1, marginLeft: wp(4) }}>
+                <View style={{ flexDirection: 'row', width: wp(45) }}>
+                  <Text style={styles.name}>
+                    {userInfo?.name || 'John Doe'}
+                  </Text>
+                  <Image
+                    source={icons.time}
+                    style={{ height: 20, width: 20, left: wp(1) }}
+                  />
+                </View>
+                <AppText variant={Variant.caption} style={styles.subtitle}>
+                  #Jobseeker-721543730
+                </AppText>
+
+                <Spacer size={8} />
+
+                <View style={styles.row}>
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <VectorIcons
+                      key={index}
+                      name={iconLibName.Ionicons}
+                      iconName="star"
+                      size={14}
+                      color={colors.primary}
+                      style={{ marginRight: 2 }}
+                    />
+                  ))}
+                  <AppText
+                    variant={Variant.caption}
+                    style={{ marginLeft: 4 }}
+                    color={colors.white}>
+                    4.9 (20 reviews)
+                  </AppText>
+                </View>
+              </View>
             </View>
-          }
-        />
+
+            {/* <Spacer size={20} /> */}
+
+            <View style={styles.infoRow}>
+              <Image resizeMode='contain' source={icons.msg} style={{ height: 18, width: 18 }} />
+              <AppText variant={Variant.caption} style={styles.infoText}>
+                Email: <Text style={{ fontFamily: fonts.poppinsSemiBold }}>{userInfo?.email}</Text>
+              </AppText>
+            </View>
 
 
-        <MenuCard />
-      </View>
-    </Scrollable>
+            <View style={styles.infoRow}>
+              <Image resizeMode='contain' source={icons.call} style={{ height: 18, width: 18 }} />
+              <AppText variant={Variant.caption} style={styles.infoText}>
+                Phone: <Text style={{ fontFamily: fonts.poppinsSemiBold }}>+61 5875767524</Text>
+              </AppText>
+            </View>
+
+
+            <View style={styles.infoRow}>
+              <Image resizeMode='contain' source={icons.pf} style={{ height: 18, width: 18 }} />
+              <AppText variant={Variant.caption} style={styles.infoText}>
+                Profile Status:{' '}
+                <Text style={{ fontFamily: fonts.poppinsSemiBold }}>Incomplete</Text>
+              </AppText>
+              <TouchableOpacity
+                onPress={() => navigation.navigate(screenNames.EDIT_PROFILE)}
+                style={{ marginLeft: 'auto' }}>
+                <Image resizeMode='contain' source={icons.edit} style={{ height: 22, width: 22 }} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        }
+      />
+      <Scrollable>
+        
+        <View style={{ backgroundColor: colors.white, flex: 1 }}>
+          <MenuCard />
+        </View>
+      </Scrollable>
+    </>
   );
 };
 

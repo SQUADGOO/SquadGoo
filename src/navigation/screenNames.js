@@ -86,6 +86,7 @@ ADD_JOB_STEP2:'add_job_step2',
 SQUAD_SETTINGS_Groups:'squad_settings_groups',
 GROUP_DETAIL:'group_detail',
 MEMBERS:'members',
+EDIT_PROFILE:'edit_profile',
 
 
   // FORGOT_PASSWORD: 'forgot_password',

@@ -3404,6 +3404,7 @@ __metadata:
     react-native-keyboard-aware-scroll-view: ^0.9.5
     react-native-linear-gradient: ^2.8.3
     react-native-pager-view: ^6.9.1
+    react-native-permissions: ^5.4.2
     react-native-raw-bottom-sheet: ^3.0.0
     react-native-reanimated: 3.17.1
     react-native-responsive-screen: ^1.4.2
@@ -9151,6 +9152,20 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 64f4f1b05173217ee5bb288c6c1e396ceaf686fd1ef9458a6ab9c9da44e5ee76c2a091e95b756c78bbcddd30caf37965ef37e0eabe54331f385fdcb87b5d5ab6
+  languageName: node
+  linkType: hard
+
+"react-native-permissions@npm:^5.4.2":
+  version: 5.4.2
+  resolution: "react-native-permissions@npm:5.4.2"
+  peerDependencies:
+    react: ">=18.1.0"
+    react-native: ">=0.70.0"
+    react-native-windows: ">=0.70.0"
+  peerDependenciesMeta:
+    react-native-windows:
+      optional: true
+  checksum: fac680b7d85fb979806156d6c9f90dee9c8299b83eb9d2d82bee50aec4baa71b0f5d3cf79e8bf02345e67f77d6cb0fbfbe7e54d02b6822de0ae2e0d9323a6614
   languageName: node
   linkType: hard
 

@@ -9,6 +9,7 @@ import TabNavigator from "./TabNavigator";
 import DrawerNavigator from "./DrawerNavigator";
 import JobSeekerDrawerNavigator from "./JobSeekerDrawer";
 import { Address, BasicDetails, Biography, ContactDetails, JobQualification, KycBusiness, KycDocument, KycSubmit, KycVerification, Password, Profile, SocialMedia, TaxInformation, VisaDetails } from "@/screens";
+import * as ui from '@/screens';
 
 const Stack = createStackNavigator();
 
@@ -45,6 +46,7 @@ const RootNavigator = () => {
           name={screenNames.PROFILE}
           component={Profile}
         />
+            <Stack.Screen name={screenNames.EDIT_PROFILE} component={ui.EditProfile} />
          <Stack.Screen name={screenNames.BASIC_DETAILS} component={BasicDetails} />
               <Stack.Screen name={screenNames.ADDRESS} component={Address} />
               <Stack.Screen name={screenNames.CONTACT_DETAILS} component={ContactDetails} />

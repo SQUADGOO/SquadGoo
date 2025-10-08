@@ -149,6 +149,9 @@ const DrawerNavigator = () => {
       <Drawer.Screen name={screenNames.KYC_KYB_DOC} component={ui.KycDocument} />
       <Drawer.Screen name={screenNames.KYC_KYB_SUBMIT} component={ui.KycSubmit} />
 
+  
+
+
         <Drawer.Screen
         name={screenNames.JOB_SETTINGS}
         component={ui.JobSettings}
