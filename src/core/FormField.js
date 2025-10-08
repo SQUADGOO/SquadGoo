@@ -9,6 +9,7 @@ const FormField = ({
     name,
     label,
     type = 'input',
+    onPressField,
     rules = {},
     multiline = false,
     placeholder = 'typeHere',
@@ -57,6 +58,7 @@ const FormField = ({
                     <AppInputField
                         label={label}
                         value={value}
+                         onPressField={onPressField}
                         multiline={multiline}
                         onChangeText={onChange}
                         placeholder={placeholder}

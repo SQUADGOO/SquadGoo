@@ -21,16 +21,16 @@ const tabItems = [
   {
     name: screenNames.FIND_STAFF,
     label: 'Find Staff',
-    activeIcon: Icons.searchActive,
-    inactiveIcon: Icons.search,
+    activeIcon: Icons.staffsearchActive,
+    inactiveIcon: Icons.staffsearch,
     component: ui.FindStaff,
   },
   {
-    name: screenNames.Wallet,
+    name: screenNames.WALLET_STACK,
     label: 'Wallet',
     activeIcon: Icons.walletActive,
     inactiveIcon: Icons.wallet,
-    component: ui.Wallet,
+    component: ui.WalletStack,
   },
   {
     name: screenNames.CHAT,

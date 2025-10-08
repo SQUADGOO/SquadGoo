@@ -19,9 +19,13 @@ import { signinRules } from '@/utilities/validationSchemas'
 import AppButton from '@/core/AppButton'
 import AppText, { Variant } from '@/core/AppText'
 import { screenNames } from '@/navigation/screenNames'
+import { store } from '@/store/store'
+import { showToast, toastTypes } from '@/utilities/toastConfig'
+import { useLogin } from '@/api/auth/auth.query'
 
 const SignIn = ({ navigation }) => {
   const [rememberMe, setRememberMe] = useState(true);
+  const { mutate: login, isPending, isError } = useLogin();
   
   // Initialize form methods
   const methods = useForm({
@@ -33,21 +37,51 @@ const SignIn = ({ navigation }) => {
 
   const { handleSubmit, formState: { isSubmitting } } = methods
 
-  const handleLogin = async (data) => {
-    try {
-      console.log('Login with:', data);
-      // Add your login logic here
-      // Example: await signInUser(data.email, data.password, rememberMe)
-      Alert.alert('Success', 'Login successful!')
-      // navigation.navigate('Home') // Navigate to your home screen
-    } catch (error) {
-      Alert.alert('Error', 'Login failed. Please try again.')
-      console.error('Login error:', error)
+const handleLogin = async (data) => {
+  try {
+    const { email, password } = methods.getValues();
+    console.log('Login with:', data);
+    await login({ email, password });
+    return
+    // Recruiter credentials
+    if (
+      (email === 'recruiter@gmail.com' || email === 'Recruiter@gmail.com') &&
+      password === 'Recruiter@123'
+    ) {
+      store?.dispatch(
+        login({
+          token: 'token',
+          userInfo: { email, password },
+          role: 'recruiter',
+        })
+      );
     }
-  };
+    // Jobseeker credentials
+    else if (
+      (email === 'jobseeker@gmail.com' || email === 'Jobseeker@gmail.com') &&
+      password === 'Jobseeker@123'
+    ) {
+      store?.dispatch(
+        login({
+          token: 'token',
+          userInfo: { email, password },
+          role: 'jobseeker',
+        })
+      );
+    }
+    // Invalid credentials
+    else {
+      showToast('Invalid email or password', 'error', toastTypes.error);
+    }
+  } catch (error) {
+    Alert.alert('Error', 'Login failed. Please try again.');
+    console.error('Login error:', error);
+  }
+};
+
 
   const handleSocialLogin = (provider) => {
-    // Add social login logic here
+  
     console.log('Login with:', provider);
   };
 
@@ -129,8 +163,7 @@ const SignIn = ({ navigation }) => {
               bgColor={colors.primary}
               text="Log in"
               onPress={handleSubmit(handleLogin)}
-              isLoading={isSubmitting}
-              disabled={isSubmitting}
+              isLoading={isPending}
               />
               </View>
               {/* <TouchableOpacity 

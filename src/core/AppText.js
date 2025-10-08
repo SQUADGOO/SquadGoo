@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
   },
   bodyMedium: {
     fontSize: getFontSize(14),
-    fontFamily: fonts.medium,
+    // fontFamily: fonts.medium,
   },
   bodybold: {
     fontSize: getFontSize(14),

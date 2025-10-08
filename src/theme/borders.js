@@ -4,4 +4,5 @@ export const borders = {
   borderRadiusLarge: 12,
   borderWidthThin: 1,
   borderWidthThick: 2,
+  borderMainradius: 12,
 };
