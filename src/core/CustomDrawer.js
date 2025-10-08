@@ -275,7 +275,7 @@ const CustomDrawer = ({
 
         <View style={styles.userInfo}>
           <AppText variant={Variant.subTitle} style={styles.userName}>
-            {userInfo.name}
+            {userInfo?.name}
           </AppText>
           <AppText variant={Variant.bodySmall} style={styles.userRole}>
             {role}

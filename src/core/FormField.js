@@ -25,7 +25,7 @@ const FormField = ({
 
     const renderInputByType = (field) => {
         const { onChange, value } = field;
-
+        // console.log('value', value)
         switch (type) {
             case 'passwordInput':
                 return (
