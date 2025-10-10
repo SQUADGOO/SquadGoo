@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   label: {
     marginTop: hp(2.5),
     marginVertical: 4,
-    color: colors.text1
+    color: colors.textSecondary
   },
   filterDropdown: {
     flex: 1,

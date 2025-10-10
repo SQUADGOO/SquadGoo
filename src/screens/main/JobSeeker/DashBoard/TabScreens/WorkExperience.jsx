@@ -101,6 +101,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   headerRow: {
+    marginVertical: 12,
     flexDirection: 'row',
     backgroundColor: '#5A6B8C',
     justifyContent: 'space-between',

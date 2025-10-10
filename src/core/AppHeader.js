@@ -123,12 +123,6 @@ const AppHeader = ({
 
   return (
     <>
-      <StatusBar 
-        barStyle={statusBarStyle} 
-        backgroundColor={backgroundColor} 
-        translucent 
-      />
-    
       <View style={styles.headerWrapper}>
         <ImageBackground 
           source={Images.header} 

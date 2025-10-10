@@ -259,7 +259,7 @@ const CustomDrawer = ({
             <FastImageView
               source={{ uri: userInfo?.profile_picture }}
               style={styles.avatar}
-              resizeMode={'contain'}
+              resizeMode={'cover'}
             />}
           {userInfo?.isVerified && (
             <View style={styles.verificationBadge}>

@@ -23,8 +23,22 @@ export const authSlice = createSlice({
     setUserInfo: (state, {payload}) => {
       state.userInfo = payload;
     },
+    updateUserFields: (state, {payload}) => {
+      console.log('payload', payload)
+      const roleKey =
+    state.userInfo?.role === 'recruiter' ? 'recruiter' : 'job_seeker';
+
+
+      state.userInfo = {
+        ...state.userInfo,
+      [roleKey]: {
+      ...state.userInfo[roleKey],
+      ...payload, // merge only updated fields (like bio, address, etc.)
+    },
+      }
+    },
   },
 });
-export const {login, logout, setUserInfo} = authSlice.actions;
+export const {login, logout, setUserInfo, updateUserFields} = authSlice.actions;
 
 export default authSlice.reducer;
