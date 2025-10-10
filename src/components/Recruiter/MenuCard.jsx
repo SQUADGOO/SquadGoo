@@ -20,7 +20,7 @@ const menuItems = [
   { label: 'Visa details', key: 'visa', route: screenNames.VISA_DETAILS },
   { label: 'KYC & KYB verifications', key: 'kyc', route: screenNames.KYC_KYB },
   { label: 'Extra job qualifications', key: 'extra', route: screenNames.EXTRA_QUALIFICATIONS },
-  { label: 'Biograph/Bio', key: 'bio', route: screenNames.BIO },
+  // { label: 'Biograph/Bio', key: 'bio', route: screenNames.BIO },
   { label: 'Social media', key: 'social', route: screenNames.SOCIAL_MEDIA },
   { label: 'Password', key: 'password', route: screenNames.PASSWORD },
 ];
@@ -46,6 +46,14 @@ const MenuCard = () => {
       contactSheetRef.current.open();
     } else if(item.key === 'kyc') {
       navigation.navigate(screenNames.KYC_KYB)
+    } else if(item.key === 'visa') {
+      navigation.navigate(screenNames.VISA_DETAILS)
+    } else if(item.key === 'tax') {
+      navigation.navigate(screenNames.TAX_INFO)
+    } else if(item.key === 'social') {
+      navigation.navigate(screenNames.SOCIAL_MEDIA)
+    } else if(item.key === 'password') {
+      navigation.navigate(screenNames.PASSWORD)
     }
 
    
