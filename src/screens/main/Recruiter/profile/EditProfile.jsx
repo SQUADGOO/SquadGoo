@@ -11,13 +11,16 @@ import ImagePickerSheet from '@/components/ImagePickerSheet';
 import VectorIcons from '@/theme/vectorIcon';
 import images from '@/assets/images';
 import FastImageView from '@/core/FastImageView';
-import { useUpdateJobSeekerProfile } from '@/api/auth/auth.query';
+import { useUpdateProfile } from '@/api/auth/auth.query';
+import { showToast, toastTypes } from '@/utilities/toastConfig';
+
 
 const EditProfileScreen = () => {
   const dispatch = useDispatch();
-  const { mutate: updateJobSeekerProfile, isPending, isSuccess} = useUpdateJobSeekerProfile()
+  const { mutateAsync: updateProfile , isPending, isSuccess} = useUpdateProfile()
   const userData = useSelector((state) => state.auth.userInfo);
-  const userInfo = userData?.role == 'recruiter' ? userData?.recruiter : userData?.job_seeker
+  const userInfo = userData
+  // const userInfo = userData?.role == 'recruiter' ? userData?.recruiter : userData?.job_seeker
   // console.log('User Info:', userData?.role, userInfo);
 
   const [profileImage, setProfileImage] = useState(userData?.profile_picture || '');
@@ -25,12 +28,12 @@ const EditProfileScreen = () => {
 
   const methods = useForm({
     defaultValues: {
-      first_name: userInfo?.first_name || '',
-      last_name: userInfo?.last_name || '',
+      firstName: userInfo?.firstName || '',
+      lastName: userInfo?.lastName || '',
       email: userInfo?.email || '',
-      phone: userInfo?.phone || '',
-      dob: userInfo?.dob || '',
-      address: userInfo?.address || '',
+      contactNumber: userInfo?.contactNumber || '',
+      dateOfBirth: userInfo?.dateOfBirth || '',
+      homeAddress: userInfo?.homeAddress || '',
       bio: userInfo?.bio || '',
     },
   });
@@ -40,8 +43,16 @@ const EditProfileScreen = () => {
 
 
   const handleSave = async (data) => {
-    console.log('Form Data:', userInfo?.user_id, { ...data, profileImage });
-    await updateJobSeekerProfile({...data, id: userInfo?.id})
+    console.log('Form Data:', data);
+    // setTimeout(() => {
+    //   showToast('Profile updated successfully', 'Success', 'success');
+    // }, 2000);
+    // return
+     let res = await updateProfile(data)
+     console.log("update profile res", res)
+     if(res?.status === 200){ 
+        showToast(res?.message || 'Profile updated successfully', 'Success', toastTypes.success);
+     }
     // dispatch(updateProfile({ ...data, profileImage }));
   };
 
@@ -72,14 +83,14 @@ const EditProfileScreen = () => {
         <FormProvider {...methods}>
           <View style={styles.formContainer}>
             <FormField
-              name="first_name"
+              name="firstName"
               label="First Name*"
               placeholder="Enter your first name"
               rules={{ required: 'First name is required' }}
 
             />
             <FormField
-              name="last_name"
+              name="lastName"
               label="Last Name*"
               placeholder="Enter your last name"
               rules={{ required: 'Last name is required' }}
@@ -92,15 +103,15 @@ const EditProfileScreen = () => {
               rules={{ required: 'Email is required' }}
             />
             <FormField
-              name="phone"
+              name="contactNumber"
               label="Phone Number"
               placeholder="Enter your phone number"
-              editable={false}
+              // editable={false}
               keyboardType="phone-pad"
             />
 
             <FormField
-              name="dob"
+              name="dateOfBirth"
               label="Date of Birth"
               type="datePicker"
               maximumDate={new Date()}
@@ -108,7 +119,7 @@ const EditProfileScreen = () => {
             />
 
             <FormField
-              name="address"
+              name="homeAddress"
               label="Home Address"
               placeholder="Enter your home address"
             />

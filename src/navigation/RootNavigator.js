@@ -25,7 +25,7 @@ const RootNavigator = () => {
             name={screenNames.DRAWER_NAVIGATION}
             component={DrawerNavigator}
           />
-        ) : role === "job_seeker" ? (
+        ) : role === "jobseeker" ? (
           <Stack.Screen
             name={screenNames.JOBSEEKER_DRAWER}
             component={JobSeekerDrawerNavigator}

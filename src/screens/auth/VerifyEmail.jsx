@@ -19,14 +19,18 @@ import AppText, { Variant } from '@/core/AppText'
 import VerificationSuccessModal from '@/components/VerificationSuccessModal'
 import { store } from '@/store/store'
 import { login } from '@/store/authSlice'
+import { useVerifyEmail } from '@/api/auth/auth.query'
+import { screenNames } from '@/navigation/screenNames'
 
 const EmailVerification = ({ navigation, route }) => {
   const [resendTimer, setResendTimer] = useState(0)
   const [canResend, setCanResend] = useState(true)
    const [showSuccessModal, setShowSuccessModal] = useState(false)
-  
-  // Get email from navigation params (passed from signup screen)
-  const email = route?.params?.email || 'your email address'
+   const { mutateAsync: verifyEmail, isPending, isError } = useVerifyEmail()
+   
+   // Get email from navigation params (passed from signup screen)
+   const email = route?.params?.email || 'your email address'
+   console.log('emial', email)
 
   // Initialize form methods
   const methods = useForm({
@@ -71,23 +75,28 @@ const EmailVerification = ({ navigation, route }) => {
 
   const handleVerify = async (data) => {
     try {
-      console.log('Verify with code:', data.verificationCode);
-      
-      // Add your verification logic here
-      // Example: await verifyEmail(data.verificationCode)
-      setShowSuccessModal(true)
-    //   Alert.alert(
-    //     'Success', 
-    //     'Email verified successfully!',
-    //     [
-    //       {
-    //         text: 'Continue',
-    //         onPress: () => navigation.navigate('Home') // or onboarding screen
-    //       }
-    //     ]
-    //   )
+      console.log('Verify with code:', email, data.verificationCode);
+      let response = await verifyEmail({ 
+        email: email,
+        code: data.verificationCode
+       })
+
+       
+        console.log('response from verifyEmail mutation:', response?.status);
+       if(response?.status == 200){
+        console.log('Email verified successfully', response);
+        // Show success modal
+        setShowSuccessModal(true)
+       }
+      if(response?.error) {
+        // return
+        throw new Error(response?.error?.message || 'Verification failed')
+      }
+      // On successful verification
+    
+   
     } catch (error) {
-      Alert.alert('Error', 'Invalid verification code. Please try again.')
+      // Alert.alert('Error', 'Invalid verification code. Please try again.')
       console.error('Verification error:', error)
     }
   }
@@ -116,11 +125,15 @@ const EmailVerification = ({ navigation, route }) => {
   const handleGotoDashboard = () => {
     // Navigate to dashboard/home screen
      // or 'Home' or your main app screen
-     store.dispatch(login({
-      token: 'token',
-      userInfo: {email: 'recruiter@gmail.com', password: 'Recruiter@123'},
-      role: 'recruiter'
-     }))
+     navigation.reset({
+      index: 0,
+      routes: [{ name: screenNames.AUTH_NAVIGATION }],
+    });
+    //  store.dispatch(login({
+    //   token: 'token',
+    //   userInfo: {email: 'recruiter@gmail.com', password: 'Recruiter@123'},
+    //   role: 'recruiter'
+    //  }))
   }
 
   const handleCloseModal = () => {

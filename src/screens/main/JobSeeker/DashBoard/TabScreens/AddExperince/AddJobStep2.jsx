@@ -1,85 +1,88 @@
-// screens/JobPreference.jsx
 import React, { useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Platform,
-} from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useNavigation } from '@react-navigation/native';
-import { colors, getFontSize, hp, wp } from '@/theme';
-import AppText, { Variant } from '@/core/AppText';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import AppHeader from '@/core/AppHeader';
+import AppText, { Variant } from '@/core/AppText';
 import AppButton from '@/core/AppButton';
 import CustomCheckBox from '@/core/CustomCheckBox';
 import VectorIcons from '@/theme/vectorIcon';
-import { screenNames } from '@/navigation/screenNames';
+import { colors, getFontSize, hp, wp } from '@/theme';
+import { showToast, toastTypes } from '@/utilities/toastConfig';
+import { useUpdateJobSeekerProfile } from '@/api/auth/auth.query';
+import { useAddJobPreferences } from '@/api/jobSeeker/jobSeeker.query';
 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 const AddJobStep2 = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const step1Data = route.params?.formData || {};
+  const { mutateAsync: updateJobPreference } = useAddJobPreferences();
 
   const methods = useForm({
-    mode: 'onChange',
     defaultValues: {
       availability: daysOfWeek.reduce((acc, day) => {
-        acc[day] = { enabled: false, from: null, to: null };
+        acc[day] = { enabled: false };
         return acc;
       }, {}),
+      startTime: null,
+      endTime: null,
     },
   });
 
-  const { watch, setValue, control, handleSubmit } = methods;
-  const [showPicker, setShowPicker] = useState({ day: null, field: null });
-
+  const { control, watch, setValue, handleSubmit } = methods;
+  const [showPicker, setShowPicker] = useState({ field: null });
   const availability = watch('availability');
 
   const handleTimeChange = (event, selectedDate) => {
-    if (showPicker.day && showPicker.field) {
+    if (showPicker.field) {
       const timeString = selectedDate
         ? selectedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         : null;
-      setValue(`availability.${showPicker.day}.${showPicker.field}`, timeString);
+      setValue(showPicker.field, timeString);
     }
-    setShowPicker({ day: null, field: null });
+    setShowPicker({ field: null });
   };
 
-  const onSubmit = (data) => {
-    console.log('Availability Data:', data);
-    // navigation.navigate(screenNames.REVIEW, { formData: data });
-    navigation.goBack();
+  const onSubmit = async (data) => {
+    const enabledDays = Object.keys(data.availability).filter(day => data.availability[day].enabled);
+    const payload = {
+      ...step1Data,
+      daysAvailable: enabledDays.join(','),
+      startTime: data.startTime,
+      endTime: data.endTime,
+    };
+
+    console.log('📤 Final Payload:', payload);
+
+    try {
+      await updateJobPreference(payload);
+      // showToast('Job preferences updated successfully', 'Success', toastTypes.success);
+      navigation.goBack();
+    } catch (err) {
+      console.error('Error updating job preferences:', err);
+      showToast('Failed to update job preferences', 'Error', toastTypes.error);
+    }
   };
 
   return (
     <FormProvider {...methods}>
-      {/* Header */}
       <AppHeader
         title="Add a Job"
         showTopIcons={false}
-        rightComponent={
-          <AppText variant={Variant.body} style={styles.stepText}>
-            Step 2/2
-          </AppText>
-        }
+        rightComponent={<AppText style={styles.stepText}>Step 2/2</AppText>}
       />
 
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Title */}
-        <AppText variant={Variant.h2} style={styles.sectionTitle}>
-          Availability to work
-        </AppText>
+        <AppText variant={Variant.h2} style={styles.sectionTitle}>Availability to work</AppText>
         <AppText variant={Variant.bodySmall} style={styles.subTitle}>
-          Choose days and time you want seeker to be available
+          Choose days and time you are available to work
         </AppText>
 
-        {/* Days List */}
         {daysOfWeek.map((day) => (
           <View key={day} style={styles.dayContainer}>
-            {/* Day Checkbox */}
             <View style={styles.dayHeader}>
               <Controller
                 control={control}
@@ -88,60 +91,26 @@ const AddJobStep2 = () => {
                   <CustomCheckBox checked={value} onPress={() => onChange(!value)} />
                 )}
               />
-              <AppText variant={Variant.bodyMedium} style={styles.dayText}>
-                {day}
-              </AppText>
+              <AppText style={styles.dayText}>{day}</AppText>
             </View>
-
-            {/* Time Pickers */}
-            {availability[day]?.enabled && (
-              <View style={styles.timeRow}>
-                {/* From */}
-                <TouchableOpacity
-                  style={styles.timeInput}
-                  onPress={() => setShowPicker({ day, field: 'from' })}
-                >
-                  <AppText style={styles.timeText}>
-                    {availability[day].from || '00:00'}
-                  </AppText>
-                  <VectorIcons
-                    lib="MaterialCommunityIcons"
-                    name="clock-outline"
-                    size={18}
-                    color={colors.gray}
-                  />
-                </TouchableOpacity>
-
-                <AppText style={styles.toText}>To</AppText>
-
-                {/* To */}
-                <TouchableOpacity
-                  style={styles.timeInput}
-                  onPress={() => setShowPicker({ day, field: 'to' })}
-                >
-                  <AppText style={styles.timeText}>
-                    {availability[day].to || '00:00'}
-                  </AppText>
-                  <VectorIcons
-                    lib="MaterialCommunityIcons"
-                    name="clock-outline"
-                    size={18}
-                    color={colors.gray}
-                  />
-                </TouchableOpacity>
-              </View>
-            )}
           </View>
         ))}
 
-        {/* Save Button */}
-        <View style={styles.buttonContainer}>
-          <AppButton text="Save" onPress={handleSubmit(onSubmit)} textColor="#FFF" />
+        <AppText style={styles.label}>Select Working Hours</AppText>
+        <View style={styles.timeRow}>
+          <TouchableOpacity style={styles.timeInput} onPress={() => setShowPicker({ field: 'startTime' })}>
+            <AppText style={styles.timeText}>{watch('startTime') || 'Start Time'}</AppText>
+          </TouchableOpacity>
+          <AppText style={styles.toText}>To</AppText>
+          <TouchableOpacity style={styles.timeInput} onPress={() => setShowPicker({ field: 'endTime' })}>
+            <AppText style={styles.timeText}>{watch('endTime') || 'End Time'}</AppText>
+          </TouchableOpacity>
         </View>
+
+        <AppButton text="Save" onPress={handleSubmit(onSubmit)} textColor="#FFF" style={styles.button} />
       </ScrollView>
 
-      {/* Time Picker */}
-      {showPicker.day && (
+      {showPicker.field && (
         <DateTimePicker
           value={new Date()}
           mode="time"
@@ -157,62 +126,24 @@ const AddJobStep2 = () => {
 export default AddJobStep2;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.white,
-    paddingHorizontal: wp(4),
-    paddingTop: hp(2),
-  },
-  stepText: {
-    color: colors.white,
-    fontWeight: 'bold',
-    fontSize: getFontSize(20),
-  },
-  sectionTitle: {
-    color: colors.secondary,
-    marginBottom: hp(0.5),
-  },
-  subTitle: {
-    color: colors.gray,
-    marginBottom: hp(2),
-  },
-  dayContainer: {
-    marginBottom: hp(2.5),
-  },
-  dayHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: hp(1),
-  },
-  dayText: {
-    color: colors.secondary,
-    marginLeft: wp(2),
-    fontWeight: '600',
-  },
-  timeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  container: { flex: 1, backgroundColor: colors.white, padding: wp(4) },
+  stepText: { color: colors.white, fontWeight: 'bold', fontSize: getFontSize(20) },
+  sectionTitle: { color: colors.secondary, marginBottom: hp(0.5) },
+  subTitle: { color: colors.gray, marginBottom: hp(2) },
+  dayContainer: { marginBottom: hp(1.5) },
+  dayHeader: { flexDirection: 'row', alignItems: 'center' },
+  dayText: { color: colors.secondary, marginLeft: wp(2), fontWeight: '600' },
+  label: { marginTop: hp(2), color: colors.secondary, fontWeight: '600' },
+  timeRow: { flexDirection: 'row', alignItems: 'center', marginVertical: hp(1) },
   timeInput: {
     flex: 1,
-    paddingVertical: hp(1.5),
-    paddingHorizontal: wp(3),
     borderWidth: 1,
     borderColor: colors.lightGray,
     borderRadius: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    padding: hp(1.5),
     alignItems: 'center',
   },
-  timeText: {
-    color: colors.gray,
-  },
-  toText: {
-    marginHorizontal: wp(2),
-    color: colors.secondary,
-    fontWeight: '500',
-  },
-  buttonContainer: {
-    marginBottom: hp(6),
-  },
+  timeText: { color: colors.gray },
+  toText: { marginHorizontal: wp(2), color: colors.secondary },
+  button: { marginTop: hp(3), marginBottom: hp(6) },
 });

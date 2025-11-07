@@ -8,14 +8,17 @@ import FormField from '@/core/FormField';
 import AppButton from '@/core/AppButton';
 import { colors, hp, wp } from '@/theme';
 import { useUpdateJobSeekerProfile } from '@/api/auth/auth.query';
+import { showToast, toastTypes } from '@/utilities/toastConfig';
+import { updateUserFields } from '@/store/authSlice';
 
 const VisaDetails = () => {
   const dispatch = useDispatch();
+  const [isLoading, setIsLoading] = React.useState(false);
   const { mutate: updateJobSeekerProfile, isPending } = useUpdateJobSeekerProfile();
 
   const userData = useSelector((state) => state.auth.userInfo);
-  const userInfo =
-    userData?.role === 'recruiter' ? userData?.recruiter : userData?.job_seeker;
+  const userInfo = userData?.visaDetails
+    // userData?.role === 'recruiter' ? userData?.recruiter : userData?.job_seeker;
 
   const methods = useForm({
     defaultValues: {
@@ -30,9 +33,15 @@ const VisaDetails = () => {
   const { handleSubmit } = methods;
 
   const handleSave = async (data) => {
+    setIsLoading(true);
     const payload = { ...data, id: userInfo?.id };
     console.log('🛂 Updating visa details:', payload);
-    await updateJobSeekerProfile(payload);
+    setTimeout(() => {
+              dispatch(updateUserFields({ visaDetails: payload }));
+              showToast('Visa Details updated successfully', 'Success', toastTypes.success);
+              setIsLoading(false);
+            }, 2000);
+    // await updateJobSeekerProfile(payload);
   };
 
   return (
@@ -80,7 +89,7 @@ const VisaDetails = () => {
             <AppButton
               bgColor={colors.primary}
               text="Save Visa Details"
-              isLoading={isPending}
+              isLoading={isLoading}
               onPress={handleSubmit(handleSave)}
               // style={styles.button}
             />

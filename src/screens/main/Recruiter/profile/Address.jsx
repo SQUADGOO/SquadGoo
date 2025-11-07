@@ -8,33 +8,35 @@ import FormField from '@/core/FormField';
 import AppButton from '@/core/AppButton';
 import { colors, hp, wp } from '@/theme';
 import { useUpdateJobSeekerProfile } from '@/api/auth/auth.query';
+import { updateUserFields } from '@/store/authSlice';
+import { showToast, toastTypes } from '@/utilities/toastConfig';
+import { useAddFullAddress } from '@/api/jobSeeker/jobSeeker.query';
 
 const Address = () => {
   const dispatch = useDispatch();
-  const { mutate: updateJobSeekerProfile, isPending } = useUpdateJobSeekerProfile();
-
+  const { mutateAsync: updateAddress, isPending } = useAddFullAddress();
   const userData = useSelector((state) => state.auth.userInfo);
-  const userInfo =
-    userData?.role === 'recruiter' ? userData?.recruiter : userData?.job_seeker;
+  console.log('🏁 User Data in Address Screen:', userData?.fullAddress);
+  const userInfo = userData
+    // userData?.role === 'recruiter' ? userData?.recruiter : userData?.job_seeker;
 
   const methods = useForm({
     defaultValues: {
-      full_address: userInfo?.address || '',
+      fullAddress: userInfo?.address || '',
       country: userInfo?.country || '',
       state: userInfo?.state || '',
       suburb: userInfo?.suburb || '',
-      unit_no: userInfo?.unit_no || '',
-      house_number: userInfo?.house_number || '',
-      street_name: userInfo?.street_name || '',
+      unit: userInfo?.unit || '',
+      houseNumber: userInfo?.houseNumber || '',
+      streetName: userInfo?.streetName || '',
     },
   });
 
   const { handleSubmit } = methods;
 
   const handleSave = async (data) => {
-    const payload = { ...data, id: userInfo?.id };
-    console.log('📦 Submitting address:', payload);
-    await updateJobSeekerProfile(payload);
+    let res = await updateAddress(data);
+    console.log('🏁 Address update response:', res);
   };
 
   return (
@@ -46,7 +48,7 @@ const Address = () => {
 
           <View style={styles.formContainer}>
             <FormField
-              name="full_address"
+              name="fullAddress"
               label="Full Address*"
               placeholder="Enter your full address"
               rules={{ required: 'Full address is required' }}
@@ -70,25 +72,25 @@ const Address = () => {
               rules={{ required: 'Suburb is required' }}
             />
             <FormField
-              name="unit_no"
+              name="unit"
               label="Unit No."
               placeholder="Enter your unit number"
             />
             <FormField
-              name="house_number"
+              name="houseNumber"
               label="House Number"
               placeholder="Enter your house number"
             />
             <FormField
-              name="street_name"
+              name="streetName"
               label="Street Name"
               placeholder="Enter your street name"
             />
 
             <AppButton
+              isLoading={isPending}
               bgColor={colors.primary}
               text="Save Changes"
-              isLoading={isPending}
               onPress={handleSubmit(handleSave)}
               style={styles.button}
             />

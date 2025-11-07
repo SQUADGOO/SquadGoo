@@ -9,42 +9,42 @@ import FormField from '@/core/FormField';
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
 import { colors, hp, wp } from '@/theme';
 import { useUpdateJobSeekerProfile } from '@/api/auth/auth.query';
+import { showToast, toastTypes } from '@/utilities/toastConfig';
+import { useAddSocialLinks } from '@/api/jobSeeker/jobSeeker.query';
 
 const defaultSocials = [
-  { key: 'linkedin', label: 'LinkedIn', iconLib: iconLibName.AntDesign, icon: 'linkedin-square' },
-  { key: 'facebook', label: 'Facebook', iconLib: iconLibName.FontAwesome, icon: 'facebook-square' },
-  { key: 'instagram', label: 'Instagram', iconLib: iconLibName.AntDesign, icon: 'instagram' },
-  { key: 'x', label: 'X (Twitter)', iconLib: iconLibName.FontAwesome6, icon: 'x-twitter' },
-  { key: 'tiktok', label: 'TikTok', iconLib: iconLibName.FontAwesome6, icon: 'tiktok' },
-  { key: 'youtube', label: 'YouTube', iconLib: iconLibName.AntDesign, icon: 'youtube' },
-  { key: 'website', label: 'Website', iconLib: iconLibName.Feather, icon: 'globe' },
+  { key: 'linkedinProfile', label: 'LinkedIn', iconLib: iconLibName.AntDesign, icon: 'linkedin-square' },
+  { key: 'facebookProfile', label: 'Facebook', iconLib: iconLibName.FontAwesome, icon: 'facebook-square' },
+  { key: 'instagramProfile', label: 'Instagram', iconLib: iconLibName.AntDesign, icon: 'instagram' },
+  { key: 'twitterProfile', label: 'X (Twitter)', iconLib: iconLibName.FontAwesome6, icon: 'x-twitter' },
+  // { key: 'tiktokProfile', label: 'TikTok', iconLib: iconLibName.FontAwesome6, icon: 'tiktok' },
+  // { key: 'youtubeProfile', label: 'YouTube', iconLib: iconLibName.AntDesign, icon: 'youtube' },
+  // { key: 'websiteProfile', label: 'Website', iconLib: iconLibName.Feather, icon: 'globe' },
+  { key: 'githubProfile', label: 'GitHub', iconLib: iconLibName.FontAwesome, icon: 'github' },
 ];
 
 const SocialMedia = () => {
   const userData = useSelector((state) => state.auth.userInfo);
-  const userInfo =
-    userData?.role === 'recruiter' ? userData?.recruiter : userData?.job_seeker;
+  const userInfo = userData
+   
 
-  const { mutate: updateJobSeekerProfile, isPending } = useUpdateJobSeekerProfile();
+  const { mutateAsync: updateSocialLinks, isPending } = useAddSocialLinks();
 
   const [activeFields, setActiveFields] = useState(() => {
-    // show any pre-filled ones automatically
     const existing = {};
     defaultSocials.forEach((s) => {
-      if (userInfo?.[`${s.key}_url`]) existing[s.key] = true;
+      if (userInfo?.[s.key]) existing[s.key] = true;
     });
     return existing;
   });
 
   const methods = useForm({
     defaultValues: {
-      linkedin_url: userInfo?.linkedin_url || '',
-      facebook_url: userInfo?.facebook_url || '',
-      instagram_url: userInfo?.instagram_url || '',
-      x_url: userInfo?.x_url || '',
-      tiktok_url: userInfo?.tiktok_url || '',
-      youtube_url: userInfo?.youtube_url || '',
-      website_url: userInfo?.website_url || '',
+      linkedinProfile: userInfo?.linkedinProfile || '',
+      facebookProfile: userInfo?.facebookProfile || '',
+      instagramProfile: userInfo?.instagramProfile || '',
+      twitterProfile: userInfo?.twitterProfile || '',
+      githubProfile: userInfo?.githubProfile || '',
     },
   });
 
@@ -58,9 +58,12 @@ const SocialMedia = () => {
   };
 
   const handleSave = async (data) => {
-    const payload = { ...data, id: userInfo?.id };
-    console.log('🌐 Saving social links:', payload);
-    // await updateJobSeekerProfile(payload);
+    try {
+      const res = await updateSocialLinks(data);
+    } catch (err) {
+      console.log('❌ Social links update error:', err);
+      showToast('Failed to update social links', 'Error', toastTypes.error);
+    }
   };
 
   return (
@@ -99,7 +102,7 @@ const SocialMedia = () => {
 
                 {activeFields[item.key] && (
                   <FormField
-                    name={`${item.key}_url`}
+                    name={item.key}
                     label={`${item.label} URL`}
                     placeholder={`Enter your ${item.label} profile link`}
                     keyboardType="url"
@@ -109,7 +112,6 @@ const SocialMedia = () => {
                         message: 'Please enter a valid URL',
                       },
                     }}
-                    // style={styles.fieldContainer}
                   />
                 )}
               </View>
@@ -148,9 +150,7 @@ const styles = StyleSheet.create({
   socialContainer: {
     marginTop: hp(1),
   },
-  socialItem: {
-    // marginBottom: hp(2.5),
-  },
+  socialItem: {},
   socialButton: {
     flexDirection: 'row',
     alignItems: 'center',

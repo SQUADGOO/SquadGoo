@@ -42,6 +42,7 @@ const handleLogin = async (data) => {
     const { email, password } = methods.getValues();
     console.log('Login with:', data);
     await login({ email, password });
+    
     return
     // Recruiter credentials
     if (

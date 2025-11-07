@@ -8,11 +8,13 @@ import FormField from '@/core/FormField';
 import AppButton from '@/core/AppButton';
 import { colors, hp, wp } from '@/theme';
 import { useUpdateJobSeekerProfile } from '@/api/auth/auth.query';
+import { updateUserFields } from '@/store/authSlice';
+import { showToast, toastTypes } from '@/utilities/toastConfig';
 
 const ContactDetails = () => {
   const dispatch = useDispatch();
   const { mutate: updateJobSeekerProfile, isPending } = useUpdateJobSeekerProfile();
-
+  const [isLoading, setIsLoading] = React.useState(false);
   const userData = useSelector((state) => state.auth.userInfo);
   const userInfo =
     userData?.role === 'recruiter' ? userData?.recruiter : userData?.job_seeker;
@@ -27,8 +29,14 @@ const ContactDetails = () => {
   const { handleSubmit } = methods;
 
   const handleSave = async (data) => {
+    setIsLoading(true);
     const payload = { ...data, id: userInfo?.id };
     console.log('📞 Updating contact details:', payload);
+    setTimeout(() => {
+          dispatch(updateUserFields({ contactDetails: payload }));
+          showToast('Address updated successfully', 'Success', toastTypes.success);
+          setIsLoading(false);
+        }, 2000);
     // await updateJobSeekerProfile(payload);
   };
 
@@ -66,7 +74,7 @@ const ContactDetails = () => {
             <AppButton
               bgColor={colors.primary}
               text="Save Changes"
-              isLoading={isPending}
+              isLoading={isLoading}
               onPress={handleSubmit(handleSave)}
               // style={styles.button}
             />

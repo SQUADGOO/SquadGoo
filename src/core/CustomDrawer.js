@@ -12,6 +12,7 @@ import { useSelector } from 'react-redux'
 import { useNavigation } from '@react-navigation/native'
 import MarketPlace from '@/screens/main/JobSeeker/DashBoard/MarketPlace/MarketPlace'
 import FastImageView from './FastImageView'
+import { Images } from '@/assets'
 
 const CustomDrawer = ({
   onNavigate,
@@ -22,7 +23,7 @@ const CustomDrawer = ({
   const navigation = useNavigation()
   // 🔹 Get current user info from Redux
   const { userInfo, role } = useSelector((state) => state.auth)
-  // console.log('User Info from Redux:', userInfo, 'Role:', role)
+  console.log('User Info from Redux:', userInfo, 'Role:', role)
 
   const toggleSection = (sectionKey) => {
     setExpandedSections(prev => ({
@@ -154,7 +155,7 @@ const CustomDrawer = ({
       ]
     }
 
-    if (role?.toLowerCase() === 'job_seeker') {
+    if (role?.toLowerCase() === 'jobseeker') {
       return [
         {
           key: 'settings',
@@ -255,12 +256,12 @@ const CustomDrawer = ({
     <View style={styles.profileSection}>
       <View style={styles.profileContainer}>
         <TouchableOpacity onPress={() => navigation.navigate(screenNames.PROFILE)} style={styles.avatarContainer}>
-          {userInfo?.profile_picture &&
+      
             <FastImageView
-              source={{ uri: userInfo?.profile_picture }}
+              source={userInfo?.profile_picture ? { uri: userInfo?.profile_picture } : Images.logo}
               style={styles.avatar}
               resizeMode={'cover'}
-            />}
+            />
           {userInfo?.isVerified && (
             <View style={styles.verificationBadge}>
               <VectorIcons

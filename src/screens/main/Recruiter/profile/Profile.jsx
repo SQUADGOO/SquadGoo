@@ -106,7 +106,7 @@ const Profile = () => {
             <View style={styles.infoRow}>
               <Image resizeMode='contain' source={icons.call} style={{ height: 18, width: 18 }} />
               <AppText variant={Variant.caption} style={styles.infoText}>
-                Phone: <Text style={{ fontFamily: fonts.poppinsSemiBold }}>+61 5875767524</Text>
+                Phone: <Text style={{ fontFamily: fonts.poppinsSemiBold }}>{userInfo?.contactNumber || 'N/A'}</Text>
               </AppText>
             </View>
 

@@ -17,13 +17,15 @@ import FormField from '@/core/FormField'
 import AppButton from '@/core/AppButton'
 import AppText, { Variant } from '@/core/AppText'
 import { screenNames } from '@/navigation/screenNames'
+import { useRegister } from '@/api/auth/auth.query'
 
 const SignUp = ({ navigation }) => {
-  const [selectedUserType, setSelectedUserType] = useState('Jobseeker')
+  const [selectedUserType, setSelectedUserType] = useState('jobseeker')
   const [acceptTerms, setAcceptTerms] = useState(false)
+  const { mutate: register, isPending } = useRegister()
 
   // User type options
-  const userTypes = ['Jobseeker', 'Recruiter', 'Individual']
+  const userTypes = ['jobseeker', 'recruiter', 'individual']
 
   // Initialize form methods
   const methods = useForm({
@@ -91,15 +93,28 @@ const SignUp = ({ navigation }) => {
     try {
       const signupData = {
         ...data,
-        userType: selectedUserType,
+        role: selectedUserType,
         acceptedTerms: acceptTerms
       }
+
+      register(signupData, {
+        onSuccess: (response) => {
+          Alert.alert('Success', 'Account created successfully!')
+          navigation.navigate(screenNames.VERIFY_EMAIL, {
+            email: data?.email
+          })
+        },
+        onError: (error) => {
+          console.error('Signup error:', error)
+          Alert.alert('Error', error?.response?.data?.message || 'Sign up failed. Please try again.')
+        }
+      })
       
       console.log('Sign up with:', signupData);
       // Add your signup logic here
       // Example: await signUpUser(signupData)
-      Alert.alert('Success', 'Account created successfully!')
-      navigation.navigate(screenNames.VERIFY_EMAIL)
+      // Alert.alert('Success', 'Account created successfully!')
+      // navigation.navigate(screenNames.VERIFY_EMAIL)
       // navigation.navigate('Home') or verification screen
     } catch (error) {
       Alert.alert('Error', 'Sign up failed. Please try again.')
@@ -274,7 +289,7 @@ const SignUp = ({ navigation }) => {
                   bgColor={colors.primary || '#FF6B35'}
                   text="Join Squad Goo"
                   onPress={handleSubmit(handleSignUp)}
-                  isLoading={isSubmitting}
+                  isLoading={isPending}
                   disabled={isSubmitting}
                 />
               </View>

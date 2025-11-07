@@ -13,7 +13,7 @@ import { screenNames } from '@/navigation/screenNames';
 const ContactDetailsSheet = ({ onClose }) => {
   const navigation = useNavigation();
   const userInfo = useSelector((state) => state.auth.userInfo);
-  const addressInfo = userInfo?.job_seeker || userInfo?.recruiter || {};
+  const addressInfo = userInfo?.contactDetails
 
   const handleEdit = async () => {
     onClose()

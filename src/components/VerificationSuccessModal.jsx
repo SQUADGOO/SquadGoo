@@ -69,7 +69,7 @@ const VerificationSuccessModal = ({
             <View style={styles.buttonContainer}>
               <AppButton
                 bgColor={colors.primary || '#FF6B35'}
-                text="Go To Dashboard"
+                text="Go to Sign in"
                 onPress={handleGotoDashboard}
                 // style={styles.button}
               />

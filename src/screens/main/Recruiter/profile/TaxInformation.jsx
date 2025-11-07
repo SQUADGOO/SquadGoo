@@ -8,31 +8,36 @@ import AppButton from '@/core/AppButton';
 import AppText from '@/core/AppText';
 import { colors, hp, wp } from '@/theme';
 import { useUpdateJobSeekerProfile } from '@/api/auth/auth.query';
+import { updateUserFields } from '@/store/authSlice';
+import { showToast, toastTypes } from '@/utilities/toastConfig';
+import { refreshUserData } from '@/utilities/refreshUserData';
+import { useAddTaxInfo } from '@/api/jobSeeker/jobSeeker.query';
 
 const TaxInformation = () => {
-  const dispatch = useDispatch();
-  const { mutate: updateJobSeekerProfile, isPending } = useUpdateJobSeekerProfile();
+  const { mutateAsync: updateTaxInfo, isPending } = useAddTaxInfo();
 
   const userData = useSelector((state) => state.auth.userInfo);
-  const userInfo =
-    userData?.role === 'recruiter' ? userData?.recruiter : userData?.job_seeker;
+  const userInfo = userData?.taxInformation || {};
 
   const methods = useForm({
     defaultValues: {
-      tax_file_number: userInfo?.tax_file_number || '',
-      abn_number: userInfo?.abn_number || '',
-      superannuation_fund: userInfo?.superannuation_fund || '',
-      super_member_number: userInfo?.super_member_number || '',
+      taxFileNumber: userInfo?.taxFileNumber || '',
+      australianBusinessNumber: userInfo?.australianBusinessNumber || '',
+      taxResidencyStatus: userInfo?.taxResidencyStatus || '',
     },
   });
 
   const { handleSubmit } = methods;
 
   const handleSave = async (data) => {
-    const payload = { ...data, id: userInfo?.id };
-    console.log('💰 Updating tax info:', payload);
-    await updateJobSeekerProfile(payload);
+    try {
+      const res = await updateTaxInfo(data);
+
+    } catch (err) {
+      console.log('❌ Tax info update error:', err);
+      showToast('Failed to update tax information', 'Error', toastTypes.error);
   };
+}
 
   return (
     <View style={styles.container}>
@@ -44,7 +49,7 @@ const TaxInformation = () => {
 
           <View style={styles.formContainer}>
             <FormField
-              name="tax_file_number"
+              name="taxFileNumber"
               label="Tax File Number (TFN)*"
               placeholder="Enter your TFN"
               rules={{
@@ -55,22 +60,16 @@ const TaxInformation = () => {
             />
 
             <FormField
-              name="abn_number"
+              name="australianBusinessNumber"
               label="ABN (Australian Business Number)"
               placeholder="Enter your ABN (if applicable)"
               keyboardType="number-pad"
             />
 
             <FormField
-              name="superannuation_fund"
-              label="Superannuation Fund"
-              placeholder="Enter your super fund name"
-            />
-
-            <FormField
-              name="super_member_number"
-              label="Super Member Number"
-              placeholder="Enter your super member number"
+              name="taxResidencyStatus"
+              label="Tax Residency Status"
+              placeholder="Enter your tax residency status"
             />
 
             <AppButton
@@ -78,7 +77,6 @@ const TaxInformation = () => {
               text="Save Tax Information"
               isLoading={isPending}
               onPress={handleSubmit(handleSave)}
-              // style={styles.button}
             />
           </View>
         </FormProvider>

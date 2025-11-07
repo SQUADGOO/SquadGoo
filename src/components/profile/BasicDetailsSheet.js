@@ -12,7 +12,8 @@ import AppButton from '@/core/AppButton';
 const BasicDetailsSheet = ({onClose}) => {
   const navigation = useNavigation();
   const userInfo = useSelector((state) => state.auth.userInfo);
-  const basicInfo = userInfo?.job_seeker || userInfo?.recruiter || {};
+  const basicInfo = userInfo
+  console.log('basic info', basicInfo)
 
   const handleEdit = async () => {
     onClose()
@@ -24,18 +25,18 @@ const BasicDetailsSheet = ({onClose}) => {
       <SheetHeader onPressEdit={handleEdit} title='Basic Details' onClose={onClose} />
       <View style={styles.row}>
         <AppText style={styles.label}>First name: </AppText>
-        <AppText style={styles.value}>{basicInfo.first_name || '-'}</AppText>
+        <AppText style={styles.value}>{basicInfo.firstName || '-'}</AppText>
       </View>
 
       <View style={styles.row}>
         <AppText style={styles.label}>Last name:</AppText>
-        <AppText style={styles.value}>{basicInfo.last_name || '-'}</AppText>
+        <AppText style={styles.value}>{basicInfo.lastName || '-'}</AppText>
       </View>
 
       <View style={styles.row}>
         <AppText style={styles.label}>Date of birth: </AppText>
         <AppText style={styles.value}>
-          {basicInfo.dob ? new Date(basicInfo.dob).toDateString() : '-'}
+          {basicInfo.dateOfBirth ? new Date(basicInfo.dateOfBirth).toDateString() : '-'}
         </AppText>
       </View>
 

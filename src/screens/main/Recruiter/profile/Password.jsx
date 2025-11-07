@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
-import { useForm, FormProvider } from 'react-hook-form';
+import { useForm, FormProvider, set } from 'react-hook-form';
 import { useSelector } from 'react-redux';
 import AppHeader from '@/core/AppHeader';
 import AppText from '@/core/AppText';
@@ -8,8 +8,10 @@ import AppButton from '@/core/AppButton';
 import FormField from '@/core/FormField';
 import { colors, hp, wp } from '@/theme';
 import { useChangePassword } from '@/api/auth/auth.query';
+import { showToast, toastTypes } from '@/utilities/toastConfig';
 
 const ChangePassword = () => {
+  const [isLoading, setIsLoading] = React.useState(false);
   const userData = useSelector((state) => state.auth.userInfo);
   const userId =
     userData?.role === 'recruiter' ? userData?.recruiter?.id : userData?.job_seeker?.id;
@@ -38,6 +40,13 @@ const ChangePassword = () => {
       current_password: data.current_password,
       new_password: data.new_password,
     };
+
+    setIsLoading(true);
+
+    setTimeout(() => {
+      showToast('Password updated successfully', 'Success', toastTypes.success);
+      setIsLoading(false);
+    }, 2000);
 
     console.log('🔐 Changing password:', payload);
     // await changePassword(payload);
@@ -88,7 +97,7 @@ const ChangePassword = () => {
           <AppButton
             bgColor={colors.primary}
             text="Save Changes"
-            // isLoading={isPending}
+            isLoading={isLoading}
             onPress={handleSubmit(handleSave)}
             // style={styles.button}
           />

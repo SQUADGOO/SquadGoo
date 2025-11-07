@@ -12,7 +12,8 @@ import { screenNames } from '@/navigation/screenNames';
 const AddressSheet = ({onClose}) => {
     const navigation = useNavigation();
   const userInfo = useSelector((state) => state.auth.userInfo);
-  const addressInfo = userInfo?.job_seeker || userInfo?.recruiter || {};
+  const addressInfo = userInfo
+  // const addressInfo = userInfo?.job_seeker || userInfo?.recruiter || {};
 
   const handleEdit = async () => {
     onClose()
@@ -25,7 +26,7 @@ const AddressSheet = ({onClose}) => {
 
       <View style={[styles.row, {flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start'}]}>
         <AppText style={styles.label}>Full Address: </AppText>
-        <AppText style={styles.value}>{addressInfo?.address || '-'}</AppText>
+        <AppText style={styles.value}>{addressInfo?.full_address || '-'}</AppText>
       </View>
 
       <View style={styles.row}>
@@ -50,7 +51,7 @@ const AddressSheet = ({onClose}) => {
 
       <View style={styles.row}>
         <AppText style={styles.label}>House No: </AppText>
-        <AppText style={styles.value}>{addressInfo?.house_no || '-'}</AppText>
+        <AppText style={styles.value}>{addressInfo?.house_number || '-'}</AppText>
       </View>
 
       <View style={styles.row}>
