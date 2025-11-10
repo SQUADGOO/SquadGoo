@@ -127,6 +127,15 @@ const DrawerNavigator = () => {
         name={screenNames.QUICK_SEARCH_STEPFOUR}
         component={ui.StepFourQuickSearch}
       />
+            
+            <Drawer.Screen
+        name={screenNames.QUICK_SEARCH_PREVIEW}
+        component={ui.QuickSearchPreview}
+      />
+            <Drawer.Screen
+        name={screenNames.MARKETPLACE_STACK}
+        component={ui.MarketplaceStack}
+      />
   <Drawer.Screen
         name={screenNames.CHAT}
         component={ui.Chat}

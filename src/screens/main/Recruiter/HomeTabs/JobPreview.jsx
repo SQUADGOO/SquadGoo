@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StatusBar
 } from 'react-native'
-import { LinearGradient } from 'react-native-linear-gradient'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
 import AppText, { Variant } from '@/core/AppText'
@@ -15,38 +14,9 @@ import AppHeader from '@/core/AppHeader'
 
 const JobPreview = ({ navigation, route }) => {
   const insets = useSafeAreaInsets()
-  const { jobId } = route.params || {}
-
-  // Sample job data - replace with API call based on jobId
-  const jobData = {
-    title: 'Full house painting',
-    type: 'Full time',
-    location: 'Gladstone Central',
-    rangeFromLocation: '5km',
-    staffLooking: '40',
-    experience: '1.0 y (Fresher can also apply)',
-    salaryRange: 'Min $5.00 - Max $15.00',
-    leaves: {
-      publicHolidays: 'Yes',
-      weekend: 'Yes',
-      overtime: 'Yes'
-    },
-    availability: {
-      monday: '00:00 AM To 23:59 PM',
-      tuesday: '00:00 AM To 23:59 PM',
-      wednesday: 'Nill To Nill',
-      thursday: '00:00 AM To 23:59 PM',
-      friday: 'Nill To Nill',
-      saturday: 'Nill To Nill',
-      sunday: 'Nill To Nill'
-    },
-    requiredEducation: 'Advanced Diploma in Graphic Design',
-    requiredQualification: 'Basic rigging license',
-    preferredLanguage: 'English',
-    jobEndDate: '01 Jun 2024 12:55:00',
-    requiredTaxType: 'ABN',
-    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor'
-  }
+  
+  // Get data from all three steps
+  const { step1Data, step2Data, step3Data } = route.params || {}
 
   const DetailRow = ({ label, value, valueStyle }) => (
     <View style={styles.detailRow}>
@@ -65,7 +35,7 @@ const JobPreview = ({ navigation, route }) => {
         {day}:
       </AppText>
       <AppText variant={Variant.bodyMedium} style={styles.hoursText}>
-        {hours}
+        {hours || 'Not specified'}
       </AppText>
     </View>
   )
@@ -89,85 +59,94 @@ const JobPreview = ({ navigation, route }) => {
         contentContainerStyle={styles.scrollContent}
       >
         
-        {/* Basic Job Info */}
+        {/* Basic Job Info - Step 1 Data */}
         <DetailRow 
           label="Job title:" 
-          value={jobData.title}
+          value={step1Data?.jobTitle || 'N/A'}
           valueStyle={styles.jobTitle}
         />
         
         <DetailRow 
           label="Job type:" 
-          value={jobData.type}
+          value={step1Data?.jobType || 'N/A'}
         />
         
         <DetailRow 
           label="Work location:" 
-          value={jobData.location}
+          value={step1Data?.workLocation || 'N/A'}
         />
         
         <DetailRow 
           label="Range from location:" 
-          value={jobData.rangeFromLocation}
+          value={step1Data?.rangeKm ? `${step1Data.rangeKm} km` : 'N/A'}
         />
         
         <DetailRow 
           label="How many staff looking for:" 
-          value={jobData.staffLooking}
+          value={step1Data?.staffNumber || 'N/A'}
         />
         
+        {/* Experience - Step 2 Data */}
         <DetailRow 
           label="Experience:" 
-          value={jobData.experience}
+          value={step2Data ? `${step2Data.experienceYears} ${step2Data.experienceMonths}${step2Data.freshersCanApply ? ' (Fresher can also apply)' : ''}` : 'N/A'}
         />
         
         <DetailRow 
           label="Salary you are offering:" 
-          value={jobData.salaryRange}
+          value={step2Data ? `Min $${step2Data.salaryMin || '0'} - Max $${step2Data.salaryMax || '0'}` : 'N/A'}
           valueStyle={styles.salaryValue}
         />
 
-        {/* Leave Section */}
-        <SectionTitle title="Leave you are offering:" />
+        {/* Leave Section - Step 2 Data */}
+        <SectionTitle title="Extra pay you are offering:" />
         
         <DetailRow 
           label="Public holidays:" 
-          value={jobData.leaves.publicHolidays}
-          valueStyle={styles.yesValue}
+          value={step2Data?.extraPay?.publicHolidays ? 'Yes' : 'No'}
+          valueStyle={step2Data?.extraPay?.publicHolidays && styles.yesValue}
         />
         
         <DetailRow 
           label="Weekend:" 
-          value={jobData.leaves.weekend}
-          valueStyle={styles.yesValue}
+          value={step2Data?.extraPay?.weekend ? 'Yes' : 'No'}
+          valueStyle={step2Data?.extraPay?.weekend && styles.yesValue}
+        />
+        
+        <DetailRow 
+          label="Shift loading:" 
+          value={step2Data?.extraPay?.shiftLoading ? 'Yes' : 'No'}
+          valueStyle={step2Data?.extraPay?.shiftLoading && styles.yesValue}
+        />
+
+        <DetailRow 
+          label="Bonuses:" 
+          value={step2Data?.extraPay?.bonuses ? 'Yes' : 'No'}
+          valueStyle={step2Data?.extraPay?.bonuses && styles.yesValue}
         />
         
         <DetailRow 
           label="Overtime:" 
-          value={jobData.leaves.overtime}
-          valueStyle={styles.yesValue}
+          value={step2Data?.extraPay?.overtime ? 'Yes' : 'No'}
+          valueStyle={step2Data?.extraPay?.overtime && styles.yesValue}
         />
 
-        {/* Availability Section */}
+        {/* Availability Section - Step 2 Data */}
         <SectionTitle title="Availability to work:" />
         
         <View style={styles.availabilityContainer}>
-          <AvailabilityRow day="Monday" hours={jobData.availability.monday} />
-          <AvailabilityRow day="Tuesday" hours={jobData.availability.tuesday} />
-          <AvailabilityRow day="Wednesday" hours={jobData.availability.wednesday} />
-          <AvailabilityRow day="Thursday" hours={jobData.availability.thursday} />
-          <AvailabilityRow day="Friday" hours={jobData.availability.friday} />
-          <AvailabilityRow day="Saturday" hours={jobData.availability.saturday} />
-          <AvailabilityRow day="Sunday" hours={jobData.availability.sunday} />
+          <AppText variant={Variant.body} style={styles.detailValue}>
+            {step2Data?.availability || 'Not specified'}
+          </AppText>
         </View>
 
-        {/* Requirements Section */}
+        {/* Requirements Section - Step 3 Data */}
         <View style={styles.requirementSection}>
           <AppText variant={Variant.body} style={styles.requirementLabel}>
             Required education:
           </AppText>
           <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
-            {jobData.requiredEducation}
+            {step3Data?.educationalQualification || 'Not specified'}
           </AppText>
         </View>
 
@@ -176,16 +155,16 @@ const JobPreview = ({ navigation, route }) => {
             Required qualification:
           </AppText>
           <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
-            {jobData.requiredQualification}
+            {step3Data?.extraQualification || 'Not specified'}
           </AppText>
         </View>
 
         <View style={styles.requirementSection}>
           <AppText variant={Variant.body} style={styles.requirementLabel}>
-            Preferred language:
+            Preferred languages:
           </AppText>
           <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
-            {jobData.preferredLanguage}
+            {step3Data?.preferredLanguages?.join(', ') || 'Not specified'}
           </AppText>
         </View>
 
@@ -194,26 +173,26 @@ const JobPreview = ({ navigation, route }) => {
             Job end date:
           </AppText>
           <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
-            {jobData.jobEndDate}
+            {step3Data?.jobEndDate || 'Not specified'}
           </AppText>
         </View>
 
         <View style={styles.requirementSection}>
           <AppText variant={Variant.body} style={styles.requirementLabel}>
-            Required Tax type ABN:
+            Required Tax type:
           </AppText>
           <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
-            {jobData.requiredTaxType}
+            {step3Data?.taxType || 'Not specified'}
           </AppText>
         </View>
 
-        {/* Description */}
+        {/* Description - Step 3 Data */}
         <View style={styles.descriptionSection}>
           <AppText variant={Variant.body} style={styles.requirementLabel}>
             Description:
           </AppText>
           <AppText variant={Variant.body} style={styles.descriptionText}>
-            {jobData.description}
+            {step3Data?.jobDescription || 'No description provided'}
           </AppText>
         </View>
 
@@ -229,28 +208,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white || '#FFFFFF',
   },
-  header: {
-    borderBottomLeftRadius: hp(4),
-    borderBottomRightRadius: hp(4),
-    paddingBottom: hp(2),
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: wp(6),
-    paddingTop: hp(1),
-  },
-  backButton: {
-    padding: wp(2),
-  },
-  headerTitle: {
-    color: '#FFFFFF',
-    fontSize: getFontSize(20),
-  },
-  placeholder: {
-    width: wp(10), // Same width as back button for centering
-  },
   content: {
     flex: 1,
   },
@@ -262,28 +219,22 @@ const styles = StyleSheet.create({
     marginBottom: hp(2),
   },
   detailLabel: {
-    // color: colors.gray || '#6B7280',
     marginBottom: hp(0.5),
   },
   detailValue: {
     fontWeight: 'bold'
-    // color: colors.black,
   },
   jobTitle: {
     fontSize: getFontSize(16),
     fontWeight: 'bold'
-    // color: colors.black,
   },
   salaryValue: {
     fontWeight: 'bold'
-    // color: colors.primary || '#FF6B35',
   },
   yesValue: {
-    // color: '#4ADE80', // Green color for "Yes"
+    color: '#4ADE80',
   },
   sectionTitle: {
-    
-    // color: colors.gray || '#6B7280',
     marginTop: hp(2),
     marginBottom: hp(1),
   },
@@ -295,30 +246,25 @@ const styles = StyleSheet.create({
     marginBottom: hp(1),
   },
   dayLabel: {
-    // color: colors.gray || '#6B7280',
     width: wp(25),
   },
   hoursText: {
     fontWeight: 'bold',
-    // color: colors.black,
     flex: 1,
   },
   requirementSection: {
     marginBottom: hp(2.5),
   },
   requirementLabel: {
-    // color: colors.gray || '#6B7280',
     marginBottom: hp(0.5),
   },
   requirementValue: {
     fontWeight: 'bold',
-    // color: colors.primary || '#FF6B35',
   },
   descriptionSection: {
     marginTop: hp(1),
   },
   descriptionText: {
-    // color: colors.black,
     lineHeight: hp(2.5),
     marginTop: hp(0.5),
   },

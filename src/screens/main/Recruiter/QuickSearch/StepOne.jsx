@@ -1,78 +1,153 @@
-// JobRequirementScreen.js
-import React, { useState } from 'react'
-import { View, StyleSheet, ScrollView } from 'react-native'
+// QuickSearchStepOne.js - Job Requirements
+import React, { useState, useRef } from 'react'
+import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import AppButton from '@/core/AppButton'
 import AppInputField from '@/core/AppInputField'
 import AppHeader from '@/core/AppHeader'
+import RbSheetComponent from '@/core/RbSheetComponent'
+import BottomDataSheet from '@/components/Recruiter/JobBottomSheet'
 import { screenNames } from '@/navigation/screenNames'
 
-const StepOne = ({ navigation }) => {
+const QuickSearchStepOne = ({ navigation }) => {
   const [jobTitle, setJobTitle] = useState('')
   const [industry, setIndustry] = useState('')
   const [experienceYear, setExperienceYear] = useState('0 Year')
   const [experienceMonth, setExperienceMonth] = useState('0 Month')
   const [staffCount, setStaffCount] = useState('')
 
+  const jobTitleSheetRef = useRef(null)
+  const industrySheetRef = useRef(null)
+  const yearSheetRef = useRef(null)
+  const monthSheetRef = useRef(null)
+
+  const jobTitleOptions = [
+    { id: 1, title: 'Full house painting' },
+    { id: 2, title: 'House renovation' },
+    { id: 3, title: 'Garden maintenance' },
+    { id: 4, title: 'Cleaning services' },
+    { id: 5, title: 'Plumbing services' },
+    { id: 6, title: 'Electrical work' },
+    { id: 7, title: 'Carpentry' },
+    { id: 8, title: 'Interior design' }
+  ]
+
+  const industryOptions = [
+    { id: 1, title: 'Construction' },
+    { id: 2, title: 'Healthcare' },
+    { id: 3, title: 'Technology' },
+    { id: 4, title: 'Hospitality' },
+    { id: 5, title: 'Retail' },
+    { id: 6, title: 'Education' },
+    { id: 7, title: 'Manufacturing' },
+    { id: 8, title: 'Transportation' }
+  ]
+
+  const experienceYearOptions = [
+    { id: 1, title: '0 Year' },
+    { id: 2, title: '1 Year' },
+    { id: 3, title: '2 Years' },
+    { id: 4, title: '3 Years' },
+    { id: 5, title: '4 Years' },
+    { id: 6, title: '5+ Years' }
+  ]
+
+  const experienceMonthOptions = [
+    { id: 1, title: '0 Month' },
+    { id: 2, title: '1 Month' },
+    { id: 3, title: '2 Months' },
+    { id: 4, title: '3 Months' },
+    { id: 5, title: '6 Months' },
+    { id: 6, title: '9 Months' },
+    { id: 7, title: '11 Months' }
+  ]
+
   const handleNext = () => {
-    const jobData = {
+    const quickSearchStep1Data = {
       jobTitle,
       industry,
-      experience: { year: experienceYear, month: experienceMonth },
+      experienceYear,
+      experienceMonth,
       staffCount,
     }
-    console.log('Job Requirement Data:', jobData)
-    // navigate forward
-    navigation.navigate(screenNames.QUICK_SEARCH_STEPTWO, { jobData })
+    console.log('Quick Search Step 1 Data:', quickSearchStep1Data)
+    navigation.navigate(screenNames.QUICK_SEARCH_STEPTWO, { quickSearchStep1Data })
   }
 
   return (
     <>
-      <AppHeader title="Job Requirements" showTopIcons={false} />
+      <AppHeader 
+        title="Job Requirements" 
+        showTopIcons={false}
+        rightComponent={
+          <AppText variant={Variant.body} style={styles.stepText}>
+            Step 1/4
+          </AppText>
+        }
+      />
 
       <View style={styles.container}>
-        <ScrollView
-          style={styles.content}
-          showsVerticalScrollIndicator={false}
-        >
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Job Title */}
           <AppText variant={Variant.bodyMedium} style={styles.label}>
             Job title*
           </AppText>
-          <AppInputField
-            placeholder="Search"
-            value={jobTitle}
-            onChangeText={setJobTitle}
-          />
+          <TouchableOpacity onPress={() => jobTitleSheetRef.current?.open()} activeOpacity={0.7}>
+            <View pointerEvents="none">
+              <AppInputField
+                placeholder="Search"
+                value={jobTitle}
+                editable={false}
+              />
+            </View>
+          </TouchableOpacity>
 
           {/* Industry */}
           <AppText variant={Variant.bodyMedium} style={styles.label}>
             Industry*
           </AppText>
-          <AppInputField
-            placeholder="Search"
-            value={industry}
-            onChangeText={setIndustry}
-          />
+          <TouchableOpacity onPress={() => industrySheetRef.current?.open()} activeOpacity={0.7}>
+            <View pointerEvents="none">
+              <AppInputField
+                placeholder="Search"
+                value={industry}
+                editable={false}
+              />
+            </View>
+          </TouchableOpacity>
 
           {/* Total Experience */}
           <AppText variant={Variant.bodyMedium} style={styles.label}>
             Total experience needed*
           </AppText>
           <View style={styles.experienceRow}>
-            <AppInputField
-              placeholder="0 Year"
-              value={experienceYear}
-              onChangeText={setExperienceYear}
+            <TouchableOpacity 
               style={styles.experienceInput}
-            />
-            <AppInputField
-              placeholder="0 Month"
-              value={experienceMonth}
-              onChangeText={setExperienceMonth}
+              onPress={() => yearSheetRef.current?.open()}
+              activeOpacity={0.7}
+            >
+              <View pointerEvents="none">
+                <AppInputField
+                  placeholder="0 Year"
+                  value={experienceYear}
+                  editable={false}
+                />
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity 
               style={styles.experienceInput}
-            />
+              onPress={() => monthSheetRef.current?.open()}
+              activeOpacity={0.7}
+            >
+              <View pointerEvents="none">
+                <AppInputField
+                  placeholder="0 Month"
+                  value={experienceMonth}
+                  editable={false}
+                />
+              </View>
+            </TouchableOpacity>
           </View>
 
           {/* Staff Count */}
@@ -97,11 +172,56 @@ const StepOne = ({ navigation }) => {
           />
         </View>
       </View>
+
+      {/* Bottom Sheets */}
+      <RbSheetComponent ref={jobTitleSheetRef} height={hp(60)}>
+        <BottomDataSheet
+          optionsData={jobTitleOptions}
+          onClose={() => jobTitleSheetRef.current?.close()}
+          onSelect={(item) => {
+            setJobTitle(item.title)
+            jobTitleSheetRef.current?.close()
+          }}
+        />
+      </RbSheetComponent>
+
+      <RbSheetComponent ref={industrySheetRef} height={hp(60)}>
+        <BottomDataSheet
+          optionsData={industryOptions}
+          onClose={() => industrySheetRef.current?.close()}
+          onSelect={(item) => {
+            setIndustry(item.title)
+            industrySheetRef.current?.close()
+          }}
+        />
+      </RbSheetComponent>
+
+      <RbSheetComponent ref={yearSheetRef} height={hp(50)}>
+        <BottomDataSheet
+          optionsData={experienceYearOptions}
+          onClose={() => yearSheetRef.current?.close()}
+          onSelect={(item) => {
+            setExperienceYear(item.title)
+            yearSheetRef.current?.close()
+          }}
+        />
+      </RbSheetComponent>
+
+      <RbSheetComponent ref={monthSheetRef} height={hp(50)}>
+        <BottomDataSheet
+          optionsData={experienceMonthOptions}
+          onClose={() => monthSheetRef.current?.close()}
+          onSelect={(item) => {
+            setExperienceMonth(item.title)
+            monthSheetRef.current?.close()
+          }}
+        />
+      </RbSheetComponent>
     </>
   )
 }
 
-export default StepOne
+export default QuickSearchStepOne
 
 const styles = StyleSheet.create({
   container: {
@@ -112,6 +232,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: wp(5),
     paddingTop: hp(2),
+  },
+  stepText: {
+    color: colors.white,
+    fontWeight: 'bold',
+    fontSize: getFontSize(16),
   },
   label: {
     color: colors.secondary,

@@ -9,8 +9,7 @@ import { logout } from '@/store/authSlice'
 import icons from '@/assets/icons'
 import { screenNames } from '../navigation/screenNames'
 import { useSelector } from 'react-redux'
-import { useNavigation } from '@react-navigation/native'
-import MarketPlace from '@/screens/main/JobSeeker/DashBoard/MarketPlace/MarketPlace'
+import { useNavigation, CommonActions } from '@react-navigation/native'
 import FastImageView from './FastImageView'
 import { Images } from '@/assets'
 
@@ -143,7 +142,21 @@ const CustomDrawer = ({
           title: 'Marketplace',
           icon: 'storefront-outline',
           iconLib: iconLibName.Ionicons,
-          route: MarketPlace,
+          route: screenNames.MARKETPLACE_STACK,
+        },
+        {
+          key: 'orders',
+          title: 'My Orders',
+          icon: 'receipt-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.MARKETPLACE_ORDERS,
+        },
+        {
+          key: 'orders',
+          title: 'My Orders',
+          icon: 'receipt-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.MARKETPLACE_ORDERS,
         },
         {
           key: 'logout',
@@ -240,7 +253,14 @@ const CustomDrawer = ({
           title: 'Marketplace',
           icon: 'storefront-outline',
           iconLib: iconLibName.Ionicons,
-          route: screenNames.MARKET_PLACE,
+          route: screenNames.MARKETPLACE_STACK,
+        },
+        {
+          key: 'orders',
+          title: 'My Orders',
+          icon: 'receipt-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.MARKETPLACE_ORDERS,
         },
       ]
     }
@@ -303,7 +323,19 @@ const CustomDrawer = ({
             if (item.expandable) {
               toggleSection(item.key)
             } else if (item.route) {
-              onNavigate(item.route)
+              // Handle nested navigation for marketplace orders
+              if (item.route === screenNames.MARKETPLACE_ORDERS) {
+                navigation.dispatch(
+                  CommonActions.navigate({
+                    name: screenNames.MARKETPLACE_STACK,
+                    params: {
+                      screen: screenNames.MARKETPLACE_ORDERS,
+                    },
+                  })
+                )
+              } else {
+                onNavigate(item.route)
+              }
             }
           }}
           activeOpacity={0.7}

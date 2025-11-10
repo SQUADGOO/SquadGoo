@@ -4,11 +4,9 @@ import {
   StyleSheet, 
   ScrollView, 
   TouchableOpacity,
-  TextInput,
-  FlatList,
   Image
 } from 'react-native'
-import { useForm, FormProvider, Form } from 'react-hook-form'
+import { useForm, FormProvider } from 'react-hook-form'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
 import AppText, { Variant } from '@/core/AppText'
@@ -22,10 +20,7 @@ import BottomDataSheet from '@/components/Recruiter/JobBottomSheet'
 import { screenNames } from '@/navigation/screenNames'
 
 const ManualSearch = ({ navigation }) => {
-  const [selectedJobTitle, setSelectedJobTitle] = useState(['Full house painting'])
-  const [selectedJobType, setSelectedJobType] = useState('Full time')
   const [rangeKm, setRangeKm] = useState(119)
-  const {setValue, getValues, watch} = useForm()
   
   const jobTitleSheetRef = useRef(null)
   const jobTypeSheetRef = useRef(null)
@@ -35,10 +30,12 @@ const ManualSearch = ({ navigation }) => {
     defaultValues: {
       workLocation: 'Sydney',
       staffNumber: '5',
-      jobTitle: null,
-      jobType: null,
+      jobTitle: '',
+      jobType: '',
     }
   })
+
+  const { watch, setValue } = methods
 
   const jobTitleOptions = [
     { id: 1, title: 'Full house painting' },
@@ -60,38 +57,31 @@ const ManualSearch = ({ navigation }) => {
     { id: 6, title: 'Freelance' }
   ]
 
- const handleJobTitleSelect = (item) => {
-  if (item?.title) {
-    setValue('jobTitle', item.title, { shouldValidate: true, shouldDirty: true })
-  }
-  jobTitleSheetRef.current?.close()
-}
-
-const handleJobTypeSelect = (item) => {
-  if (item?.title) {
-    setValue('jobType', item.title, { shouldValidate: true, shouldDirty: true })
-  }
-  jobTypeSheetRef.current?.close()
-}
-  const onSubmit = (data) => {
-    const searchData = {
-      jobTitle: selectedJobTitle,
-      jobType: selectedJobType,
-      workLocation: data.workLocation,
-      rangeKm: rangeKm,
-      staffNumber: data.staffNumber
+  const handleJobTitleSelect = (item) => {
+    if (item?.title) {
+      setValue('jobTitle', item.title, { shouldValidate: true, shouldDirty: true })
     }
-    
-    console.log('Search data:', searchData)
-    // Navigate to search results or next step
+    jobTitleSheetRef.current?.close()
   }
 
-  const handleNext = () => {
-    // jobTitleSheetRef.current?.open()
-    console.log('fdks manual search')
-    navigation.navigate(screenNames.STEP_TWO)
-    methods.handleSubmit(onSubmit)()
+  const handleJobTypeSelect = (item) => {
+    if (item?.title) {
+      setValue('jobType', item.title, { shouldValidate: true, shouldDirty: true })
+    }
+    jobTypeSheetRef.current?.close()
   }
+
+  const handleNext = methods.handleSubmit((data) => {
+    const searchData = {
+      jobTitle: data.jobTitle,
+      jobType: data.jobType,
+      workLocation: data.workLocation,
+      rangeKm,
+      staffNumber: data.staffNumber,
+    }
+    console.log('Step 1 data:', searchData)
+    navigation.navigate(screenNames.STEP_TWO, { step1Data: searchData })
+  })
 
   return (
     <FormProvider {...methods}>
@@ -101,8 +91,6 @@ const handleJobTypeSelect = (item) => {
         rightComponent={
           <View style={{}}>
             <TouchableOpacity 
-              // style={styles.nextButton}
-              // onPress={handleNext}
               activeOpacity={0.7}
             >
               <AppText variant={Variant.body} style={{
@@ -125,8 +113,6 @@ const handleJobTypeSelect = (item) => {
             value={watch('jobTitle')}
             label="Job title"  
             placeholder="Enter job title"
-           
-            // inputWrapperStyle={styles.formFieldWrapper}
           />  
         </View>
 
@@ -138,8 +124,6 @@ const handleJobTypeSelect = (item) => {
             label="Job type"
             value={watch('jobType')} 
             placeholder="Enter job type"
-            
-            // inputWrapperStyle={styles.formFieldWrapper}
           />
         </View>
 
@@ -151,7 +135,6 @@ const handleJobTypeSelect = (item) => {
           rules={{
             required: 'Work location is required'
           }}
-          // inputWrapperStyle={styles.formFieldWrapper}
         />
 
         {/* Range Slider */}
@@ -180,7 +163,6 @@ const handleJobTypeSelect = (item) => {
         {/* Map Preview */}
         <View style={styles.mapContainer}>
           <View style={styles.mapPlaceholder}>
-            {/* This would be replaced with actual map component */}
             <Image 
               source={{ uri: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=400&h=300&fit=crop' }}
               style={styles.mapImage}
@@ -211,7 +193,6 @@ const handleJobTypeSelect = (item) => {
               message: 'Please enter a valid number'
             }
           }}
-          // inputWrapperStyle={styles.formFieldWrapper}
         />
 
         {/* Next Button */}
@@ -219,9 +200,7 @@ const handleJobTypeSelect = (item) => {
           <AppButton
             text="Next"
             onPress={handleNext}
-            // bgColor="#F59E0B"
             textColor="#FFFFFF"
-            // style={styles.nextButton}
           />
         </View>
       </ScrollView>
@@ -235,7 +214,9 @@ const handleJobTypeSelect = (item) => {
       >
         <BottomDataSheet
           onSelect={handleJobTitleSelect}
-        optionsData={jobTitleOptions} onClose={() => jobTitleSheetRef.current?.close()} />
+          optionsData={jobTitleOptions} 
+          onClose={() => jobTitleSheetRef.current?.close()} 
+        />
       </RbSheetComponent>
 
       <RbSheetComponent
@@ -246,7 +227,9 @@ const handleJobTypeSelect = (item) => {
       >
         <BottomDataSheet
           onSelect={handleJobTypeSelect}
-        optionsData={jobTypeOptions} onClose={() => jobTypeSheetRef.current?.close()} />
+          optionsData={jobTypeOptions} 
+          onClose={() => jobTypeSheetRef.current?.close()} 
+        />
       </RbSheetComponent>
     </FormProvider>
   )

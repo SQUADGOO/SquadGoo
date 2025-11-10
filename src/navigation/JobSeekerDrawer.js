@@ -2,7 +2,6 @@ import {StyleSheet} from 'react-native';
 import React from 'react';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import CustomDrawer from '@/core/CustomDrawer';
-import TabNavigator from './TabNavigator';
 import {screenNames} from './screenNames';
 import { JobPreview } from '@/screens';
 import * as ui from '@/screens';
@@ -165,12 +164,8 @@ const JobSeekerDrawerNavigator = () => {
       />
    
       <Drawer.Screen  
-        name={screenNames.MARKET_PLACE}
-        component={ui.MarketPlace}
-      />
-        <Drawer.Screen  
-        name={screenNames.PRODUCT_DETAILS}
-        component={ui.ProductDetails}
+        name={screenNames.MARKETPLACE_STACK}
+        component={ui.MarketplaceStack}
       />
         <Drawer.Screen  
         name={screenNames.ADD_EXPERIENCE}

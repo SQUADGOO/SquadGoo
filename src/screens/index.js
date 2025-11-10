@@ -69,6 +69,14 @@ import WorkExperienceScreen from './main/JobSeeker/DashBoard/TabScreens/WorkExpe
 import JobSeekerDashboard from './main/JobSeeker/DashBoard/Dashboard';
 import MarketPlace from './main/JobSeeker/DashBoard/MarketPlace/MarketPlace';
 import ProductDetails from './main/JobSeeker/DashBoard/MarketPlace/ProductDetails';
+import PostProduct from './main/JobSeeker/DashBoard/MarketPlace/PostProduct';
+import MarketplaceCart from './main/JobSeeker/DashBoard/MarketPlace/Cart';
+import MarketplaceFavorites from './main/JobSeeker/DashBoard/MarketPlace/Favorites';
+import Checkout from './main/JobSeeker/DashBoard/MarketPlace/Checkout';
+import Payment from './main/JobSeeker/DashBoard/MarketPlace/Payment';
+import Orders from './main/JobSeeker/DashBoard/MarketPlace/Orders';
+import OrderDetails from './main/JobSeeker/DashBoard/MarketPlace/OrderDetails';
+import MarketplaceStack from '@/navigation/MarketplaceStack';
 import KycBusiness from './main/Recruiter/profile/kyc/KycBusiness';
 import AddExperience from './main/JobSeeker/DashBoard/TabScreens/AddExperince/AddExpericnce';
 import AddJobStep1 from './main/JobSeeker/DashBoard/TabScreens/AddExperince/AddJobStep1';
@@ -78,6 +86,8 @@ import GroupDetail from './main/JobSeeker/DashBoard/Settings/GroupDetail';
 import Members from './main/JobSeeker/DashBoard/Settings/Members';
 
 import EditProfile from './main/Recruiter/profile/EditProfile';
+
+import QuickSearchPreview from './main/Recruiter/QuickSearch/QuickSearchPreview';
 // Tab Screens
 
 export {
@@ -150,6 +160,14 @@ export {
 JobSeekerDashboard,
 MarketPlace,
 ProductDetails,
+PostProduct,
+MarketplaceCart,
+MarketplaceFavorites,
+Checkout,
+Payment,
+Orders,
+OrderDetails,
+MarketplaceStack,
 KycBusiness,
 AddExperience,
 AddJobStep1,
@@ -158,4 +176,5 @@ SquadSettingsGroups,
 GroupDetail,
 Members,
 EditProfile,
+QuickSearchPreview
 };

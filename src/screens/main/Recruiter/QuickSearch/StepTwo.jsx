@@ -1,4 +1,4 @@
-// WorkLocationScreen.js
+// QuickSearchStepTwo.js - Work Location
 import React, { useState } from 'react'
 import { 
   View, 
@@ -18,7 +18,10 @@ import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
 import DateTimePicker from '@react-native-community/datetimepicker'
 
-const StepTwoQuickSearch = ({ navigation }) => {
+const QuickSearchStepTwo = ({ navigation, route }) => {
+  // Get data from Step 1
+  const { quickSearchStep1Data } = route.params || {}
+
   const [rangeKm, setRangeKm] = useState(119)
   const [showStartDatePicker, setShowStartDatePicker] = useState(false)
   const [showEndDatePicker, setShowEndDatePicker] = useState(false)
@@ -35,12 +38,18 @@ const StepTwoQuickSearch = ({ navigation }) => {
   const { setValue, watch } = methods
 
   const onSubmit = (data) => {
-    const formData = {
+    const quickSearchStep2Data = {
       ...data,
       rangeKm
     }
-    console.log('Work Location Data:', formData)
-    navigation.navigate(screenNames.QUICK_SEARCH_STEPTHREE, { formData })
+    
+    console.log('Quick Search Step 2 Data:', quickSearchStep2Data)
+    
+    // Pass both step1 and step2 data forward
+    navigation.navigate(screenNames.QUICK_SEARCH_STEPTHREE, { 
+      quickSearchStep1Data,
+      quickSearchStep2Data 
+    })
   }
 
   const handleNext = () => {
@@ -54,11 +63,8 @@ const StepTwoQuickSearch = ({ navigation }) => {
         title="Work Location"
         rightComponent={
           <TouchableOpacity activeOpacity={0.7}>
-            <AppText 
-              variant={Variant.body} 
-              style={styles.stepText}
-            >
-              Step 2/3
+            <AppText variant={Variant.body} style={styles.stepText}>
+              Step 2/4
             </AppText>
           </TouchableOpacity>
         }
@@ -182,7 +188,7 @@ const StepTwoQuickSearch = ({ navigation }) => {
   )
 }
 
-export default StepTwoQuickSearch
+export default QuickSearchStepTwo
 
 const styles = StyleSheet.create({
   container: {

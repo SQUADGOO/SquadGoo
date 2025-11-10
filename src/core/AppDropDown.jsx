@@ -85,6 +85,8 @@ const AppDropDown = ({
             !selectedOption && styles.placeholderText,
             disabled && styles.disabledText
           ]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
         >
           {selectedOption ? selectedOption.label : placeholder}
         </AppText>
@@ -144,10 +146,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white || '#FFFFFF',
     borderWidth: 1,
     borderColor: colors.grayE8 || '#E5E7EB',
-    borderRadius: hp(3),
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(1.5),
-    minHeight: hp(6),
+    borderRadius: hp(1),
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(1),
+    minHeight: hp(5),
   },
   disabledButton: {
     backgroundColor: colors.grayE8 || '#F3F4F6',
@@ -156,7 +158,7 @@ const styles = StyleSheet.create({
   buttonText: {
     flex: 1,
     color: colors.black,
-    fontSize: getFontSize(14),
+    fontSize: getFontSize(13),
   },
   placeholderText: {
     color: colors.gray || '#9CA3AF',

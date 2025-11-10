@@ -1,10 +1,9 @@
 import React, { useState, useRef } from 'react'
-import { 
-  View, 
-  StyleSheet, 
-  ScrollView, 
+import {
+  View,
+  StyleSheet,
+  ScrollView,
   TouchableOpacity,
-  TextInput
 } from 'react-native'
 import { useForm, FormProvider } from 'react-hook-form'
 import { colors, hp, wp, getFontSize } from '@/theme'
@@ -17,6 +16,7 @@ import BottomDataSheet from '@/components/Recruiter/JobBottomSheet'
 import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
 
+// Small badge for selected languages
 const LanguageTag = ({ language, onRemove }) => (
   <View style={styles.languageTag}>
     <AppText variant={Variant.bodySmall} style={styles.languageTagText}>
@@ -33,9 +33,10 @@ const LanguageTag = ({ language, onRemove }) => (
   </View>
 )
 
+// Simple toggle row for tax type
 const TaxTypeSelector = ({ selectedType, onSelect }) => {
   const options = ['ABN', 'TFN', 'Both']
-  
+
   return (
     <View style={styles.taxTypeContainer}>
       {options.map((option) => (
@@ -48,8 +49,8 @@ const TaxTypeSelector = ({ selectedType, onSelect }) => {
           onPress={() => onSelect(option)}
           activeOpacity={0.8}
         >
-          <AppText 
-            variant={Variant.bodyMedium} 
+          <AppText
+            variant={Variant.bodyMedium}
             style={[
               styles.taxTypeText,
               selectedType === option && styles.taxTypeTextActive
@@ -63,10 +64,10 @@ const TaxTypeSelector = ({ selectedType, onSelect }) => {
   )
 }
 
-const StepThree = ({ navigation }) => {
+const StepThree = ({ navigation, route }) => {
   const [selectedLanguages, setSelectedLanguages] = useState(['English'])
   const [selectedTaxType, setSelectedTaxType] = useState('ABN')
-  
+
   const educationSheetRef = useRef(null)
   const extraQualificationSheetRef = useRef(null)
   const languageSheetRef = useRef(null)
@@ -77,8 +78,8 @@ const StepThree = ({ navigation }) => {
       educationalQualification: '',
       extraQualification: '',
       jobEndDate: '',
-      jobDescription: ''
-    }
+      jobDescription: '',
+    },
   })
 
   const educationOptions = [
@@ -87,7 +88,7 @@ const StepThree = ({ navigation }) => {
     { id: 3, title: 'Bachelor Degree' },
     { id: 4, title: 'Master Degree' },
     { id: 5, title: 'PhD' },
-    { id: 6, title: 'Other' }
+    { id: 6, title: 'Other' },
   ]
 
   const extraQualificationOptions = [
@@ -95,7 +96,7 @@ const StepThree = ({ navigation }) => {
     { id: 2, title: 'License' },
     { id: 3, title: 'Training Course' },
     { id: 4, title: 'Workshop' },
-    { id: 5, title: 'Professional Development' }
+    { id: 5, title: 'Professional Development' },
   ]
 
   const languageOptions = [
@@ -106,81 +107,80 @@ const StepThree = ({ navigation }) => {
     { id: 5, title: 'Chinese' },
     { id: 6, title: 'Japanese' },
     { id: 7, title: 'Arabic' },
-    { id: 8, title: 'Hindi' }
+    { id: 8, title: 'Hindi' },
   ]
 
   const handleLanguageAdd = (language) => {
     if (!selectedLanguages.includes(language)) {
-      setSelectedLanguages(prev => [...prev, language])
+      setSelectedLanguages((prev) => [...prev, language])
     }
     languageSheetRef.current?.close()
   }
 
   const handleLanguageRemove = (language) => {
-    setSelectedLanguages(prev => prev.filter(lang => lang !== language))
+    setSelectedLanguages((prev) => prev.filter((lang) => lang !== language))
   }
 
   const openDatePicker = () => {
     console.log('Open date picker')
-    // Integrate with your date picker library
+    // Replace with your actual date picker integration
   }
 
   const onSubmit = (data) => {
     const formData = {
       ...data,
       preferredLanguages: selectedLanguages,
-      taxType: selectedTaxType
+      taxType: selectedTaxType,
     }
-    
-    console.log('Job requirements data:', formData)
-    // Process form data and navigate
+
+    console.log('✅ Step 3 Data:', formData)
+    navigation.navigate(screenNames.JOB_PREVIEW, { step3Data: formData })
   }
 
-  const handleNext = () => {
-    methods.handleSubmit(onSubmit)()
-    navigation.navigate(screenNames.JOB_PREVIEW)
+const handleNext = (data) => {
+  console.log('Form Data:', data)
+  const formData = {
+    ...data,
+    preferredLanguages: selectedLanguages,
+    taxType: selectedTaxType
   }
 
-  const renderBottomSheetOptions = (options, onSelect) => (
-    <View style={styles.sheetContent}>
-      <View style={styles.sheetHeader}>
-        <AppText variant={Variant.subTitle} style={styles.sheetTitle}>
-          Select Option
-        </AppText>
-      </View>
-      {options.map((option) => (
-        <TouchableOpacity
-          key={option.id}
-          style={styles.sheetOption}
-          onPress={() => {
-            onSelect(option.title)
-            // Close the appropriate sheet
-          }}
-          activeOpacity={0.7}
-        >
-          <AppText variant={Variant.body} style={styles.sheetOptionText}>
-            {option.title}
-          </AppText>
-        </TouchableOpacity>
-      ))}
-    </View>
-  )
+  console.log('Job requirements data:', formData)
+  
+  // Pass all three steps' data to preview screen
+  navigation.navigate(screenNames.JOB_PREVIEW, { 
+    step1Data: route.params?.step1Data,
+    step2Data: route.params?.step2Data,
+    step3Data: formData 
+  })
+}
 
   return (
     <FormProvider {...methods}>
-        <AppHeader
+      <AppHeader
         showTopIcons={false}
         title="Job Requirements"
         onBackPress={() => navigation.goBack()}
+        rightComponent={
+          <AppText
+            variant={Variant.body}
+            style={{
+              color: colors.white,
+              fontWeight: 'bold',
+              fontSize: getFontSize(16),
+            }}
+          >
+            Step 3/3
+          </AppText>
+        }
       />
+
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Educational Qualification */}
         <View style={styles.section}>
-          
           <FormField
-            label={'Required educational qualification'}
+            label="Required educational qualification"
             name="educationalQualification"
-            rules={{ required: true }}
             placeholder="Select option"
             onPressField={() => educationSheetRef.current?.open()}
           />
@@ -189,32 +189,39 @@ const StepThree = ({ navigation }) => {
         {/* Extra Qualification */}
         <View style={styles.section}>
           <FormField
-            label={'Required extra qualification'}
+            label="Required extra qualification"
             name="extraQualification"
-            rules={{ required: true }}
             placeholder="Select option"
             onPressField={() => extraQualificationSheetRef.current?.open()}
           />
         </View>
 
-        {/* Preferred Language */}
+        {/* Preferred Languages */}
         <View style={styles.section}>
-        
-         <FormField
-            label={'Preferred languages'}
+          <FormField
+            label="Preferred languages"
             name="preferredLanguages"
-            rules={{ required: true }}
             placeholder="Select languages"
             onPressField={() => languageSheetRef.current?.open()}
           />
+
+          {/* Display Selected Languages */}
+          <View style={styles.languageTagsContainer}>
+            {selectedLanguages.map((lang) => (
+              <LanguageTag
+                key={lang}
+                language={lang}
+                onRemove={() => handleLanguageRemove(lang)}
+              />
+            ))}
+          </View>
         </View>
 
         {/* Job End Date */}
         <View style={styles.section}>
-         <FormField
-            label={'Job end date'}
+          <FormField
+            label="Job end date"
             name="jobEndDate"
-            rules={{ required: true }}
             placeholder="Select date"
             onPressField={openDatePicker}
           />
@@ -223,9 +230,8 @@ const StepThree = ({ navigation }) => {
         {/* Job Description */}
         <View style={styles.section}>
           <FormField
-            label={'Job description'}
+            label="Job description"
             name="jobDescription"
-            rules={{ required: true }}
             multiline
             placeholder="Enter job description"
           />
@@ -246,37 +252,40 @@ const StepThree = ({ navigation }) => {
         <View style={styles.buttonContainer}>
           <AppButton
             text="Next"
-            onPress={handleNext}
+            onPress={() => handleNext(methods.getValues())}
             bgColor={colors.primary}
             textColor="#FFFFFF"
-            // style={styles.nextButton}
           />
         </View>
       </ScrollView>
 
       {/* Bottom Sheets */}
-      <RbSheetComponent
-        ref={educationSheetRef}
-        height={hp(50)}
-        bgColor={colors.white}
-      >
-        <BottomDataSheet optionsData={educationOptions} onClose={() => educationSheetRef.current?.close()} />
+      <RbSheetComponent ref={educationSheetRef} height={hp(50)}>
+        <BottomDataSheet
+          optionsData={educationOptions}
+          onClose={() => educationSheetRef.current.close()}
+          onSelect={(selectedItem) =>
+            methods.setValue('educationalQualification', selectedItem.title)
+          }
+        />
       </RbSheetComponent>
 
-      <RbSheetComponent
-        ref={extraQualificationSheetRef}
-        height={hp(50)}
-        bgColor={colors.white}
-      >
-        <BottomDataSheet optionsData={extraQualificationOptions} onClose={() => extraQualificationSheetRef.current?.close()} />
+      <RbSheetComponent ref={extraQualificationSheetRef} height={hp(50)}>
+        <BottomDataSheet
+          optionsData={extraQualificationOptions}
+          onClose={() => extraQualificationSheetRef.current.close()}
+          onSelect={(selectedItem) =>
+            methods.setValue('extraQualification', selectedItem.title)
+          }
+        />
       </RbSheetComponent>
 
-      <RbSheetComponent
-        ref={languageSheetRef}
-        height={hp(60)}
-        bgColor={colors.white}
-      >
-        <BottomDataSheet optionsData={languageOptions} onClose={() => languageSheetRef.current?.close()} />
+      <RbSheetComponent ref={languageSheetRef} height={hp(60)}>
+        <BottomDataSheet
+          optionsData={languageOptions}
+          onClose={() => languageSheetRef.current.close()}
+          onSelect={(selectedItem) => handleLanguageAdd(selectedItem.title)}
+        />
       </RbSheetComponent>
     </FormProvider>
   )
@@ -287,12 +296,12 @@ export default StepThree
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white || '#FFFFFF',
+    backgroundColor: colors.white,
     paddingHorizontal: wp(4),
     paddingTop: hp(2),
   },
   section: {
-    // marginBottom: hp(3),
+    marginBottom: hp(2.5),
   },
   label: {
     color: colors.secondary,
@@ -300,37 +309,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginBottom: hp(1.5),
   },
-  dropdownField: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: colors.grayE8 || '#E5E7EB',
-    borderRadius: hp(3),
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(2),
-    backgroundColor: colors.white,
-  },
-  dropdownText: {
-    color: colors.gray || '#9CA3AF',
-    fontSize: getFontSize(16),
-    flex: 1,
-  },
-  languageContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.grayE8 || '#E5E7EB',
-    borderRadius: hp(3),
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(1.5),
-    backgroundColor: colors.white,
-  },
   languageTagsContainer: {
-    flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: wp(2),
+    marginTop: hp(1.5),
   },
   languageTag: {
     flexDirection: 'row',
@@ -339,7 +322,7 @@ const styles = StyleSheet.create({
     borderRadius: hp(2),
     paddingHorizontal: wp(3),
     paddingVertical: hp(0.8),
-    gap: wp(1.5),
+    gap: wp(1),
   },
   languageTagText: {
     color: '#FFFFFF',
@@ -349,62 +332,16 @@ const styles = StyleSheet.create({
   removeTagButton: {
     padding: wp(0.5),
   },
-  languageActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: wp(2),
-  },
-  removeAllButton: {
-    padding: wp(1),
-  },
-  languageActionSeparator: {
-    width: 1,
-    height: hp(3),
-    backgroundColor: colors.grayE8,
-    marginHorizontal: wp(2),
-  },
-  addLanguageButton: {
-    padding: wp(1),
-  },
-  dateField: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: colors.grayE8 || '#E5E7EB',
-    borderRadius: hp(3),
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(2),
-    backgroundColor: colors.white,
-  },
-  dateText: {
-    color: colors.gray || '#9CA3AF',
-    fontSize: getFontSize(16),
-    flex: 1,
-  },
-  textArea: {
-    borderWidth: 1,
-    borderColor: colors.grayE8 || '#E5E7EB',
-    borderRadius: hp(3),
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(2),
-    fontSize: getFontSize(16),
-    color: colors.black,
-    backgroundColor: colors.white,
-    minHeight: hp(15),
-  },
   taxTypeContainer: {
     flexDirection: 'row',
-    // backgroundColor: colors.grayE8 || '#F3F4F6',
     borderRadius: hp(3),
-    padding: wp(1),
     borderWidth: 1,
     borderColor: colors.primary,
+    padding: wp(1),
   },
   taxTypeOption: {
     flex: 1,
-    paddingVertical: hp(1),
-    paddingHorizontal: wp(3),
+    paddingVertical: hp(1.2),
     borderRadius: hp(2.5),
     alignItems: 'center',
   },
@@ -412,7 +349,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F59E0B',
   },
   taxTypeText: {
-    color: colors.primary || '#6B7280',
+    color: colors.primary,
     fontSize: getFontSize(13),
     fontWeight: '500',
   },
@@ -420,40 +357,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   buttonContainer: {
-    marginTop: hp(2),
+    marginTop: hp(3),
     marginBottom: hp(6),
-  },
-  nextButton: {
-    borderRadius: hp(3),
-    paddingVertical: hp(2.5),
-  },
-  
-  // Bottom Sheet Styles
-  sheetContent: {
-    // flex: 1,
-    paddingHorizontal: wp(4),
-    paddingTop: hp(2),
-  },
-  sheetHeader: {
-    paddingVertical: hp(2),
-    // borderBottomWidth: 1,
-    borderBottomColor: colors.grayE8,
-    // marginBottom: hp(2),
-  },
-  sheetTitle: {
-    color: colors.black,
-    fontSize: getFontSize(16),
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  sheetOption: {
-    paddingVertical: hp(2),
-    paddingHorizontal: wp(2),
-    borderBottomWidth: 1,
-    borderBottomColor: colors.grayE8,
-  },
-  sheetOptionText: {
-    color: colors.black,
-    fontSize: getFontSize(16),
   },
 })

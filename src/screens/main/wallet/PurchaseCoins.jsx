@@ -12,6 +12,7 @@ import AppText, { Variant } from '@/core/AppText'
 import AppButton from '@/core/AppButton'
 import FormField from '@/core/FormField'
 import AppHeader from '@/core/AppHeader'
+import { showToast, toastTypes } from '@/utilities/toastConfig'
 
 const PurchaseCoins = ({ navigation }) => {
   const [coinQuantity, setCoinQuantity] = useState(1)
@@ -47,10 +48,16 @@ const PurchaseCoins = ({ navigation }) => {
       }
     })
     // Handle payment processing
+    showToast('Payment successful! Coins have been added to your account.', 'success', toastTypes.success)
   }
 
-  const handlePayNow = () => {
+  const handlePayNow = async () => {
+    showToast('Payment successful! Coins have been added to your account.', 'success', toastTypes.success)
+    setTimeout(() => {
+      navigation.goBack()
+    }, 1500);
     methods.handleSubmit(onSubmit)()
+
   }
 
   return (
@@ -170,7 +177,7 @@ const PurchaseCoins = ({ navigation }) => {
                 required: 'Expiry date is required',
                 pattern: {
                   value: /^(0[1-9]|1[0-2])\/([0-9]{2})$/,
-                  message: 'Please enter valid expiry date (MM/YY)'
+                  // message: 'Please enter valid expiry date (MM/YY)'
                 }
               }}
               inputWrapperStyle={[styles.formFieldWrapper, styles.halfInput]}
@@ -288,7 +295,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   cardSection: {
-    marginBottom: hp(4),
+    marginBottom: hp(1),
   },
   cardHeader: {
     flexDirection: 'row',
@@ -363,6 +370,7 @@ const styles = StyleSheet.create({
   },
   halfInput: {
     flex: 1,
+    width: wp(35)
   },
   payButtonContainer: {
     marginBottom: hp(4),

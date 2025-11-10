@@ -1,4 +1,4 @@
-// AvailabilityScreen.js
+// QuickSearchStepFour.js - Availability & Tax Type
 import React, { useState } from 'react'
 import {
   View,
@@ -21,7 +21,14 @@ const daysOfWeek = [
   'Thursday', 'Friday', 'Saturday', 'Sunday'
 ]
 
-const StepFourQuickSearch = ({ navigation }) => {
+const QuickSearchStepFour = ({ navigation, route }) => {
+  // Get data from all previous steps
+  const { 
+    quickSearchStep1Data, 
+    quickSearchStep2Data, 
+    quickSearchStep3Data 
+  } = route.params || {}
+
   const methods = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -50,14 +57,23 @@ const StepFourQuickSearch = ({ navigation }) => {
   }
 
   const onSubmit = (data) => {
-    console.log('Availability Data:', data)
-    navigation.navigate(screenNames.REVIEW, { formData: data })
+    const quickSearchStep4Data = data
+
+    console.log('Quick Search Step 4 Data:', quickSearchStep4Data)
+    
+    // Navigate to preview with ALL data from all 4 steps
+    navigation.navigate(screenNames.QUICK_SEARCH_PREVIEW, { 
+      quickSearchStep1Data,
+      quickSearchStep2Data,
+      quickSearchStep3Data,
+      quickSearchStep4Data
+    })
   }
 
   return (
     <FormProvider {...methods}>
       <AppHeader
-        title="Quick Search"
+        title="Availability"
         showTopIcons={false}
         rightComponent={
           <AppText variant={Variant.body} style={styles.stepText}>
@@ -80,13 +96,13 @@ const StepFourQuickSearch = ({ navigation }) => {
           <View key={day} style={styles.dayContainer}>
             {/* Day Checkbox */}
             <View style={styles.dayHeader}>
-         <Controller
-    control={control}
-    name={`availability.${day}.enabled`}
-    render={({ field: { value, onChange } }) => (
-      <CustomCheckBox checked={value} onPress={() => onChange(!value)} />
-    )}
-  />
+              <Controller
+                control={control}
+                name={`availability.${day}.enabled`}
+                render={({ field: { value, onChange } }) => (
+                  <CustomCheckBox checked={value} onPress={() => onChange(!value)} />
+                )}
+              />
               <AppText variant={Variant.bodyMedium} style={styles.dayText}>
                 {day}
               </AppText>
@@ -145,9 +161,13 @@ const StepFourQuickSearch = ({ navigation }) => {
           ))}
         </View>
 
-        {/* Next Button */}
+        {/* Submit Button */}
         <View style={styles.buttonContainer}>
-          <AppButton text="Next" onPress={handleSubmit(onSubmit)} textColor="#FFF" />
+          <AppButton 
+            text="Preview" 
+            onPress={handleSubmit(onSubmit)} 
+            textColor="#FFF" 
+          />
         </View>
       </ScrollView>
 
@@ -165,7 +185,7 @@ const StepFourQuickSearch = ({ navigation }) => {
   )
 }
 
-export default StepFourQuickSearch
+export default QuickSearchStepFour
 
 const styles = StyleSheet.create({
   container: {
