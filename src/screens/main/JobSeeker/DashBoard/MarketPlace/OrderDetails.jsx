@@ -12,69 +12,22 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import { colors, hp, wp, getFontSize } from "@/theme";
 import { screenNames } from "@/navigation/screenNames";
 import VectorIcons, { iconLibName } from "@/theme/vectorIcon";
+import {
+  getOrderStatusColor,
+  getOrderStatusIcon,
+  formatOrderDate,
+  getPriceNumber,
+  formatPrice,
+  getDeliveryMethodName,
+} from "@/utilities/marketplaceHelpers";
 
 const OrderDetails = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const { order } = route.params;
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "pending":
-        return colors.primary;
-      case "confirmed":
-        return colors.primary;
-      case "processing":
-        return colors.darkBlue;
-      case "shipped":
-        return colors.secondary;
-      case "delivered":
-        return colors.green;
-      case "cancelled":
-        return colors.red;
-      default:
-        return colors.gray;
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "pending":
-        return "time-outline";
-      case "confirmed":
-        return "checkmark-circle-outline";
-      case "processing":
-        return "sync-outline";
-      case "shipped":
-        return "car-outline";
-      case "delivered":
-        return "checkmark-done-circle-outline";
-      case "cancelled":
-        return "close-circle-outline";
-      default:
-        return "ellipse-outline";
-    }
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-AU", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const getPriceNumber = (priceString) => {
-    if (typeof priceString === "number") return priceString;
-    const match = priceString?.match(/[\d,]+\.?\d*/);
-    return match ? parseFloat(match[0].replace(/,/g, "")) : 0;
-  };
-
-  const statusColor = getStatusColor(order.status);
-  const statusIcon = getStatusIcon(order.status);
+  const statusColor = getOrderStatusColor(order.status);
+  const statusIcon = getOrderStatusIcon(order.status);
 
   return (
     <>
@@ -100,7 +53,7 @@ const OrderDetails = () => {
           </View>
           <Text style={styles.orderId}>Order ID: {order.id}</Text>
           <Text style={styles.orderDate}>
-            Placed on {formatDate(order.createdAt)}
+            Placed on {formatOrderDate(order.createdAt, true)}
           </Text>
         </View>
 
@@ -124,11 +77,11 @@ const OrderDetails = () => {
                 <View style={styles.itemInfo}>
                   <Text style={styles.itemTitle}>{item.title}</Text>
                   <Text style={styles.itemPrice}>
-                    {price.toFixed(2)} AUD x {item.quantity || 1}
+                    {formatPrice(price)} x {item.quantity || 1}
                   </Text>
                   <Text style={styles.itemLocation}>{item.location}</Text>
                 </View>
-                <Text style={styles.itemTotal}>{itemTotal.toFixed(2)} AUD</Text>
+                <Text style={styles.itemTotal}>{formatPrice(itemTotal)}</Text>
               </TouchableOpacity>
             );
           })}
@@ -141,11 +94,7 @@ const OrderDetails = () => {
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Method:</Text>
               <Text style={styles.infoValue}>
-                {order.deliveryInfo.deliveryMethod === "pickup"
-                  ? "Pickup"
-                  : order.deliveryInfo.deliveryMethod === "sellerDelivery"
-                  ? "Seller Delivery"
-                  : "Squad Courier"}
+                {getDeliveryMethodName(order.deliveryInfo.deliveryMethod)}
               </Text>
             </View>
             {order.deliveryInfo.fullName && (
@@ -215,20 +164,20 @@ const OrderDetails = () => {
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Subtotal:</Text>
               <Text style={styles.summaryValue}>
-                {order.subtotal.toFixed(2)} AUD
+                {formatPrice(order.subtotal)}
               </Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Delivery Fee:</Text>
               <Text style={styles.summaryValue}>
-                {order.deliveryFee.toFixed(2)} AUD
+                {formatPrice(order.deliveryFee)}
               </Text>
             </View>
             <View style={styles.divider} />
             <View style={styles.summaryRow}>
               <Text style={styles.totalLabel}>Total:</Text>
               <Text style={styles.totalValue}>
-                {order.total.toFixed(2)} AUD
+                {formatPrice(order.total)}
               </Text>
             </View>
           </View>

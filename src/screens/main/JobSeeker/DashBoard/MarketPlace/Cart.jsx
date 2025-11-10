@@ -21,26 +21,17 @@ import { colors, hp, wp, getFontSize } from "@/theme";
 import VectorIcons, { iconLibName } from "@/theme/vectorIcon";
 import { screenNames } from "@/navigation/screenNames";
 import { showToast, toastTypes } from "@/utilities/toastConfig";
+import {
+  getPriceNumber,
+  calculateCartTotal,
+  formatPrice,
+} from "@/utilities/marketplaceHelpers";
 
 const Cart = ({ navigation }) => {
   const dispatch = useDispatch();
   const cart = useSelector((state) => state.marketplace.cart);
 
-  // Extract price number from price string
-  const getPriceNumber = (priceString) => {
-    const match = priceString?.match(/[\d,]+\.?\d*/);
-    return match ? parseFloat(match[0].replace(/,/g, "")) : 0;
-  };
-
-  // Calculate total
-  const calculateTotal = () => {
-    return cart.reduce((total, item) => {
-      const price = getPriceNumber(item.price);
-      return total + price * (item.quantity || 1);
-    }, 0);
-  };
-
-  const total = calculateTotal();
+  const total = calculateCartTotal(cart);
 
   const handleRemoveItem = (item) => {
     Alert.alert(
@@ -106,7 +97,7 @@ const Cart = ({ navigation }) => {
           <Text style={styles.itemTitle} numberOfLines={2}>
             {item.title}
           </Text>
-          <Text style={styles.itemPrice}>{item.price || `${price} AUD`}</Text>
+          <Text style={styles.itemPrice}>{formatPrice(item.price)}</Text>
           <Text style={styles.itemLocation}>{item.location}</Text>
 
           {/* Quantity Controls */}
@@ -138,7 +129,7 @@ const Cart = ({ navigation }) => {
         </View>
 
         <View style={styles.itemActions}>
-          <Text style={styles.itemTotal}>{itemTotal.toFixed(2)} AUD</Text>
+          <Text style={styles.itemTotal}>{formatPrice(itemTotal)}</Text>
           <TouchableOpacity
             style={styles.removeBtn}
             onPress={() => handleRemoveItem(item)}
@@ -196,7 +187,7 @@ const Cart = ({ navigation }) => {
           <View style={styles.summary}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Subtotal:</Text>
-              <Text style={styles.summaryValue}>{total.toFixed(2)} AUD</Text>
+              <Text style={styles.summaryValue}>{formatPrice(total)}</Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Items:</Text>
@@ -205,11 +196,11 @@ const Cart = ({ navigation }) => {
             <View style={styles.divider} />
             <View style={styles.summaryRow}>
               <Text style={styles.totalLabel}>Total:</Text>
-              <Text style={styles.totalValue}>{total.toFixed(2)} AUD</Text>
+              <Text style={styles.totalValue}>{formatPrice(total)}</Text>
             </View>
 
             <AppButton
-              text={`Proceed to Payment - ${total.toFixed(2)} AUD`}
+              text={`Proceed to Payment - ${formatPrice(total)}`}
               onPress={handleCheckout}
               style={styles.checkoutBtn}
             />

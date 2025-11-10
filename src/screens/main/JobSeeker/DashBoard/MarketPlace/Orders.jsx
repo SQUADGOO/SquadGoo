@@ -11,60 +11,19 @@ import { useSelector } from "react-redux";
 import { colors, hp, wp, getFontSize } from "@/theme";
 import { screenNames } from "@/navigation/screenNames";
 import VectorIcons, { iconLibName } from "@/theme/vectorIcon";
+import {
+  getOrderStatusColor,
+  getOrderStatusIcon,
+  formatOrderDate,
+  formatPrice,
+} from "@/utilities/marketplaceHelpers";
 
 const Orders = ({ navigation }) => {
   const orders = useSelector((state) => state.marketplace.orders);
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "pending":
-        return colors.primary;
-      case "confirmed":
-        return colors.primary;
-      case "processing":
-        return colors.darkBlue;
-      case "shipped":
-        return colors.secondary;
-      case "delivered":
-        return colors.green;
-      case "cancelled":
-        return colors.red;
-      default:
-        return colors.gray;
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "pending":
-        return "time-outline";
-      case "confirmed":
-        return "checkmark-circle-outline";
-      case "processing":
-        return "sync-outline";
-      case "shipped":
-        return "car-outline";
-      case "delivered":
-        return "checkmark-done-circle-outline";
-      case "cancelled":
-        return "close-circle-outline";
-      default:
-        return "ellipse-outline";
-    }
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-AU", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-  };
-
   const renderOrderItem = ({ item }) => {
-    const statusColor = getStatusColor(item.status);
-    const statusIcon = getStatusIcon(item.status);
+    const statusColor = getOrderStatusColor(item.status);
+    const statusIcon = getOrderStatusIcon(item.status);
 
     return (
       <TouchableOpacity
@@ -78,7 +37,7 @@ const Orders = ({ navigation }) => {
         <View style={styles.orderHeader}>
           <View style={styles.orderIdContainer}>
             <Text style={styles.orderId}>{item.id}</Text>
-            <Text style={styles.orderDate}>{formatDate(item.createdAt)}</Text>
+            <Text style={styles.orderDate}>{formatOrderDate(item.createdAt)}</Text>
           </View>
           <View
             style={[
@@ -117,7 +76,7 @@ const Orders = ({ navigation }) => {
 
         <View style={styles.orderFooter}>
           <Text style={styles.totalAmount}>
-            {item.total.toFixed(2)} AUD
+            {formatPrice(item.total)}
           </Text>
           <View style={styles.viewDetailsContainer}>
             <Text style={styles.viewDetailsText}>View Details</Text>

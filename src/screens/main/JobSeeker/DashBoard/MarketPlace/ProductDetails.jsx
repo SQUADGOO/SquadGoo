@@ -21,6 +21,7 @@ import {
 import { screenNames } from "@/navigation/screenNames";
 import { colors, hp, wp } from "@/theme";
 import { showToast, toastTypes } from "@/utilities/toastConfig";
+import { getPriceNumber, formatPrice } from "@/utilities/marketplaceHelpers";
 
 const ProductDetails = () => {
   const route = useRoute();
@@ -36,14 +37,8 @@ const ProductDetails = () => {
   const isHeld = heldItems.some((held) => held.id === item.id);
   const isInCart = cart.some((cartItem) => cartItem.id === item.id);
 
-  // Extract price number from price string (e.g., "1200 SG" -> 1200)
-  const getPriceNumber = (priceString) => {
-    const match = priceString?.match(/[\d,]+\.?\d*/);
-    return match ? parseFloat(match[0].replace(/,/g, "")) : 0;
-  };
-
   const price = getPriceNumber(item.price);
-  const priceText = item.price || `${price} AUD`;
+  const priceText = item.price || formatPrice(price);
 
   const handleFavorite = () => {
     dispatch(toggleFavorite(item));

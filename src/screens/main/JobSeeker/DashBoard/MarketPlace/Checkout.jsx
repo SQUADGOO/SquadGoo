@@ -15,6 +15,11 @@ import { useSelector } from "react-redux";
 import { colors, hp, wp, getFontSize } from "@/theme";
 import { screenNames } from "@/navigation/screenNames";
 import VectorIcons, { iconLibName } from "@/theme/vectorIcon";
+import {
+  calculateCartTotal,
+  calculateDeliveryFee,
+  formatPrice,
+} from "@/utilities/marketplaceHelpers";
 
 const Checkout = ({ navigation, route }) => {
   const cart = useSelector((state) => state.marketplace.cart);
@@ -40,19 +45,7 @@ const Checkout = ({ navigation, route }) => {
     { id: "squadCourier", label: "Squad Courier", description: "Professional courier service" },
   ];
 
-  const getPriceNumber = (priceString) => {
-    const match = priceString?.match(/[\d,]+\.?\d*/);
-    return match ? parseFloat(match[0].replace(/,/g, "")) : 0;
-  };
-
-  const calculateTotal = () => {
-    return cart.reduce((total, item) => {
-      const price = getPriceNumber(item.price);
-      return total + price * (item.quantity || 1);
-    }, 0);
-  };
-
-  const total = calculateTotal();
+  const total = calculateCartTotal(cart);
 
   const onSubmit = (data) => {
     console.log("data", data);
@@ -194,17 +187,13 @@ const Checkout = ({ navigation, route }) => {
           <View style={styles.summaryContainer}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Items ({cart.length}):</Text>
-              <Text style={styles.summaryValue}>{total.toFixed(2)} AUD</Text>
+              <Text style={styles.summaryValue}>{formatPrice(total)}</Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Delivery:</Text>
               <Text style={styles.summaryValue}>
-                {selectedDeliveryMethod === "pickup" 
-                  ? "Free" 
-                  : selectedDeliveryMethod === "sellerDelivery"
-                  ? "10.00 AUD"
-                  : selectedDeliveryMethod === "squadCourier"
-                  ? "15.00 AUD"
+                {selectedDeliveryMethod 
+                  ? formatPrice(calculateDeliveryFee(selectedDeliveryMethod))
                   : "TBD"}
               </Text>
             </View>
@@ -212,9 +201,7 @@ const Checkout = ({ navigation, route }) => {
             <View style={styles.summaryRow}>
               <Text style={styles.totalLabel}>Total:</Text>
               <Text style={styles.totalValue}>
-                {selectedDeliveryMethod 
-                  ? (total + (selectedDeliveryMethod === "pickup" ? 0 : selectedDeliveryMethod === "sellerDelivery" ? 10 : 15)).toFixed(2)
-                  : total.toFixed(2)} AUD
+                {formatPrice(total + calculateDeliveryFee(selectedDeliveryMethod))}
               </Text>
             </View>
           </View>

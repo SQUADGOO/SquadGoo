@@ -16,6 +16,16 @@ import { addOrder, clearCart } from "@/store/marketplaceSlice";
 import { colors, hp, wp, getFontSize } from "@/theme";
 import { screenNames } from "@/navigation/screenNames";
 import { showToast, toastTypes } from "@/utilities/toastConfig";
+import {
+  calculateDeliveryFee,
+  generateOrderId,
+  formatCardNumber,
+  formatExpiryDate,
+  validateCardNumber,
+  validateExpiryDate,
+  validateCVV,
+  formatPrice,
+} from "@/utilities/marketplaceHelpers";
 
 const Payment = () => {
   const dispatch = useDispatch();
@@ -37,33 +47,8 @@ const Payment = () => {
 
   const { handleSubmit, formState: { errors } } = methods;
 
-  const formatCardNumber = (text) => {
-    const cleaned = text.replace(/\s/g, "");
-    const formatted = cleaned.match(/.{1,4}/g)?.join(" ") || cleaned;
-    return formatted.slice(0, 19);
-  };
-
-  const formatExpiryDate = (text) => {
-    const cleaned = text.replace(/\D/g, "");
-    if (cleaned.length >= 2) {
-      return cleaned.slice(0, 2) + "/" + cleaned.slice(2, 4);
-    }
-    return cleaned;
-  };
-
-  const calculateDeliveryFee = () => {
-    if (!deliveryInfo?.deliveryMethod) return 0;
-    if (deliveryInfo.deliveryMethod === "pickup") return 0;
-    if (deliveryInfo.deliveryMethod === "sellerDelivery") return 10;
-    if (deliveryInfo.deliveryMethod === "squadCourier") return 15;
-    return 0;
-  };
-
-  const finalTotal = (total || 0) + calculateDeliveryFee();
-
-  const generateOrderId = () => {
-    return `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-  };
+  const deliveryFee = calculateDeliveryFee(deliveryInfo?.deliveryMethod);
+  const finalTotal = (total || 0) + deliveryFee;
 
   const onSubmit = (data) => {
     console.log("Form submitted with data:", data);
@@ -83,16 +68,15 @@ const Payment = () => {
 
     // Validate card details
     if (selectedPaymentMethod === "card") {
-      const cardNumber = (data.cardNumber || "").replace(/\s/g, "");
-      if (cardNumber.length < 16) {
+      if (!validateCardNumber(data.cardNumber)) {
         Alert.alert("Invalid Card", "Please enter a valid 16-digit card number");
         return;
       }
-      if (!data.expiryDate || data.expiryDate.length < 5) {
+      if (!validateExpiryDate(data.expiryDate)) {
         Alert.alert("Invalid Expiry", "Please enter a valid expiry date (MM/YY)");
         return;
       }
-      if (!data.cvv || data.cvv.length < 3) {
+      if (!validateCVV(data.cvv)) {
         Alert.alert("Invalid CVV", "Please enter a valid CVV");
         return;
       }
@@ -115,7 +99,7 @@ const Payment = () => {
       } : {},
       total: finalTotal,
       subtotal: total || 0,
-      deliveryFee: calculateDeliveryFee(),
+      deliveryFee: deliveryFee,
       status: "pending",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -315,23 +299,23 @@ const Payment = () => {
           <View style={styles.summaryContainer}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Subtotal:</Text>
-              <Text style={styles.summaryValue}>{(total || 0).toFixed(2)} AUD</Text>
+              <Text style={styles.summaryValue}>{formatPrice(total || 0)}</Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Delivery:</Text>
-              <Text style={styles.summaryValue}>{calculateDeliveryFee().toFixed(2)} AUD</Text>
+              <Text style={styles.summaryValue}>{formatPrice(deliveryFee)}</Text>
             </View>
             <View style={styles.divider} />
             <View style={styles.summaryRow}>
               <Text style={styles.totalLabel}>Total:</Text>
-              <Text style={styles.totalValue}>{finalTotal.toFixed(2)} AUD</Text>
+              <Text style={styles.totalValue}>{formatPrice(finalTotal)}</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.buttonContainer}>
           <AppButton
-            text={`Pay ${finalTotal.toFixed(2)} AUD`}
+            text={`Pay ${formatPrice(finalTotal)}`}
             onPress={handlePayPress}
             style={styles.payButton}
           />
