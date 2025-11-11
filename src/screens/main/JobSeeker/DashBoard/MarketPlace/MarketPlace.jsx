@@ -67,6 +67,7 @@ const MarketPlace = ({navigation}) => {
   const cart = useSelector((state) => state.marketplace?.cart || []);
   const favorites = useSelector((state) => state.marketplace?.favorites || []);
   const orders = useSelector((state) => state.marketplace?.orders || []);
+  const products = useSelector((state) => state.marketplace?.products || []);
   const cartItemCount = cart?.length || 0;
   const favoritesCount = favorites?.length || 0;
   const ordersCount = orders?.length || 0;
@@ -126,7 +127,10 @@ const MarketPlace = ({navigation}) => {
 
   // Filter and sort items based on search, category, and sort options
   const getFilteredAndSortedItems = () => {
-    let filtered = [...items];
+    // Combine user-created products (from Redux) with hardcoded items
+    // User-created products appear first (most recent)
+    const allItems = [...products, ...items];
+    let filtered = [...allItems];
 
     // Filter by search query
     if (searchQuery.trim()) {
@@ -144,8 +148,15 @@ const MarketPlace = ({navigation}) => {
 
     // Filter by category (if category is selected and not "all")
     if (selectedCategory && selectedCategory !== "all") {
-      // TODO: Add category field to items when API is integrated
-      // For now, we'll skip category filtering as items don't have category field
+      filtered = filtered.filter((item) => {
+        // Check if item has category field (user-created products have it)
+        if (item.category) {
+          return item.category === selectedCategory;
+        }
+        // For hardcoded items without category, skip filtering
+        // TODO: Add category field to hardcoded items when API is integrated
+        return true;
+      });
     }
 
     // Sort items
@@ -212,10 +223,15 @@ const MarketPlace = ({navigation}) => {
   const renderItem = ({ item }) => {
     const inCart = isItemInCart(item.id);
     
+    // Handle both static assets and URI-based images
+    const imageSource = item.image?.uri 
+      ? { uri: item.image.uri } 
+      : item.image;
+    
     return (
     <View style={styles.card}>
       {/* Product Image */}
-      <Image source={ item.image } style={styles.image} />
+      <Image source={imageSource} style={styles.image} />
 
       {/* Product Info */}
       <View style={styles.infoBox}>

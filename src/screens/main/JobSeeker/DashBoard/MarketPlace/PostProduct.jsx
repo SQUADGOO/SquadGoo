@@ -9,6 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { useForm, FormProvider } from "react-hook-form";
+import { useDispatch } from "react-redux";
 import AppHeader from "@/core/AppHeader";
 import FormField from "@/core/FormField";
 import AppDropDown from "@/core/AppDropDown";
@@ -18,8 +19,10 @@ import ImagePickerSheet from "@/components/ImagePickerSheet";
 import { colors, hp, wp } from "@/theme";
 import VectorIcons, { iconLibName } from "@/theme/vectorIcon";
 import { screenNames } from "@/navigation/screenNames";
+import { addProduct } from "@/store/marketplaceSlice";
 
 const PostProduct = ({ navigation }) => {
+  const dispatch = useDispatch();
   const imagePickerRef = useRef(null);
   const scrollViewRef = useRef(null);
   
@@ -114,6 +117,18 @@ const PostProduct = ({ navigation }) => {
     }
   };
 
+  const getConditionLabel = (value) => {
+    const conditionMap = {
+      new: "New",
+      like_new: "Like New",
+      excellent: "Excellent",
+      good: "Good",
+      fair: "Fair",
+      poor: "Poor",
+    };
+    return conditionMap[value] || value;
+  };
+
   const onSubmit = (data) => {
     // Additional validation for non-form fields
     if (!category) {
@@ -133,16 +148,40 @@ const PostProduct = ({ navigation }) => {
       return;
     }
 
-    const formData = {
-      ...data,
-      category,
-      condition,
-      images,
-      deliveryOptions,
+    // Generate unique ID
+    const productId = `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    // Build tags array from condition and delivery options
+    const tags = [getConditionLabel(condition)];
+    if (deliveryOptions.pickup) tags.push("Pickup");
+    if (deliveryOptions.sellerDelivery) tags.push("Delivery");
+    if (deliveryOptions.squadCourier) tags.push("Squad Courier");
+
+    // Format product data to match MarketPlace item structure
+    const productData = {
+      id: productId,
+      title: data.title,
+      price: `${data.price} SG`,
+      location: data.location || "Location not specified",
+      time: "Just now",
+      seller: "You", // TODO: Replace with actual user name from auth
+      rating: "5.0", // Default rating for new products
+      image: images[0], // Use first image
+      tags: tags,
+      // Store additional data for product details
+      description: data.description,
+      category: category,
+      condition: condition,
+      images: images,
+      deliveryOptions: deliveryOptions,
+      createdAt: new Date().toISOString(),
     };
 
+    // Add product to Redux store
+    dispatch(addProduct(productData));
+
     // TODO: API call will go here
-    console.log("Form Data:", formData);
+    console.log("Form Data:", productData);
     Alert.alert("Success", "Product posted successfully!", [
       {
         text: "OK",
@@ -153,7 +192,7 @@ const PostProduct = ({ navigation }) => {
 
   return (
     <>
-      <AppHeader title="Post Your Product" />
+      <AppHeader title="Post Your Product" showTopIcons={false} />
       <ScrollView 
         ref={scrollViewRef}
         style={styles.container} 

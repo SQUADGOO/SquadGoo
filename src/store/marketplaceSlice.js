@@ -5,6 +5,7 @@ const initialState = {
   favorites: [],
   heldItems: [],
   orders: [],
+  products: [],
 };
 
 export const marketplaceSlice = createSlice({
@@ -100,6 +101,32 @@ export const marketplaceSlice = createSlice({
         order.updatedAt = new Date().toISOString();
       }
     },
+
+    // Products actions
+    addProduct: (state, {payload}) => {
+      if (!state.products) {
+        state.products = [];
+      }
+      // Add new product to the beginning of the array (most recent first)
+      state.products = [payload, ...state.products];
+    },
+    removeProduct: (state, {payload}) => {
+      if (!state.products) {
+        state.products = [];
+        return;
+      }
+      state.products = state.products.filter(product => product.id !== payload);
+    },
+    updateProduct: (state, {payload}) => {
+      if (!state.products) {
+        state.products = [];
+        return;
+      }
+      const index = state.products.findIndex(product => product.id === payload.id);
+      if (index >= 0) {
+        state.products[index] = {...state.products[index], ...payload};
+      }
+    },
   },
 });
 
@@ -117,6 +144,9 @@ export const {
   addOrder,
   updateOrderStatus,
   cancelOrder,
+  addProduct,
+  removeProduct,
+  updateProduct,
 } = marketplaceSlice.actions;
 
 export default marketplaceSlice.reducer;
