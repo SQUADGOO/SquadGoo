@@ -28,7 +28,7 @@ export const calculateCartTotal = (items) => {
 /**
  * Calculate delivery fee based on delivery method
  * @param {string} deliveryMethod - Delivery method: "pickup", "sellerDelivery", "squadCourier"
- * @returns {number} - Delivery fee in AUD
+ * @returns {number} - Delivery fee in SG coins
  */
 export const calculateDeliveryFee = (deliveryMethod) => {
   if (!deliveryMethod) return 0;
@@ -122,10 +122,10 @@ export const formatOrderDate = (dateString, includeTime = false) => {
 /**
  * Format price to display string with currency
  * @param {string|number} price - Price value
- * @param {string} currency - Currency code (default: 'AUD')
+ * @param {string} currency - Currency code (default: 'SG')
  * @returns {string} - Formatted price string
  */
-export const formatPrice = (price, currency = 'AUD') => {
+export const formatPrice = (price, currency = 'SG') => {
   const priceNum = getPriceNumber(price);
   return `${priceNum.toFixed(2)} ${currency}`;
 };

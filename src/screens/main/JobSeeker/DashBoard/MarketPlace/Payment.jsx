@@ -249,7 +249,7 @@ const Payment = () => {
               />
 
               <View style={styles.row}>
-                <View style={styles.halfWidth}>
+                <View style={[styles.halfWidth, {width: wp(50)}]}>
                   <FormField
                     name="expiryDate"
                     label="Expiry Date (MM/YY) *"
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   halfWidth: {
-    width: "48%",
+    width: "40%",
   },
   summaryContainer: {
     backgroundColor: colors.grayE8 + "30",

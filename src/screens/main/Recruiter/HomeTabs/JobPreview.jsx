@@ -4,19 +4,86 @@ import {
   StyleSheet, 
   ScrollView,
   TouchableOpacity,
-  StatusBar
+  StatusBar,
+  Alert
 } from 'react-native'
+import { useDispatch } from 'react-redux'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
 import AppText, { Variant } from '@/core/AppText'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import AppHeader from '@/core/AppHeader'
+import AppButton from '@/core/AppButton'
+import { addJob } from '@/store/jobsSlice'
+import { screenNames } from '@/navigation/screenNames'
 
 const JobPreview = ({ navigation, route }) => {
   const insets = useSafeAreaInsets()
+  const dispatch = useDispatch()
   
   // Get data from all three steps
   const { step1Data, step2Data, step3Data } = route.params || {}
+
+  const handlePostJob = () => {
+    // Calculate expiry date (30 days from now)
+    const expiryDate = new Date()
+    expiryDate.setDate(expiryDate.getDate() + 30)
+    
+    // Format job data
+    const jobData = {
+      title: step1Data?.jobTitle || 'Untitled Job',
+      type: step1Data?.jobType || 'Full-time',
+      location: step1Data?.workLocation || 'Location not specified',
+      rangeKm: step1Data?.rangeKm || 0,
+      staffNumber: step1Data?.staffNumber || '1',
+      experience: step2Data ? `${step2Data.experienceYears} ${step2Data.experienceMonths}` : 'Not specified',
+      salaryRange: step2Data 
+        ? `$${step2Data.salaryMin || '0'}/hr to $${step2Data.salaryMax || '0'}/hr`
+        : 'Not specified',
+      salaryMin: step2Data?.salaryMin || 0,
+      salaryMax: step2Data?.salaryMax || 0,
+      salaryType: 'Hourly',
+      expireDate: expiryDate.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      }),
+      extraPay: step2Data?.extraPay || {},
+      availability: step2Data?.availability || 'Not specified',
+      freshersCanApply: step2Data?.freshersCanApply || false,
+      educationalQualification: step3Data?.educationalQualification || 'Not specified',
+      extraQualification: step3Data?.extraQualification || 'Not specified',
+      preferredLanguages: step3Data?.preferredLanguages || [],
+      jobEndDate: step3Data?.jobEndDate || 'Not specified',
+      jobDescription: step3Data?.jobDescription || 'No description provided',
+      taxType: step3Data?.taxType || 'ABN',
+      searchType: 'manual',
+      rawData: { step1Data, step2Data, step3Data }, // Store complete data for future reference
+    }
+    
+    console.log('Posting Manual Search Job:', jobData)
+    
+    // Dispatch to Redux
+    dispatch(addJob(jobData))
+    
+    // Show success alert and navigate to home
+    Alert.alert(
+      'Job Posted Successfully!',
+      'Your job offer has been posted and is now active.',
+      [
+        {
+          text: 'View Job Offers',
+          onPress: () => {
+            // Navigate to the main tab navigation (recruiter home)
+            navigation.reset({
+              index: 0,
+              routes: [{ name: screenNames.Tab_NAVIGATION }],
+            })
+          },
+        },
+      ]
+    )
+  }
 
   const DetailRow = ({ label, value, valueStyle }) => (
     <View style={styles.detailRow}>
@@ -196,6 +263,16 @@ const JobPreview = ({ navigation, route }) => {
           </AppText>
         </View>
 
+        {/* Post Job Button */}
+        <View style={styles.buttonContainer}>
+          <AppButton
+            text="Post Job"
+            onPress={handlePostJob}
+            bgColor={colors.primary}
+            textColor="#FFFFFF"
+          />
+        </View>
+
       </ScrollView>
     </View>
   )
@@ -267,5 +344,9 @@ const styles = StyleSheet.create({
   descriptionText: {
     lineHeight: hp(2.5),
     marginTop: hp(0.5),
+  },
+  buttonContainer: {
+    marginTop: hp(3),
+    marginBottom: hp(2),
   },
 })

@@ -152,13 +152,6 @@ const CustomDrawer = ({
           route: screenNames.MARKETPLACE_ORDERS,
         },
         {
-          key: 'orders',
-          title: 'My Orders',
-          icon: 'receipt-outline',
-          iconLib: iconLibName.Ionicons,
-          route: screenNames.MARKETPLACE_ORDERS,
-        },
-        {
           key: 'logout',
           title: 'Log out',
           icon: 'log-out-outline',

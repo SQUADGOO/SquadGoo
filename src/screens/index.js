@@ -14,6 +14,8 @@ import FindStaff from './main/Recruiter/FindStaff';
 import Wallet from './main/Recruiter/Wallet';
 import ActiveJobOffers from './main/Recruiter/HomeTabs/ActiveJobOffers';
 import JobPreview from './main/Recruiter/HomeTabs/JobPreview';
+import ViewJobDetails from './main/Recruiter/ViewJobDetails';
+import JobCandidates from './main/Recruiter/JobCandidates';
 import QuickSearch from './main/Recruiter/HomeTabs/QuickSearch';
 import ManualSearch from './main/Recruiter/HomeTabs/ManualSearch';
 
@@ -34,8 +36,8 @@ import SquadPoolScreen from './main/Recruiter/LaborPool/SquadPool';
 import Contractors from './main/Recruiter/LaborPool/Contractors';
 import ActiveOffers from './main/Recruiter/CurrentOffers/ActiveOffers';
 import DraftedOffers from './main/Recruiter/CurrentOffers/DraftedOffers';
-import CompletedOffers from './main/Recruiter/CurrentOffers/CompletedOffers';
-import ExpiredOffers from './main/Recruiter/CurrentOffers/ExpiredOffers';
+import CompletedOffers from './main/Recruiter/HomeTabs/CompletedOffers';
+import ExpiredOffers from './main/Recruiter/HomeTabs/ExpiredOffers';
 import StaffPreferences from './main/Recruiter/Settings/StaffPreferences';
 import UpdateMain from './main/Recruiter/Update/UpdateMain';
 import UpdateSecond from './main/Recruiter/Update/UpdateSecond';
@@ -106,6 +108,8 @@ export {
   Chat,
   ActiveJobOffers,
   JobPreview,
+  ViewJobDetails,
+  JobCandidates,
   QuickSearch,
   ManualSearch,
 

@@ -167,6 +167,18 @@ const JobSeekerDrawerNavigator = () => {
         name={screenNames.MARKETPLACE_STACK}
         component={ui.MarketplaceStack}
       />
+      <Drawer.Screen  
+        name={screenNames.MARKETPLACE_ORDERS}
+        component={ui.Orders}
+      />
+      <Drawer.Screen  
+        name={screenNames.VIEW_JOB_DETAILS}
+        component={ui.ViewJobDetails}
+      />
+      <Drawer.Screen  
+        name={screenNames.JOB_CANDIDATES}
+        component={ui.JobCandidates}
+      />
         <Drawer.Screen  
         name={screenNames.ADD_EXPERIENCE}
         component={ui.AddExperience}

@@ -6,106 +6,76 @@ import {
   RefreshControl,
   Alert
 } from 'react-native'
+import { useSelector, useDispatch } from 'react-redux'
 import { colors, hp, wp } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import JobCard from '@/components/Recruiter/JobCard'
 import JobFiltersBar from '@/components/Recruiter/JobFilterBar'
 import { screenNames } from '@/navigation/screenNames'
+import { closeJob } from '@/store/jobsSlice'
 
 const ActiveJobOffersScreen = ({ navigation }) => {
-  const [jobs, setJobs] = useState([])
-  const [loading, setLoading] = useState(true)
+  const dispatch = useDispatch()
+  const activeJobs = useSelector((state) => state.jobs?.activeJobs || [])
+  
   const [refreshing, setRefreshing] = useState(false)
   const [filteredJobs, setFilteredJobs] = useState([])
+  const [filters, setFilters] = useState({
+    timeFilter: 'all',
+    jobType: '',
+  })
 
-  // Sample job data - replace with your API calls
-  const sampleJobs = [
-    {
-      id: '1',
-      title: 'Full house painting',
-      type: 'Full-time',
-      salaryRange: '$5.00/hr to 15.00/hr',
-      offerDate: '16 Jul 2024',
-      expireDate: '17 Aug 2024',
-      location: 'Gladstone Central',
-      experience: '1.0 y',
-      salaryType: 'Hourly'
-    },
-    {
-      id: '2',
-      title: 'House renovation',
-      type: 'Part-time',
-      salaryRange: '$8.00/hr to 20.00/hr',
-      offerDate: '18 Jul 2024',
-      expireDate: '20 Aug 2024',
-      location: 'Brisbane City',
-      experience: '2.0 y',
-      salaryType: 'Hourly'
-    },
-    {
-      id: '3',
-      title: 'Garden maintenance',
-      type: 'Contract',
-      salaryRange: '$12.00/hr to 18.00/hr',
-      offerDate: '20 Jul 2024',
-      expireDate: '25 Aug 2024',
-      location: 'Gold Coast',
-      experience: '0.5 y',
-      salaryType: 'Hourly'
+  const applyFilters = React.useCallback(() => {
+    let filtered = [...activeJobs]
+    
+    // Apply time filter (based on offerDate)
+    if (filters.timeFilter && filters.timeFilter !== 'all') {
+      const now = new Date()
+      filtered = filtered.filter(job => {
+        if (!job.createdAt) return true
+        const jobDate = new Date(job.createdAt)
+        const diffTime = Math.abs(now - jobDate)
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+        
+        switch (filters.timeFilter) {
+          case 'last_week':
+            return diffDays <= 7
+          case 'last_2_weeks':
+            return diffDays <= 14
+          case 'last_month':
+            return diffDays <= 30
+          default:
+            return true
+        }
+      })
     }
-  ]
+    
+    // Apply job type filter
+    if (filters.jobType && filters.jobType !== '') {
+      filtered = filtered.filter(job => job.type === filters.jobType)
+    }
+    
+    setFilteredJobs(filtered)
+  }, [activeJobs, filters])
 
   useEffect(() => {
-    loadJobs()
-  }, [])
-
-  const loadJobs = async () => {
-    try {
-      setLoading(true)
-      // Replace with your API call
-      // const response = await getActiveJobs()
-      // setJobs(response.data)
-      
-      // For now, using sample data
-      setTimeout(() => {
-        setJobs(sampleJobs)
-        setFilteredJobs(sampleJobs) // Initialize filteredJobs with the same data
-        setLoading(false)
-      }, 1000)
-    } catch (error) {
-      console.error('Error loading jobs:', error)
-      setJobs([])
-      setFilteredJobs([]) // Make sure to reset filteredJobs on error too
-      setLoading(false)
-      Alert.alert('Error', 'Failed to load jobs')
-    }
-  }
+    // Update filtered jobs when active jobs change or filters change
+    applyFilters()
+  }, [applyFilters])
 
   const handleRefresh = async () => {
     setRefreshing(true)
-    try {
-      // Replace with your API call
-      // const response = await getActiveJobs()
-      // setJobs(response.data)
-      
-      // For now, simulate refresh
-      setTimeout(() => {
-        const refreshedJobs = [...sampleJobs]
-        setJobs(refreshedJobs) // This will trigger the useEffect to update filteredJobs
-        setRefreshing(false)
-      }, 1500)
-    } catch (error) {
-      console.error('Error refreshing jobs:', error)
+    // Simulate refresh - in production this would call API
+    setTimeout(() => {
       setRefreshing(false)
-      Alert.alert('Error', 'Failed to refresh jobs')
-    }
+    }, 500)
   }
 
   // Job Card Action Handlers
   const handlePreview = (job) => {
     console.log('Preview job:', job.title)
-    // Navigate to job preview screen
-    navigation.navigate(screenNames.JOB_PREVIEW, { jobId: job.id })
+    // Navigate to job details screen
+    navigation.navigate(screenNames.VIEW_JOB_DETAILS, { jobId: job.id })
   }
 
   const handleUpdate = (job) => {
@@ -117,7 +87,7 @@ const ActiveJobOffersScreen = ({ navigation }) => {
   const handleViewCandidates = (job) => {
     console.log('View candidates for:', job.title)
     // Navigate to candidates screen
-    navigation.navigate('JobCandidates', { jobId: job.id })
+    navigation.navigate(screenNames.JOB_CANDIDATES, { jobId: job.id })
   }
 
   const handleCloseJob = (job) => {
@@ -140,11 +110,8 @@ const ActiveJobOffersScreen = ({ navigation }) => {
 
   const confirmCloseJob = async (job) => {
     try {
-      // Replace with your API call
-      // await closeJob(job.id)
-      
-      // Remove job from local state
-      setJobs(prevJobs => prevJobs.filter(j => j.id !== job.id))
+      // Dispatch Redux action to close job
+      dispatch(closeJob(job.id))
       Alert.alert('Success', `"${job.title}" has been closed`)
     } catch (error) {
       console.error('Error closing job:', error)
@@ -162,70 +129,58 @@ const ActiveJobOffersScreen = ({ navigation }) => {
     />
   )
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <AppText variant={Variant.title} style={styles.emptyTitle}>
-        No Active Jobs
-      </AppText>
-      <AppText variant={Variant.body} style={styles.emptyText}>
-        You don't have any active job offers at the moment.
-      </AppText>
-    </View>
-  )
 
-  const renderHeader = () => (
-    <View style={styles.headerContainer}>
-      <AppText variant={Variant.subTitle} style={styles.jobCount}>
-        {filteredJobs.length} Active job offer{filteredJobs.length !== 1 ? 's' : ''}
-      </AppText>
-    </View>
-  )
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <AppText variant={Variant.body} style={styles.loadingText}>
-          Loading jobs...
-        </AppText>
-      </View>
-    )
-  }
 
   return (
     <View style={styles.container}>
       {/* Filter Bar */}
       <View style={{paddingVertical: 10, backgroundColor: colors.white, height: hp(8)}}>
-
-      <JobFiltersBar
-        // postFilter={postFilter}
-        // setPostFilter={setPostFilter}
-        // searchType={searchType}
-        // setSearchType={setSearchType}
+        <JobFiltersBar
+          filters={filters}
+          onFiltersChange={setFilters}
         />
-        </View>
+      </View>
       
       {/* Jobs List */}
-      <FlatList
-        data={filteredJobs}
-        renderItem={renderJobCard}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            colors={[colors.primary || '#FF6B35']}
-            tintColor={colors.primary || '#FF6B35'}
+      {filteredJobs.length > 0 ? (
+        <>
+          <View style={styles.headerContainer}>
+            <AppText variant={Variant.subTitle} style={styles.jobCount}>
+              {filteredJobs.length} Active job offer{filteredJobs.length !== 1 ? 's' : ''}
+            </AppText>
+          </View>
+          <FlatList
+            data={filteredJobs}
+            renderItem={renderJobCard}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContainer}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                colors={[colors.primary || '#FF6B35']}
+                tintColor={colors.primary || '#FF6B35'}
+              />
+            }
+            initialNumToRender={5}
+            maxToRenderPerBatch={5}
+            windowSize={10}
+            removeClippedSubviews={true}
           />
-        }
-        ListEmptyComponent={renderEmptyState}
-        ListHeaderComponent={filteredJobs.length > 0 ? renderHeader : null}
-        initialNumToRender={5}
-        maxToRenderPerBatch={5}
-        windowSize={10}
-        removeClippedSubviews={true}
-      />
+        </>
+      ) : (
+        <View style={styles.emptyContainer}>
+          <AppText variant={Variant.title} style={styles.emptyTitle}>
+            No Active Jobs
+          </AppText>
+          <AppText variant={Variant.body} style={styles.emptyText}>
+            {activeJobs.length > 0 
+              ? 'No jobs match your current filters. Try adjusting the filters.'
+              : 'You don\'t have any active job offers at the moment. Post a job from Find Staff to get started.'}
+          </AppText>
+        </View>
+      )}
     </View>
   )
 }
@@ -243,7 +198,9 @@ const styles = StyleSheet.create({
     paddingBottom: hp(2),
   },
   headerContainer: {
-    marginBottom: hp(2),
+    paddingHorizontal: wp(6),
+    paddingVertical: hp(1.5),
+    backgroundColor: colors.white,
   },
   jobCount: {
     color: colors.black,

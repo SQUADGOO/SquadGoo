@@ -282,8 +282,8 @@ const PostProduct = ({ navigation }) => {
           <View style={styles.section}>
             <FormField
               name="price"
-              label="Price (AUD) *"
-              placeholder="Enter price in Australian dollars"
+              label="Price (SG Coins) *"
+              placeholder="Enter price in SG coins"
               keyboardType="numeric"
               rules={{
                 required: "Price is required",

@@ -20,6 +20,8 @@ export const screenNames = {
   JOBSEEKER_TAB: 'jobseeker_tab',
   ACTIVE_JOB_OFFERS: 'active_job_offers',
   JOB_PREVIEW: 'job_preview',
+  VIEW_JOB_DETAILS: 'view_job_details',
+  JOB_CANDIDATES: 'job_candidates',
   QUICK_SEARCH: 'quick_search',
   MANUAL_SEARCH: 'manual_search',
   

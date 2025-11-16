@@ -20,25 +20,28 @@ const JobDetailRow = ({ iconName, label, value }) => (
   </View>
 )
 
-const JobCard = ({ 
+const ExpiredJobCard = ({ 
   job, 
-  onPreview, 
-  onUpdate, 
-  onViewCandidates, 
-  onCloseJob 
+  onViewDetails
 }) => {
   return (
     <View style={styles.cardContainer}>
       
-      {/* Header - Job Title and Type Badge */}
+      {/* Header - Job Title and Badges */}
       <View style={styles.cardHeader}>
         <AppText variant={Variant.subTitle} style={styles.jobTitle}>
           {job.title}
         </AppText>
         <View style={styles.badgeContainer}>
-          <View style={styles.jobTypeBadge}>
-            <AppText variant={Variant.caption} style={styles.jobTypeText}>
-              {job.type}
+          <View style={styles.expiredBadge}>
+            <VectorIcons
+              name={iconLibName.Ionicons}
+              iconName="time-outline"
+              size={16}
+              color="#FFFFFF"
+            />
+            <AppText variant={Variant.caption} style={styles.badgeText}>
+              Expired
             </AppText>
           </View>
           {job.searchType && (
@@ -47,7 +50,7 @@ const JobCard = ({
               job.searchType === 'quick' ? styles.quickSearchBadge : styles.manualSearchBadge
             ]}>
               <AppText variant={Variant.caption} style={styles.searchTypeText}>
-                {job.searchType === 'quick' ? 'Quick Search' : 'Manual Search'}
+                {job.searchType === 'quick' ? 'Quick' : 'Manual'}
               </AppText>
             </View>
           )}
@@ -63,90 +66,52 @@ const JobCard = ({
       <View style={styles.detailsContainer}>
         <JobDetailRow 
           iconName="calendar-outline"
-          label="Offer date"
+          label="Posted"
           value={job.offerDate}
         />
         
         <JobDetailRow 
-          iconName="time-outline"
-          label="Offer expire date"
+          iconName="close-circle-outline"
+          label="Expired"
           value={job.expireDate}
         />
         
         <JobDetailRow 
           iconName="location-outline"
-          label="Work location"
+          label="Location"
           value={job.location}
         />
         
         <JobDetailRow 
-          iconName="star-outline"
-          label="Experience"
-          value={job.experience}
-        />
-        
-        <JobDetailRow 
-          iconName="cash-outline"
-          label="Salary type"
-          value={job.salaryType}
+          iconName="people-outline"
+          label="Staff needed"
+          value={job.staffNumber || '1'}
         />
       </View>
 
       {/* Action Buttons */}
       <View style={styles.buttonContainer}>
-        
-        {/* First Row */}
-        <View style={styles.buttonRow}>
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.previewButton]}
-            onPress={() => onPreview(job)}
-            activeOpacity={0.8}
-          >
-            <AppText variant={Variant.bodyMedium} style={styles.previewButtonText}>
-              Preview
-            </AppText>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.updateButton]}
-            onPress={() => onUpdate(job)}
-            activeOpacity={0.8}
-          >
-            <AppText variant={Variant.bodyMedium} style={styles.updateButtonText}>
-              Update
-            </AppText>
-          </TouchableOpacity>
-        </View>
-
-        {/* Second Row */}
-        <View style={styles.buttonRow}>
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.candidatesButton]}
-            onPress={() => onViewCandidates(job)}
-            activeOpacity={0.8}
-          >
-            <AppText variant={Variant.bodyMedium} style={styles.candidatesButtonText}>
-              Candidates
-            </AppText>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.closeJobButton]}
-            onPress={() => onCloseJob(job)}
-            activeOpacity={0.8}
-          >
-            <AppText variant={Variant.bodyMedium} style={styles.closeJobButtonText}>
-              Close Job
-            </AppText>
-          </TouchableOpacity>
-        </View>
-
+        <TouchableOpacity 
+          style={[styles.actionButton, styles.detailsButton]}
+          onPress={() => onViewDetails(job)}
+          activeOpacity={0.8}
+        >
+          <VectorIcons
+            name={iconLibName.Ionicons}
+            iconName="eye-outline"
+            size={20}
+            color="#EF4444"
+          />
+          <AppText variant={Variant.bodyMedium} style={styles.detailsButtonText}>
+            View Details
+          </AppText>
+        </TouchableOpacity>
       </View>
     </View>
   )
 }
 
-export default JobCard
+export default ExpiredJobCard
 
 const styles = StyleSheet.create({
   cardContainer: {
@@ -162,6 +127,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    borderLeftWidth: 4,
+    borderLeftColor: '#EF4444',
+    opacity: 0.85,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -179,20 +147,24 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     gap: hp(0.5),
   },
-  jobTypeBadge: {
-    backgroundColor:  '#C0B5C9',
-    paddingHorizontal: wp(3),
-    paddingVertical: hp(0.8),
-    borderRadius: hp(3),
-  },
-  jobTypeText: {
-    color: colors.white,
-    fontSize: getFontSize(12),
-  },
-  searchTypeBadge: {
+  expiredBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EF4444',
     paddingHorizontal: wp(2.5),
     paddingVertical: hp(0.6),
     borderRadius: hp(2.5),
+    gap: wp(1),
+  },
+  badgeText: {
+    color: colors.white,
+    fontSize: getFontSize(11),
+    fontWeight: 'bold',
+  },
+  searchTypeBadge: {
+    paddingHorizontal: wp(2),
+    paddingVertical: hp(0.5),
+    borderRadius: hp(2),
   },
   quickSearchBadge: {
     backgroundColor: '#10B981',
@@ -202,17 +174,17 @@ const styles = StyleSheet.create({
   },
   searchTypeText: {
     color: colors.white,
-    fontSize: getFontSize(10),
+    fontSize: getFontSize(9),
     fontWeight: 'bold',
   },
   salaryText: {
-    color: colors.primary,
+    color: colors.gray,
     fontSize: getFontSize(14),
     fontWeight: '600',
     marginBottom: hp(2),
   },
   detailsContainer: {
-    marginBottom: hp(3),
+    marginBottom: hp(2),
   },
   detailRow: {
     flexDirection: 'row',
@@ -225,54 +197,29 @@ const styles = StyleSheet.create({
     width: wp(5),
   },
   detailText: {
-    // color: colors.gray,
     flex: 1,
   },
   detailValue: {
     fontWeight: 'bold',
-    // color: colors.black,
   },
   buttonContainer: {
-    gap: hp(1.5),
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: wp(3),
+    marginTop: hp(1),
   },
   actionButton: {
-    flex: 1,
-    paddingVertical: hp(1.5),
-    borderRadius: hp(4),
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: hp(1.5),
+    borderRadius: hp(4),
+    gap: wp(2),
+  },
+  detailsButton: {
+    backgroundColor: 'transparent',
     borderWidth: 1,
-  },
-  previewButton: {
-    backgroundColor: 'transparent',
-    borderColor: '#4ADE80',
-  },
-  previewButtonText: {
-    color: '#4ADE80',
-  },
-  updateButton: {
-    backgroundColor: 'transparent',
-    borderColor: colors.primary || '#FF6B35',
-  },
-  updateButtonText: {
-    color: colors.primary || '#FF6B35',
-  },
-  candidatesButton: {
-    backgroundColor: 'transparent',
-    borderColor: '#6366F1',
-  },
-  candidatesButtonText: {
-    color: '#6366F1',
-  },
-  closeJobButton: {
-    backgroundColor: 'transparent',
     borderColor: '#EF4444',
   },
-  closeJobButtonText: {
+  detailsButtonText: {
     color: '#EF4444',
   },
 })
+
