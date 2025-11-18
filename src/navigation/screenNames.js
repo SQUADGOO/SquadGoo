@@ -63,6 +63,8 @@ QUICK_SEARCH_STEPFOUR:'manual_search_stepfour',
 
   ACCOUNT_UPGRADE: 'account_upgrade',
   SUPPORT: 'support',
+  SUPPORT_FAQ: 'support_faq',
+  SUPPORT_TICKETS: 'support_tickets',
 
   PROFILE: 'profile',
   BASIC_DETAILS: 'BasicDetails',

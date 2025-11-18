@@ -6,6 +6,7 @@ import TabNavigator from './TabNavigator';
 import {screenNames} from './screenNames';
 import { JobPreview } from '@/screens';
 import * as ui from '@/screens';
+import SupportStack from './SupportStack';
 
 const Drawer = createDrawerNavigator();
 
@@ -192,7 +193,7 @@ const DrawerNavigator = () => {
       />
       <Drawer.Screen
         name={screenNames.SUPPORT}
-        component={ui.Support}
+        component={SupportStack}
       />
 
 <Drawer.Screen

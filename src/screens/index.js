@@ -52,6 +52,8 @@ import AppSettings from './main/Recruiter/Settings/AppSettings';
 import SquadSettings from './main/Recruiter/Settings/SquadSettings';
 import AccountUpgrade from './main/Recruiter/AccountUpgrade';
 import Support from './main/Recruiter/Support';
+import SupportFAQ from './main/Recruiter/SupportFAQ';
+import SupportTickets from './main/Recruiter/SupportTickets';
 
 import Profile from './main/Recruiter/profile/Profile';
 import BasicDetails from './main/Recruiter/profile/BasicDetails';
@@ -149,6 +151,8 @@ export {
   SquadSettings,
   AccountUpgrade,
   Support,
+  SupportFAQ,
+  SupportTickets,
   Profile,
   BasicDetails,
   Address,

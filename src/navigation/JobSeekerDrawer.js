@@ -5,6 +5,7 @@ import CustomDrawer from '@/core/CustomDrawer';
 import {screenNames} from './screenNames';
 import { JobPreview } from '@/screens';
 import * as ui from '@/screens';
+import SupportStack from './SupportStack';
 
 const Drawer = createDrawerNavigator();
 
@@ -155,7 +156,7 @@ const JobSeekerDrawerNavigator = () => {
 
             <Drawer.Screen
         name={screenNames.SUPPORT}
-        component={ui.Support}
+        component={SupportStack}
       />
 
       <Drawer.Screen  
