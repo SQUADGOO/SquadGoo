@@ -1,4 +1,3 @@
-import images from '@/assets/images';
 import React from 'react';
 import {
   View,
@@ -10,73 +9,174 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useDispatch, useSelector } from 'react-redux';
+import { applyToOffer, declineActiveOffer } from '@/store/jobSeekerOffersSlice';
+import RbSheetComponent from '@/core/RbSheetComponent';
+import AppText from '@/core/AppText';
+import AppInputField from '@/core/AppInputField';
+import AppDropDown from '@/core/AppDropDown';
+import { colors, hp, wp, getFontSize } from '@/theme';
+import Pressable from '@/core/Pressable';
+import ReactNative from 'react';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { screenNames } from '@/navigation/screenNames';
 
 const JobSeekerActiveJob = () => {
-  const jobOffers = [
-    {
-      id: 1,
-      title: 'Full house painting',
-      salary: '$500/month',
-      expiry: 'Expire in : 2 days',
-      description:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut...',
-      company: 'McDonald',
-      location: 'Sydney',
-      experience: '4 years',
-      logo: images.mc,
-    },
-    {
-      id: 2,
-      title: 'Full house painting',
-      salary: '$500/month',
-      expiry: 'Expire in : 2 days',
-      description:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut...',
-      company: 'McDonald',
-      location: 'Sydney',
-      experience: '4 years',
-      logo: images.mc,
-    },
+  const dispatch = useDispatch();
+  const navigation = useNavigation()
+  const route = useRoute()
+
+  const { type } = route?.params || {}
+  const jobOffers = useSelector(state => state?.jobSeekerOffers?.activeOffers || []);
+  const [filters, setFilters] = React.useState({
+    minSalary: '',
+    maxSalary: '',
+    minExp: '',
+    maxExp: '',
+    city: '',
+  });
+  const [isCityOpen, setIsCityOpen] = React.useState(false);
+  const [postRange, setPostRange] = React.useState('all');
+  const [isPostOpen, setIsPostOpen] = React.useState(false);
+  const sheetRef = React.useRef(null);
+
+  const onAccept = (id) => {
+    dispatch(applyToOffer(id));
+  };
+
+  const onDecline = (id) => {
+    dispatch(declineActiveOffer(id));
+  };
+
+  const openFilter = () => {
+    sheetRef.current?.open();
+  };
+
+  const applyFilters = () => {
+    sheetRef.current?.close();
+  };
+
+  const resetFilters = () => {
+    setFilters({ minSalary: '', maxSalary: '', minExp: '', maxExp: '', city: '' });
+  };
+
+  const cities = [
+    { label: 'All Australia', value: '' },
+    { label: 'Sydney', value: 'Sydney' },
+    { label: 'Melbourne', value: 'Melbourne' },
+    { label: 'Brisbane', value: 'Brisbane' },
+    // { label: 'Perth', value: 'Perth' },
+    // { label: 'Adelaide', value: 'Adelaide' },
+    // { label: 'Gold Coast', value: 'Gold Coast' },
   ];
+
+  const filteredOffers = React.useMemo(() => {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29);
+
+    return jobOffers.filter((job) => {
+      // 🧮 Parse experience from "4 Years 0 Month"
+      const expParts = job.experience?.split(' ') || [];
+      const experienceYears = Number(expParts[0]) || 0;
+
+      // 💰 Parse salary range
+      const salaryMin = Number(job.salaryMin) || 0;
+      const salaryMax = Number(job.salaryMax) || 0;
+
+      // 🕒 Posted date comes from createdAt (ISO string)
+      const postedDate = job.createdAt ? new Date(job.createdAt) : null;
+
+      // ✅ Salary Filter
+      const salaryOk =
+        (filters.minSalary === '' || salaryMin >= Number(filters.minSalary)) &&
+        (filters.maxSalary === '' || salaryMax <= Number(filters.maxSalary));
+
+      // ✅ Experience Filter
+      const expOk =
+        (filters.minExp === '' || experienceYears >= Number(filters.minExp)) &&
+        (filters.maxExp === '' || experienceYears <= Number(filters.maxExp));
+
+      // ✅ City Filter
+      const cityOk =
+        filters.city === '' ||
+        job.location?.toLowerCase() === filters.city?.toLowerCase();
+
+      // ✅ Posted Date Filter (Today / Week / Month)
+      let postOk = true;
+      if (postRange !== 'all') {
+        if (!postedDate) {
+          postOk = false;
+        } else if (postRange === 'today') {
+          postOk = postedDate >= startOfToday;
+        } else if (postRange === 'week') {
+          postOk = postedDate >= startOfWeek;
+        } else if (postRange === 'month') {
+          postOk = postedDate >= startOfMonth;
+        }
+      }
+
+      return salaryOk && expOk && cityOk && postOk;
+    });
+  }, [jobOffers, filters, postRange]);
 
   return (
     <View style={styles.container}>
       <ScrollView style={{ flex: 1 }}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerText}>105 active job offers</Text>
-          <MaterialIcons name="tune" size={24} color="#FF9800" />
+          <Text style={styles.headerText}>{filteredOffers.length} active job offers</Text>
+          <TouchableOpacity onPress={openFilter}>
+            <MaterialIcons name="tune" size={24} color="#FF9800" />
+          </TouchableOpacity>
         </View>
 
-        {/* Dropdown */}
-        <TouchableOpacity style={styles.dropdown}>
-          <Text style={styles.dropdownText}>All Post</Text>
-          <Icon name="chevron-down" size={18} color="#aaa" />
-        </TouchableOpacity>
-
+        {/* Post range Dropdown */}
+        <View style={{ paddingHorizontal: 15, marginBottom: 15 }}>
+          <AppDropDown
+            placeholder="All Post"
+            options={[
+              { label: 'All Post', value: 'all' },
+              { label: 'Today', value: 'today' },
+              { label: 'This Week', value: 'week' },
+              { label: 'This Month', value: 'month' },
+            ]}
+            selectedValue={postRange}
+            isVisible={isPostOpen}
+            setIsVisible={setIsPostOpen}
+            onSelect={(value) => setPostRange(value)}
+          />
+        </View>
         {/* Job Cards */}
-        {jobOffers.map((job) => (
-          <View key={job.id} style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>{job.title}</Text>
-              <Text style={styles.expiry}>{job.expiry}</Text>
+        {filteredOffers.map((job) => (
+          <TouchableOpacity
+            key={job.id}
+            style={styles.card}
+            onPress={() => navigation.navigate(screenNames.JOB_OFFER_DETAILS, { job })}
+          >
+
+            <View style={{ gap: hp(1) }}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>{job.title}</Text>
+                <Text style={styles.expiry}>Expire on {job.expireDate}</Text>
+              </View>
+
+              <View style={styles.cardHeader}>
+                <Text style={styles.salary}>{job.salaryRange}</Text>
+                <Text style={styles.expiry}>{job?.searchType?.toUpperCase()}</Text>
+              </View>
             </View>
 
-            <Text style={styles.salary}>{job.salary}</Text>
             <Text style={styles.description}>
-              {job.description}
+              {job?.description}
               <Text style={styles.viewDetails}> View Details</Text>
             </Text>
 
-            {/* Company Info */}
             <View style={styles.companyRow}>
-              <Image
-                source={ job.logo }
-                style={styles.logo}
-                resizeMode="contain"
-              />
+              <Image source={{ uri: job?.image }} style={styles.logo} />
               <View style={styles.companyInfo}>
-                <Text style={styles.companyName}>{job.company}</Text>
+                <Text style={styles.companyName}>{job.industry}</Text>
                 <View style={styles.locationRow}>
                   <Icon name="location-outline" size={14} color="#4F5D75" />
                   <Text style={styles.location}>{job.location}</Text>
@@ -85,21 +185,116 @@ const JobSeekerActiveJob = () => {
               <Text style={styles.experience}>Experience: {job.experience}</Text>
             </View>
 
-            {/* Buttons */}
-            <View style={styles.buttonRow}>
-              <TouchableOpacity style={styles.acceptBtn}>
-                <Icon name="checkmark" size={18} color="green" />
-                <Text style={styles.acceptText}>Accept</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.declineBtn}>
-                <Icon name="close" size={18} color="red" />
-                <Text style={styles.declineText}>Decline</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+            {type === 'active' &&
+              <View style={styles.buttonRow}>
+                <TouchableOpacity style={styles.acceptBtn} onPress={() => onAccept(job.id)}>
+                  <Icon name="checkmark" size={18} color="green" />
+                  <Text style={styles.acceptText}>Apply</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.declineBtn} onPress={() => onDecline(job.id)}>
+                  <Icon name="close" size={18} color="red" />
+                  <Text style={styles.declineText}>Decline</Text>
+                </TouchableOpacity>
+              </View>
+            }
+
+          </TouchableOpacity>
         ))}
+
       </ScrollView>
 
+      {/* Filter Sheet */}
+      <RbSheetComponent ref={sheetRef} height={hp(60)}>
+        <View style={{ padding: wp(5) }}>
+          <AppText style={{ fontWeight: '700', fontSize: getFontSize(16), marginBottom: hp(1) }}>Filter offers</AppText>
+          <AppText style={{ color: colors.gray, marginBottom: hp(2) }}>Only jobs in Australia are shown</AppText>
+
+          <AppText style={{ fontWeight: '600', marginBottom: hp(1) }}>Price range (monthly, $)</AppText>
+          <View style={{ flexDirection: 'row', gap: wp(3) }}>
+            <View style={{ flex: 1 }}>
+              <AppInputField
+                placeholder="Min"
+                keyboardType="numeric"
+                value={filters.minSalary}
+                onChangeText={(t) => setFilters(prev => ({ ...prev, minSalary: t.replace(/[^0-9]/g, '') }))}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <AppInputField
+                placeholder="Max"
+                keyboardType="numeric"
+                value={filters.maxSalary}
+                onChangeText={(t) => setFilters(prev => ({ ...prev, maxSalary: t.replace(/[^0-9]/g, '') }))}
+              />
+            </View>
+          </View>
+
+          <View style={{ height: hp(2) }} />
+
+          <AppText style={{ fontWeight: '600', marginBottom: hp(1) }}>Experience (years)</AppText>
+          <View style={{ flexDirection: 'row', gap: wp(3) }}>
+            <View style={{ flex: 1 }}>
+              <AppInputField
+                placeholder="Min"
+                keyboardType="numeric"
+                value={filters.minExp}
+                onChangeText={(t) => setFilters(prev => ({ ...prev, minExp: t.replace(/[^0-9]/g, '') }))}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <AppInputField
+                placeholder="Max"
+                keyboardType="numeric"
+                value={filters.maxExp}
+                onChangeText={(t) => setFilters(prev => ({ ...prev, maxExp: t.replace(/[^0-9]/g, '') }))}
+              />
+            </View>
+          </View>
+
+          <View style={{ height: hp(2) }} />
+
+          <AppText style={{ fontWeight: '600', marginBottom: hp(1) }}>Location (Australia)</AppText>
+          <AppDropDown
+            placeholder="Select city"
+            options={cities}
+            dropdownStyle={{top:'-200%'}}
+            selectedValue={filters.city}
+            isVisible={isCityOpen}
+            setIsVisible={setIsCityOpen}
+            onSelect={(value) => setFilters(prev => ({ ...prev, city: value }))}
+          />
+
+          <View style={{ height: hp(3) }} />
+          <View style={{ flexDirection: 'row' }}>
+            <Pressable
+              onPress={resetFilters}
+              style={{
+                flex: 1,
+                backgroundColor: colors.grayE8,
+                paddingVertical: hp(1.8),
+                borderRadius: hp(3),
+                alignItems: 'center',
+                marginRight: wp(2),
+              }}
+            >
+              <AppText>Reset</AppText>
+            </Pressable>
+            <Pressable
+              onPress={applyFilters}
+              style={{
+                flex: 1,
+                backgroundColor: colors.primary,
+                paddingVertical: hp(1.8),
+                borderRadius: hp(3),
+                alignItems: 'center',
+                marginLeft: wp(2),
+              }}
+            >
+              <AppText style={{ color: colors.white }}>Apply</AppText>
+            </Pressable>
+          </View>
+        </View>
+      </RbSheetComponent>
 
     </View>
   );
@@ -148,7 +343,8 @@ const styles = StyleSheet.create({
   salary: {
     color: '#FF9800',
     fontWeight: '700',
-    marginTop: 5,
+    width: wp(50),
+    alignSelf: 'flex-start',
     marginBottom: 8,
   },
   description: { color: '#4F5D75', fontSize: 13, marginBottom: 8 },
@@ -159,7 +355,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     justifyContent: 'space-between',
   },
-  logo: { width: 35, height: 35, marginRight: 10 },
+  logo: { width: 35, height: 35, borderRadius: 35 / 2, marginRight: 10 },
   companyInfo: { flex: 1 },
   companyName: { fontWeight: '600', color: '#000' },
   locationRow: { flexDirection: 'row', alignItems: 'center', marginTop: 2 },

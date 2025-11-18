@@ -55,7 +55,7 @@ const JobSeekerDashboard = () => {
   return (
     <View style={styles.container}>
       {/* Gradient Header */}
- <AppHeader  showBackButton={false} title='Dashboard'/>
+      <AppHeader showBackButton={false} title='Dashboard' />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Stats */}
         <View style={styles.statsRow}>
@@ -91,26 +91,26 @@ const JobSeekerDashboard = () => {
 
         {/* Tips */}
         <AppText style={styles.sectionTitle}>Tips</AppText>
-        <TipCard 
-  title="Profile Optimization Tip" 
-  description="Add specific skills and certifications to increase your visibility by up to 60%" 
-  bgColor="#EAF4FF" 
-  textColor="#2979FF" 
-/>
+        <TipCard
+          title="Profile Optimization Tip"
+          description="Add specific skills and certifications to increase your visibility by up to 60%"
+          bgColor="#EAF4FF"
+          textColor="#2979FF"
+        />
 
-<TipCard 
-  title="Acceptance Rate Tip" 
-  description="Maintain above 85% acceptance rate to qualify for premium job offers" 
-  bgColor="#E8FBF1" 
-  textColor="#27AE60" 
-/>
+        <TipCard
+          title="Acceptance Rate Tip"
+          description="Maintain above 85% acceptance rate to qualify for premium job offers"
+          bgColor="#E8FBF1"
+          textColor="#27AE60"
+        />
 
-<TipCard 
-  title="Rating Improvement" 
-  description="Complete jobs early and communicate proactively to earn 5-star ratings" 
-  bgColor="#F8EAFB" 
-  textColor="#A44CEE" 
-/>
+        <TipCard
+          title="Rating Improvement"
+          description="Complete jobs early and communicate proactively to earn 5-star ratings"
+          bgColor="#F8EAFB"
+          textColor="#A44CEE"
+        />
 
         {/* Current Jobs */}
         <AppText style={styles.sectionTitle}>Current Job Offers & Important Notifications</AppText>
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   scrollContent: { padding: wp(4), paddingBottom: hp(5) },
 
   statsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: hp(2) },
-  statCard: { flex: 1, backgroundColor: '#fff', padding: wp(4), borderRadius: 12, marginHorizontal: 4, borderWidth: 1, backgroundColor: '#FFD6A5AA' },
+  statCard: { flex: 1, padding: wp(4), borderRadius: 12, marginHorizontal: 4, borderWidth: 1, backgroundColor: '#F89E3D1A', borderColor: '#F89E3D' },
   statTitle: { fontSize: wp(3.2), color: '#6B6B6B', fontWeight: '500' },
   statValue: { fontSize: wp(5), fontWeight: '700', marginVertical: 4, color: '#222' },
   statSubtitle: { fontSize: wp(3), color: '#8E93A8' },
@@ -151,9 +151,9 @@ const styles = StyleSheet.create({
   feedTitle: { fontSize: wp(3.6), fontWeight: '600', color: '#222', marginBottom: 4 },
   feedDesc: { fontSize: wp(3.2), color: '#666' },
 
-tipCard: { borderRadius: 12, padding: wp(3.5), marginBottom: hp(1.2) },
-tipTitle: { fontSize: wp(3.4), fontWeight: '600' },
-tipDescription: { fontSize: wp(3.2), color: '#555', marginTop: 4 },
+  tipCard: { borderRadius: 12, padding: wp(3.5), marginBottom: hp(1.2) },
+  tipTitle: { fontSize: wp(3.4), fontWeight: '600' },
+  tipDescription: { fontSize: wp(3.2), color: '#555', marginTop: 4 },
 
 
   jobCard: { borderWidth: 1, borderColor: '#EADFF7', borderRadius: 12, padding: wp(4), marginBottom: hp(2) },

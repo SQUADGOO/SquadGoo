@@ -204,6 +204,11 @@ const JobSeekerDrawerNavigator = () => {
         name={screenNames.MEMBERS}
         component={ui.Members}
       />
+
+      <Drawer.Screen
+          name={screenNames.ACCEPTED_OFFERS}
+          component={ui.AcceptedOffers}
+        />
       
     </Drawer.Navigator>
   );

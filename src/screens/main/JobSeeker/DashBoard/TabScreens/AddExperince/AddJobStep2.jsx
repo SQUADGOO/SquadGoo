@@ -12,13 +12,18 @@ import { colors, getFontSize, hp, wp } from '@/theme';
 import { showToast, toastTypes } from '@/utilities/toastConfig';
 import { useUpdateJobSeekerProfile } from '@/api/auth/auth.query';
 import { useAddJobPreferences } from '@/api/jobSeeker/jobSeeker.query';
+import { useDispatch } from 'react-redux';
+import { addPreferredJob, updatePreferredJob } from '@/store/jobSeekerPreferredSlice';
 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 const AddJobStep2 = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const dispatch = useDispatch();
   const step1Data = route.params?.formData || {};
+  const mode = route.params?.mode || 'add';
+  const editId = route.params?.id;
   const { mutateAsync: updateJobPreference } = useAddJobPreferences();
 
   const methods = useForm({
@@ -55,16 +60,13 @@ const AddJobStep2 = () => {
       endTime: data.endTime,
     };
 
-    console.log('📤 Final Payload:', payload);
-
-    try {
-      await updateJobPreference(payload);
-      // showToast('Job preferences updated successfully', 'Success', toastTypes.success);
-      navigation.goBack();
-    } catch (err) {
-      console.error('Error updating job preferences:', err);
-      showToast('Failed to update job preferences', 'Error', toastTypes.error);
+    // Save to Redux preferred jobs
+    if (mode === 'edit' && editId) {
+      dispatch(updatePreferredJob({ id: editId, ...payload }));
+    } else {
+      dispatch(addPreferredJob(payload));
     }
+    navigation.goBack();
   };
 
   return (

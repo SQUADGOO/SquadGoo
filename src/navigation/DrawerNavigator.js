@@ -195,6 +195,10 @@ const DrawerNavigator = () => {
         component={ui.Support}
       />
 
+<Drawer.Screen
+        name={screenNames.ACCEPTED_OFFERS}
+        component={ui.AcceptedOffers}
+      />
        
     </Drawer.Navigator>
   );

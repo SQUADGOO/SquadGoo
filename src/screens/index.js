@@ -90,6 +90,8 @@ import Members from './main/JobSeeker/DashBoard/Settings/Members';
 import EditProfile from './main/Recruiter/profile/EditProfile';
 
 import QuickSearchPreview from './main/Recruiter/QuickSearch/QuickSearchPreview';
+
+import AcceptedOffers from './main/JobSeeker/AcceptedOffers';
 // Tab Screens
 
 export {
@@ -180,5 +182,7 @@ SquadSettingsGroups,
 GroupDetail,
 Members,
 EditProfile,
-QuickSearchPreview
+QuickSearchPreview,
+
+AcceptedOffers
 };

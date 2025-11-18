@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
-import { 
-  View, 
-  StyleSheet, 
-  ScrollView, 
+import {
+  View,
+  StyleSheet,
+  ScrollView,
   TouchableOpacity,
   Alert
 } from 'react-native'
@@ -14,87 +14,44 @@ import AppHeader from '@/core/AppHeader'
 import ActionButton from '@/components/ActionButton'
 import { screenNames } from '@/navigation/screenNames'
 import { showToast, toastTypes } from '@/utilities/toastConfig'
+import { useDispatch, useSelector } from 'react-redux'
+import { deleteAccount, selectAccount, verifyAccount } from '@/store/bankSlice'
+import { withdrawCoins } from '@/store/walletSlice'
 
-const BankDetails = ({ navigation }) => {
-  const [bankAccounts, setBankAccounts] = useState([
-    {
-      id: 1,
-      bankName: 'ING Bank Pvt. Ltd.',
-      accountNumber: '11112501',
-      bsbCode: '63001',
-      branch: 'Finders Street',
-      isVerified: false,
-      isSelected: false
-    },
-    {
-      id: 2,
-      bankName: 'Westpac Banking Corporation',
-      accountNumber: '11112502',
-      bsbCode: '63002',
-      branch: 'Collins Street',
-      isVerified: true,
-      isSelected: true
-    }
-  ])
+const BankDetails = ({ navigation, route }) => {
+  const dispatch = useDispatch()
+  const bankAccounts = useSelector(state => state.bank.accounts)
+  const walletCoins = useSelector(state => state.wallet.coins)
+  const withdrawData = route?.params?.withdrawData
 
-  // Handle selecting a bank account
   const handleSelectAccount = (accountId) => {
-    setBankAccounts(prevAccounts =>
-      prevAccounts.map(account => ({
-        ...account,
-        isSelected: account.id === accountId
-      }))
-    )
-    console.log('Selected account:', accountId)
+    dispatch(selectAccount(accountId))
   }
 
   const handleEdit = (accountId) => {
-    console.log('Edit account:', accountId)
-    // Navigate to edit screen with account data
     const account = bankAccounts.find(acc => acc.id === accountId)
     navigation.navigate(screenNames.ACCOUNT_DETAILS, { account, isEdit: true })
   }
 
   const handleDelete = (accountId) => {
     const account = bankAccounts.find(acc => acc.id === accountId)
-    
-    // Prevent deleting if it's the only account
+
     if (bankAccounts.length === 1) {
-      Alert.alert(
-        'Cannot Delete',
-        'You must have at least one bank account.',
-        [{ text: 'OK' }]
-      )
+      Alert.alert('Cannot Delete', 'You must have at least one bank account.', [{ text: 'OK' }])
       return
     }
 
-    // Show confirmation dialog
     Alert.alert(
       'Delete Bank Account',
       `Are you sure you want to delete ${account.bankName}?`,
       [
-        {
-          text: 'Cancel',
-          style: 'cancel'
-        },
+        { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
           onPress: () => {
-            // If deleting selected account, select the first remaining account
-            if (account.isSelected) {
-              const remainingAccounts = bankAccounts.filter(acc => acc.id !== accountId)
-              if (remainingAccounts.length > 0) {
-                remainingAccounts[0].isSelected = true
-              }
-            }
-            
-            // Remove the account
-            setBankAccounts(prevAccounts =>
-              prevAccounts.filter(acc => acc.id !== accountId)
-            )
-            
-            console.log('Deleted account:', accountId)
+            dispatch(deleteAccount(accountId))
+            showToast('Bank account deleted successfully.', 'success', toastTypes.success)
           }
         }
       ]
@@ -102,30 +59,57 @@ const BankDetails = ({ navigation }) => {
   }
 
   const handleVerify = (accountId) => {
-    console.log('Verify account:', accountId)
-    // Navigate to verification screen or show verification modal
-    Alert.alert(
-      'Verify Account',
-      'A verification link has been sent to your registered email address.',
-      [{ text: 'OK' }]
-    )
+    dispatch(verifyAccount(accountId))
+    Alert.alert('Verification', 'Account verified successfully!')
   }
 
   const handleAddNewAccount = () => {
-    console.log('Add new account')
     navigation.navigate(screenNames.ACCOUNT_DETAILS)
   }
 
   const handleWithdrawFunds = () => {
-    console.log('Withdraw funds')
-    showToast('Reuest to withdraw funds initiated.', 'success', toastTypes.success)
+    // Check if we have withdraw data from WithdrawCoins screen
+    if (!withdrawData) {
+      // Navigate to WithdrawCoins screen first
+      navigation.navigate(screenNames.WITHDRAW_COINS)
+      return
+    }
+
+    // Find selected account
+    const selectedAccount = bankAccounts.find(acc => acc.isSelected)
+    
+    if (!selectedAccount) {
+      showToast('Please select a bank account first.', 'error', toastTypes.error)
+      return
+    }
+
+    if (!selectedAccount.isVerified) {
+      showToast('Please verify your bank account before withdrawing.', 'error', toastTypes.error)
+      return
+    }
+
+    if (walletCoins < withdrawData.withdrawAmount) {
+      showToast('Insufficient coins available.', 'error', toastTypes.error)
+      return
+    }
+
+    // Process withdrawal
+    dispatch(withdrawCoins({
+      amount: withdrawData.withdrawAmount,
+      accountId: selectedAccount.id,
+      transactionFees: withdrawData.transactionFees,
+      totalUsdAmount: withdrawData.totalUsdAmount,
+    }))
+
+    showToast('Withdrawal request submitted successfully.', 'success', toastTypes.success)
     navigation.goBack()
   }
+
 
   const renderBankAccount = (account) => (
     <View key={account.id} style={styles.bankCard}>
       {/* Bank Header */}
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.bankHeader}
         onPress={() => handleSelectAccount(account.id)}
         activeOpacity={0.7}
@@ -144,11 +128,11 @@ const BankDetails = ({ navigation }) => {
               />
             )}
           </View>
-          
+
           <AppText variant={Variant.title} style={styles.bankName}>
             {account.bankName}
           </AppText>
-          
+
           {account.isVerified ? (
             <View style={styles.verifiedBadge}>
               <VectorIcons
@@ -185,11 +169,11 @@ const BankDetails = ({ navigation }) => {
         <AppText variant={Variant.body} style={styles.detailText}>
           Account number: <AppText style={styles.detailValue}>{account.accountNumber}</AppText>
         </AppText>
-        
+
         <AppText variant={Variant.body} style={styles.detailText}>
           BSB code: <AppText style={styles.detailValue}>{account.bsbCode}</AppText>
         </AppText>
-        
+
         <AppText variant={Variant.body} style={styles.detailText}>
           Branch: <AppText style={styles.detailValue}>{account.branch}</AppText>
         </AppText>
@@ -230,7 +214,7 @@ const BankDetails = ({ navigation }) => {
 
   return (
     <>
-      <AppHeader 
+      <AppHeader
         title="Bank Details"
         showTopIcons={false}
       />

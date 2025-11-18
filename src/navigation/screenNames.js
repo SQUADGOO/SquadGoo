@@ -99,6 +99,9 @@ MEMBERS:'members',
 EDIT_PROFILE:'edit_profile',
 QUICK_SEARCH_PREVIEW:'quick_search_preview',
 
+JOB_OFFER_DETAILS: 'job_offer_details',
+ACCEPTED_OFFERS: 'accepted_offers',
+
 
   // FORGOT_PASSWORD: 'forgot_password',
   // CHECK_EMAIL: 'check_email',

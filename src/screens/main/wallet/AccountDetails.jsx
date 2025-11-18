@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react'
-import { 
-  View, 
-  StyleSheet, 
-  ScrollView, 
+import React, { useState, useRef, useEffect } from 'react'
+import {
+  View,
+  StyleSheet,
+  ScrollView,
   TouchableOpacity,
   FlatList
 } from 'react-native'
@@ -15,17 +15,21 @@ import FormField from '@/core/FormField'
 import RbSheetComponent from '@/core/RbSheetComponent'
 import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
+import { addAccount, editAccount } from '@/store/bankSlice'
+import { useDispatch } from 'react-redux'
 
-const AccountDetails = ({ navigation }) => {
+const AccountDetails = ({ navigation, route }) => {
   const [selectedBank, setSelectedBank] = useState('')
   const bankSheetRef = useRef(null)
-  
+  const { account, isEdit } = route?.params || {}
+  const dispatch = useDispatch()
   const methods = useForm({
     defaultValues: {
       accountNumber: '',
       bsbCode: '',
       branch: '',
-      city: ''
+      city: '',
+      bankName: ''
     }
   })
 
@@ -40,30 +44,65 @@ const AccountDetails = ({ navigation }) => {
     { id: 8, name: 'Bank of Queensland', code: 'BOQ' }
   ]
 
+  console.log(selectedBank)
   const handleBankSelect = (bank) => {
     setSelectedBank(bank.name)
+    methods.setValue('bankName', bank.name)
     bankSheetRef.current?.close()
   }
 
+  const handleBankNamePress = () => {
+    bankSheetRef.current?.open()
+  }
+
   const onSubmit = (data) => {
-    if (!selectedBank) {
+    if (!selectedBank && !data.bankName) {
       alert('Please select a bank')
       return
     }
 
     const accountData = {
-      bankName: selectedBank,
-      ...data
+      bankName: selectedBank || data.bankName,
+      ...data,
     }
-    
-    console.log('Account details:', accountData)
-    // Navigate to next step or save account details
+
+    if (isEdit && account) {
+      // Edit existing account
+      dispatch(editAccount({
+        id: account.id,
+        updatedData: accountData
+      }))
+      navigation.goBack()
+    } else {
+      // Add new account
+      dispatch(addAccount(accountData))
+      navigation.navigate(screenNames.FORM_SUMMARY, { accountData })
+    }
   }
 
   const handleNext = () => {
-    navigation.navigate(screenNames.FORM_SUMMARY)
     methods.handleSubmit(onSubmit)()
   }
+
+  const { reset } = methods
+
+  // 👇 Populate default data if 'account' exists
+  useEffect(() => {
+    if (account) {
+      const bankName = account.bankName || ''
+      reset({
+        accountNumber: account.accountNumber || '',
+        bsbCode: account.bsbCode || '',
+        branch: account.branch || '',
+        city: account.city || '',
+        bankName: bankName,
+      })
+      setSelectedBank(bankName)
+      methods.setValue('bankName', bankName)
+    }
+  }, [account, reset, methods])
+
+
 
   const renderBankOption = ({ item }) => (
     <TouchableOpacity
@@ -83,7 +122,7 @@ const AccountDetails = ({ navigation }) => {
         <AppText variant={Variant.subTitle} style={styles.sheetTitle}>
           Select Bank
         </AppText>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.closeButton}
           onPress={() => bankSheetRef.current?.close()}
           activeOpacity={0.7}
@@ -96,7 +135,7 @@ const AccountDetails = ({ navigation }) => {
           />
         </TouchableOpacity>
       </View>
-      
+
       <FlatList
         data={bankOptions}
         renderItem={renderBankOption}
@@ -109,26 +148,22 @@ const AccountDetails = ({ navigation }) => {
 
   return (
     <FormProvider {...methods}>
-        <AppHeader  
-          title="Account details"
-          showTopIcons={false}
-        />
+      <AppHeader
+        title="Account details"
+        showTopIcons={false}
+      />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Bank Name Dropdown */}
-          
-         <FormField
-          name="Bank name"
+        <FormField
+          name="bankName"
           label="Bank name"
-          placeholder="Select"
-          keyboardType="numeric"
+          placeholder={selectedBank || "Select bank"}
           rules={{
-            required: 'Account number is required',
-            pattern: {
-              value: /^[0-9]{6,12}$/,
-              message: 'Please enter a valid account number'
-            }
+            required: 'Bank name is required',
           }}
           inputWrapperStyle={styles.formFieldWrapper}
+          onPressField={handleBankNamePress}
+          editable={false}
         />
 
         {/* Account Number */}
@@ -200,7 +235,7 @@ const AccountDetails = ({ navigation }) => {
             onPress={handleNext}
             bgColor="#F59E0B"
             textColor="#FFFFFF"
-            // style={styles.nextButton}
+          // style={styles.nextButton}
           />
         </View>
       </ScrollView>
@@ -266,7 +301,7 @@ const styles = StyleSheet.create({
     borderRadius: hp(3),
     paddingVertical: hp(2.5),
   },
-  
+
   // Bottom Sheet Styles
   sheetContainer: {
     paddingTop: 0,

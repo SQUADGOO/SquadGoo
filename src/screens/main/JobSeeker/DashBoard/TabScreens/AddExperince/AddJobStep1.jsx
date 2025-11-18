@@ -1,6 +1,5 @@
-import React from 'react';
 import { View, StyleSheet, TextInput, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useForm, FormProvider } from 'react-hook-form';
 import AppText from '@/core/AppText';
 import AppHeader from '@/core/AppHeader';
@@ -8,9 +7,13 @@ import AppButton from '@/core/AppButton';
 import CustomCheckBox from '@/core/CustomCheckBox';
 import { colors, getFontSize, hp, wp } from '@/theme';
 import { screenNames } from '@/navigation/screenNames';
+import { useCallback, useEffect } from 'react';
 
 const AddJobStep1 = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const isEdit = route?.params?.mode === 'edit';
+  const editingJob = route?.params?.preferredJob;
   const methods = useForm({
     defaultValues: {
       preferredIndustry: '',
@@ -23,10 +26,41 @@ const AddJobStep1 = () => {
     },
   });
 
-  const { handleSubmit, register, setValue, watch } = methods;
+  const { handleSubmit, register, setValue, watch, reset } = methods;
+
+  useEffect(() => {
+    if (isEdit && editingJob) {
+      reset({
+        preferredIndustry: editingJob.preferredIndustry || '',
+        preferredJobTitle: editingJob.preferredJobTitle || '',
+        expectedPayMin: editingJob.expectedPayMin || '',
+        expectedPayMax: editingJob.expectedPayMax || '',
+        manualOffers: !!editingJob.manualOffers,
+        quickOffers: !!editingJob.quickOffers,
+        receiveWithinKm: editingJob.receiveWithinKm || '',
+      });
+    }
+  }, [isEdit, editingJob, reset]);
+
+  // Reset form when adding a new preferred job
+  useFocusEffect(
+    useCallback(() => {
+      if (!isEdit) {
+        reset({
+          preferredIndustry: '',
+          preferredJobTitle: '',
+          expectedPayMin: '',
+          expectedPayMax: '',
+          manualOffers: false,
+          quickOffers: false,
+          receiveWithinKm: '',
+        });
+      }
+    }, [isEdit, reset])
+  );
 
   const onNext = (data) => {
-    navigation.navigate(screenNames.ADD_JOB_STEP2, { formData: data });
+    navigation.navigate(screenNames.ADD_JOB_STEP2, { formData: data, mode: isEdit ? 'edit' : 'add', id: editingJob?.id });
   };
 
   return (

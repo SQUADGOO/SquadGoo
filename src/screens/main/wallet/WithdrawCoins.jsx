@@ -12,10 +12,11 @@ import AppText, { Variant } from '@/core/AppText'
 import AppButton from '@/core/AppButton'
 import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
+import { useSelector } from 'react-redux'
 
 const WithdrawCoins = ({ navigation }) => {
   const [withdrawAmount, setWithdrawAmount] = useState(1)
-  const [availableCoins] = useState(70)
+  const availableCoins = useSelector(state => state.wallet.coins) || 0
   
   const transactionFees = 1 // Fixed transaction fee
   const totalCoins = withdrawAmount - transactionFees
@@ -51,9 +52,7 @@ const WithdrawCoins = ({ navigation }) => {
       totalUsdAmount
     }
     
-    navigation.navigate(screenNames.BANK_DETAILS)
-    console.log('Proceeding with withdrawal:', withdrawData)
-    // Navigate to next step or process withdrawal
+    navigation.navigate(screenNames.BANK_DETAILS, { withdrawData })
   }
 
   const TableRow = ({ label, value }) => (

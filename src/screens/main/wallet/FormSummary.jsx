@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import { 
-  View, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
   TextInput
 } from 'react-native'
 import { colors, hp, wp, getFontSize, borders } from '@/theme'
@@ -13,10 +13,12 @@ import AppButton from '@/core/AppButton'
 import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
 
-const FormSummary = ({ navigation }) => {
+const FormSummary = ({ navigation, route }) => {
+  const { accountData } = route?.params || {}
+  console.log(accountData)
   const [withdrawAmount, setWithdrawAmount] = useState(1)
   const [availableCoins] = useState(70)
-  
+
   const transactionFees = 1 // Fixed transaction fee
   const totalCoins = withdrawAmount - transactionFees
   const coinToUsdRate = 1.0 // 1 SGCOIN = 1 USD
@@ -43,14 +45,14 @@ const FormSummary = ({ navigation }) => {
       alert('Insufficient coins available')
       return
     }
-    
+
     const withdrawData = {
       withdrawAmount,
       transactionFees,
       totalCoins,
       totalUsdAmount
     }
-    
+
     navigation.navigate(screenNames.BANK_DETAILS)
     console.log('Proceeding with withdrawal:', withdrawData)
     // Navigate to next step or process withdrawal
@@ -69,46 +71,46 @@ const FormSummary = ({ navigation }) => {
 
   return (
     <>
-   
-        <AppHeader
-          title="Form Summary"
-          showBackButton
-          showTopIcons={false}
-          onPressBack={() => navigation.goBack()}
-        />
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
 
-      {/* Transaction Breakdown Table */}
-      <View style={styles.transactionTable}>
-        {/* Withdraw Coins Row */}
-        <TableRow label="Withdraw coins (SGCOIN)" value={withdrawAmount} />
+      <AppHeader
+        title="Form Summary"
+        showBackButton
+        showTopIcons={false}
+        onPressBack={() => navigation.goBack()}
+      />
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
 
-       
-
-        {/* Transaction Fees Row */}
-        <TableRow label="Transaction fees (SGCOIN)" value={transactionFees} />
+        {/* Transaction Breakdown Table */}
+        <View style={styles.transactionTable}>
+          {/* Withdraw Coins Row */}
+          <TableRow label="Withdraw coins (SGCOIN)" value={withdrawAmount} />
 
 
-        {/* Total Coins Row */}
-        <TableRow label="Total coins (SGCOIN)" value={totalCoins} />
+
+          {/* Transaction Fees Row */}
+          <TableRow label="Transaction fees (SGCOIN)" value={transactionFees} />
 
 
-        {/* Total Amount Row - Highlighted */}
-       <TableRow label="Total amount (USD)" value={`$${totalUsdAmount.toFixed(2)}`} highlighted />
-      </View>
+          {/* Total Coins Row */}
+          <TableRow label="Total coins (SGCOIN)" value={totalCoins} />
 
-      {/* Next Button */}
-      <View style={styles.buttonContainer}>
-        <AppButton
-          text="Withdraw Now"
-          onPress={handleNext}
-          bgColor="#F59E0B"
-          textColor="#FFFFFF"
-        //   style={styles.nextButton}
-        />
-      </View>
-    </ScrollView>
-     </>
+
+          {/* Total Amount Row - Highlighted */}
+          <TableRow label="Total amount (USD)" value={`$${totalUsdAmount.toFixed(2)}`} highlighted />
+        </View>
+
+        {/* Next Button */}
+        <View style={styles.buttonContainer}>
+          <AppButton
+            text="Withdraw Now"
+            onPress={handleNext}
+            bgColor="#F59E0B"
+            textColor="#FFFFFF"
+          //   style={styles.nextButton}
+          />
+        </View>
+      </ScrollView>
+    </>
   )
 }
 
@@ -204,7 +206,7 @@ const styles = StyleSheet.create({
   tableSeparator: {
     height: 1,
     backgroundColor: colors.grayE8 || '#E5E7EB',
-    
+
     // marginHorizontal: wp(4),
   },
   totalRow: {

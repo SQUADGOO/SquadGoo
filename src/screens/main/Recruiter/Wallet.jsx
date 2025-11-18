@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import { 
-  View, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
   FlatList,
   Image
 } from 'react-native'
@@ -16,16 +16,258 @@ import AppHeader from '@/core/AppHeader'
 import { Icons } from '@/assets'
 import AppButton from '@/core/AppButton'
 import WalletBalanceComponent from '@/components/wallet/WalletBalanceComponent'
+import { useSelector } from 'react-redux'
+import RNFS from 'react-native-fs'
+import Share from 'react-native-share'
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
+import { showToast, toastTypes } from '@/utilities/toastConfig'
+import { Platform } from 'react-native'
 
 const Wallet = ({ navigation }) => {
-  const [transactions] = useState([
-    { id: 1, name: 'Job post charge', type: 'Debit', amount: 'AUD 0.50' },
-    { id: 2, name: 'Withdraw pending', type: 'Debit', amount: 'AUD 0.50' },
-    { id: 3, name: 'Job post charge', type: 'Debit', amount: 'AUD 0.50' },
-    { id: 4, name: 'Withdraw pending', type: 'Debit', amount: 'AUD 0.50' },
-    { id: 5, name: 'Job post charge', type: 'Debit', amount: 'AUD 0.50' },
-    { id: 6, name: 'Coin purchased', type: 'Debit', amount: 'AUD 0.50' },
-  ])
+  const { coins, transactions = [], withdrawRequests = [] } = useSelector((state) => state.wallet)
+  const bankAccounts = useSelector((state) => state.bank.accounts)
+  const selectedAccount = bankAccounts.find(acc => acc.isSelected)
+
+  const combinedTransactions = transactions && transactions.length > 0 ? transactions : [
+    { id: 101, name: 'Job post charge', type: 'Debit', amount: 'AUD 0.50' },
+    { id: 102, name: 'Withdraw pending', type: 'Debit', amount: 'AUD 0.50' },
+  ]
+
+  // 🧾 Export Transactions as CSV
+  const exportToCSV = async () => {
+    try {
+      if (combinedTransactions.length === 0) {
+        showToast('No transactions to export', 'Error', toastTypes.error)
+        return
+      }
+
+      // Escape commas and quotes in CSV
+      const escapeCSV = (str) => {
+        const stringValue = String(str || '')
+        if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+          return `"${stringValue.replace(/"/g, '""')}"`
+        }
+        return stringValue
+      }
+
+      const headers = 'Transaction Name,Type,Amount\n'
+      const rows = combinedTransactions
+        .map(t => `${escapeCSV(t.name)},${escapeCSV(t.type)},${escapeCSV(t.amount)}`)
+        .join('\n')
+
+      const csvContent = headers + rows
+      const fileName = `transactions_${new Date().toISOString().split('T')[0]}.csv`
+      
+      // Use CacheDirectoryPath for better compatibility
+      const baseDir = Platform.OS === 'android' 
+        ? RNFS.CachesDirectoryPath 
+        : RNFS.DocumentDirectoryPath
+      const path = `${baseDir}/${fileName}`
+
+      // Ensure directory exists
+      const dirExists = await RNFS.exists(baseDir)
+      if (!dirExists) {
+        await RNFS.mkdir(baseDir)
+      }
+
+      await RNFS.writeFile(path, csvContent, 'utf8')
+      
+      // Use proper file URI format
+      const fileUri = Platform.OS === 'ios' 
+        ? `file://${path}` 
+        : `file://${path}`
+      
+      const shareOptions = {
+        url: fileUri,
+        type: 'text/csv',
+        filename: fileName.replace('.csv', ''),
+        showAppsToView: true,
+        failOnCancel: false,
+      }
+
+      if (Platform.OS === 'android') {
+        shareOptions.title = 'Share CSV File'
+      }
+
+      await Share.open(shareOptions)
+      
+      showToast('CSV exported successfully', 'Success', toastTypes.success)
+    } catch (error) {
+      console.error('CSV export error:', error)
+      const errorMessage = error?.message || String(error)
+      if (errorMessage !== 'User did not share' && !errorMessage.includes('User did not share')) {
+        showToast(`Failed to export CSV: ${errorMessage}`, 'Error', toastTypes.error)
+      }
+    }
+  }
+
+  // 📄 Export Transactions as PDF
+  const exportToPDF = async () => {
+    try {
+      if (combinedTransactions.length === 0) {
+        showToast('No transactions to export', 'Error', toastTypes.error)
+        return
+      }
+
+      const pdfDoc = await PDFDocument.create()
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
+      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+      const fontSize = 11
+      const lineHeight = 18
+      const margin = 50
+      const itemsPerPage = 35
+      let currentPage = pdfDoc.addPage()
+      let { width, height } = currentPage.getSize()
+      let y = height - margin
+      let itemIndex = 0
+
+      // Helper function to add new page if needed
+      const checkNewPage = () => {
+        if (y < margin + 50) {
+          currentPage = pdfDoc.addPage()
+          y = height - margin
+          return true
+        }
+        return false
+      }
+
+      // Title
+      currentPage.drawText('Transaction History', {
+        x: margin,
+        y: y,
+        size: 20,
+        font: boldFont,
+        color: rgb(0.2, 0.2, 0.8),
+      })
+      y -= 30
+
+      // Date
+      const dateStr = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+      currentPage.drawText(`Generated on: ${dateStr}`, {
+        x: margin,
+        y: y,
+        size: 10,
+        font,
+        color: rgb(0.5, 0.5, 0.5),
+      })
+      y -= 25
+
+      // Table Header
+      currentPage.drawText('No.', { x: margin, y: y, size: fontSize, font: boldFont, color: rgb(0, 0, 0) })
+      currentPage.drawText('Transaction Name', { x: margin + 40, y: y, size: fontSize, font: boldFont, color: rgb(0, 0, 0) })
+      currentPage.drawText('Type', { x: margin + 200, y: y, size: fontSize, font: boldFont, color: rgb(0, 0, 0) })
+      currentPage.drawText('Amount', { x: margin + 280, y: y, size: fontSize, font: boldFont, color: rgb(0, 0, 0) })
+      y -= lineHeight
+
+      // Draw line under header
+      currentPage.drawLine({
+        start: { x: margin, y: y + 5 },
+        end: { x: width - margin, y: y + 5 },
+        thickness: 1,
+        color: rgb(0.8, 0.8, 0.8),
+      })
+      y -= 10
+
+      // Table data
+      combinedTransactions.forEach((item, index) => {
+        checkNewPage()
+        
+        const rowY = y
+        currentPage.drawText(`${index + 1}.`, { x: margin, y: rowY, size: fontSize, font })
+        currentPage.drawText(item.name || 'N/A', { x: margin + 40, y: rowY, size: fontSize, font })
+        currentPage.drawText(item.type || 'N/A', { x: margin + 200, y: rowY, size: fontSize, font })
+        currentPage.drawText(item.amount || 'N/A', { x: margin + 280, y: rowY, size: fontSize, font })
+        y -= lineHeight
+      })
+
+      // Summary
+      checkNewPage()
+      y -= 10
+      currentPage.drawLine({
+        start: { x: margin, y: y },
+        end: { x: width - margin, y: y },
+        thickness: 1,
+        color: rgb(0.8, 0.8, 0.8),
+      })
+      y -= 15
+      currentPage.drawText(`Total Transactions: ${combinedTransactions.length}`, {
+        x: margin,
+        y: y,
+        size: 12,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      })
+
+      const pdfBytes = await pdfDoc.save()
+      const fileName = `transactions_${new Date().toISOString().split('T')[0]}.pdf`
+      
+      // Use CacheDirectoryPath for better compatibility
+      const baseDir = Platform.OS === 'android' 
+        ? RNFS.CachesDirectoryPath 
+        : RNFS.DocumentDirectoryPath
+      const path = `${baseDir}/${fileName}`
+
+      // Ensure directory exists
+      const dirExists = await RNFS.exists(baseDir)
+      if (!dirExists) {
+        await RNFS.mkdir(baseDir)
+      }
+      
+      // Convert Uint8Array to base64 for RNFS (React Native compatible)
+      const uint8ArrayToBase64 = (uint8Array) => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+        let result = ''
+        let i = 0
+        const len = uint8Array.length
+        
+        while (i < len) {
+          const a = uint8Array[i++]
+          const b = i < len ? uint8Array[i++] : 0
+          const c = i < len ? uint8Array[i++] : 0
+          
+          const bitmap = (a << 16) | (b << 8) | c
+          result += chars.charAt((bitmap >> 18) & 63)
+          result += chars.charAt((bitmap >> 12) & 63)
+          result += i - 2 < len ? chars.charAt((bitmap >> 6) & 63) : '='
+          result += i - 1 < len ? chars.charAt(bitmap & 63) : '='
+        }
+        return result
+      }
+      
+      const base64String = uint8ArrayToBase64(pdfBytes)
+      await RNFS.writeFile(path, base64String, 'base64')
+      
+      // Use proper file URI format
+      const fileUri = `file://${path}`
+      
+      const shareOptions = {
+        url: fileUri,
+        type: 'application/pdf',
+        filename: fileName.replace('.pdf', ''),
+        showAppsToView: true,
+        failOnCancel: false,
+      }
+
+      if (Platform.OS === 'android') {
+        shareOptions.title = 'Share PDF File'
+      }
+      
+      await Share.open(shareOptions)
+      
+      showToast('PDF exported successfully', 'Success', toastTypes.success)
+    } catch (error) {
+      console.error('PDF export error:', error)
+      const errorMessage = error?.message || String(error)
+      if (errorMessage !== 'User did not share' && !errorMessage.includes('User did not share')) {
+        showToast(`Failed to export PDF: ${errorMessage}`, 'Error', toastTypes.error)
+      }
+    }
+  }
+
 
   const renderCoinCard = (title, amount, color, icon) => (
     <View style={[styles.coinCard, { borderColor: color }]}>
@@ -34,13 +276,13 @@ const Wallet = ({ navigation }) => {
           <AppText variant={Variant.bodyMedium} style={[styles.coinCardTitle, { color }]}>
             {title}
           </AppText>
-         
+
         </View>
         <View style={[styles.coinIcon, { backgroundColor: color + '20' }]}>
           <Image source={icon} style={styles.coinImage} />
         </View>
       </View>
-      
+
       <View style={styles.coinAmount}>
         <AppText variant={Variant.title} style={[styles.amountText, { color }]}>
           {amount}
@@ -69,13 +311,13 @@ const Wallet = ({ navigation }) => {
     </View>
   )
 
-  const renderExportButton = (type, icon, color) => (
-    <TouchableOpacity style={styles.exportButton} activeOpacity={0.7}>
-     <Image source={icon} style={{
-       width: wp(7),
-       height: wp(7),
-       resizeMode: 'contain'
-     }} />
+  const renderExportButton = (type, icon, color, onPress) => (
+    <TouchableOpacity style={styles.exportButton} activeOpacity={0.7} onPress={onPress}>
+      <Image source={icon} style={{
+        width: wp(7),
+        height: wp(7),
+        resizeMode: 'contain'
+      }} />
     </TouchableOpacity>
   )
 
@@ -91,15 +333,65 @@ const Wallet = ({ navigation }) => {
         gradientColors={['#8B5CF6', '#EC4899']}
         children={
           <View style={{}}>
-          <WalletBalanceComponent />
-            </View>
+            <WalletBalanceComponent />
+          </View>
         }
       />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Bank Account Info Section */}
+        {selectedAccount && (
+          <View style={styles.bankInfoCard}>
+            <View style={styles.bankInfoHeader}>
+              <AppText variant={Variant.title} style={styles.bankInfoTitle}>
+                Selected Bank Account
+              </AppText>
+              {selectedAccount.isVerified && (
+                <View style={styles.verifiedBadge}>
+                  <AppText variant={Variant.bodySmall} style={styles.verifiedText}>
+                    Verified
+                  </AppText>
+                </View>
+              )}
+            </View>
+            <AppText variant={Variant.body} style={styles.bankInfoText}>
+              {selectedAccount.bankName}
+            </AppText>
+            <AppText variant={Variant.bodySmall} style={styles.bankInfoDetail}>
+              Account: {selectedAccount.accountNumber} | BSB: {selectedAccount.bsbCode}
+            </AppText>
+            <AppText variant={Variant.bodySmall} style={styles.bankInfoDetail}>
+              {selectedAccount.branch}, {selectedAccount.city}
+            </AppText>
+          </View>
+        )}
+
+        {/* Withdrawal Requests Section */}
+        {/* {withdrawRequests && withdrawRequests.length > 0 && (
+          <View style={styles.withdrawSection}>
+            <AppText variant={Variant.title} style={styles.sectionTitle}>
+              Recent Withdrawals
+            </AppText>
+            {withdrawRequests.slice(0, 3).map((request) => (
+              <View key={request.id} style={styles.withdrawItem}>
+                <View style={styles.withdrawItemLeft}>
+                  <AppText variant={Variant.bodyMedium} style={styles.withdrawAmount}>
+                    ${request.totalUsdAmount.toFixed(2)}
+                  </AppText>
+                  <AppText variant={Variant.bodySmall} style={styles.withdrawStatus}>
+                    {request.status}
+                  </AppText>
+                </View>
+                <AppText variant={Variant.bodySmall} style={styles.withdrawDate}>
+                  {new Date(request.createdAt).toLocaleDateString()}
+                </AppText>
+              </View>
+            ))}
+          </View>
+        )} */}
         {/* Coin Cards */}
         <View style={styles.coinCardsContainer}>
-          {renderCoinCard('Coins\nPurchases', '100', '#10B981', Icons.purchasecoins)}
+          {renderCoinCard('Coins\nPurchases', `${coins}`, '#10B981', Icons.purchasecoins)}
           {renderCoinCard('Referred\nCoins', '100', '#EC4899', Icons.referredcoins)}
         </View>
 
@@ -110,7 +402,7 @@ const Wallet = ({ navigation }) => {
             style={styles.tableHeader}
           >
             <AppText variant={Variant.bodyMedium} style={styles.tableHeaderText}>
-             {"Transaction\nName"}
+              {"Transaction\nName"}
             </AppText>
             <AppText variant={Variant.bodyMedium} style={styles.tableHeaderText}>
               Type
@@ -122,7 +414,7 @@ const Wallet = ({ navigation }) => {
 
           {/* Transaction List */}
           <FlatList
-            data={transactions}
+            data={combinedTransactions}
             renderItem={renderTransactionItem}
             keyExtractor={(item) => item.id.toString()}
             scrollEnabled={false}
@@ -135,8 +427,8 @@ const Wallet = ({ navigation }) => {
               Export In
             </AppText>
             <View style={styles.exportButtons}>
-              {renderExportButton('PDF', Icons.pdfexport, '#DC2626')}
-              {renderExportButton('Excel',Icons.excelexport, '#059669')}
+              {renderExportButton('PDF', Icons.pdfexport, '#DC2626', exportToPDF)}
+              {renderExportButton('Excel', Icons.excelexport, '#059669', exportToCSV)}
             </View>
           </View>
         </View>
@@ -161,16 +453,16 @@ const Wallet = ({ navigation }) => {
             }} />
           </View>
 
-            <View style={{width: '100%'}}>
+          <View style={{ width: '100%' }}>
 
-          <AppButton
-            text={'Refer Now'}
+            <AppButton
+              text={'Refer Now'}
             />
-            </View>
+          </View>
         </View>
       </ScrollView>
 
-    
+
     </View>
   )
 }
@@ -229,8 +521,8 @@ const styles = StyleSheet.create({
     width: wp(6),
     height: wp(6),
     resizeMode: 'contain'
-   
-   
+
+
   },
   coinAmount: {
     flexDirection: 'row',
@@ -280,12 +572,12 @@ const styles = StyleSheet.create({
   },
   transactionType: {
     flex: 1,
-     color: "#65799B",
+    color: "#65799B",
     fontSize: getFontSize(14),
   },
   transactionAmount: {
     flex: 1,
-     color: "#65799B",
+    color: "#65799B",
     fontSize: getFontSize(14),
     fontWeight: '500',
   },
@@ -424,5 +716,95 @@ const styles = StyleSheet.create({
     fontSize: getFontSize(10),
     color: colors.gray,
     marginTop: hp(0.5),
+  },
+  bankInfoCard: {
+    marginHorizontal: wp(4),
+    marginTop: hp(2),
+    marginBottom: hp(2),
+    padding: wp(4),
+    backgroundColor: colors.white,
+    borderRadius: hp(2),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  bankInfoHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: hp(1),
+  },
+  bankInfoTitle: {
+    color: colors.secondary,
+    fontSize: getFontSize(18),
+    fontWeight: '600',
+  },
+  verifiedBadge: {
+    backgroundColor: '#10B981',
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.5),
+    borderRadius: hp(1),
+  },
+  verifiedText: {
+    color: '#FFFFFF',
+    fontSize: getFontSize(12),
+    fontWeight: '600',
+  },
+  bankInfoText: {
+    color: colors.textPrimary,
+    fontSize: getFontSize(16),
+    fontWeight: '600',
+    marginBottom: hp(0.5),
+  },
+  bankInfoDetail: {
+    color: colors.gray || '#6B7280',
+    fontSize: getFontSize(13),
+    marginTop: hp(0.3),
+  },
+  withdrawSection: {
+    marginHorizontal: wp(4),
+    marginBottom: hp(2),
+    padding: wp(4),
+    backgroundColor: colors.white,
+    borderRadius: hp(2),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  sectionTitle: {
+    color: colors.secondary,
+    fontSize: getFontSize(18),
+    fontWeight: '600',
+    marginBottom: hp(2),
+  },
+  withdrawItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: hp(1.5),
+    borderBottomWidth: 1,
+    borderBottomColor: colors.grayE8 || '#F3F4F6',
+  },
+  withdrawItemLeft: {
+    flex: 1,
+  },
+  withdrawAmount: {
+    color: colors.textPrimary,
+    fontSize: getFontSize(16),
+    fontWeight: '600',
+    marginBottom: hp(0.3),
+  },
+  withdrawStatus: {
+    color: colors.gray || '#6B7280',
+    fontSize: getFontSize(12),
+    textTransform: 'capitalize',
+  },
+  withdrawDate: {
+    color: colors.gray || '#6B7280',
+    fontSize: getFontSize(12),
   },
 })

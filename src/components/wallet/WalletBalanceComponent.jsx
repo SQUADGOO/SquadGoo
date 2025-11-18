@@ -5,15 +5,18 @@ import AppText, { Variant } from '@/core/AppText'
 import AppButton from '@/core/AppButton'
 import { useNavigation } from '@react-navigation/native'
 import { screenNames } from '@/navigation/screenNames'
+import { useSelector } from 'react-redux'
 
 const WalletBalanceComponent = ({
-  balance = 70,
+  balance,
   onPurchaseCoin,
   onWithdrawCoin,
   balanceTitle = "Current Squad Go wallet balance",
   containerStyle
 }) => {
   const navigation = useNavigation()
+  const walletCoins = useSelector(state => state.wallet.coins)
+  const displayBalance = balance !== undefined ? balance : walletCoins
   return (
     <View style={[styles.container, containerStyle]}>
       {/* Balance Display */}
@@ -22,7 +25,7 @@ const WalletBalanceComponent = ({
           {balanceTitle}
         </AppText>
         <AppText variant={Variant.largeTitle} style={styles.balanceAmount}>
-          {balance}
+          {displayBalance}
         </AppText>
       </View>
 

@@ -3,54 +3,61 @@ import { screenNames } from '@/navigation/screenNames';
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useSelector } from 'react-redux';
 
-const PreferredJobs = ({navigation}) => {
-  const availability = [
-    { day: 'Monday', from: '15:22', to: '23:22' },
-    { day: 'Tuesday', from: '15:22', to: '23:22' },
-    { day: 'Wednesday', from: '15:22', to: '23:22' },
-    { day: 'Thursday', from: '15:22', to: '23:22' },
-    { day: 'Friday', from: '15:22', to: '23:22' },
-    { day: 'Saturday', from: '15:22', to: '23:22' },
-    { day: 'Sunday', from: '15:22', to: '23:22' },
-  ];
+const PreferredJobs = ({ navigation }) => {
+  const preferredJobs = useSelector(state => state?.jobSeekerPreferred?.preferredJobs || []);
+  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   return (
     <ScrollView style={styles.container}>
-        <AppHeader onPlusPress={()=>navigation.navigate(screenNames.ADD_JOB_STEP1)} showPlusIcon={true} showBackButton={false} title='Preferred Jobs'/>
-          <View style={styles.headerRow}>
-                <Text style={styles.jobTitle}>Event Coordinator</Text>
-                <TouchableOpacity>
-                  <Icon name="create-outline" size={22} color="#fff" />
-                </TouchableOpacity>
-              </View>
-      <View style={styles.contentBox}>
-        {/* Job Info */}
-        <Text style={styles.label}>
-          Job title: <Text style={styles.value}>Event Coordinator</Text>
-        </Text>
-        <Text style={styles.label}>
-          Job type: <Text style={styles.value}>Part-time</Text>
-        </Text>
-        <Text style={styles.label}>
-          Total experience: <Text style={styles.value}>3 Years, 4 Months</Text>
-        </Text>
-        <Text style={styles.label}>
-          Expected salary:{' '}
-          <Text style={styles.value}>$12.00/hr To $23.00/hr</Text>
-        </Text>
-
-        {/* Availability Section */}
-        <Text style={styles.sectionTitle}>Availability to work</Text>
-        {availability.map((item, index) => (
-          <View style={styles.row} key={index}>
-            <Text style={styles.day}>{item.day}</Text>
-            <Text style={styles.time}>{item.from}</Text>
-            <Text style={styles.to}>To</Text>
-            <Text style={styles.time}>{item.to}</Text>
+      <AppHeader onPlusPress={() => navigation.navigate(screenNames.ADD_JOB_STEP1)} showPlusIcon={true} showBackButton={false} title='Preferred Jobs' />
+      {preferredJobs.length === 0 ? (
+        <View style={styles.contentBox}>
+          <Text style={styles.label}>No preferred jobs added yet. Tap + to add.</Text>
+        </View>
+      ) : (
+        preferredJobs.map(job => (
+          <View key={job.id}>
+            <View style={styles.headerRow}>
+              <Text style={styles.jobTitle}>{job.preferredJobTitle || job.preferredIndustry || 'Preferred Job'}</Text>
+              <TouchableOpacity onPress={() => navigation.navigate(screenNames.ADD_JOB_STEP1, { mode: 'edit', preferredJob: job })}>
+                <Icon name="create-outline" size={22} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.contentBox}>
+              <Text style={styles.label}>
+                Job title: <Text style={styles.value}>{job.preferredJobTitle || '-'}</Text>
+              </Text>
+              <Text style={styles.label}>
+                Job type: <Text style={styles.value}>{job.jobType || 'Part-time'}</Text>
+              </Text>
+              <Text style={styles.label}>
+                Total experience: <Text style={styles.value}>{job.totalExperience || '-'}</Text>
+              </Text>
+              <Text style={styles.label}>
+                Expected salary: <Text style={styles.value}>${job.expectedPayMin || '-'} /hr To ${job.expectedPayMax || '-'}/hr</Text>
+              </Text>
+              <Text style={styles.label}>
+                Preferred industry: <Text style={styles.value}>{job.preferredIndustry || '-'}</Text>
+              </Text>
+              <Text style={styles.sectionTitle}>Availability to work</Text>
+              {daysOfWeek.map((day) => {
+                const enabledSet = new Set((job.daysAvailable || '').split(',').map(s => s.trim()).filter(Boolean));
+                const enabled = enabledSet.has(day);
+                return (
+                  <View style={styles.row} key={`${job.id}_${day}`}>
+                    <Text style={styles.day}>{day}</Text>
+                    <Text style={styles.time}>{enabled ? (job.startTime || '-') : '-'}</Text>
+                    <Text style={styles.to}>To</Text>
+                    <Text style={styles.time}>{enabled ? (job.endTime || '-') : '-'}</Text>
+                  </View>
+                );
+              })}
+            </View>
           </View>
-        ))}
-      </View>
+        ))
+      )}
     </ScrollView>
   );
 };
@@ -99,7 +106,7 @@ const styles = StyleSheet.create({
     color: '#4F5D75',
     marginHorizontal: 4,
   },
-    headerRow: {
+  headerRow: {
     flexDirection: 'row',
     backgroundColor: '#5A6B8C',
     justifyContent: 'space-between',
