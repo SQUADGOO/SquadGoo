@@ -8,30 +8,20 @@ import AppInputField from '@/core/AppInputField'
 import AppHeader from '@/core/AppHeader'
 import RbSheetComponent from '@/core/RbSheetComponent'
 import BottomDataSheet from '@/components/Recruiter/JobBottomSheet'
+import JobCategorySelector from '@/components/JobCategorySelector'
 import { screenNames } from '@/navigation/screenNames'
 
 const QuickSearchStepOne = ({ navigation }) => {
-  const [jobTitle, setJobTitle] = useState('')
+  const [jobCategory, setJobCategory] = useState(null)
+  const [jobSubCategory, setJobSubCategory] = useState(null)
   const [industry, setIndustry] = useState('')
   const [experienceYear, setExperienceYear] = useState('0 Year')
   const [experienceMonth, setExperienceMonth] = useState('0 Month')
   const [staffCount, setStaffCount] = useState('')
 
-  const jobTitleSheetRef = useRef(null)
   const industrySheetRef = useRef(null)
   const yearSheetRef = useRef(null)
   const monthSheetRef = useRef(null)
-
-  const jobTitleOptions = [
-    { id: 1, title: 'Full house painting' },
-    { id: 2, title: 'House renovation' },
-    { id: 3, title: 'Garden maintenance' },
-    { id: 4, title: 'Cleaning services' },
-    { id: 5, title: 'Plumbing services' },
-    { id: 6, title: 'Electrical work' },
-    { id: 7, title: 'Carpentry' },
-    { id: 8, title: 'Interior design' }
-  ]
 
   const industryOptions = [
     { id: 1, title: 'Construction' },
@@ -43,6 +33,11 @@ const QuickSearchStepOne = ({ navigation }) => {
     { id: 7, title: 'Manufacturing' },
     { id: 8, title: 'Transportation' }
   ]
+
+  const handleJobCategorySelect = (data) => {
+    setJobCategory(data.category)
+    setJobSubCategory(data.subCategory)
+  }
 
   const experienceYearOptions = [
     { id: 1, title: '0 Year' },
@@ -65,7 +60,9 @@ const QuickSearchStepOne = ({ navigation }) => {
 
   const handleNext = () => {
     const quickSearchStep1Data = {
-      jobTitle,
+      jobTitle: jobSubCategory || jobCategory,
+      jobCategory: jobCategory,
+      jobSubCategory: jobSubCategory,
       industry,
       experienceYear,
       experienceMonth,
@@ -93,15 +90,12 @@ const QuickSearchStepOne = ({ navigation }) => {
           <AppText variant={Variant.bodyMedium} style={styles.label}>
             Job title*
           </AppText>
-          <TouchableOpacity onPress={() => jobTitleSheetRef.current?.open()} activeOpacity={0.7}>
-            <View pointerEvents="none">
-              <AppInputField
-                placeholder="Search"
-                value={jobTitle}
-                editable={false}
-              />
-            </View>
-          </TouchableOpacity>
+          <JobCategorySelector
+            onSelect={handleJobCategorySelect}
+            selectedCategory={jobCategory}
+            selectedSubCategory={jobSubCategory}
+            placeholder="Select job category"
+          />
 
           {/* Industry */}
           <AppText variant={Variant.bodyMedium} style={styles.label}>
@@ -174,17 +168,6 @@ const QuickSearchStepOne = ({ navigation }) => {
       </View>
 
       {/* Bottom Sheets */}
-      <RbSheetComponent ref={jobTitleSheetRef} height={hp(60)}>
-        <BottomDataSheet
-          optionsData={jobTitleOptions}
-          onClose={() => jobTitleSheetRef.current?.close()}
-          onSelect={(item) => {
-            setJobTitle(item.title)
-            jobTitleSheetRef.current?.close()
-          }}
-        />
-      </RbSheetComponent>
-
       <RbSheetComponent ref={industrySheetRef} height={hp(60)}>
         <BottomDataSheet
           optionsData={industryOptions}

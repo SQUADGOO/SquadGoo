@@ -1,10 +1,12 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { COUNTRIES } from '@/utilities/appData';
 
 // Dummy candidates generator
 const generateDummyCandidates = (jobId) => {
   const firstNames = ['John', 'Sarah', 'Michael', 'Emma', 'David', 'Lisa', 'James', 'Maria', 'Robert', 'Jennifer'];
   const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'];
-  const locations = ['Sydney', 'Melbourne', 'Brisbane', 'Perth', 'Adelaide', 'Gold Coast', 'Canberra'];
+  // Use a subset of countries for dummy data
+  const locations = COUNTRIES.slice(0, 20); // Use first 20 countries for variety
   const experiences = ['2 years', '3 years', '5 years', '1 year', '4 years', '6+ years', 'Fresh graduate'];
   const statuses = ['pending', 'pending', 'pending', 'accepted', 'rejected']; // More pending for variety
   

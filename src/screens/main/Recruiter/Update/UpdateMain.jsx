@@ -15,11 +15,13 @@ import { colors } from '../../../../theme/colors'
 import { Images } from '../../../../assets'
 import PoolHeader from '../../../../core/PoolHeader'
 import RbSheetComponent from '../../../../core/RbSheetComponent'
+import JobCategorySelector from '../../../../components/JobCategorySelector'
 import { useNavigation } from '@react-navigation/native'
 import { screenNames } from '../../../../navigation/screenNames'
 
 const PostJobScreen = () => {
-  const [jobTitle, setJobTitle] = useState('Full house paining')
+  const [jobCategory, setJobCategory] = useState(null)
+  const [jobSubCategory, setJobSubCategory] = useState(null)
   const [jobType, setJobType] = useState('Full time')
   const [location, setLocation] = useState('Sydney |')
   const [rangeKm, setRangeKm] = useState(119)
@@ -39,22 +41,12 @@ const navigation = useNavigation();
     'Temprery',
   ]
 
-  const jobTitles = [
-    'Plumber',
-    'Electrician',
-    'Musician',
-    'Teacher',
-    'Painter',
-    'Worker',
-    'House made',
-    'Plumber',
-    'Electrician',
-    'Musician',
-    'Plumber',
-  ]
-
-  const jobTitleSheet = useRef()
   const jobTypeSheet = useRef()
+
+  const handleJobCategorySelect = (data) => {
+    setJobCategory(data.category)
+    setJobSubCategory(data.subCategory)
+  }
 
   return (
     <View style={styles.container}>
@@ -65,10 +57,14 @@ const navigation = useNavigation();
       <View style={{ padding: wp(4), paddingTop: hp(2) }}>
         {/* Open Job Title Sheet */}
         <Text style={styles.inputLabel}>Job title</Text>
-        <TouchableOpacity style={styles.inputBox} onPress={() => jobTitleSheet.current.open()}>
-          <Text style={styles.inputBoxText}>{jobTitle}</Text>
-          <Text style={styles.chev}>▾</Text>
-        </TouchableOpacity>
+        <View style={{ marginBottom: hp(2) }}>
+          <JobCategorySelector
+            onSelect={handleJobCategorySelect}
+            selectedCategory={jobCategory}
+            selectedSubCategory={jobSubCategory}
+            placeholder="Select job category"
+          />
+        </View>
 
         {/* Open Job Type Sheet */}
         <Text style={styles.inputLabel}>Job type</Text>
@@ -124,30 +120,6 @@ const navigation = useNavigation();
         </TouchableOpacity>
       </View>
         </ScrollView>
-
-      {/* Bottom Sheet: Job Titles */}
-      <RbSheetComponent ref={jobTitleSheet} height={hp(100)}>
-
-       <View >
-   <PoolHeader onBackPress={()=>jobTitleSheet.current.close()} title='Job title'/>
-    <FlatList
-          data={jobTitles}
-          keyExtractor={(item, idx) => `${idx}-${item}`}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.listItem}
-              onPress={() => {
-                setJobTitle(item)
-                jobTitleSheet.current.close()
-              }}
-            >
-              <Text style={styles.listItemText}>{item}</Text>
-            </TouchableOpacity>
-          )}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-        />
-        </View>
-      </RbSheetComponent>
 
       {/* Bottom Sheet: Job Types */}
       <RbSheetComponent ref={jobTypeSheet} height={hp(100)}>

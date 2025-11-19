@@ -19,24 +19,22 @@ import AppText, { Variant } from "@/core/AppText";
 import AppButton from "@/core/AppButton";
 import VectorIcons from "@/theme/vectorIcon";
 import { screenNames } from "@/navigation/screenNames";
+import { JOB_CATEGORIES } from "@/utilities/appData";
 
-const jobList = [
-  "Software Engineer",
-  "Frontend Developer",
-  "Backend Developer",
-  "Full Stack Developer",
-  "UI/UX Designer",
-  "Mobile App Developer",
-  "DevOps Engineer",
-  "Data Scientist",
-  "QA Engineer",
-  "Project Manager",
-  "Business Analyst",
-  "Cloud Engineer",
-  "Cyber Security Specialist",
-  "Database Administrator",
-  "Technical Support",
-];
+// Get all subcategories from job categories
+const getAllJobTitles = () => {
+  const allTitles = [];
+  Object.keys(JOB_CATEGORIES).forEach(category => {
+    if (category !== 'Others') {
+      JOB_CATEGORIES[category].forEach(subCategory => {
+        allTitles.push(subCategory);
+      });
+    }
+  });
+  return allTitles.sort();
+};
+
+const jobList = getAllJobTitles();
 
 const SquadSettings = () => {
   const navigation = useNavigation();
