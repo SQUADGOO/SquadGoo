@@ -108,11 +108,6 @@ const StepThree = ({ navigation, route }) => {
     setSelectedLanguages((prev) => prev.filter((lang) => lang !== language))
   }
 
-  const openDatePicker = () => {
-    console.log('Open date picker')
-    // Replace with your actual date picker integration
-  }
-
   const onSubmit = (data) => {
     const formData = {
       ...data,
@@ -217,8 +212,9 @@ const handleNext = (data) => {
           <FormField
             label="Job end date"
             name="jobEndDate"
+            type="datePicker"
             placeholder="Select date"
-            onPressField={openDatePicker}
+            minimumDate={new Date()}
           />
         </View>
 

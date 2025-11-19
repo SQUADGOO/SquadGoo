@@ -106,13 +106,16 @@ const LanguageSelector = ({ onSelect, selectedValue, placeholder = 'Select langu
             }
           />
 
-          <FlatList
-            data={filteredLanguages}
-            renderItem={renderItem}
-            keyExtractor={(item, index) => `${item}-${index}`}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
-          />
+          <View style={styles.listWrapper}>
+            <FlatList
+              data={filteredLanguages}
+              renderItem={renderItem}
+              keyExtractor={(item, index) => `${item}-${index}`}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.listContent}
+              style={styles.list}
+            />
+          </View>
         </View>
       </RbSheetComponent>
     </>
@@ -147,8 +150,16 @@ const styles = StyleSheet.create({
   searchInput: {
     marginBottom: hp(2),
   },
+  listWrapper: {
+    flex: 1,
+    minHeight: hp(40),
+  },
+  list: {
+    flex: 1,
+  },
   listContent: {
     paddingBottom: hp(2),
+    flexGrow: 1,
   },
   optionItem: {
     flexDirection: 'row',
