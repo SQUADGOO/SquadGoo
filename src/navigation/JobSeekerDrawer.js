@@ -90,7 +90,7 @@ const JobSeekerDrawerNavigator = () => {
       />
           <Drawer.Screen
         name={screenNames.COMPLETED_OFFERS}
-        component={ui.CompletedOffers}
+        component={ui.CompletedOffersJobSeeker}
       />
 
           <Drawer.Screen  
@@ -209,6 +209,11 @@ const JobSeekerDrawerNavigator = () => {
       <Drawer.Screen
           name={screenNames.ACCEPTED_OFFERS}
           component={ui.AcceptedOffers}
+        />
+      
+      <Drawer.Screen
+          name={screenNames.JOB_OFFER_DETAILS}
+          component={ui.JobOfferDetails}
         />
       
     </Drawer.Navigator>

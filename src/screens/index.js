@@ -94,6 +94,8 @@ import EditProfile from './main/Recruiter/profile/EditProfile';
 import QuickSearchPreview from './main/Recruiter/QuickSearch/QuickSearchPreview';
 
 import AcceptedOffers from './main/JobSeeker/AcceptedOffers';
+import JobOfferDetails from './main/JobSeeker/JobOfferDetails';
+import CompletedOffersJobSeeker from './main/JobSeeker/CompletedOffers';
 // Tab Screens
 
 export {
@@ -188,5 +190,7 @@ Members,
 EditProfile,
 QuickSearchPreview,
 
-AcceptedOffers
+AcceptedOffers,
+JobOfferDetails,
+CompletedOffersJobSeeker
 };
