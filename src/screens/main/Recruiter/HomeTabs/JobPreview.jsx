@@ -16,6 +16,7 @@ import AppHeader from '@/core/AppHeader'
 import AppButton from '@/core/AppButton'
 import { addJob } from '@/store/jobsSlice'
 import { screenNames } from '@/navigation/screenNames'
+import moment from 'moment'
 
 const JobPreview = ({ navigation, route }) => {
   const insets = useSafeAreaInsets()
@@ -23,7 +24,7 @@ const JobPreview = ({ navigation, route }) => {
   
   // Get data from all three steps
   const { step1Data, step2Data, step3Data } = route.params || {}
-
+  console.log('step3Data', step3Data)
   const handlePostJob = () => {
     // Calculate expiry date (30 days from now)
     const expiryDate = new Date()
@@ -61,6 +62,7 @@ const JobPreview = ({ navigation, route }) => {
       rawData: { step1Data, step2Data, step3Data }, // Store complete data for future reference
     }
     
+   
     console.log('Posting Manual Search Job:', jobData)
     
     // Dispatch to Redux
@@ -240,7 +242,7 @@ const JobPreview = ({ navigation, route }) => {
             Job end date:
           </AppText>
           <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
-            {step3Data?.jobEndDate || 'Not specified'}
+            {step3Data?.jobEndDate ? moment(step3Data?.jobEndDate).format('DD/MM/YYYY') : 'Not specified'}
           </AppText>
         </View>
 

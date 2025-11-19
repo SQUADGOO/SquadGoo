@@ -9,6 +9,7 @@ import { useSelector } from 'react-redux'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import AppHeader from '@/core/AppHeader'
+import moment from 'moment'
 
 const ViewJobDetails = ({ navigation, route }) => {
   const { jobId, isCompleted, isExpired } = route.params || {}
@@ -185,7 +186,7 @@ const ViewJobDetails = ({ navigation, route }) => {
         
         <DetailRow 
           label="End date:" 
-          value={job.jobEndDate}
+          value={moment(job.jobEndDate).format('DD/MM/YYYY')}
         />
         
         <DetailRow 

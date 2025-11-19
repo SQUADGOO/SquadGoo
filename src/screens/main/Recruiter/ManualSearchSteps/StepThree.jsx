@@ -108,34 +108,19 @@ const StepThree = ({ navigation, route }) => {
     setSelectedLanguages((prev) => prev.filter((lang) => lang !== language))
   }
 
-  const onSubmit = (data) => {
+  const handleNext = methods.handleSubmit((formValues) => {
     const formData = {
-      ...data,
+      ...formValues,
       preferredLanguages: selectedLanguages,
       taxType: selectedTaxType,
     }
 
-    console.log('✅ Step 3 Data:', formData)
-    navigation.navigate(screenNames.JOB_PREVIEW, { step3Data: formData })
-  }
-
-const handleNext = (data) => {
-  console.log('Form Data:', data)
-  const formData = {
-    ...data,
-    preferredLanguages: selectedLanguages,
-    taxType: selectedTaxType
-  }
-
-  console.log('Job requirements data:', formData)
-  
-  // Pass all three steps' data to preview screen
-  navigation.navigate(screenNames.JOB_PREVIEW, { 
-    step1Data: route.params?.step1Data,
-    step2Data: route.params?.step2Data,
-    step3Data: formData 
+    navigation.navigate(screenNames.JOB_PREVIEW, {
+      step1Data: route?.params?.step1Data,
+      step2Data: route?.params?.step2Data,
+      step3Data: formData,
+    })
   })
-}
 
   return (
     <FormProvider {...methods}>
@@ -243,7 +228,7 @@ const handleNext = (data) => {
         <View style={styles.buttonContainer}>
           <AppButton
             text="Next"
-            onPress={() => handleNext(methods.getValues())}
+            onPress={handleNext}
             bgColor={colors.primary}
             textColor="#FFFFFF"
           />

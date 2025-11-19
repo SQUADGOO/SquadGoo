@@ -40,6 +40,26 @@ const JobOfferDetails = () => {
     );
   }
 
+  const formatAvailability = (availability) => {
+    if (!availability) return 'Not specified';
+    if (typeof availability === 'string') return availability;
+    if (Array.isArray(availability)) {
+      return availability.filter(Boolean).join(' • ') || 'Not specified';
+    }
+    if (typeof availability === 'object') {
+      return Object.entries(availability)
+        .map(([day, slot]) => {
+          if (!slot) return null;
+          if (typeof slot === 'string') return `${day}: ${slot}`;
+          if (slot?.start && slot?.end) return `${day}: ${slot.start} - ${slot.end}`;
+          return `${day}: Available`;
+        })
+        .filter(Boolean)
+        .join(' • ') || 'Not specified';
+    }
+    return String(availability);
+  };
+
   const DetailRow = ({ label, value, valueStyle }) => (
     <View style={styles.detailRow}>
       <AppText variant={Variant.body} style={styles.detailLabel}>
@@ -240,7 +260,7 @@ const JobOfferDetails = () => {
             <SectionTitle title="Availability" />
             <DetailRow 
               label="Work schedule:" 
-              value={job.availability}
+              value={formatAvailability(job.availability)}
             />
           </>
         )}

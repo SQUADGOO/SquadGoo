@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  cardTitle: { fontWeight: '700', fontSize: 16, color: '#4F5D75' },
+  cardTitle: { fontWeight: '700', fontSize: 16, color: '#4F5D75', width: '60%' },
   expiry: {
     backgroundColor: '#E0D9E9',
     paddingHorizontal: 10,

@@ -72,7 +72,7 @@ const LanguageSelector = ({ onSelect, selectedValue, placeholder = 'Select langu
         </View>
       </TouchableOpacity>
 
-      <RbSheetComponent ref={sheetRef} height={hp(80)}>
+      <RbSheetComponent ref={sheetRef} height={hp(90)}>
         <View style={styles.sheetContainer}>
           <View style={styles.header}>
             <AppText variant={Variant.subTitle} style={styles.headerTitle}>
@@ -91,20 +91,22 @@ const LanguageSelector = ({ onSelect, selectedValue, placeholder = 'Select langu
             </TouchableOpacity>
           </View>
 
-          <AppInputField
-            placeholder="Search language"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            style={styles.searchInput}
-            endIcon={
-              <VectorIcons
-                name={iconLibName.Ionicons}
-                iconName="search"
-                size={20}
-                color={colors.gray}
-              />
-            }
-          />
+          <View style={styles.searchWrapper}>
+            <AppInputField
+              placeholder="Search language"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              style={styles.searchInput}
+              endIcon={
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="search"
+                  size={20}
+                  color={colors.gray}
+                />
+              }
+            />
+          </View>
 
           <View style={styles.listWrapper}>
             <FlatList
@@ -114,6 +116,7 @@ const LanguageSelector = ({ onSelect, selectedValue, placeholder = 'Select langu
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.listContent}
               style={styles.list}
+              keyboardShouldPersistTaps="handled"
             />
           </View>
         </View>
@@ -126,7 +129,7 @@ export default LanguageSelector;
 
 const styles = StyleSheet.create({
   sheetContainer: {
-    flex: 1,
+    // flex: 1,
     backgroundColor: colors.white,
     paddingHorizontal: wp(4),
     paddingTop: hp(2),
@@ -150,9 +153,13 @@ const styles = StyleSheet.create({
   searchInput: {
     marginBottom: hp(2),
   },
+  searchWrapper: {
+    zIndex: 2,
+    backgroundColor: colors.white,
+  },
   listWrapper: {
-    flex: 1,
-    minHeight: hp(40),
+    // flex: 1,
+    minHeight: hp(100),
   },
   list: {
     flex: 1,
