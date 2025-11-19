@@ -464,3 +464,145 @@ export const VISA_TYPES = [
   { id: 6, title: 'Other Visa type', requiresSubclass: false },
 ];
 
+// Driving License Types
+export const DRIVING_LICENSE_TYPES = [
+  'C Car',
+  'LR Light Rigid',
+  'MR Medium Rigid',
+  'HR Heavy Rigid',
+  'HC Heavy Combination',
+  'MC Multi Combination',
+  'R-DATE Motorcycle or trike with an engine capacity up to 660 ml and a power-to-weight ratio not exceeding 150 kw/tonne',
+  'R Motorcycle',
+];
+
+// Qualifications
+export const QUALIFICATIONS = [
+  { id: 1, title: 'White card', hasSubMenu: false },
+  { id: 2, title: 'Driving License', hasSubMenu: true },
+  { id: 3, title: 'Police check', hasSubMenu: false },
+  { id: 4, title: 'Children check', hasSubMenu: false },
+  { id: 5, title: 'Forklift license', hasSubMenu: false },
+  { id: 6, title: 'Basic scaffolding licence', hasSubMenu: false },
+  { id: 7, title: 'Intermediate scaffolding licence', hasSubMenu: false },
+  { id: 8, title: 'Advanced scaffolding licence', hasSubMenu: false },
+  { id: 9, title: 'Dogging licence', hasSubMenu: false },
+  { id: 10, title: 'Basic rigging licence', hasSubMenu: false },
+  { id: 11, title: 'Intermediate rigging licence', hasSubMenu: false },
+  { id: 12, title: 'Advanced rigging licence', hasSubMenu: false },
+  { id: 13, title: 'Standard boiler operation licence', hasSubMenu: false },
+  { id: 14, title: 'Advanced boiler operation licence', hasSubMenu: false },
+  { id: 15, title: 'Turbine operation licence', hasSubMenu: false },
+  { id: 16, title: 'Reciprocating steam engine operation licence', hasSubMenu: false },
+  { id: 17, title: 'Tower crane operation licence', hasSubMenu: false },
+  { id: 18, title: 'Self-erecting tower crane operation licence', hasSubMenu: false },
+  { id: 19, title: 'Derrick crane operation licence', hasSubMenu: false },
+  { id: 20, title: 'Portal boom crane operation licence', hasSubMenu: false },
+  { id: 21, title: 'Bridge and gantry crane operation licence', hasSubMenu: false },
+  { id: 22, title: 'Vehicle loading crane operation licence', hasSubMenu: false },
+  { id: 23, title: 'Non-slewing mobile crane operation licence', hasSubMenu: false },
+  { id: 24, title: 'Slewing mobile crane operation licence (up to 20 tonnes)', hasSubMenu: false },
+  { id: 25, title: 'Slewing mobile crane operation licence (up to 60 tonnes)', hasSubMenu: false },
+  { id: 26, title: 'Slewing mobile crane operation licence (up to 100 tonnes)', hasSubMenu: false },
+  { id: 27, title: 'Slewing mobile crane operation licence (open/over 100 tonnes)', hasSubMenu: false },
+  { id: 28, title: 'Reach stacker operation licence', hasSubMenu: false },
+  { id: 29, title: 'Boom-type elevating work platform operation licence', hasSubMenu: false },
+  { id: 30, title: 'Materials hoist (cantilever platform) operation licence', hasSubMenu: false },
+  { id: 31, title: 'Hoist (personnel and materials) operation licence', hasSubMenu: false },
+  { id: 32, title: 'Concrete-placing boom operation licence', hasSubMenu: false },
+  { id: 33, title: 'Forklift truck operation licence', hasSubMenu: false },
+  { id: 34, title: 'Order-picking forklift truck operation licence', hasSubMenu: false },
+  { id: 35, title: 'RSA License', hasSubMenu: false },
+  { id: 36, title: 'RSG or RCG License', hasSubMenu: false },
+  { id: 37, title: 'Barista Certificate', hasSubMenu: false },
+  { id: 38, title: 'Other', hasSubMenu: false },
+];
+
+// Address Proof for Jobseekers and Individuals
+export const ADDRESS_PROOF_JOBSEEKER = [
+  'Contract of current lease or rental Payment Receipt',
+  'Current vehicle registration certificate',
+  'Driver licence',
+  'Current council rates notice',
+  'Current Land Tax valuation notice',
+  'Australian Taxation Office assessment',
+  'Electricity, Gas, Telephone or Water bill',
+  'Bank statement or proof of Balance certificate',
+];
+
+// Address Proof for Recruiters
+export const ADDRESS_PROOF_RECRUITER = [
+  'Rental/Lease Agreement',
+  'GST Certificate',
+  'Utility bills',
+  'Company registration agreement',
+  'Property tax receipt',
+  'Bank statements',
+  'Company vehicle registration certificate',
+  'Telephone bill',
+];
+
+// Education Levels with conditional questions
+export const EDUCATION_LEVELS = {
+  '<_10th': {
+    requiresCourse: false,
+    requiresFaculty: false,
+  },
+  '12th': {
+    requiresCourse: true,
+    requiresFaculty: true,
+  },
+  'Certificate I': {
+    requiresCourse: true,
+    requiresFaculty: true,
+  },
+  'Certificate II': {
+    requiresCourse: true,
+    requiresFaculty: true,
+  },
+  'Certificate III': {
+    requiresCourse: true,
+    requiresFaculty: true,
+  },
+  'Certificate IV': {
+    requiresCourse: true,
+    requiresFaculty: true,
+  },
+  'Diploma': {
+    requiresCourse: true,
+    requiresFaculty: true,
+  },
+  'Advanced Diploma': {
+    requiresCourse: true,
+    requiresFaculty: true,
+  },
+  'Bachelor level': {
+    requiresCourse: true,
+    requiresFaculty: true,
+  },
+  'Masters Level': {
+    requiresCourse: true,
+    requiresFaculty: true,
+  },
+  'PHD': {
+    requiresCourse: true,
+    requiresFaculty: true,
+  },
+  'OTHERS': {
+    requiresCourse: false,
+    requiresFaculty: false,
+  },
+};
+
+// Identity Proof
+export const IDENTITY_PROOF = [
+  'Medicare card',
+  'Passport',
+  'Driving license',
+  'Birth Certificate',
+  'Citizenship Certificate',
+  'Department of Immigration & Citizenship travel document',
+  'Proof of Age Card',
+  'Student ID/Work Related ID',
+];
+

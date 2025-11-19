@@ -13,6 +13,9 @@ import AppButton from '@/core/AppButton'
 import FormField from '@/core/FormField'
 import RbSheetComponent from '@/core/RbSheetComponent'
 import BottomDataSheet from '@/components/Recruiter/JobBottomSheet'
+import EducationSelector from '@/components/EducationSelector'
+import QualificationSelector from '@/components/QualificationSelector'
+import LanguageSelector from '@/components/LanguageSelector'
 import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
 
@@ -65,12 +68,10 @@ const TaxTypeSelector = ({ selectedType, onSelect }) => {
 }
 
 const StepThree = ({ navigation, route }) => {
-  const [selectedLanguages, setSelectedLanguages] = useState(['English'])
+  const [selectedLanguages, setSelectedLanguages] = useState([])
   const [selectedTaxType, setSelectedTaxType] = useState('ABN')
-
-  const educationSheetRef = useRef(null)
-  const extraQualificationSheetRef = useRef(null)
-  const languageSheetRef = useRef(null)
+  const [selectedEducation, setSelectedEducation] = useState(null)
+  const [selectedQualifications, setSelectedQualifications] = useState([])
 
   const methods = useForm({
     mode: 'onChange',
@@ -82,39 +83,25 @@ const StepThree = ({ navigation, route }) => {
     },
   })
 
-  const educationOptions = [
-    { id: 1, title: 'High School' },
-    { id: 2, title: 'Associate Degree' },
-    { id: 3, title: 'Bachelor Degree' },
-    { id: 4, title: 'Master Degree' },
-    { id: 5, title: 'PhD' },
-    { id: 6, title: 'Other' },
-  ]
+  const handleEducationSelect = (education) => {
+    setSelectedEducation(education)
+    const educationValue = education?.customValue || 
+      (education?.course ? `${education.level} - ${education.course}` : education?.level)
+    methods.setValue('educationalQualification', educationValue || '')
+  }
 
-  const extraQualificationOptions = [
-    { id: 1, title: 'Certification' },
-    { id: 2, title: 'License' },
-    { id: 3, title: 'Training Course' },
-    { id: 4, title: 'Workshop' },
-    { id: 5, title: 'Professional Development' },
-  ]
+  const handleQualificationSelect = (qualifications) => {
+    setSelectedQualifications(qualifications)
+    const qualificationValue = qualifications.length > 0
+      ? qualifications.map(q => q.displayTitle || q.title).join(', ')
+      : ''
+    methods.setValue('extraQualification', qualificationValue)
+  }
 
-  const languageOptions = [
-    { id: 1, title: 'English' },
-    { id: 2, title: 'Spanish' },
-    { id: 3, title: 'French' },
-    { id: 4, title: 'German' },
-    { id: 5, title: 'Chinese' },
-    { id: 6, title: 'Japanese' },
-    { id: 7, title: 'Arabic' },
-    { id: 8, title: 'Hindi' },
-  ]
-
-  const handleLanguageAdd = (language) => {
+  const handleLanguageSelect = (language) => {
     if (!selectedLanguages.includes(language)) {
       setSelectedLanguages((prev) => [...prev, language])
     }
-    languageSheetRef.current?.close()
   }
 
   const handleLanguageRemove = (language) => {
@@ -178,43 +165,51 @@ const handleNext = (data) => {
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Educational Qualification */}
         <View style={styles.section}>
-          <FormField
-            label="Required educational qualification"
-            name="educationalQualification"
-            placeholder="Select option"
-            onPressField={() => educationSheetRef.current?.open()}
+          <AppText variant={Variant.boldCaption} style={styles.label}>
+            Required educational qualification
+          </AppText>
+          <EducationSelector
+            onSelect={handleEducationSelect}
+            selectedEducation={selectedEducation}
+            placeholder="Select education level"
           />
         </View>
 
         {/* Extra Qualification */}
         <View style={styles.section}>
-          <FormField
-            label="Required extra qualification"
-            name="extraQualification"
-            placeholder="Select option"
-            onPressField={() => extraQualificationSheetRef.current?.open()}
+          <AppText variant={Variant.boldCaption} style={styles.label}>
+            Required extra qualification
+          </AppText>
+          <QualificationSelector
+            onSelect={handleQualificationSelect}
+            selectedQualifications={selectedQualifications}
+            placeholder="Select qualifications"
           />
         </View>
 
         {/* Preferred Languages */}
         <View style={styles.section}>
-          <FormField
-            label="Preferred languages"
-            name="preferredLanguages"
-            placeholder="Select languages"
-            onPressField={() => languageSheetRef.current?.open()}
+          <AppText variant={Variant.boldCaption} style={styles.label}>
+            Preferred languages
+          </AppText>
+          <LanguageSelector
+            onSelect={handleLanguageSelect}
+            selectedValue={selectedLanguages[selectedLanguages.length - 1] || ''}
+            placeholder="Select language"
           />
 
           {/* Display Selected Languages */}
-          <View style={styles.languageTagsContainer}>
-            {selectedLanguages.map((lang) => (
-              <LanguageTag
-                key={lang}
-                language={lang}
-                onRemove={() => handleLanguageRemove(lang)}
-              />
-            ))}
-          </View>
+          {selectedLanguages.length > 0 && (
+            <View style={styles.languageTagsContainer}>
+              {selectedLanguages.map((lang) => (
+                <LanguageTag
+                  key={lang}
+                  language={lang}
+                  onRemove={() => handleLanguageRemove(lang)}
+                />
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Job End Date */}
@@ -259,34 +254,6 @@ const handleNext = (data) => {
         </View>
       </ScrollView>
 
-      {/* Bottom Sheets */}
-      <RbSheetComponent ref={educationSheetRef} height={hp(50)}>
-        <BottomDataSheet
-          optionsData={educationOptions}
-          onClose={() => educationSheetRef.current.close()}
-          onSelect={(selectedItem) =>
-            methods.setValue('educationalQualification', selectedItem.title)
-          }
-        />
-      </RbSheetComponent>
-
-      <RbSheetComponent ref={extraQualificationSheetRef} height={hp(50)}>
-        <BottomDataSheet
-          optionsData={extraQualificationOptions}
-          onClose={() => extraQualificationSheetRef.current.close()}
-          onSelect={(selectedItem) =>
-            methods.setValue('extraQualification', selectedItem.title)
-          }
-        />
-      </RbSheetComponent>
-
-      <RbSheetComponent ref={languageSheetRef} height={hp(60)}>
-        <BottomDataSheet
-          optionsData={languageOptions}
-          onClose={() => languageSheetRef.current.close()}
-          onSelect={(selectedItem) => handleLanguageAdd(selectedItem.title)}
-        />
-      </RbSheetComponent>
     </FormProvider>
   )
 }

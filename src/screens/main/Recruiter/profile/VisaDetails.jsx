@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import AppHeader from '@/core/AppHeader';
-import AppText from '@/core/AppText';
+import AppText, { Variant } from '@/core/AppText';
 import FormField from '@/core/FormField';
 import AppButton from '@/core/AppButton';
+import VisaTypeSelector from '@/components/VisaTypeSelector';
 import { colors, hp, wp } from '@/theme';
 import { useUpdateJobSeekerProfile } from '@/api/auth/auth.query';
 import { showToast, toastTypes } from '@/utilities/toastConfig';
@@ -14,6 +15,8 @@ import { updateUserFields } from '@/store/authSlice';
 const VisaDetails = () => {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = React.useState(false);
+  const [selectedVisaType, setSelectedVisaType] = useState(null);
+  const [visaSubclass, setVisaSubclass] = useState('');
   const { mutate: updateJobSeekerProfile, isPending } = useUpdateJobSeekerProfile();
 
   const userData = useSelector((state) => state.auth.userInfo);
@@ -23,6 +26,7 @@ const VisaDetails = () => {
   const methods = useForm({
     defaultValues: {
       visa_type: userInfo?.visa_type || '',
+      visa_subclass: userInfo?.visa_subclass || '',
       visa_number: userInfo?.visa_number || '',
       visa_expiry: userInfo?.visa_expiry || '',
       work_rights: userInfo?.work_rights || '',
@@ -30,7 +34,20 @@ const VisaDetails = () => {
     },
   });
 
-  const { handleSubmit } = methods;
+  const { handleSubmit, setValue } = methods;
+
+  const handleVisaTypeSelect = (visaData) => {
+    setSelectedVisaType(visaData);
+    const visaTypeValue = visaData.customValue || visaData.visaType || '';
+    setValue('visa_type', visaTypeValue);
+    if (visaData.subclass) {
+      setVisaSubclass(visaData.subclass);
+      setValue('visa_subclass', visaData.subclass);
+    } else {
+      setVisaSubclass('');
+      setValue('visa_subclass', '');
+    }
+  };
 
   const handleSave = async (data) => {
     setIsLoading(true);
@@ -53,12 +70,17 @@ const VisaDetails = () => {
           <AppText style={styles.sectionTitle}>Australian Visa Information</AppText>
 
           <View style={styles.formContainer}>
-            <FormField
-              name="visa_type"
-              label="Visa Type*"
-              placeholder="e.g., Student Visa (subclass 500), Working Holiday Visa"
-              rules={{ required: 'Visa type is required' }}
-            />
+            <View style={{ marginBottom: hp(2) }}>
+              <AppText variant={Variant.boldCaption} style={{ marginBottom: hp(1), fontSize: 14, fontWeight: '500' }}>
+                Visa Type*
+              </AppText>
+              <VisaTypeSelector
+                onSelect={handleVisaTypeSelect}
+                selectedVisaType={selectedVisaType?.visaType || selectedVisaType?.customValue || ''}
+                selectedSubclass={selectedVisaType?.subclass || ''}
+                placeholder="Select visa type"
+              />
+            </View>
 
             <FormField
               name="visa_number"
