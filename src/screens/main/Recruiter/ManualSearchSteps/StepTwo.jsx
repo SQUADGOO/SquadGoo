@@ -212,6 +212,16 @@ const StepTwo = ({ navigation, route }) => {
                 name="salaryMin"
                 placeholder="Minimum"
                 keyboardType="numeric"
+                rules={{
+                  required: 'Minimum salary is required',
+                  validate: (value) => {
+                    const numValue = parseFloat(value);
+                    if (!value || isNaN(numValue) || numValue < 0) {
+                      return 'Please enter a valid minimum salary';
+                    }
+                    return true;
+                  }
+                }}
                 startIcon={
                   <AppText variant={Variant.body} style={styles.currencySymbol}>$</AppText>
                 }
@@ -225,6 +235,20 @@ const StepTwo = ({ navigation, route }) => {
                 name="salaryMax"
                 placeholder="Maximum"
                 keyboardType="numeric"
+                rules={{
+                  required: 'Maximum salary is required',
+                  validate: (value, formValues) => {
+                    const numValue = parseFloat(value);
+                    const minValue = parseFloat(formValues.salaryMin);
+                    if (!value || isNaN(numValue) || numValue < 0) {
+                      return 'Please enter a valid maximum salary';
+                    }
+                    if (minValue && numValue < minValue) {
+                      return 'Maximum must be greater than minimum';
+                    }
+                    return true;
+                  }
+                }}
                 startIcon={
                   <AppText variant={Variant.body} style={styles.currencySymbol}>$</AppText>
                 }

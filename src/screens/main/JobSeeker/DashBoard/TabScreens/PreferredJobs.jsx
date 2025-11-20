@@ -5,6 +5,18 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSelector } from 'react-redux';
 
+const formatJobTitle = (value) => {
+  if (!value) return '-';
+  if (typeof value === 'string') return value;
+  return value?.subCategory || value?.title || value?.category || '-';
+};
+
+const formatIndustry = (value) => {
+  if (!value) return '-';
+  if (typeof value === 'string') return value;
+  return value?.title || value?.name || value?.category || '-';
+};
+
 const PreferredJobs = ({ navigation }) => {
   const preferredJobs = useSelector(state => state?.jobSeekerPreferred?.preferredJobs || []);
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -20,14 +32,18 @@ const PreferredJobs = ({ navigation }) => {
         preferredJobs.map(job => (
           <View key={job.id}>
             <View style={styles.headerRow}>
-              <Text style={styles.jobTitle}>{job.preferredJobTitle || job.preferredIndustry || 'Preferred Job'}</Text>
+              <Text style={styles.jobTitle}>
+                {formatJobTitle(job.preferredJobTitle) !== '-'
+                  ? formatJobTitle(job.preferredJobTitle)
+                  : formatIndustry(job.preferredIndustry)}
+              </Text>
               <TouchableOpacity onPress={() => navigation.navigate(screenNames.ADD_JOB_STEP1, { mode: 'edit', preferredJob: job })}>
                 <Icon name="create-outline" size={22} color="#fff" />
               </TouchableOpacity>
             </View>
             <View style={styles.contentBox}>
               <Text style={styles.label}>
-                Job title: <Text style={styles.value}>{job.preferredJobTitle || '-'}</Text>
+                Job title: <Text style={styles.value}>{formatJobTitle(job.preferredJobTitle)}</Text>
               </Text>
               <Text style={styles.label}>
                 Job type: <Text style={styles.value}>{job.jobType || 'Part-time'}</Text>
@@ -39,7 +55,7 @@ const PreferredJobs = ({ navigation }) => {
                 Expected salary: <Text style={styles.value}>${job.expectedPayMin || '-'} /hr To ${job.expectedPayMax || '-'}/hr</Text>
               </Text>
               <Text style={styles.label}>
-                Preferred industry: <Text style={styles.value}>{job.preferredIndustry || '-'}</Text>
+                Preferred industry: <Text style={styles.value}>{formatIndustry(job.preferredIndustry)}</Text>
               </Text>
               <Text style={styles.sectionTitle}>Availability to work</Text>
               {daysOfWeek.map((day) => {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   View,
   StyleSheet,
@@ -9,7 +10,7 @@ import ReactNative from 'react';
 import React, { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { addExperience, updateExperience } from '@/store/jobSeekerExperienceSlice';
-import { FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, useForm, Controller } from 'react-hook-form';
 import { colors, getFontSize, hp, wp } from '@/theme';
 import AppText, { Variant } from '@/core/AppText';
 import AppHeader from '@/core/AppHeader';
@@ -18,6 +19,29 @@ import FormField from '@/core/FormField';
 import ImagePickerSheet from '@/components/ImagePickerSheet';
 import { Linking } from 'react-native';
 import { downloadAndOpenFile } from '@/utilities/helperFunctions';
+import AppDropDown from '@/core/AppDropDown';
+
+const monthOptions = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+].map((month) => ({ label: month, value: month }));
+
+const currentYear = new Date().getFullYear();
+const yearsToShow = 50;
+const yearOptions = Array.from({ length: yearsToShow }, (_, index) => {
+  const year = (currentYear - index).toString();
+  return { label: year, value: year };
+});
 
 const AddExperience = () => {
   const navigation = useNavigation();
@@ -50,7 +74,8 @@ const AddExperience = () => {
     },
   });
 
-  const { handleSubmit, reset } = methods;
+  const { handleSubmit, reset, control } = methods;
+  const [activeDropdown, setActiveDropdown] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (isEdit && editingExp) {
@@ -157,6 +182,41 @@ const AddExperience = () => {
     await downloadAndOpenFile(uri, 'payslip');
   };
 
+  const DropDownField = ({
+    name,
+    placeholder,
+    options,
+    rules,
+    dropdownKey,
+  }: {
+    name: string;
+    placeholder: string;
+    options: Array<{ label: string; value: string }>;
+    rules: any;
+    dropdownKey: string;
+  }) => (
+    <Controller
+      control={control}
+      name={name}
+      rules={rules}
+      render={({ field: { value, onChange }, fieldState: { error } }) => (
+        <View style={styles.dropdownWrapper}>
+          <AppDropDown
+            placeholder={placeholder}
+            options={options}
+            selectedValue={value}
+            onSelect={(selectedValue) => onChange(selectedValue)}
+            isVisible={activeDropdown === dropdownKey}
+            setIsVisible={(visible) => setActiveDropdown(visible ? dropdownKey : null)}
+          />
+          {error ? (
+            <AppText style={styles.errorText}>{error.message}</AppText>
+          ) : null}
+        </View>
+      )}
+    />
+  );
+
   return (
     <FormProvider {...methods}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.white }}>
@@ -191,34 +251,46 @@ const AddExperience = () => {
           <AppText style={styles.label}>Work duration</AppText>
            <AppText style={[styles.label]}>From</AppText>
           <View style={styles.row}>
-            <FormField
-              name="startMonth"
-              placeholder="Month"
-              inputWrapperStyle={styles.dateBox}
-              rules={{ required: 'Start month is required' }}
-            />
-            <FormField
-              name="startYear"
-              placeholder="Year"
-              inputWrapperStyle={styles.dateBox}
-              rules={{ required: 'Start year is required' }}
-            />
+            <View style={styles.dateBox}>
+              <DropDownField
+                name="startMonth"
+                placeholder="Month"
+                options={monthOptions}
+                dropdownKey="startMonth"
+                rules={{ required: 'Start month is required' }}
+              />
+            </View>
+            <View style={styles.dateBox}>
+              <DropDownField
+                name="startYear"
+                placeholder="Year"
+                options={yearOptions}
+                dropdownKey="startYear"
+                rules={{ required: 'Start year is required' }}
+              />
+            </View>
           </View>
 
           <AppText style={[styles.label]}>To</AppText>
           <View style={styles.row}>
-            <FormField
-              name="endMonth"
-              placeholder="Month"
-              inputWrapperStyle={styles.dateBox}
-              rules={{ required: 'End month is required' }}
-            />
-            <FormField
-              name="endYear"
-              placeholder="Year"
-              inputWrapperStyle={styles.dateBox}
-              rules={{ required: 'End year is required' }}
-            />
+            <View style={styles.dateBox}>
+              <DropDownField
+                name="endMonth"
+                placeholder="Month"
+                options={monthOptions}
+                dropdownKey="endMonth"
+                rules={{ required: 'End month is required' }}
+              />
+            </View>
+            <View style={styles.dateBox}>
+              <DropDownField
+                name="endYear"
+                placeholder="Year"
+                options={yearOptions}
+                dropdownKey="endYear"
+                rules={{ required: 'End year is required' }}
+              />
+            </View>
           </View>
 
           {/* Job Description */}
@@ -227,6 +299,7 @@ const AddExperience = () => {
             label="Job description"
             placeholder="Enter job description"
             multiline
+            style={{ marginTop: hp(2) }}
             rules={{
               required: 'Job description is required',
               maxLength: {
@@ -354,6 +427,14 @@ const styles = StyleSheet.create({
     marginRight: wp(2),
     width: wp(42),
 
+  },
+  dropdownWrapper: {
+    zIndex: 100,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: getFontSize(12),
+    marginTop: hp(0.5),
   },
   wordLimit: {
     fontSize: getFontSize(12),

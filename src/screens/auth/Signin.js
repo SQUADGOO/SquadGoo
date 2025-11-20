@@ -25,6 +25,7 @@ import { useLogin } from '@/api/auth/auth.query'
 import { login as loginAction } from '@/store/authSlice'
 import { useDispatch } from 'react-redux'
 import { validateDummyCredentials, getDisplayCredentials, isDummyMode } from '@/utilities/dummyData'
+import { addCoins } from '@/store/walletSlice'
 
 const SignIn = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -54,6 +55,12 @@ const handleLogin = async (data) => {
       
       if (dummyUser) {
         dispatch(loginAction(dummyUser));
+        
+        // Initialize wallet with dummy user's wallet balance
+        if (dummyUser.wallet && dummyUser.wallet.coins > 0) {
+          dispatch(addCoins({ amount: dummyUser.wallet.coins }));
+        }
+        
         const welcomeMessage = `Welcome back, ${dummyUser.firstName}!`;
         showToast(welcomeMessage, 'Success', toastTypes.success);
         setIsLoggingIn(false);

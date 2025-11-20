@@ -30,9 +30,36 @@ export const DUMMY_USERS = {
     _id: 'recruiter-001',
     phone: '+61 123 456 789',
     companyName: 'Squad Goo Recruitment',
+    businessName: 'Squad Goo Recruitment Pty Ltd',
+    abn: '12345678901',
+    acn: '987654321',
+    businessAddress: '123 Business Street, Sydney NSW 2000',
+    directorName: 'John Recruiter',
+    directorEmail: 'john@recruiter.com',
+    directorPhone: '+61 123 456 789',
+    gstRegistered: true,
+    gstNumber: 'GST123456789',
     verified: true,
+    kycVerified: true,
+    kybVerified: true,
     bio: 'Experienced recruiter at Squad Goo',
     location: 'Sydney, Australia',
+    address: {
+      fullAddress: '123 Business Street, Sydney NSW 2000',
+      suburb: 'Sydney',
+      state: 'NSW',
+      postcode: '2000',
+      country: 'Australia',
+    },
+    profilePicture: null,
+    companyLogo: null,
+    badge: null, // 'bronze', 'platinum', 'gold'
+    accountType: 'owner', // 'owner' or 'representative'
+    createdAt: '2024-01-15T00:00:00Z',
+    wallet: {
+      coins: 500,
+      transactions: [],
+    },
   },
   jobseeker: {
     token: 'dummy-jobseeker-token',
@@ -42,11 +69,39 @@ export const DUMMY_USERS = {
     lastName: 'Jobseeker',
     _id: 'jobseeker-001',
     phone: '+61 987 654 321',
+    dateOfBirth: '1995-05-15',
     skills: ['React Native', 'JavaScript', 'Node.js', 'UI/UX Design'],
     verified: true,
+    kycVerified: true,
     bio: 'Full-stack developer looking for opportunities',
     location: 'Melbourne, Australia',
+    homeAddress: {
+      fullAddress: '456 Home Street, Melbourne VIC 3000',
+      suburb: 'Melbourne',
+      state: 'VIC',
+      postcode: '3000',
+      country: 'Australia',
+    },
     experience: '3 years',
+    taxType: 'both', // 'tfn', 'abn', 'both'
+    tfn: '123456789',
+    abn: '98765432101',
+    profilePicture: null,
+    badge: null, // 'bronze', 'platinum', 'gold'
+    acceptanceRating: 85, // 0-100
+    preferredJobs: [],
+    jobExperience: [],
+    educationalDetails: [],
+    extraQualifications: [],
+    socialMediaLinks: {
+      linkedin: '',
+      facebook: '',
+    },
+    createdAt: '2024-02-01T00:00:00Z',
+    wallet: {
+      coins: 250,
+      transactions: [],
+    },
   },
   individual: {
     token: 'dummy-individual-token',
@@ -56,9 +111,25 @@ export const DUMMY_USERS = {
     lastName: 'Individual',
     _id: 'individual-001',
     phone: '+61 555 123 456',
+    dateOfBirth: '1990-08-20',
     verified: true,
-    bio: 'Freelance professional',
+    kycVerified: true,
+    bio: 'Looking for contractors to help with various tasks',
     location: 'Brisbane, Australia',
+    address: {
+      fullAddress: '789 Personal Street, Brisbane QLD 4000',
+      suburb: 'Brisbane',
+      state: 'QLD',
+      postcode: '4000',
+      country: 'Australia',
+    },
+    profilePicture: null,
+    badge: null, // 'bronze', 'platinum', 'gold'
+    createdAt: '2024-03-10T00:00:00Z',
+    wallet: {
+      coins: 100,
+      transactions: [],
+    },
   },
 };
 
@@ -115,7 +186,8 @@ export const validateDummyCredentials = (email, password) => {
 export const createDummyUser = (signupData) => {
   const { email, firstName, lastName, role, referralCode } = signupData;
 
-  return {
+  // Base user structure
+  const baseUser = {
     token: `dummy-token-${role}-${Date.now()}`,
     role: role,
     email: email,
@@ -124,11 +196,118 @@ export const createDummyUser = (signupData) => {
     _id: `${role}-${Date.now()}`,
     phone: '',
     verified: false,
+    kycVerified: false,
     bio: '',
     location: '',
     referralCode: referralCode || null,
     createdAt: new Date().toISOString(),
+    wallet: {
+      coins: 0,
+      transactions: [],
+    },
   };
+
+  // Add role-specific defaults
+  if (role === 'recruiter') {
+    return {
+      ...baseUser,
+      companyName: '',
+      businessName: '',
+      abn: '',
+      acn: '',
+      businessAddress: '',
+      directorName: '',
+      directorEmail: '',
+      directorPhone: '',
+      gstRegistered: false,
+      gstNumber: '',
+      kybVerified: false,
+      accountType: 'owner',
+      address: {
+        fullAddress: '',
+        suburb: '',
+        state: '',
+        postcode: '',
+        country: 'Australia',
+      },
+    };
+  } else if (role === 'jobseeker') {
+    return {
+      ...baseUser,
+      dateOfBirth: '',
+      taxType: 'both',
+      tfn: '',
+      abn: '',
+      acceptanceRating: 100,
+      preferredJobs: [],
+      jobExperience: [],
+      educationalDetails: [],
+      extraQualifications: [],
+      socialMediaLinks: {
+        linkedin: '',
+        facebook: '',
+      },
+      homeAddress: {
+        fullAddress: '',
+        suburb: '',
+        state: '',
+        postcode: '',
+        country: 'Australia',
+      },
+    };
+  } else if (role === 'individual') {
+    return {
+      ...baseUser,
+      dateOfBirth: '',
+      address: {
+        fullAddress: '',
+        suburb: '',
+        state: '',
+        postcode: '',
+        country: 'Australia',
+      },
+    };
+  }
+
+  return baseUser;
+};
+
+/**
+ * Get role-specific default data structure
+ * @param {string} role - User role ('recruiter', 'jobseeker', 'individual')
+ * @returns {Object} - Default data structure for the role
+ */
+export const getRoleDefaults = (role) => {
+  const defaults = {
+    recruiter: {
+      companyName: '',
+      businessName: '',
+      abn: '',
+      acn: '',
+      businessAddress: '',
+      directorName: '',
+      directorEmail: '',
+      directorPhone: '',
+      gstRegistered: false,
+      gstNumber: '',
+      accountType: 'owner',
+    },
+    jobseeker: {
+      taxType: 'both',
+      tfn: '',
+      abn: '',
+      acceptanceRating: 100,
+      preferredJobs: [],
+      jobExperience: [],
+      educationalDetails: [],
+      extraQualifications: [],
+    },
+    individual: {
+      // Individual-specific defaults if needed
+    },
+  };
+
+  return defaults[role] || {};
 };
 
 /**
