@@ -10,6 +10,7 @@ import jobSeekerExperienceReducer from './jobSeekerExperienceSlice';
 import jobSeekerPreferredReducer from './jobSeekerPreferredSlice';
 import walletReducer from './walletSlice'
 import bankReducer from './bankSlice'
+import manualOffersReducer from './manualOffersSlice'
 
 const rootReducer = combineReducers({
   auth: authSlice,
@@ -21,12 +22,13 @@ const rootReducer = combineReducers({
   jobSeekerPreferred: jobSeekerPreferredReducer,
   wallet: walletReducer,
   bank: bankReducer,
+  manualOffers: manualOffersReducer,
 });
 
 const presisConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['auth', 'marketplace', 'jobs', 'jobSeekerOffers', 'jobSeekerExperience', 'jobSeekerPreferred', 'wallet', 'bank'],
+  whitelist: ['auth', 'marketplace', 'jobs', 'jobSeekerOffers', 'jobSeekerExperience', 'jobSeekerPreferred', 'wallet', 'bank', 'manualOffers'],
 };
 const presisReducer = persistReducer(presisConfig, rootReducer);
 

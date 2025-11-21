@@ -30,6 +30,9 @@ import Messages from './main/chat/Messages';
 import AbilityToWork from './main/Recruiter/ManualSearchSteps/AbilityToWork';
 import StepThree from './main/Recruiter/ManualSearchSteps/StepThree';
 import StepTwo from './main/Recruiter/ManualSearchSteps/StepTwo';
+import ManualMatchList from './main/Recruiter/ManualSearchSteps/ManualMatchList';
+import ManualCandidateProfile from './main/Recruiter/ManualSearchSteps/ManualCandidateProfile';
+import ManualOffers from './main/Recruiter/ManualSearchSteps/ManualOffers';
 import MainDashboard from './main/Recruiter/DashBoard/MainDashboard';
 import LaborPoolScreen from './main/Recruiter/LaborPool/LaborPool';
 import SquadPoolScreen from './main/Recruiter/LaborPool/SquadPool';
@@ -131,6 +134,9 @@ export {
   AbilityToWork,
   StepThree,
   StepTwo,
+  ManualMatchList,
+  ManualCandidateProfile,
+  ManualOffers,
   MainDashboard,
   LaborPoolScreen,
   SquadPoolScreen,

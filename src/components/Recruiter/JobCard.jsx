@@ -25,7 +25,8 @@ const JobCard = ({
   onPreview, 
   onUpdate, 
   onViewCandidates, 
-  onCloseJob 
+  onCloseJob,
+  onViewMatches,
 }) => {
   return (
     <View style={styles.cardContainer}>
@@ -129,6 +130,18 @@ const JobCard = ({
               Candidates
             </AppText>
           </TouchableOpacity>
+
+          {job?.searchType === 'manual' && onViewMatches ? (
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.matchesButton]}
+              onPress={() => onViewMatches(job)}
+              activeOpacity={0.8}
+            >
+              <AppText variant={Variant.bodyMedium} style={styles.matchesButtonText}>
+                Matches
+              </AppText>
+            </TouchableOpacity>
+          ) : null}
 
           <TouchableOpacity 
             style={[styles.actionButton, styles.closeJobButton]}
@@ -238,6 +251,7 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: 'row',
     gap: wp(3),
+    flexWrap: 'wrap',
   },
   actionButton: {
     flex: 1,
@@ -267,6 +281,13 @@ const styles = StyleSheet.create({
   },
   candidatesButtonText: {
     color: '#6366F1',
+  },
+  matchesButton: {
+    backgroundColor: 'transparent',
+    borderColor: '#F97316',
+  },
+  matchesButtonText: {
+    color: '#F97316',
   },
   closeJobButton: {
     backgroundColor: 'transparent',

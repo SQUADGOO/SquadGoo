@@ -252,3 +252,44 @@ The application now has:
 
 All components are ready for testing and further development!
 
+---
+
+## 9. Manual Search Enhancements (Recruiter Side) – Current Session
+
+### 9.1 State Management
+- Added `manualOffersSlice` to manage manual jobs, candidate matches, offers, and acceptance ratings.
+- Introduced `dummyJobSeekers` dataset plus lightweight matching logic (industry, tax type, pay overlap, experience, radius).
+- Actions: create manual job, generate matches, send offer, update response, auto-expire, and selectors for screens.
+
+### 9.2 New Screens / Components
+1. **ManualMatchList (`ManualMatchList.jsx`)**
+   - Displays matched candidates with filters for match % and acceptance rating.
+   - Provides quick actions for viewing profiles and sending offers.
+2. **SendManualOfferModal (`SendManualOfferModal.jsx`)**
+   - Shared modal to configure expiry/message and dispatch `sendManualOffer`.
+3. **ManualCandidateProfile (`ManualCandidateProfile.jsx`)**
+   - Full candidate profile detail view with experience, availability, qualifications, preferences, and action buttons.
+4. **ManualOffers Inbox (`ManualOffers.jsx`)**
+   - Tabbed view for Pending / Accepted / Declined / Modification / Expired offers.
+   - Simulated job seeker responses (accept, decline with reasons, modification requests) feeding back into Redux.
+5. **Navigation & Names**
+   - Added `MANUAL_MATCH_LIST`, `MANUAL_CANDIDATE_PROFILE`, `MANUAL_OFFERS` routes to screen names and drawer.
+
+### 9.3 Flow Integration
+- `JobPreview` now dispatches `createManualJob`, `generateManualMatches`, and navigates recruiters to the new match list upon job creation.
+- Manual Search step 1 now records industry/category for better matching.
+
+### 9.4 Acceptance Rating Logic
+- `updateManualOfferStatus` adjusts ratings: declined high-match offers without valid reasons reduce rating; accepted offers slightly boost it.
+- Ratings surface on match cards, profile detail, and remain synced after each response.
+
+### 9.5 Testing
+- Verified flow: Manual job → Match list filtering → Profile view → Send offer → Offer inbox status transitions → Rating adjustments on decline/accept.
+- Confirmed pending offers expire after their configured window via `expireManualOffers`.
+
+### 9.6 Next Steps
+- Hook match generation to real backend algorithm.
+- Extend job seeker UI to respond directly (current response modal simulates job seeker actions).
+- Add push/in-app notifications for offer state changes.
+- Persist decline reason catalog & attach admin review hooks.
+

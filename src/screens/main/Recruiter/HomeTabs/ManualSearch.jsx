@@ -69,6 +69,9 @@ const ManualSearch = ({ navigation }) => {
       workLocation: data.workLocation,
       rangeKm,
       staffNumber: data.staffNumber,
+      industry: jobCategory,
+      jobCategory: jobCategory,
+      jobSubCategory: jobSubCategory,
     }
     console.log('Step 1 data:', searchData)
     navigation.navigate(screenNames.STEP_TWO, { step1Data: searchData })

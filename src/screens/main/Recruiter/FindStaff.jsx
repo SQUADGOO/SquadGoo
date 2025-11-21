@@ -30,7 +30,7 @@ const FindStaff = ({ navigation }) => {
   }
 
   const handleManualSearch = () => {
-    navigation.navigate(screenNames.MANUAL_SEARCH)
+    navigation.navigate(screenNames.MANUAL_SEARCH_STACK)
   }
 
   const handleQuickSearch = () => {

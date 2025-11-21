@@ -35,6 +35,13 @@ const CustomDrawer = ({
     if (role?.toLowerCase() === 'recruiter') {
       return [
         {
+          key: 'home',
+          title: 'Home',
+          icon: 'home-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.Tab_NAVIGATION,
+        },
+        {
           key: 'dashboard',
           title: 'Dashboard',
           iconImage: icons.menu,

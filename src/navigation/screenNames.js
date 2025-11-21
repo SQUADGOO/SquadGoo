@@ -24,6 +24,10 @@ export const screenNames = {
   JOB_CANDIDATES: 'job_candidates',
   QUICK_SEARCH: 'quick_search',
   MANUAL_SEARCH: 'manual_search',
+  MANUAL_SEARCH_STACK: 'manual_search_stack',
+  MANUAL_MATCH_LIST: 'manual_match_list',
+  MANUAL_CANDIDATE_PROFILE: 'manual_candidate_profile',
+  MANUAL_OFFERS: 'manual_offers',
   
   ACCOUNT_DETAILS: 'account_details',
   PURCHASE_COINS: 'purchase_coins',

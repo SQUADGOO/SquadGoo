@@ -86,8 +86,35 @@ const ActiveJobOffersScreen = ({ navigation }) => {
 
   const handleViewCandidates = (job) => {
     console.log('View candidates for:', job.title)
-    // Navigate to candidates screen
-    navigation.navigate(screenNames.JOB_CANDIDATES, { jobId: job.id })
+    navigation.navigate(screenNames.MANUAL_SEARCH_STACK, {
+      screen: screenNames.MANUAL_OFFERS,
+      params: { jobId: job.id }
+    })
+
+    return
+    
+    if (job?.searchType === 'manual') {
+      // For manual search jobs, navigate to match list (which shows candidates)
+      navigation.navigate(screenNames.MANUAL_SEARCH_STACK, {
+        screen: screenNames.MANUAL_MATCH_LIST,
+        params: { jobId: job.id }
+      })
+    } else {
+      // For quick search jobs, navigate to job candidates
+      navigation.navigate(screenNames.JOB_CANDIDATES, { jobId: job.id })
+    }
+  }
+
+  const handleViewMatches = (job) => {
+    if (job?.searchType !== 'manual') {
+      Alert.alert('Matches unavailable', 'Match list is only available for manual search jobs.')
+      return
+    }
+    // Navigate to ManualSearchStack, then to MANUAL_MATCH_LIST
+    navigation.navigate(screenNames.MANUAL_SEARCH_STACK, {
+      screen: screenNames.MANUAL_MATCH_LIST,
+      params: { jobId: job.id }
+    })
   }
 
   const handleCloseJob = (job) => {
@@ -126,6 +153,7 @@ const ActiveJobOffersScreen = ({ navigation }) => {
       onUpdate={handleUpdate}
       onViewCandidates={handleViewCandidates}
       onCloseJob={handleCloseJob}
+      onViewMatches={handleViewMatches}
     />
   )
 

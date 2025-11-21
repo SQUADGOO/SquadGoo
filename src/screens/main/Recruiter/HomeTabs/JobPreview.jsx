@@ -8,6 +8,7 @@ import {
   Alert
 } from 'react-native'
 import { useDispatch } from 'react-redux'
+import { CommonActions } from '@react-navigation/native'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
 import AppText, { Variant } from '@/core/AppText'
@@ -15,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import AppHeader from '@/core/AppHeader'
 import AppButton from '@/core/AppButton'
 import { addJob } from '@/store/jobsSlice'
+import { createManualJob, generateManualMatches } from '@/store/manualOffersSlice'
 import { screenNames } from '@/navigation/screenNames'
 import moment from 'moment'
 
@@ -31,12 +33,15 @@ const JobPreview = ({ navigation, route }) => {
     expiryDate.setDate(expiryDate.getDate() + 30)
     
     // Format job data
+    const jobId = `manual-job-${Date.now()}`
     const jobData = {
+      id: jobId,
       title: step1Data?.jobTitle || 'Untitled Job',
       type: step1Data?.jobType || 'Full-time',
       location: step1Data?.workLocation || 'Location not specified',
       rangeKm: step1Data?.rangeKm || 0,
       staffNumber: step1Data?.staffNumber || '1',
+      industry: step1Data?.industry || 'General Services',
       experience: step2Data ? `${step2Data.experienceYears} ${step2Data.experienceMonths}` : 'Not specified',
       salaryRange: step2Data 
         ? `$${step2Data.salaryMin || '0'}/hr to $${step2Data.salaryMax || '0'}/hr`
@@ -67,20 +72,47 @@ const JobPreview = ({ navigation, route }) => {
     
     // Dispatch to Redux
     dispatch(addJob(jobData))
+    dispatch(createManualJob(jobData))
+    dispatch(generateManualMatches({ jobId }))
     
-    // Show success alert and navigate to home
+    // Show success alert and navigate to match list
+    // Reset navigation stack to prevent going back to posting steps
     Alert.alert(
       'Job Posted Successfully!',
-      'Your job offer has been posted and is now active.',
+      'Candidates have been matched based on your criteria.',
       [
         {
-          text: 'View Job Offers',
+          text: 'View Matches',
           onPress: () => {
-            // Navigate to the main tab navigation (recruiter home)
-            navigation.reset({
-              index: 0,
-              routes: [{ name: screenNames.Tab_NAVIGATION }],
-            })
+            // Reset the ManualSearchStack to only have MANUAL_MATCH_LIST
+            // This prevents going back to posting steps after job is posted
+            const parentNavigator = navigation.getParent()
+            
+            if (parentNavigator) {
+              // Reset the stack from the drawer navigator level
+              parentNavigator.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [
+                    {
+                      name: screenNames.MANUAL_SEARCH_STACK,
+                      state: {
+                        routes: [
+                          { name: screenNames.MANUAL_MATCH_LIST, params: { jobId, fromJobPost: true } }
+                        ],
+                        index: 0,
+                      },
+                    },
+                  ],
+                })
+              )
+            } else {
+              // Fallback: navigate normally if parent not available
+              navigation.navigate(screenNames.MANUAL_SEARCH_STACK, {
+                screen: screenNames.MANUAL_MATCH_LIST,
+                params: { jobId, fromJobPost: true }
+              })
+            }
           },
         },
       ]
