@@ -84,35 +84,11 @@ const JobPreview = ({ navigation, route }) => {
         {
           text: 'View Matches',
           onPress: () => {
-            // Reset the ManualSearchStack to only have MANUAL_MATCH_LIST
-            // This prevents going back to posting steps after job is posted
-            const parentNavigator = navigation.getParent()
-            
-            if (parentNavigator) {
-              // Reset the stack from the drawer navigator level
-              parentNavigator.dispatch(
-                CommonActions.reset({
-                  index: 0,
-                  routes: [
-                    {
-                      name: screenNames.MANUAL_SEARCH_STACK,
-                      state: {
-                        routes: [
-                          { name: screenNames.MANUAL_MATCH_LIST, params: { jobId, fromJobPost: true } }
-                        ],
-                        index: 0,
-                      },
-                    },
-                  ],
-                })
-              )
-            } else {
-              // Fallback: navigate normally if parent not available
-              navigation.navigate(screenNames.MANUAL_SEARCH_STACK, {
-                screen: screenNames.MANUAL_MATCH_LIST,
-                params: { jobId, fromJobPost: true }
-              })
-            }
+            // Navigate directly to MANUAL_MATCH_LIST
+            navigation.navigate(screenNames.MANUAL_MATCH_LIST, { 
+              jobId, 
+              fromJobPost: true 
+            })
           },
         },
       ]

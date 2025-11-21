@@ -86,23 +86,10 @@ const ActiveJobOffersScreen = ({ navigation }) => {
 
   const handleViewCandidates = (job) => {
     console.log('View candidates for:', job.title)
-    navigation.navigate(screenNames.MANUAL_SEARCH_STACK, {
-      screen: screenNames.MANUAL_OFFERS,
-      params: { jobId: job.id }
-    })
-
+    navigation.navigate(screenNames.MANUAL_OFFERS, { jobId: job.id })
     return
     
-    if (job?.searchType === 'manual') {
-      // For manual search jobs, navigate to match list (which shows candidates)
-      navigation.navigate(screenNames.MANUAL_SEARCH_STACK, {
-        screen: screenNames.MANUAL_MATCH_LIST,
-        params: { jobId: job.id }
-      })
-    } else {
-      // For quick search jobs, navigate to job candidates
-      navigation.navigate(screenNames.JOB_CANDIDATES, { jobId: job.id })
-    }
+    // Remove the old code that navigated through the stack
   }
 
   const handleViewMatches = (job) => {
@@ -110,11 +97,8 @@ const ActiveJobOffersScreen = ({ navigation }) => {
       Alert.alert('Matches unavailable', 'Match list is only available for manual search jobs.')
       return
     }
-    // Navigate to ManualSearchStack, then to MANUAL_MATCH_LIST
-    navigation.navigate(screenNames.MANUAL_SEARCH_STACK, {
-      screen: screenNames.MANUAL_MATCH_LIST,
-      params: { jobId: job.id }
-    })
+    // Navigate directly to MANUAL_MATCH_LIST
+    navigation.navigate(screenNames.MANUAL_MATCH_LIST, { jobId: job.id })
   }
 
   const handleCloseJob = (job) => {

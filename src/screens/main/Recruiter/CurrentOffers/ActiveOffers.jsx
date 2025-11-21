@@ -142,19 +142,13 @@ const JobList = () => {
 
   const handleViewMatches = (jobId) => {
     // Navigate to ManualSearchStack, then to MANUAL_MATCH_LIST
-    navigation.navigate(screenNames.MANUAL_SEARCH_STACK, {
-      screen: screenNames.MANUAL_MATCH_LIST,
-      params: { jobId }
-    })
+    navigation.navigate(screenNames.MANUAL_MATCH_LIST, { jobId })
   }
 
   const handleViewCandidates = (jobId) => {
     // For manual search jobs, navigate to match list
     // For quick search jobs, navigate to candidates
-    navigation.navigate(screenNames.MANUAL_SEARCH_STACK, {
-      screen: screenNames.MANUAL_MATCH_LIST,
-      params: { jobId }
-    })
+    navigation.navigate(screenNames.MANUAL_MATCH_LIST, { jobId })
   }
 
   return (

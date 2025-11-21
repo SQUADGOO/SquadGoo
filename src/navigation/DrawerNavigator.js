@@ -33,6 +33,20 @@ const DrawerNavigator = () => {
         name={screenNames.MANUAL_SEARCH_STACK}
         component={ManualSearchStack}
       />
+      
+      {/* Manual Search Result Screens - moved out of stack */}
+      <Drawer.Screen
+        name={screenNames.MANUAL_MATCH_LIST}
+        component={ui.ManualMatchList}
+      />
+      <Drawer.Screen
+        name={screenNames.MANUAL_CANDIDATE_PROFILE}
+        component={ui.ManualCandidateProfile}
+      />
+      <Drawer.Screen
+        name={screenNames.MANUAL_OFFERS}
+        component={ui.ManualOffers}
+      />
 
         <Drawer.Screen
         name={screenNames.WALLET_STACK}

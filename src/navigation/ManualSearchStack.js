@@ -37,29 +37,6 @@ const ManualSearchStack = () => {
         name={screenNames.JOB_PREVIEW}
         component={ui.JobPreview}
       />
-      
-      {/* Manual Match List */}
-      <Stack.Screen
-        name={screenNames.MANUAL_MATCH_LIST}
-        component={ui.ManualMatchList}
-        options={({ route }) => ({
-          // Prevent going back if coming from job post
-          gestureEnabled: !route.params?.fromJobPost,
-          headerLeft: route.params?.fromJobPost ? () => null : undefined,
-        })}
-      />
-      
-      {/* Manual Candidate Profile */}
-      <Stack.Screen
-        name={screenNames.MANUAL_CANDIDATE_PROFILE}
-        component={ui.ManualCandidateProfile}
-      />
-      
-      {/* Manual Offers */}
-      <Stack.Screen
-        name={screenNames.MANUAL_OFFERS}
-        component={ui.ManualOffers}
-      />
     </Stack.Navigator>
   );
 };
