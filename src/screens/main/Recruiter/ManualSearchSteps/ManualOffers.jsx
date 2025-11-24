@@ -286,8 +286,8 @@ const ManualOffers = ({ navigation }) => {
         </View>
       ) : null}
 
-      {/* Action Buttons */}
-      {item.status === 'pending' ? (
+      {/* Action Buttons for Modification Requests */}
+      {item.status === 'modification_requested' ? (
         <View style={styles.cardActions}>
           <TouchableOpacity
             style={styles.acceptButton}
@@ -317,21 +317,6 @@ const ManualOffers = ({ navigation }) => {
             />
             <AppText variant={Variant.bodyMedium} style={styles.declineButtonText}>
               Decline
-            </AppText>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.modifyButton}
-            onPress={() => openModificationModal(item)}
-            activeOpacity={0.8}
-          >
-            <VectorIcons
-              name={iconLibName.Ionicons}
-              iconName="create-outline"
-              size={18}
-              color={colors.primary}
-            />
-            <AppText variant={Variant.bodyMedium} style={styles.modifyButtonText}>
-              Modify
             </AppText>
           </TouchableOpacity>
         </View>
