@@ -95,6 +95,7 @@ import Members from './main/JobSeeker/DashBoard/Settings/Members';
 import EditProfile from './main/Recruiter/profile/EditProfile';
 
 import QuickSearchPreview from './main/Recruiter/QuickSearch/QuickSearchPreview';
+import QuickSearchMatchList from './main/Recruiter/QuickSearch/MatchList';
 
 import AcceptedOffers from './main/JobSeeker/AcceptedOffers';
 import JobOfferDetails from './main/JobSeeker/JobOfferDetails';
@@ -207,7 +208,8 @@ SquadSettingsGroups,
 GroupDetail,
 Members,
 EditProfile,
-QuickSearchPreview,
+  QuickSearchPreview,
+  QuickSearchMatchList,
 
 AcceptedOffers,
 JobOfferDetails,

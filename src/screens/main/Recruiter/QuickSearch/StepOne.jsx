@@ -1,10 +1,12 @@
 // QuickSearchStepOne.js - Job Requirements
 import React, { useState, useRef } from 'react'
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
+import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native'
+import { useForm, FormProvider } from 'react-hook-form'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import AppButton from '@/core/AppButton'
 import AppInputField from '@/core/AppInputField'
+import FormField from '@/core/FormField'
 import AppHeader from '@/core/AppHeader'
 import RbSheetComponent from '@/core/RbSheetComponent'
 import BottomDataSheet from '@/components/Recruiter/JobBottomSheet'
@@ -14,10 +16,22 @@ import { screenNames } from '@/navigation/screenNames'
 const QuickSearchStepOne = ({ navigation }) => {
   const [jobCategory, setJobCategory] = useState(null)
   const [jobSubCategory, setJobSubCategory] = useState(null)
-  const [industry, setIndustry] = useState('')
-  const [experienceYear, setExperienceYear] = useState('0 Year')
-  const [experienceMonth, setExperienceMonth] = useState('0 Month')
-  const [staffCount, setStaffCount] = useState('')
+
+  const methods = useForm({
+    mode: 'onChange',
+    defaultValues: {
+      industry: '',
+      experienceYear: '0 Year',
+      experienceMonth: '0 Month',
+      staffCount: '',
+    },
+  })
+
+  const { watch, setValue, handleSubmit } = methods
+
+  const industry = watch('industry')
+  const experienceYear = watch('experienceYear')
+  const experienceMonth = watch('experienceMonth')
 
   const industrySheetRef = useRef(null)
   const yearSheetRef = useRef(null)
@@ -59,148 +73,187 @@ const QuickSearchStepOne = ({ navigation }) => {
   ]
 
   const handleNext = () => {
-    const quickSearchStep1Data = {
-      jobTitle: jobSubCategory || jobCategory,
-      jobCategory: jobCategory,
-      jobSubCategory: jobSubCategory,
-      industry,
-      experienceYear,
-      experienceMonth,
-      staffCount,
-    }
-    console.log('Quick Search Step 1 Data:', quickSearchStep1Data)
-    navigation.navigate(screenNames.QUICK_SEARCH_STEPTWO, { quickSearchStep1Data })
+    handleSubmit((data) => {
+      if (!jobCategory && !jobSubCategory) {
+        Alert.alert('Job title required', 'Please select a job category or subcategory.')
+        return
+      }
+
+      if (!data.industry) {
+        Alert.alert('Industry required', 'Please select an industry.')
+        return
+      }
+
+      if (!data.experienceYear || !data.experienceMonth) {
+        Alert.alert(
+          'Experience required',
+          'Please select both years and months of total experience needed.',
+        )
+        return
+      }
+
+      const staffNumber = Number(data.staffCount)
+      if (Number.isNaN(staffNumber) || staffNumber <= 0) {
+        Alert.alert(
+          'Invalid staff number',
+          'Please enter a valid staff count greater than 0.',
+        )
+        return
+      }
+
+      const quickSearchStep1Data = {
+        jobTitle: jobSubCategory || jobCategory,
+        jobCategory: jobCategory,
+        jobSubCategory: jobSubCategory,
+        industry: data.industry,
+        experienceYear: data.experienceYear,
+        experienceMonth: data.experienceMonth,
+        staffCount: staffNumber,
+      }
+
+      console.log('Quick Search Step 1 Data:', quickSearchStep1Data)
+      navigation.navigate(screenNames.QUICK_SEARCH_STEPTWO, { quickSearchStep1Data })
+    })()
   }
 
   return (
-    <>
-      <AppHeader 
-        title="Job Requirements" 
-        showTopIcons={false}
-        rightComponent={
-          <AppText variant={Variant.body} style={styles.stepText}>
-            Step 1/4
-          </AppText>
-        }
-      />
+    <FormProvider {...methods}>
+      <>
+        <AppHeader 
+          title="Job Requirements" 
+          showTopIcons={false}
+          rightComponent={
+            <AppText variant={Variant.body} style={styles.stepText}>
+              Step 1/4
+            </AppText>
+          }
+        />
 
-      <View style={styles.container}>
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Job Title */}
-          <AppText variant={Variant.bodyMedium} style={styles.label}>
-            Job title*
-          </AppText>
-          <JobCategorySelector
-            onSelect={handleJobCategorySelect}
-            selectedCategory={jobCategory}
-            selectedSubCategory={jobSubCategory}
-            placeholder="Select job category"
-          />
+        <View style={styles.container}>
+          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+            {/* Job Title */}
+            <AppText variant={Variant.bodyMedium} style={styles.label}>
+              Job title*
+            </AppText>
+            <JobCategorySelector
+              onSelect={handleJobCategorySelect}
+              selectedCategory={jobCategory}
+              selectedSubCategory={jobSubCategory}
+              placeholder="Select job category"
+            />
 
-          {/* Industry */}
-          <AppText variant={Variant.bodyMedium} style={styles.label}>
-            Industry*
-          </AppText>
-          <TouchableOpacity onPress={() => industrySheetRef.current?.open()} activeOpacity={0.7}>
-            <View pointerEvents="none">
-              <AppInputField
-                placeholder="Search"
-                value={industry}
-                editable={false}
-              />
+            {/* Industry */}
+            <AppText variant={Variant.bodyMedium} style={styles.label}>
+              Industry*
+            </AppText>
+            <TouchableOpacity onPress={() => industrySheetRef.current?.open()} activeOpacity={0.7}>
+              <View pointerEvents="none">
+                <AppInputField
+                  placeholder="Search"
+                  value={industry}
+                  editable={false}
+                />
+              </View>
+            </TouchableOpacity>
+
+            {/* Total Experience */}
+            <AppText variant={Variant.bodyMedium} style={styles.label}>
+              Total experience needed*
+            </AppText>
+            <View style={styles.experienceRow}>
+              <TouchableOpacity 
+                style={styles.experienceInput}
+                onPress={() => yearSheetRef.current?.open()}
+                activeOpacity={0.7}
+              >
+                <View pointerEvents="none">
+                  <AppInputField
+                    placeholder="0 Year"
+                    value={experienceYear}
+                    editable={false}
+                  />
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.experienceInput}
+                onPress={() => monthSheetRef.current?.open()}
+                activeOpacity={0.7}
+              >
+                <View pointerEvents="none">
+                  <AppInputField
+                    placeholder="0 Month"
+                    value={experienceMonth}
+                    editable={false}
+                  />
+                </View>
+              </TouchableOpacity>
             </View>
-          </TouchableOpacity>
 
-          {/* Total Experience */}
-          <AppText variant={Variant.bodyMedium} style={styles.label}>
-            Total experience needed*
-          </AppText>
-          <View style={styles.experienceRow}>
-            <TouchableOpacity 
-              style={styles.experienceInput}
-              onPress={() => yearSheetRef.current?.open()}
-              activeOpacity={0.7}
-            >
-              <View pointerEvents="none">
-                <AppInputField
-                  placeholder="0 Year"
-                  value={experienceYear}
-                  editable={false}
-                />
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.experienceInput}
-              onPress={() => monthSheetRef.current?.open()}
-              activeOpacity={0.7}
-            >
-              <View pointerEvents="none">
-                <AppInputField
-                  placeholder="0 Month"
-                  value={experienceMonth}
-                  editable={false}
-                />
-              </View>
-            </TouchableOpacity>
+            {/* Staff Count */}
+            <AppText variant={Variant.bodyMedium} style={styles.label}>
+              How many staff looking for*
+            </AppText>
+            <FormField
+              name="staffCount"
+              placeholder="Total staff number"
+              keyboardType="numeric"
+              rules={{
+                required: 'Staff count is required',
+                validate: value =>
+                  value.trim() !== '' &&
+                  !Number.isNaN(Number(value)) &&
+                  Number(value) > 0 ||
+                  'Enter a valid staff number greater than 0',
+              }}
+            />
+          </ScrollView>
+
+          {/* Next Button */}
+          <View style={styles.buttonContainer}>
+            <AppButton
+              text="Next"
+              onPress={handleNext}
+              bgColor="#F59E0B"
+              textColor="#FFFFFF"
+            />
           </View>
-
-          {/* Staff Count */}
-          <AppText variant={Variant.bodyMedium} style={styles.label}>
-            How many staff looking for*
-          </AppText>
-          <AppInputField
-            placeholder="Total staff number"
-            value={staffCount}
-            onChangeText={setStaffCount}
-            keyboardType="numeric"
-          />
-        </ScrollView>
-
-        {/* Next Button */}
-        <View style={styles.buttonContainer}>
-          <AppButton
-            text="Next"
-            onPress={handleNext}
-            bgColor="#F59E0B"
-            textColor="#FFFFFF"
-          />
         </View>
-      </View>
 
-      {/* Bottom Sheets */}
-      <RbSheetComponent ref={industrySheetRef} height={hp(60)}>
-        <BottomDataSheet
-          optionsData={industryOptions}
-          onClose={() => industrySheetRef.current?.close()}
-          onSelect={(item) => {
-            setIndustry(item.title)
-            industrySheetRef.current?.close()
-          }}
-        />
-      </RbSheetComponent>
+        {/* Bottom Sheets */}
+        <RbSheetComponent ref={industrySheetRef} height={hp(60)}>
+          <BottomDataSheet
+            optionsData={industryOptions}
+            onClose={() => industrySheetRef.current?.close()}
+            onSelect={(item) => {
+              setValue('industry', item.title, { shouldValidate: true })
+              industrySheetRef.current?.close()
+            }}
+          />
+        </RbSheetComponent>
 
-      <RbSheetComponent ref={yearSheetRef} height={hp(50)}>
-        <BottomDataSheet
-          optionsData={experienceYearOptions}
-          onClose={() => yearSheetRef.current?.close()}
-          onSelect={(item) => {
-            setExperienceYear(item.title)
-            yearSheetRef.current?.close()
-          }}
-        />
-      </RbSheetComponent>
+        <RbSheetComponent ref={yearSheetRef} height={hp(50)}>
+          <BottomDataSheet
+            optionsData={experienceYearOptions}
+            onClose={() => yearSheetRef.current?.close()}
+            onSelect={(item) => {
+              setValue('experienceYear', item.title, { shouldValidate: true })
+              yearSheetRef.current?.close()
+            }}
+          />
+        </RbSheetComponent>
 
-      <RbSheetComponent ref={monthSheetRef} height={hp(50)}>
-        <BottomDataSheet
-          optionsData={experienceMonthOptions}
-          onClose={() => monthSheetRef.current?.close()}
-          onSelect={(item) => {
-            setExperienceMonth(item.title)
-            monthSheetRef.current?.close()
-          }}
-        />
-      </RbSheetComponent>
-    </>
+        <RbSheetComponent ref={monthSheetRef} height={hp(50)}>
+          <BottomDataSheet
+            optionsData={experienceMonthOptions}
+            onClose={() => monthSheetRef.current?.close()}
+            onSelect={(item) => {
+              setValue('experienceMonth', item.title, { shouldValidate: true })
+              monthSheetRef.current?.close()
+            }}
+          />
+        </RbSheetComponent>
+      </>
+    </FormProvider>
   )
 }
 

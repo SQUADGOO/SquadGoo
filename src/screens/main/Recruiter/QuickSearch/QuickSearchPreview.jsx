@@ -7,18 +7,22 @@ import {
   StatusBar,
   Alert
 } from 'react-native'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import AppHeader from '@/core/AppHeader'
 import AppButton from '@/core/AppButton'
 import { addJob } from '@/store/jobsSlice'
-import { createQuickJob, autoMatchCandidates } from '@/store/quickSearchSlice'
+import { createQuickJob, autoMatchCandidates, sendQuickOffer } from '@/store/quickSearchSlice'
+import { autoSendOffers } from '@/services/autoOfferService'
 import { screenNames } from '@/navigation/screenNames'
 import { formatTime } from '@/utilities/helperFunctions'
 
 const QuickSearchPreview = ({ navigation, route }) => {
   const dispatch = useDispatch()
+  const acceptanceRatings = useSelector(
+    state => state.quickSearch.acceptanceRatings || {}
+  )
   
   // Get all data from all 4 steps
   const { 
@@ -72,6 +76,9 @@ const QuickSearchPreview = ({ navigation, route }) => {
   }
 
   const handleSubmit = () => {
+    // Build a stable job ID so quickSearch slice, matches and offers all align
+    const jobId = `quick-job-${Date.now()}`
+
     const allData = {
       step1: quickSearchStep1Data,
       step2: quickSearchStep2Data,
@@ -85,6 +92,7 @@ const QuickSearchPreview = ({ navigation, route }) => {
     
     // Format job data for both old jobsSlice (backward compatibility) and new quickSearchSlice
     const jobData = {
+      id: jobId, // keep same ID across slices for easier tracking
       title: quickSearchStep1Data?.jobTitle || 'Untitled Job',
       type: 'Full-time', // Default, you can extract from data if available
       industry: quickSearchStep1Data?.industry || '',
@@ -114,6 +122,7 @@ const QuickSearchPreview = ({ navigation, route }) => {
     
     // Format for quick search slice
     const quickJobData = {
+      id: jobId,
       jobTitle: quickSearchStep1Data?.jobTitle,
       industry: quickSearchStep1Data?.industry,
       experienceYear: quickSearchStep1Data?.experienceYear,
@@ -135,30 +144,33 @@ const QuickSearchPreview = ({ navigation, route }) => {
     
     console.log('Posting Quick Search Job:', jobData)
     
-    // Dispatch to both slices for backward compatibility
+    // 1) Dispatch to both slices for backward compatibility
     dispatch(addJob(jobData))
-    
-    // Create quick search job
     dispatch(createQuickJob(quickJobData))
     
-    // Auto-match candidates
-    const jobId = `quick-job-${Date.now()}`
-    setTimeout(() => {
-      dispatch(autoMatchCandidates({ jobId, settings: {} }))
-    }, 100)
+    // 2) Generate / cache matches for this quick job
+    dispatch(autoMatchCandidates({ jobId, settings: {} }))
     
-    // Show success alert and navigate to home
+    // 3) Auto-send offers to top matches (like manual, but automatic)
+    autoSendOffers(
+      { ...quickJobData },                 // quick search job data
+      { autoMatchingEnabled: true },       // settings: auto-matching ON
+      acceptanceRatings,                   // from quickSearch state
+      dispatch,
+      sendQuickOffer                       // action creator
+    )
+    
+    // 4) Show success & take recruiter directly to Quick Search offers
     Alert.alert(
       'Job Posted Successfully!',
-      'Your job offer has been posted and is now active.',
+      'Your job offer has been posted, matches found, and offers sent automatically.',
       [
         {
-          text: 'View Job Offers',
+          text: 'View Quick Search Offers',
           onPress: () => {
-            // Navigate to the main tab navigation (recruiter home)
             navigation.reset({
               index: 0,
-              routes: [{ name: screenNames.Tab_NAVIGATION }],
+              routes: [{ name: screenNames.QUICK_SEARCH_ACTIVE_OFFERS_RECRUITER }],
             })
           },
         },

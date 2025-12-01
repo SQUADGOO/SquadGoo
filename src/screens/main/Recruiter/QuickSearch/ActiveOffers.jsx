@@ -1,36 +1,58 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  FlatList,
+} from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { colors, hp, wp, getFontSize } from '@/theme';
 import AppText, { Variant } from '@/core/AppText';
 import AppHeader from '@/core/AppHeader';
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
-import { 
+import {
   selectQuickOffers,
   cancelOffer,
   expireQuickOffers,
 } from '@/store/quickSearchSlice';
+import { screenNames } from '@/navigation/screenNames';
 import { resendOfferToNextMatch } from '@/services/autoOfferService';
 import { sendQuickOffer } from '@/store/quickSearchSlice';
+
+const tabs = [
+  { id: 'pending', label: 'Pending' },
+  { id: 'accepted', label: 'Accepted' },
+  { id: 'declined', label: 'Declined' },
+  { id: 'expired', label: 'Expired' },
+];
 
 const ActiveOffers = ({ navigation }) => {
   const dispatch = useDispatch();
   const allOffers = useSelector(selectQuickOffers);
   const quickJobs = useSelector(state => state.quickSearch.quickJobs);
   const matchesByJobId = useSelector(state => state.quickSearch.matchesByJobId);
-  const [offers, setOffers] = useState([]);
+
+  const [currentTab, setCurrentTab] = useState('pending');
 
   useEffect(() => {
-    // Filter offers sent by current recruiter
-    // In real app, filter by current user ID
-    const recruiterOffers = allOffers.filter(
-      offer => ['pending', 'accepted', 'declined'].includes(offer.status)
-    );
-    setOffers(recruiterOffers);
-
-    // Expire old offers
+    // In a real app you would also filter by current recruiter ID
     dispatch(expireQuickOffers());
-  }, [allOffers, dispatch]);
+  }, [dispatch]);
+
+  const offers = useMemo(
+    () =>
+      allOffers.filter(offer =>
+        ['pending', 'accepted', 'declined', 'expired'].includes(offer.status),
+      ),
+    [allOffers],
+  );
+
+  const filteredOffers = useMemo(
+    () => offers.filter(offer => offer.status === currentTab),
+    [offers, currentTab],
+  );
 
   const handleCancel = (offerId) => {
     Alert.alert(
@@ -58,7 +80,7 @@ const ActiveOffers = ({ navigation }) => {
 
     const matches = matchesByJobId[job.id] || [];
     const existingOffers = allOffers.filter(o => o.jobId === job.id);
-    
+
     const newOffer = resendOfferToNextMatch(
       job,
       offer,
@@ -76,73 +98,140 @@ const ActiveOffers = ({ navigation }) => {
     }
   };
 
-  const formatExpiryTime = (expiresAt) => {
-    if (!expiresAt) return 'No expiry';
-    const expiry = new Date(expiresAt);
+  const formatExpiryLabel = (expiresAt) => {
+    if (!expiresAt) return 'N/A';
+    const date = new Date(expiresAt);
     const now = new Date();
-    const diff = Math.max(0, Math.floor((expiry - now) / 1000 / 60 / 60 / 24));
-    if (diff === 0) {
-      const hours = Math.max(0, Math.floor((expiry - now) / 1000 / 60 / 60));
-      return hours > 0 ? `${hours} hours left` : 'Expiring soon';
-    }
-    return `${diff} days left`;
+    const diffTime = date - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) return 'Expired';
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Tomorrow';
+    if (diffDays <= 7) return `In ${diffDays} days`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
   const getStatusColor = (status) => {
-    const colorsMap = {
-      pending: colors.primary,
-      accepted: '#10B981',
-      declined: '#EF4444',
-      expired: colors.gray,
-      cancelled: colors.gray,
-    };
-    return colorsMap[status] || colors.gray;
+    switch (status) {
+      case 'pending':
+        return '#F59E0B';
+      case 'accepted':
+        return '#10B981';
+      case 'declined':
+        return '#EF4444';
+      case 'expired':
+        return '#6B7280';
+      default:
+        return colors.gray;
+    }
   };
 
-  const OfferCard = ({ offer }) => (
-    <View style={styles.card}>
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'pending':
+        return 'time-outline';
+      case 'accepted':
+        return 'checkmark-circle';
+      case 'declined':
+        return 'close-circle';
+      case 'expired':
+        return 'hourglass-outline';
+      default:
+        return 'ellipse-outline';
+    }
+  };
+
+  const OfferCard = ({ item }) => (
+    <View style={styles.offerCard}>
+      {/* Header: avatar + name + job + status */}
       <View style={styles.cardHeader}>
-        <View style={styles.titleContainer}>
-          <AppText variant={Variant.subTitle} style={styles.candidateName}>
-            {offer.candidateName}
-          </AppText>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(offer.status) + '20' }]}>
-            <AppText variant={Variant.caption} style={[styles.statusText, { color: getStatusColor(offer.status) }]}>
-              {offer.status.toUpperCase()}
+        <View style={styles.headerLeft}>
+          <View style={styles.avatarContainer}>
+            <AppText variant={Variant.bodyMedium} style={styles.avatarText}>
+              {item.candidateName?.charAt(0)?.toUpperCase() || 'U'}
             </AppText>
           </View>
+          <View style={styles.headerInfo}>
+            <AppText variant={Variant.bodyMedium} style={styles.offerTitle}>
+              {item.candidateName}
+            </AppText>
+            <View style={styles.metaRow}>
+              <VectorIcons
+                name={iconLibName.Ionicons}
+                iconName="briefcase-outline"
+                size={12}
+                color={colors.gray}
+              />
+              <AppText variant={Variant.caption} style={styles.offerMeta}>
+                {item.jobTitle}
+              </AppText>
+            </View>
+          </View>
         </View>
+
+        <View
+          style={[
+            styles.statusBadge,
+            { backgroundColor: `${getStatusColor(item.status)}15` },
+          ]}
+        >
+          <VectorIcons
+            name={iconLibName.Ionicons}
+            iconName={getStatusIcon(item.status)}
+            size={14}
+            color={getStatusColor(item.status)}
+          />
+          <AppText
+            variant={Variant.caption}
+            style={[styles.statusText, { color: getStatusColor(item.status) }]}
+          >
+            {item.status.toUpperCase()}
+          </AppText>
+        </View>
+      </View>
+
+      {/* Match & Rating */}
+      <View style={styles.statsRow}>
+        <View style={styles.statItem}>
+          <VectorIcons
+            name={iconLibName.Ionicons}
+            iconName="stats-chart"
+            size={14}
+            color={colors.primary}
+          />
+          <AppText variant={Variant.caption} style={styles.statText}>
+            {Math.round(item.matchPercentage || 0)}% Match
+          </AppText>
+        </View>
+        <View style={styles.statItem}>
+          <VectorIcons
+            name={iconLibName.Ionicons}
+            iconName="star"
+            size={14}
+            color="#F59E0B"
+          />
+          <AppText variant={Variant.caption} style={styles.statText}>
+            Rating: {item.acceptanceRating ?? 'N/A'}%
+          </AppText>
+        </View>
+      </View>
+
+      {/* Expiry */}
+      <View style={styles.expiryContainer}>
+        <VectorIcons
+          name={iconLibName.Ionicons}
+          iconName="time-outline"
+          size={14}
+          color={colors.gray}
+        />
         <AppText variant={Variant.caption} style={styles.expiryText}>
-          {formatExpiryTime(offer.expiresAt)}
+          Expires: {formatExpiryLabel(item.expiresAt)}
         </AppText>
       </View>
 
-      <View style={styles.detailsRow}>
-        <View style={styles.detailItem}>
-          <AppText variant={Variant.caption} style={styles.detailLabel}>
-            Job:
-          </AppText>
-          <AppText variant={Variant.body} style={styles.detailValue}>
-            {offer.jobTitle}
-          </AppText>
-        </View>
-        <View style={styles.detailItem}>
-          <AppText variant={Variant.caption} style={styles.detailLabel}>
-            Match:
-          </AppText>
-          <AppText variant={Variant.body} style={styles.matchValue}>
-            {Math.round(offer.matchPercentage)}%
-          </AppText>
-        </View>
-      </View>
-
-      {offer.message && (
-        <AppText variant={Variant.body} style={styles.message}>
-          {offer.message}
-        </AppText>
-      )}
-
-      {offer.autoSent && (
+      {/* Auto-sent + message */}
+      {item.autoSent && (
         <View style={styles.autoBadge}>
           <AppText variant={Variant.caption} style={styles.autoText}>
             🤖 Auto-sent
@@ -150,29 +239,42 @@ const ActiveOffers = ({ navigation }) => {
         </View>
       )}
 
-      <View style={styles.buttonRow}>
-        {offer.status === 'pending' && (
-          <>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => handleCancel(offer.id)}
-            >
-              <VectorIcons
-                name={iconLibName.Ionicons}
-                iconName="close-circle-outline"
-                size={18}
-                color="#EF4444"
-              />
-              <AppText variant={Variant.bodyMedium} style={styles.cancelText}>
-                Cancel
-              </AppText>
-            </TouchableOpacity>
-          </>
-        )}
-        {(offer.status === 'declined' || offer.status === 'expired') && (
+      {item.message && (
+        <View style={styles.responseBox}>
+          <AppText variant={Variant.caption} style={styles.responseLabel}>
+            Message:
+          </AppText>
+          <AppText variant={Variant.caption} style={styles.responseValue}>
+            {item.message}
+          </AppText>
+        </View>
+      )}
+
+      {/* Actions: keep quick-search behaviour but styled like manual */}
+      <View style={styles.cardActions}>
+        {item.status === 'pending' && (
           <TouchableOpacity
-            style={styles.resendButton}
-            onPress={() => handleResend(offer)}
+            style={styles.declineButton}
+            onPress={() => handleCancel(item.id)}
+            activeOpacity={0.8}
+          >
+            <VectorIcons
+              name={iconLibName.Ionicons}
+              iconName="close"
+              size={18}
+              color={colors.secondary}
+            />
+            <AppText variant={Variant.bodyMedium} style={styles.declineButtonText}>
+              Cancel Offer
+            </AppText>
+          </TouchableOpacity>
+        )}
+
+        {(item.status === 'declined' || item.status === 'expired') && (
+          <TouchableOpacity
+            style={styles.modifyButton}
+            onPress={() => handleResend(item)}
+            activeOpacity={0.8}
           >
             <VectorIcons
               name={iconLibName.Ionicons}
@@ -180,12 +282,13 @@ const ActiveOffers = ({ navigation }) => {
               size={18}
               color={colors.primary}
             />
-            <AppText variant={Variant.bodyMedium} style={styles.resendText}>
+            <AppText variant={Variant.bodyMedium} style={styles.modifyButtonText}>
               Resend to Next Match
             </AppText>
           </TouchableOpacity>
         )}
-        {offer.status === 'accepted' && (
+
+        {item.status === 'accepted' && (
           <View style={styles.acceptedBadge}>
             <VectorIcons
               name={iconLibName.Ionicons}
@@ -198,39 +301,90 @@ const ActiveOffers = ({ navigation }) => {
             </AppText>
           </View>
         )}
+
+        {/* View all matches for this job */}
+        <TouchableOpacity
+          style={styles.viewMatchesButton}
+          onPress={() =>
+            navigation.navigate(screenNames.QUICK_SEARCH_MATCH_LIST, {
+              jobId: item.jobId,
+            })
+          }
+          activeOpacity={0.8}
+        >
+          <AppText variant={Variant.bodyMedium} style={styles.viewMatchesText}>
+            View all matches
+          </AppText>
+        </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      <AppHeader title="Quick Search Offers" showTopIcons={false} />
-      <ScrollView 
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+      <AppHeader
+        title="Quick Search Offers"
+        showBackButton
+        onBackPress={() => navigation.goBack()}
+      />
+
+      {/* Tabs (same style as ManualOffers) */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.tabRow}
       >
-        {offers.length === 0 ? (
-          <View style={styles.emptyState}>
-            <VectorIcons
-              name={iconLibName.Ionicons}
-              iconName="send-outline"
-              size={64}
-              color={colors.gray}
-            />
-            <AppText variant={Variant.bodyMedium} style={styles.emptyText}>
-              No Offers Sent
+        {tabs.map(tab => (
+          <TouchableOpacity
+            key={tab.id}
+            style={[styles.tab, currentTab === tab.id && styles.tabActive]}
+            onPress={() => setCurrentTab(tab.id)}
+            activeOpacity={0.7}
+          >
+            <AppText
+              variant={Variant.bodyMedium}
+              style={[
+                styles.tabText,
+                currentTab === tab.id && styles.tabTextActive,
+              ]}
+            >
+              {tab.label}
             </AppText>
-            <AppText variant={Variant.body} style={styles.emptySubText}>
-              Your sent quick search offers will appear here.
-            </AppText>
-          </View>
-        ) : (
-          offers.map(offer => (
-            <OfferCard key={offer.id} offer={offer} />
-          ))
-        )}
+            {currentTab === tab.id && <View style={styles.tabIndicator} />}
+          </TouchableOpacity>
+        ))}
       </ScrollView>
+
+      <View style={styles.listContainer}>
+        <FlatList
+          data={filteredOffers}
+          keyExtractor={item => item.id}
+          renderItem={({ item }) => <OfferCard item={item} />}
+          contentContainerStyle={[
+            styles.list,
+            filteredOffers.length === 0 && styles.listEmpty,
+          ]}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIconContainer}>
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="send-outline"
+                  size={64}
+                  color={colors.gray}
+                />
+              </View>
+              <AppText variant={Variant.subTitle} style={styles.emptyTitle}>
+                No Offers Found
+              </AppText>
+              <AppText variant={Variant.body} style={styles.emptyText}>
+                No quick search offers in this category yet. Check other tabs or
+                post a new quick search job.
+              </AppText>
+            </View>
+          }
+        />
+      </View>
     </View>
   );
 };
@@ -240,85 +394,155 @@ export default ActiveOffers;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: '#F5F7FA',
   },
-  content: {
-    flex: 1,
+  tabRow: {
+    height: hp(7),
+    flexDirection: 'row',
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(1),
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
   },
-  scrollContent: {
+  tab: {
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.8),
+    borderRadius: hp(2),
+    marginRight: wp(1.5),
+    position: 'relative',
+    alignItems: 'center',
+  },
+  tabActive: {
+    backgroundColor: `${colors.primary}15`,
+  },
+  tabText: {
+    color: colors.gray,
+    fontSize: getFontSize(14),
+    fontWeight: '500',
+  },
+  tabTextActive: {
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  tabIndicator: {
+    position: 'absolute',
+    bottom: -hp(1),
+    left: '50%',
+    marginLeft: -wp(2.5),
+    width: wp(5),
+    height: 3,
+    backgroundColor: colors.primary,
+    borderRadius: 2,
+  },
+  listContainer: {
+    height: hp(70),
+  },
+  list: {
     padding: wp(4),
     paddingBottom: hp(4),
+    flexGrow: 0,
   },
-  card: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
+  listEmpty: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  offerCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: hp(2.5),
     padding: wp(4),
     marginBottom: hp(2),
-    shadowColor: colors.black,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
     borderWidth: 1,
-    borderColor: colors.grayE8 || '#E5E7EB',
+    borderColor: '#F3F4F6',
   },
   cardHeader: {
-    marginBottom: hp(1.5),
-  },
-  titleContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: hp(0.5),
+    alignItems: 'flex-start',
+    marginBottom: hp(2),
   },
-  candidateName: {
-    color: colors.secondary,
-    fontSize: getFontSize(18),
-    fontWeight: 'bold',
+  headerLeft: {
+    flexDirection: 'row',
     flex: 1,
   },
+  avatarContainer: {
+    width: wp(12),
+    height: wp(12),
+    borderRadius: wp(6),
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: wp(3),
+  },
+  avatarText: {
+    color: '#FFFFFF',
+    fontSize: getFontSize(18),
+    fontWeight: '700',
+  },
+  headerInfo: {
+    flex: 1,
+  },
+  offerTitle: {
+    fontSize: getFontSize(16),
+    fontWeight: '700',
+    color: colors.secondary,
+    marginBottom: hp(0.5),
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1),
+  },
+  offerMeta: {
+    color: colors.gray,
+    fontSize: getFontSize(12),
+  },
   statusBadge: {
-    paddingHorizontal: wp(3),
-    paddingVertical: hp(0.5),
-    borderRadius: 12,
-    marginLeft: wp(2),
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: wp(2.5),
+    paddingVertical: hp(0.6),
+    borderRadius: hp(2),
+    gap: wp(1),
   },
   statusText: {
-    fontWeight: '600',
     fontSize: getFontSize(11),
+    fontWeight: '600',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: hp(1.5),
+    paddingVertical: hp(1),
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1.5),
+    flex: 1,
+  },
+  statText: {
+    fontSize: getFontSize(12),
+    color: colors.secondary,
+    fontWeight: '500',
+  },
+  expiryContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1.5),
+    marginBottom: hp(1),
   },
   expiryText: {
     color: colors.gray,
     fontSize: getFontSize(12),
-  },
-  detailsRow: {
-    flexDirection: 'row',
-    marginBottom: hp(1),
-  },
-  detailItem: {
-    flex: 1,
-    marginRight: wp(2),
-  },
-  detailLabel: {
-    color: colors.gray,
-    fontSize: getFontSize(12),
-    marginBottom: hp(0.3),
-  },
-  detailValue: {
-    color: colors.secondary,
-    fontSize: getFontSize(14),
-    fontWeight: '600',
-  },
-  matchValue: {
-    color: colors.primary,
-    fontSize: getFontSize(14),
-    fontWeight: 'bold',
-  },
-  message: {
-    color: colors.secondary,
-    fontSize: getFontSize(14),
-    marginBottom: hp(1),
-    lineHeight: 20,
   },
   autoBadge: {
     alignSelf: 'flex-start',
@@ -332,69 +556,116 @@ const styles = StyleSheet.create({
     color: colors.gray,
     fontSize: getFontSize(10),
   },
-  buttonRow: {
-    flexDirection: 'row',
+  responseBox: {
+    backgroundColor: '#F9FAFB',
+    padding: wp(3.5),
+    borderRadius: hp(1.5),
     marginTop: hp(1),
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
   },
-  cancelButton: {
+  responseLabel: {
+    fontSize: getFontSize(12),
+    fontWeight: '600',
+    color: colors.gray,
+    marginBottom: hp(0.3),
+  },
+  responseValue: {
+    fontSize: getFontSize(12),
+    color: colors.secondary,
+  },
+  cardActions: {
+    flexDirection: 'row',
+    gap: wp(2),
+    marginTop: hp(2),
+  },
+  declineButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#EF4444',
-    borderRadius: 8,
-    paddingVertical: hp(1),
-    paddingHorizontal: wp(4),
+    justifyContent: 'center',
+    paddingVertical: hp(1.5),
+    borderRadius: hp(2),
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    gap: wp(1.5),
   },
-  cancelText: {
-    color: '#EF4444',
-    marginLeft: wp(2),
+  declineButtonText: {
+    color: colors.secondary,
+    fontSize: getFontSize(14),
     fontWeight: '600',
   },
-  resendButton: {
+  modifyButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
+    justifyContent: 'center',
+    paddingVertical: hp(1.5),
+    borderRadius: hp(2),
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
     borderColor: colors.primary,
-    borderRadius: 8,
-    paddingVertical: hp(1),
-    paddingHorizontal: wp(4),
+    gap: wp(1.5),
   },
-  resendText: {
+  modifyButtonText: {
     color: colors.primary,
-    marginLeft: wp(2),
+    fontSize: getFontSize(14),
     fontWeight: '600',
   },
   acceptedBadge: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(1.5),
+    borderRadius: hp(2),
     backgroundColor: '#D1FAE5',
-    borderRadius: 8,
-    paddingVertical: hp(1),
-    paddingHorizontal: wp(4),
+    gap: wp(1.5),
   },
   acceptedText: {
     color: '#065F46',
-    marginLeft: wp(2),
+    fontSize: getFontSize(14),
+    fontWeight: '600',
+  },
+  viewMatchesButton: {
+    marginLeft: 'auto',
+    paddingVertical: hp(1.2),
+    paddingHorizontal: wp(3),
+    borderRadius: hp(2),
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  viewMatchesText: {
+    color: colors.primary,
+    fontSize: getFontSize(12),
     fontWeight: '600',
   },
   emptyState: {
+    paddingVertical: hp(10),
+    paddingHorizontal: wp(5),
+    alignItems: 'center',
+  },
+  emptyIconContainer: {
+    width: wp(20),
+    height: wp(20),
+    borderRadius: wp(10),
+    backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: hp(10),
-    paddingHorizontal: wp(10),
+    marginBottom: hp(2),
   },
-  emptyText: {
-    color: colors.secondary,
+  emptyTitle: {
     fontSize: getFontSize(18),
-    fontWeight: '600',
-    marginTop: hp(2),
+    fontWeight: '700',
+    color: colors.secondary,
     marginBottom: hp(1),
   },
-  emptySubText: {
-    color: colors.gray,
+  emptyText: {
     fontSize: getFontSize(14),
+    color: colors.gray,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: getFontSize(20),
   },
 });
 

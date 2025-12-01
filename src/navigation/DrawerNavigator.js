@@ -164,6 +164,10 @@ const DrawerNavigator = () => {
         name={screenNames.TIMER_MANAGEMENT}
         component={ui.TimerManagement}
       />
+      <Drawer.Screen
+        name={screenNames.QUICK_SEARCH_MATCH_LIST}
+        component={ui.QuickSearchMatchList}
+      />
       
             <Drawer.Screen
         name={screenNames.MARKETPLACE_STACK}

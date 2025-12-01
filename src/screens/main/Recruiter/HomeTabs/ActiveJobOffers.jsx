@@ -86,10 +86,20 @@ const ActiveJobOffersScreen = ({ navigation }) => {
 
   const handleViewCandidates = (job) => {
     console.log('View candidates for:', job.title)
+    // For manual search jobs, go to Manual Offers
+    if (job?.searchType === 'manual') {
+      navigation.navigate(screenNames.MANUAL_OFFERS, { jobId: job.id })
+      return
+    }
+
+    // For quick search jobs, go to Quick Search offers
+    if (job?.searchType === 'quick') {
+      navigation.navigate(screenNames.QUICK_SEARCH_ACTIVE_OFFERS_RECRUITER)
+      return
+    }
+
+    // Fallback to manual offers if searchType is missing
     navigation.navigate(screenNames.MANUAL_OFFERS, { jobId: job.id })
-    return
-    
-    // Remove the old code that navigated through the stack
   }
 
   const handleViewMatches = (job) => {

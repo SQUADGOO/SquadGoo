@@ -37,6 +37,12 @@ const QuickSearchStack = () => {
         name={screenNames.QUICK_SEARCH_PREVIEW}
         component={ui.QuickSearchPreview}
       />
+
+      {/* Quick Search Matches */}
+      <Stack.Screen
+        name={screenNames.QUICK_SEARCH_MATCH_LIST}
+        component={ui.QuickSearchMatchList}
+      />
     </Stack.Navigator>
   );
 };
