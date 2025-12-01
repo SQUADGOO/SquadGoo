@@ -15,6 +15,7 @@ import AppButton from '@/core/AppButton'
 import { addJob } from '@/store/jobsSlice'
 import { createQuickJob, autoMatchCandidates } from '@/store/quickSearchSlice'
 import { screenNames } from '@/navigation/screenNames'
+import { formatTime } from '@/utilities/helperFunctions'
 
 const QuickSearchPreview = ({ navigation, route }) => {
   const dispatch = useDispatch()
@@ -26,6 +27,17 @@ const QuickSearchPreview = ({ navigation, route }) => {
     quickSearchStep3Data,
     quickSearchStep4Data 
   } = route.params || {}
+
+  const formatDate = (value) => {
+    if (!value) return 'Not specified'
+    const date = value instanceof Date ? value : new Date(value)
+    if (Number.isNaN(date.getTime())) return 'Not specified'
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    })
+  }
 
   const DetailRow = ({ label, value, valueStyle }) => (
     <View style={styles.detailRow}>
@@ -53,7 +65,7 @@ const QuickSearchPreview = ({ navigation, route }) => {
           {day}:
         </AppText>
         <AppText variant={Variant.bodyMedium} style={styles.hoursText}>
-          {timeData.from || '00:00'} - {timeData.to || '00:00'}
+          {formatTime(timeData.from)} - {formatTime(timeData.to)}
         </AppText>
       </View>
     )
@@ -86,8 +98,8 @@ const QuickSearchPreview = ({ navigation, route }) => {
       salaryMin: quickSearchStep3Data?.salaryMin || 0,
       salaryMax: quickSearchStep3Data?.salaryMax || 0,
       salaryType: 'Hourly',
-      jobStartDate: quickSearchStep2Data?.jobStartDate || 'TBD',
-      jobEndDate: quickSearchStep2Data?.jobEndDate || 'TBD',
+      jobStartDate: formatDate(quickSearchStep2Data?.jobStartDate),
+      jobEndDate: formatDate(quickSearchStep2Data?.jobEndDate),
       expireDate: expiryDate.toLocaleDateString('en-GB', {
         day: '2-digit',
         month: 'short',
@@ -198,11 +210,11 @@ const QuickSearchPreview = ({ navigation, route }) => {
         />
         <DetailRow 
           label="Job start date:" 
-          value={quickSearchStep2Data?.jobStartDate}
+          value={formatDate(quickSearchStep2Data?.jobStartDate)}
         />
         <DetailRow 
           label="Job end date:" 
-          value={quickSearchStep2Data?.jobEndDate}
+          value={formatDate(quickSearchStep2Data?.jobEndDate)}
         />
 
         {/* Step 3 Data - Salary & Benefits */}

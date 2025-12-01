@@ -10,6 +10,7 @@ import { colors, hp, wp, getFontSize } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import AppHeader from '@/core/AppHeader'
 import moment from 'moment'
+import { formatTime } from '@/utilities/helperFunctions'
 
 const ViewJobDetails = ({ navigation, route }) => {
   const { jobId, isCompleted, isExpired } = route.params || {}
@@ -64,6 +65,7 @@ const ViewJobDetails = ({ navigation, route }) => {
   )
 
   const AvailabilityRow = ({ day, timeData }) => {
+    console.log('timeData', timeData)
     if (!timeData?.enabled) return null
     
     return (
@@ -72,7 +74,7 @@ const ViewJobDetails = ({ navigation, route }) => {
           {day}:
         </AppText>
         <AppText variant={Variant.bodyMedium} style={styles.hoursText}>
-          {timeData.from || '00:00'} - {timeData.to || '00:00'}
+          {formatTime(timeData.from)} - {formatTime(timeData.to)}
         </AppText>
       </View>
     )

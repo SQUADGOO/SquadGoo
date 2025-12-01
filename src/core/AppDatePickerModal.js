@@ -31,11 +31,23 @@ const AppDatePickerModal = ({
     setVisible(false);
   };
 
+  const formatDisplayValue = () => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (mode === 'time') {
+      // Format time as HH:MM
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      return `${hours}:${minutes}`;
+    }
+    return date.toDateString();
+  };
+
   return (
     <View style={styles.container}>
       <AppInputField
         label={label}
-        value={value ? new Date(value).toDateString() : ''}
+        value={formatDisplayValue()}
         placeholder={placeholder}
         onPressField={() => setVisible(true)}
         editable={false}

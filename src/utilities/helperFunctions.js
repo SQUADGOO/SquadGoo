@@ -88,3 +88,11 @@ export const downloadAndOpenFile = async (uri, suggestedName = 'document') => {
     console.log('openLocalImageFile error:', error);
   }
 };
+
+
+export const formatTime = (value) => {
+  if (!value) return '';
+  
+  const date = new Date(value);
+  return date.toTimeString().slice(0, 5); 
+}

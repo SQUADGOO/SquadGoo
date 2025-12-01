@@ -1,11 +1,12 @@
 // QuickSearchStepTwo.js - Work Location
 import React, { useState } from 'react'
-import { 
-  View, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
-  Image 
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  Alert,
 } from 'react-native'
 import { useForm, FormProvider } from 'react-hook-form'
 import { colors, hp, wp, getFontSize } from '@/theme'
@@ -16,39 +17,48 @@ import FormField from '@/core/FormField'
 import Slider from '@react-native-community/slider'
 import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
-import DateTimePicker from '@react-native-community/datetimepicker'
 
 const QuickSearchStepTwo = ({ navigation, route }) => {
   // Get data from Step 1
   const { quickSearchStep1Data } = route.params || {}
 
   const [rangeKm, setRangeKm] = useState(119)
-  const [showStartDatePicker, setShowStartDatePicker] = useState(false)
-  const [showEndDatePicker, setShowEndDatePicker] = useState(false)
 
   const methods = useForm({
     mode: 'onChange',
     defaultValues: {
       workLocation: '',
       jobStartDate: '',
-      jobEndDate: ''
-    }
+      jobEndDate: '',
+    },
   })
-
-  const { setValue, watch } = methods
 
   const onSubmit = (data) => {
     const quickSearchStep2Data = {
       ...data,
-      rangeKm
+      rangeKm,
     }
-    
+
+    // Basic logical validation: end date should not be before start date
+    if (quickSearchStep2Data.jobStartDate && quickSearchStep2Data.jobEndDate) {
+      const start = new Date(quickSearchStep2Data.jobStartDate)
+      const end = new Date(quickSearchStep2Data.jobEndDate)
+
+      if (end < start) {
+        Alert.alert(
+          'Invalid dates',
+          'Job end date must be on or after the job start date.',
+        )
+        return
+      }
+    }
+
     console.log('Quick Search Step 2 Data:', quickSearchStep2Data)
-    
+
     // Pass both step1 and step2 data forward
     navigation.navigate(screenNames.QUICK_SEARCH_STEPTHREE, { 
       quickSearchStep1Data,
-      quickSearchStep2Data 
+      quickSearchStep2Data,
     })
   }
 
@@ -120,32 +130,26 @@ const QuickSearchStepTwo = ({ navigation, route }) => {
         </View>
 
         {/* Job Start Date */}
-        <TouchableOpacity 
-          onPress={() => setShowStartDatePicker(true)} 
-          activeOpacity={0.7}
-        >
-          <FormField
-            name="jobStartDate"
-            label="Job start date*"
-            placeholder="DD : MM : YYYY"
-            value={watch('jobStartDate')}
-            editable={false}
-          />
-        </TouchableOpacity>
+        <FormField
+          name="jobStartDate"
+          label="Job start date*"
+          placeholder="DD : MM : YYYY"
+          type="datePicker"
+          rules={{
+            required: 'Job start date is required',
+          }}
+        />
 
         {/* Job End Date */}
-        <TouchableOpacity 
-          onPress={() => setShowEndDatePicker(true)} 
-          activeOpacity={0.7}
-        >
-          <FormField
-            name="jobEndDate"
-            label="Job end date*"
-            placeholder="DD : MM : YYYY"
-            value={watch('jobEndDate')}
-            editable={false}
-          />
-        </TouchableOpacity>
+        <FormField
+          name="jobEndDate"
+          label="Job end date*"
+          placeholder="DD : MM : YYYY"
+          type="datePicker"
+          rules={{
+            required: 'Job end date is required',
+          }}
+        />
 
         {/* Next Button */}
         <View style={styles.buttonContainer}>
@@ -157,33 +161,6 @@ const QuickSearchStepTwo = ({ navigation, route }) => {
         </View>
       </ScrollView>
 
-      {/* Date Pickers */}
-      {showStartDatePicker && (
-        <DateTimePicker
-          value={new Date()}
-          mode="date"
-          display="default"
-          onChange={(event, date) => {
-            setShowStartDatePicker(false)
-            if (date) {
-              setValue('jobStartDate', date.toISOString().split('T')[0])
-            }
-          }}
-        />
-      )}
-      {showEndDatePicker && (
-        <DateTimePicker
-          value={new Date()}
-          mode="date"
-          display="default"
-          onChange={(event, date) => {
-            setShowEndDatePicker(false)
-            if (date) {
-              setValue('jobEndDate', date.toISOString().split('T')[0])
-            }
-          }}
-        />
-      )}
     </FormProvider>
   )
 }

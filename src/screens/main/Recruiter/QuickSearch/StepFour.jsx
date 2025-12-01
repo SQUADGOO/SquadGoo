@@ -5,16 +5,15 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Platform
 } from 'react-native'
 import { useForm, FormProvider, Controller } from 'react-hook-form'
-import DateTimePicker from '@react-native-community/datetimepicker'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import AppButton from '@/core/AppButton'
 import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
 import CustomCheckBox from '@/core/CustomCheckBox'
+import FormField from '@/core/FormField'
 
 const daysOfWeek = [
   'Monday', 'Tuesday', 'Wednesday',
@@ -33,28 +32,17 @@ const QuickSearchStepFour = ({ navigation, route }) => {
     mode: 'onChange',
     defaultValues: {
       availability: daysOfWeek.reduce((acc, day) => {
-        acc[day] = { enabled: false, from: null, to: null }
+        acc[day] = { enabled: false, from: '', to: '' }
         return acc
       }, {}),
-      taxType: 'ABN'
-    }
+      taxType: 'ABN',
+    },
   })
 
-  const { watch, setValue, control, handleSubmit } = methods
-  const [showPicker, setShowPicker] = useState({ day: null, field: null })
+  const { watch, control, handleSubmit } = methods
 
   const availability = watch('availability')
   const taxType = watch('taxType')
-
-  const handleTimeChange = (event, selectedDate) => {
-    if (showPicker.day && showPicker.field) {
-      const timeString = selectedDate
-        ? selectedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        : null
-      setValue(`availability.${showPicker.day}.${showPicker.field}`, timeString)
-    }
-    setShowPicker({ day: null, field: null })
-  }
 
   const onSubmit = (data) => {
     const quickSearchStep4Data = data
@@ -108,28 +96,28 @@ const QuickSearchStepFour = ({ navigation, route }) => {
               </AppText>
             </View>
 
-            {/* Time Pickers */}
+            {/* Time Pickers - using shared timePicker FormField */}
             {availability[day]?.enabled && (
               <View style={styles.timeRow}>
-                <TouchableOpacity
-                  style={styles.timeInput}
-                  onPress={() => setShowPicker({ day, field: 'from' })}
-                >
-                  <AppText style={styles.timeText}>
-                    {availability[day].from || '00:00'}
-                  </AppText>
-                </TouchableOpacity>
+                <View style={styles.timeInput}>
+                  <FormField
+                    name={`availability.${day}.from`}
+                    label="From"
+                    placeholder="00:00"
+                    type="timePicker"
+                  />
+                </View>
 
                 <AppText style={styles.toText}>To</AppText>
 
-                <TouchableOpacity
-                  style={styles.timeInput}
-                  onPress={() => setShowPicker({ day, field: 'to' })}
-                >
-                  <AppText style={styles.timeText}>
-                    {availability[day].to || '00:00'}
-                  </AppText>
-                </TouchableOpacity>
+                <View style={styles.timeInput}>
+                  <FormField
+                    name={`availability.${day}.to`}
+                    label="To"
+                    placeholder="00:00"
+                    type="timePicker"
+                  />
+                </View>
               </View>
             )}
           </View>
@@ -147,7 +135,7 @@ const QuickSearchStepFour = ({ navigation, route }) => {
                 styles.taxTypeBtn,
                 taxType === type && styles.taxTypeBtnActive,
               ]}
-              onPress={() => setValue('taxType', type)}
+              onPress={() => methods.setValue('taxType', type)}
             >
               <AppText
                 style={[
@@ -170,17 +158,6 @@ const QuickSearchStepFour = ({ navigation, route }) => {
           />
         </View>
       </ScrollView>
-
-      {/* Time Picker */}
-      {showPicker.day && (
-        <DateTimePicker
-          value={new Date()}
-          mode="time"
-          is24Hour={true}
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleTimeChange}
-        />
-      )}
     </FormProvider>
   )
 }
@@ -225,11 +202,11 @@ const styles = StyleSheet.create({
   },
   timeInput: {
     flex: 1,
-    paddingVertical: hp(1.5),
-    borderWidth: 1,
-    borderColor: colors.lightGray,
-    borderRadius: 8,
-    alignItems: 'center',
+    // paddingVertical: hp(1.5),
+    // borderWidth: 1,
+    // borderColor: colors.lightGray,
+    // borderRadius: 8,
+    // alignItems: 'center',
   },
   timeText: {
     color: colors.gray,

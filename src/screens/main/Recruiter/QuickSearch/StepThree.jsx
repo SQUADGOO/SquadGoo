@@ -1,6 +1,6 @@
 // QuickSearchStepThree.js - Salary & Benefits (Add your Step 3 content)
 import React, { useState } from 'react'
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
+import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native'
 import { useForm, FormProvider } from 'react-hook-form'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
@@ -27,8 +27,8 @@ const QuickSearchStepThree = ({ navigation, route }) => {
     mode: 'onChange',
     defaultValues: {
       salaryMin: '',
-      salaryMax: ''
-    }
+      salaryMax: '',
+    },
   })
 
   const handleToggle = (key) => {
@@ -39,18 +39,38 @@ const QuickSearchStepThree = ({ navigation, route }) => {
   }
 
   const onSubmit = (data) => {
+    const min = Number(data.salaryMin)
+    const max = Number(data.salaryMax)
+
+    if (Number.isNaN(min) || Number.isNaN(max)) {
+      Alert.alert('Invalid salary', 'Please enter numeric values for both minimum and maximum salary.')
+      return
+    }
+
+    if (min <= 0) {
+      Alert.alert('Invalid salary', 'Minimum salary must be greater than 0.')
+      return
+    }
+
+    if (max < min) {
+      Alert.alert('Invalid range', 'Maximum salary must be greater than or equal to minimum salary.')
+      return
+    }
+
     const quickSearchStep3Data = {
       ...data,
-      extraPay: toggleStates
+      salaryMin: min,
+      salaryMax: max,
+      extraPay: toggleStates,
     }
 
     console.log('Quick Search Step 3 Data:', quickSearchStep3Data)
-    
+
     // Pass all three steps' data forward
     navigation.navigate(screenNames.QUICK_SEARCH_STEPFOUR, {
       quickSearchStep1Data,
       quickSearchStep2Data,
-      quickSearchStep3Data
+      quickSearchStep3Data,
     })
   }
 
@@ -85,6 +105,11 @@ const QuickSearchStepThree = ({ navigation, route }) => {
                 name="salaryMin"
                 placeholder="Minimum"
                 keyboardType="numeric"
+                rules={{
+                  required: 'Minimum salary is required',
+                  validate: value =>
+                    value.trim() !== '' && !Number.isNaN(Number(value)) || 'Enter a valid number',
+                }}
                 startIcon={
                   <AppText variant={Variant.body} style={styles.currencySymbol}>$</AppText>
                 }
@@ -98,6 +123,11 @@ const QuickSearchStepThree = ({ navigation, route }) => {
                 name="salaryMax"
                 placeholder="Maximum"
                 keyboardType="numeric"
+                rules={{
+                  required: 'Maximum salary is required',
+                  validate: value =>
+                    value.trim() !== '' && !Number.isNaN(Number(value)) || 'Enter a valid number',
+                }}
                 startIcon={
                   <AppText variant={Variant.body} style={styles.currencySymbol}>$</AppText>
                 }
