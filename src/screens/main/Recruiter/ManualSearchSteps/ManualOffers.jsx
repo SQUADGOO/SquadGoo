@@ -22,6 +22,7 @@ import {
 } from '@/store/manualOffersSlice';
 import { showToast, toastTypes } from '@/utilities/toastConfig';
 import FormField from '@/core/FormField';
+import OfferCard from '@/components/Recruiter/Offers/OfferCard';
 import { FormProvider, useForm } from 'react-hook-form';
 
 const tabs = [
@@ -159,178 +160,28 @@ const ManualOffers = ({ navigation }) => {
   };
 
   const renderOffer = ({ item }) => (
-    <TouchableOpacity 
-      style={styles.offerCard}
-      activeOpacity={item.status === 'accepted' ? 0.7 : 1}
-      onPress={() => item.status === 'accepted' && setDetailModal(item)}
-      disabled={item.status !== 'accepted'}
-    >
-      {/* Card Header */}
-      <View style={styles.cardHeader}>
-        <View style={styles.headerLeft}>
-          <View style={styles.avatarContainer}>
-            <AppText variant={Variant.bodyMedium} style={styles.avatarText}>
-              {item.candidateName?.charAt(0)?.toUpperCase() || 'U'}
-            </AppText>
-          </View>
-          <View style={styles.headerInfo}>
-            <AppText variant={Variant.bodyMedium} style={styles.offerTitle}>
-              {item.candidateName}
-            </AppText>
-            <View style={styles.metaRow}>
-              <VectorIcons
-                name={iconLibName.Ionicons}
-                iconName="briefcase-outline"
-                size={12}
-                color={colors.gray}
-              />
-              <AppText variant={Variant.caption} style={styles.offerMeta}>
-                {item.jobTitle}
-              </AppText>
-            </View>
-          </View>
-        </View>
-        <View style={[styles.statusBadge, { backgroundColor: `${getStatusColor(item.status)}15` }]}>
-          <VectorIcons
-            name={iconLibName.Ionicons}
-            iconName={getStatusIcon(item.status)}
-            size={14}
-            color={getStatusColor(item.status)}
-          />
-          <AppText 
-            variant={Variant.caption} 
-            style={[styles.statusText, { color: getStatusColor(item.status) }]}
-          >
-            {item.status.replace('_', ' ').toUpperCase()}
-          </AppText>
-        </View>
-      </View>
-
-      {/* Match & Rating Info */}
-      <View style={styles.statsRow}>
-        <View style={styles.statItem}>
-          <VectorIcons
-            name={iconLibName.Ionicons}
-            iconName="stats-chart"
-            size={14}
-            color={colors.primary}
-          />
-          <AppText variant={Variant.caption} style={styles.statText}>
-            {item.matchPercentage}% Match
-          </AppText>
-        </View>
-        <View style={styles.statItem}>
-          <VectorIcons
-            name={iconLibName.Ionicons}
-            iconName="star"
-            size={14}
-            color="#F59E0B"
-          />
-          <AppText variant={Variant.caption} style={styles.statText}>
-            Rating: {item.acceptanceRating || 'Pending'}%
-          </AppText>
-        </View>
-      </View>
-
-      {/* Expiry Info */}
-      <View style={styles.expiryContainer}>
-        <VectorIcons
-          name={iconLibName.Ionicons}
-          iconName="time-outline"
-          size={14}
-          color={colors.gray}
-        />
-        <AppText variant={Variant.caption} style={styles.expiryText}>
-          Expires: {formatDate(item.expiresAt)}
-        </AppText>
-      </View>
-
-      {/* Response Box */}
-      {item.response ? (
-        <View style={styles.responseBox}>
-          <View style={styles.responseHeader}>
-            <VectorIcons
-              name={iconLibName.Ionicons}
-              iconName={item.response.type === 'accepted' ? 'checkmark-circle' : item.response.type === 'declined' ? 'close-circle' : 'create-outline'}
-              size={16}
-              color={getStatusColor(item.response.type === 'accepted' ? 'accepted' : item.response.type === 'declined' ? 'declined' : 'modification_requested')}
-            />
-            <AppText variant={Variant.bodyMedium} style={styles.responseTitle}>
-              {item.response.type.charAt(0).toUpperCase() + item.response.type.slice(1)}
-            </AppText>
-          </View>
-          {item.response.reason ? (
-            <View style={styles.responseDetail}>
-              <AppText variant={Variant.caption} style={styles.responseLabel}>
-                Reason:
-              </AppText>
-              <AppText variant={Variant.caption} style={styles.responseValue}>
-                {item.response.reason.label}
-                {item.response.reason.note ? ` - ${item.response.reason.note}` : ''}
-              </AppText>
-            </View>
-          ) : null}
-          {item.response.modification ? (
-            <>
-              <View style={styles.responseDetail}>
-                <AppText variant={Variant.caption} style={styles.responseLabel}>
-                  Requested Pay:
-                </AppText>
-                <AppText variant={Variant.caption} style={styles.responseValue}>
-                  {item.response.modification.payRate}
-                </AppText>
-              </View>
-              {item.response.modification.message ? (
-                <View style={styles.responseDetail}>
-                  <AppText variant={Variant.caption} style={styles.responseLabel}>
-                    Message:
-                  </AppText>
-                  <AppText variant={Variant.caption} style={styles.responseValue}>
-                    {item.response.modification.message}
-                  </AppText>
-                </View>
-              ) : null}
-            </>
-          ) : null}
-        </View>
-      ) : null}
-
-      {/* Action Buttons for Modification Requests */}
-      {item.status === 'modification_requested' ? (
-        <View style={styles.cardActions}>
-          <TouchableOpacity
-            style={styles.acceptButton}
-            onPress={() => handleAccept(item.id)}
-            activeOpacity={0.8}
-          >
-            <VectorIcons
-              name={iconLibName.Ionicons}
-              iconName="checkmark"
-              size={18}
-              color="#FFFFFF"
-            />
-            <AppText variant={Variant.bodyMedium} style={styles.acceptButtonText}>
-              Accept
-            </AppText>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.declineButton}
-            onPress={() => openDeclineModal(item)}
-            activeOpacity={0.8}
-          >
-            <VectorIcons
-              name={iconLibName.Ionicons}
-              iconName="close"
-              size={18}
-              color={colors.secondary}
-            />
-            <AppText variant={Variant.bodyMedium} style={styles.declineButtonText}>
-              Decline
-            </AppText>
-          </TouchableOpacity>
-        </View>
-      ) : null}
-    </TouchableOpacity>
+    <OfferCard
+      mode="manual"
+      candidateName={item.candidateName}
+      jobTitle={item.jobTitle}
+      status={item.status}
+      matchPercentage={item.matchPercentage}
+      acceptanceRating={item.acceptanceRating || 'Pending'}
+      expiresLabel={formatDate(item.expiresAt)}
+      message={item.message}
+      response={item.response}
+      onPress={item.status === 'accepted' ? () => setDetailModal(item) : undefined}
+      onAcceptModification={
+        item.status === 'modification_requested'
+          ? () => handleAccept(item.id)
+          : undefined
+      }
+      onDeclineModification={
+        item.status === 'modification_requested'
+          ? () => openDeclineModal(item)
+          : undefined
+      }
+    />
   );
 
   return (

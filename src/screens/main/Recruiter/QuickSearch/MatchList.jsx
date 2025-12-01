@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import AppHeader from '@/core/AppHeader';
 import AppText, { Variant } from '@/core/AppText';
 import AppDropDown from '@/core/AppDropDown';
@@ -11,6 +11,9 @@ import {
   selectQuickJobById,
   selectQuickMatchesByJobId,
 } from '@/store/quickSearchSlice';
+import { sendQuickOffer } from '@/store/quickSearchSlice';
+import SendManualOfferModal from '@/components/Recruiter/ManualSearch/SendManualOfferModal';
+import { showToast, toastTypes } from '@/utilities/toastConfig';
 
 const matchFilterOptions = [
   { label: 'All', value: 0 },
@@ -28,6 +31,7 @@ const ratingFilterOptions = [
 
 const QuickSearchMatchList = ({ route, navigation }) => {
   const { jobId } = route.params || {};
+  const dispatch = useDispatch();
   const job = useSelector(state => selectQuickJobById(state, jobId));
   const matches = useSelector(state => selectQuickMatchesByJobId(state, jobId));
 
@@ -35,6 +39,7 @@ const QuickSearchMatchList = ({ route, navigation }) => {
   const [ratingThreshold, setRatingThreshold] = useState(0);
   const [matchDropdownVisible, setMatchDropdownVisible] = useState(false);
   const [ratingDropdownVisible, setRatingDropdownVisible] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
 
   const filteredMatches = useMemo(
     () =>
@@ -45,6 +50,27 @@ const QuickSearchMatchList = ({ route, navigation }) => {
       ),
     [matches, matchThreshold, ratingThreshold],
   );
+
+  const handleOpenOfferModal = (candidate) => {
+    setSelectedCandidate(candidate);
+  };
+
+  const handleSendOffer = ({ expiresAt, message }) => {
+    if (!jobId || !selectedCandidate) return;
+
+    dispatch(
+      sendQuickOffer({
+        jobId,
+        candidateId: selectedCandidate.id,
+        expiresAt,
+        message,
+        autoSent: false,
+      }),
+    );
+
+    showToast('Offer sent successfully', 'Success', toastTypes.success);
+    setSelectedCandidate(null);
+  };
 
   const renderCandidate = ({ item }) => (
     <View style={styles.card}>
@@ -154,8 +180,24 @@ const QuickSearchMatchList = ({ route, navigation }) => {
         </View>
       )}
 
-      {/* Note: for quick search we don't send manual offers from here,
-          offers are auto-sent; this is a readonly match view. */}
+      {/* Action Button: Send Offer manually (quick search) */}
+      <View style={styles.cardActions}>
+        <TouchableOpacity
+          style={styles.sendOfferButton}
+          onPress={() => handleOpenOfferModal(item)}
+          activeOpacity={0.8}
+        >
+          <VectorIcons
+            name={iconLibName.Ionicons}
+            iconName="send"
+            size={16}
+            color="#FFFFFF"
+          />
+          <AppText variant={Variant.bodyMedium} style={styles.sendOfferText}>
+            Send Offer
+          </AppText>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -273,17 +315,7 @@ const QuickSearchMatchList = ({ route, navigation }) => {
         title="Matched Candidates"
         showBackButton
         onBackPress={() => navigation.goBack()}
-        rightComponent={
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate(screenNames.QUICK_SEARCH_ACTIVE_OFFERS_RECRUITER)
-            }
-          >
-            <AppText variant={Variant.body} style={styles.linkText}>
-              View Offers
-            </AppText>
-          </TouchableOpacity>
-        }
+       
       />
 
       <FlatList
@@ -321,6 +353,13 @@ const QuickSearchMatchList = ({ route, navigation }) => {
             </TouchableOpacity>
           </View>
         }
+      />
+
+      <SendManualOfferModal
+        visible={Boolean(selectedCandidate)}
+        candidate={selectedCandidate}
+        onClose={() => setSelectedCandidate(null)}
+        onSubmit={handleSendOffer}
       />
     </View>
   );
@@ -552,6 +591,26 @@ const styles = StyleSheet.create({
     fontSize: getFontSize(12),
     color: colors.gray,
     flex: 1,
+  },
+  cardActions: {
+    flexDirection: 'row',
+    gap: wp(2.5),
+    marginTop: hp(1),
+  },
+  sendOfferButton: {
+    flex: 1,
+    paddingVertical: hp(1.5),
+    borderRadius: hp(2),
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: wp(2),
+  },
+  sendOfferText: {
+    color: '#FFFFFF',
+    fontSize: getFontSize(14),
+    fontWeight: '600',
   },
   linkText: {
     color: '#FFFFFF',

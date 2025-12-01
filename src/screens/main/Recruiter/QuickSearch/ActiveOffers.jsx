@@ -12,6 +12,7 @@ import { colors, hp, wp, getFontSize } from '@/theme';
 import AppText, { Variant } from '@/core/AppText';
 import AppHeader from '@/core/AppHeader';
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
+import OfferCard from '@/components/Recruiter/Offers/OfferCard';
 import {
   selectQuickOffers,
   cancelOffer,
@@ -23,16 +24,19 @@ import { sendQuickOffer } from '@/store/quickSearchSlice';
 
 const tabs = [
   { id: 'pending', label: 'Pending' },
+  { id: 'matches', label: 'Matches' },
   { id: 'accepted', label: 'Accepted' },
   { id: 'declined', label: 'Declined' },
   { id: 'expired', label: 'Expired' },
 ];
 
-const ActiveOffers = ({ navigation }) => {
+const ActiveOffers = ({ navigation, route }) => {
   const dispatch = useDispatch();
   const allOffers = useSelector(selectQuickOffers);
   const quickJobs = useSelector(state => state.quickSearch.quickJobs);
   const matchesByJobId = useSelector(state => state.quickSearch.matchesByJobId);
+
+  const jobIdFromRoute = route?.params?.jobId;
 
   const [currentTab, setCurrentTab] = useState('pending');
 
@@ -43,10 +47,12 @@ const ActiveOffers = ({ navigation }) => {
 
   const offers = useMemo(
     () =>
-      allOffers.filter(offer =>
-        ['pending', 'accepted', 'declined', 'expired'].includes(offer.status),
+      allOffers.filter(
+        offer =>
+          ['pending', 'accepted', 'declined', 'expired'].includes(offer.status) &&
+          (!jobIdFromRoute || offer.jobId === jobIdFromRoute),
       ),
-    [allOffers],
+    [allOffers, jobIdFromRoute],
   );
 
   const filteredOffers = useMemo(
@@ -112,214 +118,6 @@ const ActiveOffers = ({ navigation }) => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'pending':
-        return '#F59E0B';
-      case 'accepted':
-        return '#10B981';
-      case 'declined':
-        return '#EF4444';
-      case 'expired':
-        return '#6B7280';
-      default:
-        return colors.gray;
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'pending':
-        return 'time-outline';
-      case 'accepted':
-        return 'checkmark-circle';
-      case 'declined':
-        return 'close-circle';
-      case 'expired':
-        return 'hourglass-outline';
-      default:
-        return 'ellipse-outline';
-    }
-  };
-
-  const OfferCard = ({ item }) => (
-    <View style={styles.offerCard}>
-      {/* Header: avatar + name + job + status */}
-      <View style={styles.cardHeader}>
-        <View style={styles.headerLeft}>
-          <View style={styles.avatarContainer}>
-            <AppText variant={Variant.bodyMedium} style={styles.avatarText}>
-              {item.candidateName?.charAt(0)?.toUpperCase() || 'U'}
-            </AppText>
-          </View>
-          <View style={styles.headerInfo}>
-            <AppText variant={Variant.bodyMedium} style={styles.offerTitle}>
-              {item.candidateName}
-            </AppText>
-            <View style={styles.metaRow}>
-              <VectorIcons
-                name={iconLibName.Ionicons}
-                iconName="briefcase-outline"
-                size={12}
-                color={colors.gray}
-              />
-              <AppText variant={Variant.caption} style={styles.offerMeta}>
-                {item.jobTitle}
-              </AppText>
-            </View>
-          </View>
-        </View>
-
-        <View
-          style={[
-            styles.statusBadge,
-            { backgroundColor: `${getStatusColor(item.status)}15` },
-          ]}
-        >
-          <VectorIcons
-            name={iconLibName.Ionicons}
-            iconName={getStatusIcon(item.status)}
-            size={14}
-            color={getStatusColor(item.status)}
-          />
-          <AppText
-            variant={Variant.caption}
-            style={[styles.statusText, { color: getStatusColor(item.status) }]}
-          >
-            {item.status.toUpperCase()}
-          </AppText>
-        </View>
-      </View>
-
-      {/* Match & Rating */}
-      <View style={styles.statsRow}>
-        <View style={styles.statItem}>
-          <VectorIcons
-            name={iconLibName.Ionicons}
-            iconName="stats-chart"
-            size={14}
-            color={colors.primary}
-          />
-          <AppText variant={Variant.caption} style={styles.statText}>
-            {Math.round(item.matchPercentage || 0)}% Match
-          </AppText>
-        </View>
-        <View style={styles.statItem}>
-          <VectorIcons
-            name={iconLibName.Ionicons}
-            iconName="star"
-            size={14}
-            color="#F59E0B"
-          />
-          <AppText variant={Variant.caption} style={styles.statText}>
-            Rating: {item.acceptanceRating ?? 'N/A'}%
-          </AppText>
-        </View>
-      </View>
-
-      {/* Expiry */}
-      <View style={styles.expiryContainer}>
-        <VectorIcons
-          name={iconLibName.Ionicons}
-          iconName="time-outline"
-          size={14}
-          color={colors.gray}
-        />
-        <AppText variant={Variant.caption} style={styles.expiryText}>
-          Expires: {formatExpiryLabel(item.expiresAt)}
-        </AppText>
-      </View>
-
-      {/* Auto-sent + message */}
-      {item.autoSent && (
-        <View style={styles.autoBadge}>
-          <AppText variant={Variant.caption} style={styles.autoText}>
-            🤖 Auto-sent
-          </AppText>
-        </View>
-      )}
-
-      {item.message && (
-        <View style={styles.responseBox}>
-          <AppText variant={Variant.caption} style={styles.responseLabel}>
-            Message:
-          </AppText>
-          <AppText variant={Variant.caption} style={styles.responseValue}>
-            {item.message}
-          </AppText>
-        </View>
-      )}
-
-      {/* Actions: keep quick-search behaviour but styled like manual */}
-      <View style={styles.cardActions}>
-        {item.status === 'pending' && (
-          <TouchableOpacity
-            style={styles.declineButton}
-            onPress={() => handleCancel(item.id)}
-            activeOpacity={0.8}
-          >
-            <VectorIcons
-              name={iconLibName.Ionicons}
-              iconName="close"
-              size={18}
-              color={colors.secondary}
-            />
-            <AppText variant={Variant.bodyMedium} style={styles.declineButtonText}>
-              Cancel Offer
-            </AppText>
-          </TouchableOpacity>
-        )}
-
-        {(item.status === 'declined' || item.status === 'expired') && (
-          <TouchableOpacity
-            style={styles.modifyButton}
-            onPress={() => handleResend(item)}
-            activeOpacity={0.8}
-          >
-            <VectorIcons
-              name={iconLibName.Ionicons}
-              iconName="refresh-outline"
-              size={18}
-              color={colors.primary}
-            />
-            <AppText variant={Variant.bodyMedium} style={styles.modifyButtonText}>
-              Resend to Next Match
-            </AppText>
-          </TouchableOpacity>
-        )}
-
-        {item.status === 'accepted' && (
-          <View style={styles.acceptedBadge}>
-            <VectorIcons
-              name={iconLibName.Ionicons}
-              iconName="checkmark-circle"
-              size={18}
-              color="#10B981"
-            />
-            <AppText variant={Variant.bodyMedium} style={styles.acceptedText}>
-              Offer Accepted
-            </AppText>
-          </View>
-        )}
-
-        {/* View all matches for this job */}
-        <TouchableOpacity
-          style={styles.viewMatchesButton}
-          onPress={() =>
-            navigation.navigate(screenNames.QUICK_SEARCH_MATCH_LIST, {
-              jobId: item.jobId,
-            })
-          }
-          activeOpacity={0.8}
-        >
-          <AppText variant={Variant.bodyMedium} style={styles.viewMatchesText}>
-            View all matches
-          </AppText>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
   return (
     <View style={styles.container}>
       <AppHeader
@@ -338,7 +136,22 @@ const ActiveOffers = ({ navigation }) => {
           <TouchableOpacity
             key={tab.id}
             style={[styles.tab, currentTab === tab.id && styles.tabActive]}
-            onPress={() => setCurrentTab(tab.id)}
+            onPress={() => {
+              if (tab.id === 'matches') {
+                if (!jobIdFromRoute) {
+                  Alert.alert(
+                    'No job selected',
+                    'Matches are only available when viewing offers for a specific quick search job.',
+                  );
+                  return;
+                }
+                navigation.navigate(screenNames.QUICK_SEARCH_MATCH_LIST, {
+                  jobId: jobIdFromRoute,
+                });
+              } else {
+                setCurrentTab(tab.id);
+              }
+            }}
             activeOpacity={0.7}
           >
             <AppText
@@ -350,7 +163,9 @@ const ActiveOffers = ({ navigation }) => {
             >
               {tab.label}
             </AppText>
-            {currentTab === tab.id && <View style={styles.tabIndicator} />}
+            {currentTab === tab.id && tab.id !== 'matches' && (
+              <View style={styles.tabIndicator} />
+            )}
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -359,7 +174,29 @@ const ActiveOffers = ({ navigation }) => {
         <FlatList
           data={filteredOffers}
           keyExtractor={item => item.id}
-          renderItem={({ item }) => <OfferCard item={item} />}
+          renderItem={({ item }) => (
+            <OfferCard
+              mode="quick"
+              candidateName={item.candidateName}
+              jobTitle={item.jobTitle}
+              status={item.status}
+              matchPercentage={item.matchPercentage}
+              acceptanceRating={item.acceptanceRating}
+              expiresLabel={formatExpiryLabel(item.expiresAt)}
+              message={item.message}
+              autoSent={item.autoSent}
+              onCancel={
+                item.status === 'pending'
+                  ? () => handleCancel(item.id)
+                  : undefined
+              }
+              onResend={
+                item.status === 'declined' || item.status === 'expired'
+                  ? () => handleResend(item)
+                  : undefined
+              }
+            />
+          )}
           contentContainerStyle={[
             styles.list,
             filteredOffers.length === 0 && styles.listEmpty,
@@ -626,19 +463,6 @@ const styles = StyleSheet.create({
   acceptedText: {
     color: '#065F46',
     fontSize: getFontSize(14),
-    fontWeight: '600',
-  },
-  viewMatchesButton: {
-    marginLeft: 'auto',
-    paddingVertical: hp(1.2),
-    paddingHorizontal: wp(3),
-    borderRadius: hp(2),
-    borderWidth: 1,
-    borderColor: colors.primary,
-  },
-  viewMatchesText: {
-    color: colors.primary,
-    fontSize: getFontSize(12),
     fontWeight: '600',
   },
   emptyState: {

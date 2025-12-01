@@ -92,9 +92,11 @@ const ActiveJobOffersScreen = ({ navigation }) => {
       return
     }
 
-    // For quick search jobs, go to Quick Search offers
+    // For quick search jobs, go to Quick Search offers (scoped to this job)
     if (job?.searchType === 'quick') {
-      navigation.navigate(screenNames.QUICK_SEARCH_ACTIVE_OFFERS_RECRUITER)
+      navigation.navigate(screenNames.QUICK_SEARCH_ACTIVE_OFFERS_RECRUITER, {
+        jobId: job.id,
+      })
       return
     }
 
