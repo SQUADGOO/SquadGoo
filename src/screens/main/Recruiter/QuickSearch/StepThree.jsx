@@ -8,6 +8,7 @@ import AppButton from '@/core/AppButton'
 import FormField from '@/core/FormField'
 import AppHeader from '@/core/AppHeader'
 import CustomToggle from '@/core/CustomToggle'
+import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
 import globalStyles from '@/styles/globalStyles'
 import { screenNames } from '@/navigation/screenNames'
 
@@ -22,6 +23,8 @@ const QuickSearchStepThree = ({ navigation, route }) => {
     bonuses: true,
     overtime: true
   })
+
+  const [paymentMethod, setPaymentMethod] = useState('platform') // 'platform' or 'direct'
 
   const methods = useForm({
     mode: 'onChange',
@@ -62,6 +65,7 @@ const QuickSearchStepThree = ({ navigation, route }) => {
       salaryMin: min,
       salaryMax: max,
       extraPay: toggleStates,
+      paymentMethod: paymentMethod, // 'platform' or 'direct'
     }
 
     console.log('Quick Search Step 3 Data:', quickSearchStep3Data)
@@ -133,6 +137,86 @@ const QuickSearchStepThree = ({ navigation, route }) => {
                 }
               />
             </View>
+          </View>
+        </View>
+
+        {/* Payment Method Section */}
+        <View style={styles.section}>
+          <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
+            Payment Method*
+          </AppText>
+          <AppText variant={Variant.caption} style={styles.sectionSubtitle}>
+            Choose how payment will be handled for this job
+          </AppText>
+          
+          <View style={styles.paymentMethodRow}>
+            <TouchableOpacity
+              style={[
+                styles.paymentMethodButton,
+                paymentMethod === 'platform' && styles.paymentMethodButtonActive
+              ]}
+              onPress={() => setPaymentMethod('platform')}
+              activeOpacity={0.7}
+            >
+              <VectorIcons
+                name={iconLibName.Ionicons}
+                iconName="card-outline"
+                size={24}
+                color={paymentMethod === 'platform' ? colors.white : colors.primary}
+              />
+              <AppText
+                variant={Variant.bodyMedium}
+                style={[
+                  styles.paymentMethodText,
+                  paymentMethod === 'platform' && styles.paymentMethodTextActive
+                ]}
+              >
+                Platform Payment
+              </AppText>
+              <AppText
+                variant={Variant.caption}
+                style={[
+                  styles.paymentMethodSubtext,
+                  paymentMethod === 'platform' && styles.paymentMethodSubtextActive
+                ]}
+              >
+                SquadGoo handles payment
+              </AppText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.paymentMethodButton,
+                paymentMethod === 'direct' && styles.paymentMethodButtonActive
+              ]}
+              onPress={() => setPaymentMethod('direct')}
+              activeOpacity={0.7}
+            >
+              <VectorIcons
+                name={iconLibName.Ionicons}
+                iconName="cash-outline"
+                size={24}
+                color={paymentMethod === 'direct' ? colors.white : colors.primary}
+              />
+              <AppText
+                variant={Variant.bodyMedium}
+                style={[
+                  styles.paymentMethodText,
+                  paymentMethod === 'direct' && styles.paymentMethodTextActive
+                ]}
+              >
+                Direct Payment
+              </AppText>
+              <AppText
+                variant={Variant.caption}
+                style={[
+                  styles.paymentMethodSubtext,
+                  paymentMethod === 'direct' && styles.paymentMethodSubtextActive
+                ]}
+              >
+                Between parties
+              </AppText>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -242,5 +326,48 @@ const styles = StyleSheet.create({
   buttonContainer: { 
     marginTop: hp(2), 
     marginBottom: hp(6) 
+  },
+  sectionSubtitle: {
+    color: colors.gray,
+    fontSize: getFontSize(12),
+    marginBottom: hp(1.5),
+  },
+  paymentMethodRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: wp(3),
+  },
+  paymentMethodButton: {
+    flex: 1,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    borderRadius: 12,
+    padding: wp(4),
+    alignItems: 'center',
+    backgroundColor: colors.white,
+  },
+  paymentMethodButtonActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  paymentMethodText: {
+    color: colors.primary,
+    fontSize: getFontSize(14),
+    fontWeight: '600',
+    marginTop: hp(1),
+    textAlign: 'center',
+  },
+  paymentMethodTextActive: {
+    color: colors.white,
+  },
+  paymentMethodSubtext: {
+    color: colors.gray,
+    fontSize: getFontSize(11),
+    marginTop: hp(0.5),
+    textAlign: 'center',
+  },
+  paymentMethodSubtextActive: {
+    color: colors.white,
+    opacity: 0.9,
   },
 })

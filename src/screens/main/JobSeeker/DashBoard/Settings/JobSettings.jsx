@@ -1,32 +1,71 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {StyleSheet, View, Switch} from 'react-native';
+import {useDispatch, useSelector} from 'react-redux';
 import AppHeader from '@/core/AppHeader';
 import AppText, {Variant} from '@/core/AppText';
 import AppDropDown from '@/core/AppDropDown';
 import CustomCalendar from '@/core/CustomCalendar';
 import {colors, hp} from '@/theme';
 import { ScrollView } from 'react-native-gesture-handler';
+import {updateJobSeekerQuickSettings, updateJobOfferType, selectJobSeekerQuickSettings, selectJobOfferType} from '@/store/settingsSlice';
 
 const JobSettings = () => {
+  const dispatch = useDispatch();
+  const quickSettings = useSelector(selectJobSeekerQuickSettings);
+  const jobOfferType = useSelector(selectJobOfferType);
+  
   const [isVisible, setIsVisible] = useState(false);
   const [isVisible1, setIsVisible1] = useState(false);
-  const [postFilter, setPostFilter] = useState('all');
-  const [postFilter1, setPostFilter1] = useState('all');
+  const [postFilter, setPostFilter] = useState(jobOfferType || 'both');
+  const [postFilter1, setPostFilter1] = useState('both');
+  
+  // Local state for switches
+  const [onlyPlatformPayment, setOnlyPlatformPayment] = useState(quickSettings.onlyPlatformPayment || false);
+  const [onlySufficientBalance, setOnlySufficientBalance] = useState(quickSettings.onlySufficientBalance || false);
+  const [onlyProBadge, setOnlyProBadge] = useState(quickSettings.onlyProBadgeOrAbove || false);
 
-  const postOptions = [
-    {label: 'All Post', value: 'all'},
-    {label: 'Last week', value: 'last_week'},
-    {label: 'Last 2 weeks', value: 'last_2_weeks'},
-    {label: 'Last month', value: 'last_month'},
+  const jobOfferTypeOptions = [
+    {label: 'Manual Only', value: 'manual'},
+    {label: 'Quick Only', value: 'quick'},
+    {label: 'Both', value: 'both'},
   ];
 
-  const handlePostFilterChange = (value, option) => {
+  const userTypeOptions = [
+    {label: 'Recruiter Only', value: 'recruiter'},
+    {label: 'Individual Only', value: 'individual'},
+    {label: 'Both', value: 'both'},
+  ];
+
+  const handleJobOfferTypeChange = (value, option) => {
     setPostFilter(value);
-    console.log('Post filter changed to:', option.label);
+    dispatch(updateJobOfferType({ jobOfferType: value }));
+  };
+
+  const handleUserTypeChange = (value, option) => {
+    setPostFilter1(value);
+    dispatch(updateJobOfferType({ offersFromUserType: value }));
+  };
+
+  const handleOnlyPlatformPaymentChange = (value) => {
+    setOnlyPlatformPayment(value);
+    dispatch(updateJobSeekerQuickSettings({ onlyPlatformPayment: value }));
+  };
+
+  const handleOnlySufficientBalanceChange = (value) => {
+    setOnlySufficientBalance(value);
+    dispatch(updateJobSeekerQuickSettings({ onlySufficientBalance: value }));
+  };
+
+  const handleOnlyProBadgeChange = (value) => {
+    setOnlyProBadge(value);
+    dispatch(updateJobSeekerQuickSettings({ onlyProBadgeOrAbove: value }));
   };
 
   const handleDateSelect = date => {
-    console.log('Selected Date:', date);
+    // Update availability settings
+    const availability = quickSettings.availability || {};
+    // In a real app, this would update the availability calendar
+    dispatch(updateJobSeekerQuickSettings({ availability }));
   };
 
   return (
@@ -47,12 +86,12 @@ const JobSettings = () => {
           Type of Job Offers
         </AppText>
         <AppDropDown
-          placeholder="All Post"
-          options={postOptions}
+          placeholder="Select job offer type"
+          options={jobOfferTypeOptions}
           isVisible={isVisible}
           setIsVisible={setIsVisible}
           selectedValue={postFilter}
-          onSelect={handlePostFilterChange}
+          onSelect={handleJobOfferTypeChange}
           style={[styles.filterDropdown,{zindex: 1}]}
         />
 
@@ -61,39 +100,52 @@ const JobSettings = () => {
           Offers from User Type
         </AppText>
         <AppDropDown
-          placeholder="All Post"
-          options={postOptions}
+          placeholder="Select user type"
+          options={userTypeOptions}
           isVisible={isVisible1}
           setIsVisible={setIsVisible1}
           selectedValue={postFilter1}
-          onSelect={handlePostFilterChange}
+          onSelect={handleUserTypeChange}
           style={styles.filterDropdown}
         />
 
-        {/* Switches */}
+        {/* Quick Offer Settings - Only show if quick offers are enabled */}
+        {(postFilter === 'quick' || postFilter === 'both') && (
+          <>
         <AppText variant={Variant.caption} style={styles.label}>
           Quick Offer Settings
         </AppText>
         <View style={styles.switchRow}>
-          <Switch />
+              <Switch 
+                value={onlyPlatformPayment}
+                onValueChange={handleOnlyPlatformPaymentChange}
+              />
           <AppText variant={Variant.caption} style={styles.switchLabel}>
             Only receive offers with platform-handled payments
           </AppText>
         </View>
 
         <View style={styles.switchRow}>
-          <Switch />
+              <Switch 
+                value={onlySufficientBalance}
+                onValueChange={handleOnlySufficientBalanceChange}
+              />
           <AppText variant={Variant.caption} style={styles.switchLabel}>
             Only from recruiters with sufficient balance
           </AppText>
         </View>
 
         <View style={styles.switchRow}>
-          <Switch />
+              <Switch 
+                value={onlyProBadge}
+                onValueChange={handleOnlyProBadgeChange}
+              />
           <AppText variant={Variant.caption} style={styles.switchLabel}>
             Only from PRO badge or above recruiters
           </AppText>
         </View>
+          </>
+        )}
 
         <AppText variant={Variant.caption} style={styles.label}>
           Availability for Quick Offers

@@ -164,11 +164,36 @@ const quickSearchSlice = createSlice({
 
     // Send quick offer to a job seeker
     sendQuickOffer: (state, { payload }) => {
-      const { jobId, candidateId, expiresAt, message, autoSent = false } = payload;
+      const { 
+        jobId, 
+        candidateId, 
+        expiresAt, 
+        message, 
+        autoSent = false,
+        jobSeekerSettings = {},
+        recruiterBalance = 0,
+      } = payload;
       const job = state.quickJobs.find(j => j.id === jobId);
       const candidate = state.matchesByJobId[jobId]?.find(m => m.id === candidateId);
 
       if (!job || !candidate) return;
+
+      // Check job seeker settings before sending offer
+      // Filter: Only receive offers with platform-handled payments
+      if (jobSeekerSettings.onlyPlatformPayment && job.paymentMethod !== 'platform') {
+        return; // Don't send offer if job seeker only wants platform payment but job is direct payment
+      }
+
+      // Filter: Only from recruiters with sufficient balance
+      if (jobSeekerSettings.onlySufficientBalance) {
+        const hourlyRate = job.salaryMin || 0;
+        const expectedHours = job.expectedHours || 8;
+        const requiredBalance = hourlyRate * expectedHours;
+        
+        if (recruiterBalance < requiredBalance) {
+          return; // Don't send offer if recruiter doesn't have sufficient balance
+        }
+      }
 
       const offerId = nanoid();
       const offer = {
@@ -303,15 +328,44 @@ const quickSearchSlice = createSlice({
       activeJob.updatedAt = new Date().toISOString();
     },
 
+    // Update payment agreement details
+    updatePaymentAgreement: (state, { payload }) => {
+      const { jobId, hourlyRate, expectedHours, startTime, endTime } = payload;
+      const activeJob = state.activeJobs.find(j => j.id === jobId);
+      if (!activeJob) return;
+
+      if (!activeJob.payment) {
+        activeJob.payment = {};
+      }
+
+      activeJob.payment.agreementDetails = {
+        hourlyRate: hourlyRate || activeJob.payment.agreementDetails?.hourlyRate,
+        expectedHours: expectedHours || activeJob.payment.agreementDetails?.expectedHours,
+        startTime: startTime || activeJob.payment.agreementDetails?.startTime,
+        endTime: endTime || activeJob.payment.agreementDetails?.endTime,
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Update timer hourly rate if provided
+      if (hourlyRate && activeJob.timer) {
+        activeJob.timer.hourlyRate = hourlyRate;
+      }
+
+      activeJob.updatedAt = new Date().toISOString();
+    },
+
     // Request platform payment
     requestPlatformPayment: (state, { payload }) => {
-      const { jobId, requestedBy } = payload; // 'jobseeker' or 'recruiter'
+      const { jobId, requestedBy, agreementDetails, lowBalanceAcknowledged } = payload;
       const activeJob = state.activeJobs.find(j => j.id === jobId);
       if (!activeJob) return;
 
       // Generate code
       const code = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
       const codeExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      // Store agreement details if provided
+      const agreement = agreementDetails || activeJob.payment?.agreementDetails || {};
 
       activeJob.payment = {
         ...activeJob.payment,
@@ -322,6 +376,8 @@ const quickSearchSlice = createSlice({
         code,
         codeExpiry: codeExpiry.toISOString(),
         codeShared: false,
+        agreementDetails: agreement,
+        lowBalanceAcknowledged: lowBalanceAcknowledged || false,
       };
 
       activeJob.updatedAt = new Date().toISOString();
@@ -334,6 +390,7 @@ const quickSearchSlice = createSlice({
         code,
         codeExpiry: codeExpiry.toISOString(),
         status: 'pending',
+        agreementDetails: agreement,
         createdAt: new Date().toISOString(),
       });
     },
@@ -342,16 +399,19 @@ const quickSearchSlice = createSlice({
     verifyPaymentCode: (state, { payload }) => {
       const { jobId, code } = payload;
       const activeJob = state.activeJobs.find(j => j.id === jobId);
-      if (!activeJob || !activeJob.payment.codeGenerated) return false;
+      if (!activeJob || !activeJob.payment.codeGenerated) return;
 
       if (activeJob.payment.code === code && 
           new Date(activeJob.payment.codeExpiry) > new Date()) {
         activeJob.payment.codeShared = true;
         activeJob.payment.codeVerified = true;
+        activeJob.payment.codeVerifiedAt = new Date().toISOString();
         activeJob.updatedAt = new Date().toISOString();
-        return true;
+      } else {
+        // Mark as failed verification attempt
+        activeJob.payment.verificationFailed = true;
+        activeJob.payment.lastVerificationAttempt = new Date().toISOString();
       }
-      return false;
     },
 
     // Start timer
@@ -522,6 +582,7 @@ export const {
   acceptQuickOffer,
   declineQuickOffer,
   updateLocationTracking,
+  updatePaymentAgreement,
   requestPlatformPayment,
   verifyPaymentCode,
   startTimer,
@@ -543,6 +604,24 @@ export const selectQuickMatchesByJobId = (state, jobId) =>
   state.quickSearch.matchesByJobId[jobId] || [];
 
 export const selectQuickOffers = (state) => state.quickSearch.activeOffers;
+
+export const selectQuickOffersByJobId = (state, jobId) =>
+  state.quickSearch.activeOffers.filter(offer => offer.jobId === jobId);
+
+export const selectQuickMatchStats = (state, jobId) => {
+  const matches = state.quickSearch.matchesByJobId[jobId] || [];
+  const offers = state.quickSearch.activeOffers.filter(offer => offer.jobId === jobId);
+  
+  return {
+    totalMatches: matches.length,
+    offersSent: offers.length,
+    pendingOffers: offers.filter(o => o.status === 'pending').length,
+    acceptedOffers: offers.filter(o => o.status === 'accepted').length,
+    declinedOffers: offers.filter(o => o.status === 'declined').length,
+    expiredOffers: offers.filter(o => o.status === 'expired').length,
+    autoSentOffers: offers.filter(o => o.autoSent === true).length,
+  };
+};
 
 export const selectActiveQuickJobs = (state) => state.quickSearch.activeJobs;
 

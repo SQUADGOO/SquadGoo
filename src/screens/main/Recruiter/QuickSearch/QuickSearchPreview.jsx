@@ -7,18 +7,21 @@ import {
   StatusBar,
   Alert
 } from 'react-native'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector, useStore } from 'react-redux'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import AppHeader from '@/core/AppHeader'
 import AppButton from '@/core/AppButton'
 import { addJob } from '@/store/jobsSlice'
-import { createQuickJob, autoMatchCandidates } from '@/store/quickSearchSlice'
+import { createQuickJob, autoMatchCandidates, sendQuickOffer } from '@/store/quickSearchSlice'
+import { autoSendOffers } from '@/services/autoOfferService'
+import { selectRecruiterQuickSettings } from '@/store/settingsSlice'
 import { screenNames } from '@/navigation/screenNames'
 import { formatTime } from '@/utilities/helperFunctions'
 
 const QuickSearchPreview = ({ navigation, route }) => {
   const dispatch = useDispatch()
+  const store = useStore()
   
   // Get all data from all 4 steps
   const { 
@@ -79,12 +82,16 @@ const QuickSearchPreview = ({ navigation, route }) => {
       step4: quickSearchStep4Data
     }
     
+    // Generate jobId before creating job
+    const jobId = `quick-job-${Date.now()}`
+    
     // Calculate expiry date (30 days from now)
     const expiryDate = new Date()
     expiryDate.setDate(expiryDate.getDate() + 30)
     
     // Format job data for both old jobsSlice (backward compatibility) and new quickSearchSlice
     const jobData = {
+      id: jobId,
       title: quickSearchStep1Data?.jobTitle || 'Untitled Job',
       type: 'Full-time', // Default, you can extract from data if available
       industry: quickSearchStep1Data?.industry || '',
@@ -114,6 +121,7 @@ const QuickSearchPreview = ({ navigation, route }) => {
     
     // Format for quick search slice
     const quickJobData = {
+      id: jobId,
       jobTitle: quickSearchStep1Data?.jobTitle,
       industry: quickSearchStep1Data?.industry,
       experienceYear: quickSearchStep1Data?.experienceYear,
@@ -131,6 +139,7 @@ const QuickSearchPreview = ({ navigation, route }) => {
       taxType: quickSearchStep4Data?.taxType || 'ABN',
       jobDescription: quickSearchStep4Data?.jobDescription || '',
       additionalRequirements: quickSearchStep4Data?.additionalRequirements || '',
+      paymentMethod: quickSearchStep3Data?.paymentMethod || 'platform', // Store payment method preference
     }
     
     console.log('Posting Quick Search Job:', jobData)
@@ -141,17 +150,53 @@ const QuickSearchPreview = ({ navigation, route }) => {
     // Create quick search job
     dispatch(createQuickJob(quickJobData))
     
-    // Auto-match candidates
-    const jobId = `quick-job-${Date.now()}`
+    // Get recruiter settings for auto-matching
+    const state = store.getState();
+    const recruiterSettings = state.settings?.recruiter?.quickOffers || {};
+    const recruiterBalance = state.wallet?.coins || 0;
+    
+    // Auto-match candidates and send offers
     setTimeout(() => {
-      dispatch(autoMatchCandidates({ jobId, settings: {} }))
+      dispatch(autoMatchCandidates({ jobId, settings: recruiterSettings }))
+      
+      // Auto-send offers to matched candidates after a short delay to ensure matches are stored
+      setTimeout(() => {
+        const updatedState = store.getState();
+        const job = updatedState.quickSearch?.quickJobs?.find(j => j.id === jobId);
+        const matches = updatedState.quickSearch?.matchesByJobId?.[jobId] || [];
+        
+        if (job && matches.length > 0 && recruiterSettings.autoMatchingEnabled !== false) {
+          // Get job seeker settings map (in real app, this would come from backend)
+          const jobSeekerSettingsMap = {};
+          
+          // Auto-send offers
+          autoSendOffers(
+            job,
+            recruiterSettings,
+            updatedState.quickSearch?.acceptanceRatings || {},
+            jobSeekerSettingsMap,
+            recruiterBalance,
+            dispatch,
+            sendQuickOffer
+          );
+        }
+      }, 200);
     }, 100)
     
     // Show success alert and navigate to home
     Alert.alert(
       'Job Posted Successfully!',
-      'Your job offer has been posted and is now active.',
+      'Your job offer has been posted and is now active. Offers have been automatically sent to matched candidates.',
       [
+        {
+          text: 'View Matches',
+          onPress: () => {
+            navigation.navigate(screenNames.QUICK_SEARCH_MATCH_LIST, { 
+              jobId, 
+              fromJobPost: true 
+            })
+          },
+        },
         {
           text: 'View Job Offers',
           onPress: () => {
@@ -225,6 +270,11 @@ const QuickSearchPreview = ({ navigation, route }) => {
             `$${quickSearchStep3Data.salaryMin || '0'} - $${quickSearchStep3Data.salaryMax || '0'}` : 
             'Not specified'}
           valueStyle={styles.salaryValue}
+        />
+        <DetailRow 
+          label="Payment method:" 
+          value={quickSearchStep3Data?.paymentMethod === 'platform' ? 'Platform Payment (SquadGoo handles)' : quickSearchStep3Data?.paymentMethod === 'direct' ? 'Direct Payment (Between parties)' : 'Not specified'}
+          valueStyle={styles.highlightValue}
         />
 
         <SectionTitle title="Extra Pay Offered:" />

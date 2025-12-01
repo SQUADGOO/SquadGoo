@@ -27,7 +27,15 @@ const JobCategorySelector = ({ onSelect, selectedCategory, selectedSubCategory, 
     console.log('Opening job category selector, categories count:', categories.length);
     console.log('Categories:', categories.slice(0, 5));
     console.log('JOB_CATEGORIES:', JOB_CATEGORIES ? 'Loaded' : 'Not loaded');
-    sheetRef.current?.open();
+    console.log('Sheet ref:', sheetRef.current);
+    // Use setTimeout to ensure the sheet opens after state updates
+    setTimeout(() => {
+      if (sheetRef.current) {
+        sheetRef.current.open();
+      } else {
+        console.error('Sheet ref is null');
+      }
+    }, 100);
   };
 
   const handleCategorySelect = (category) => {
@@ -141,7 +149,14 @@ const JobCategorySelector = ({ onSelect, selectedCategory, selectedSubCategory, 
 
   return (
     <>
-      <TouchableOpacity onPress={handleOpen} activeOpacity={0.7}>
+      <TouchableOpacity 
+        onPress={() => {
+          console.log('JobCategorySelector pressed');
+          handleOpen();
+        }} 
+        activeOpacity={0.7}
+        style={styles.selectorButton}
+      >
         <View pointerEvents="none">
           <AppInputField
             placeholder={placeholder}
@@ -161,7 +176,7 @@ const JobCategorySelector = ({ onSelect, selectedCategory, selectedSubCategory, 
 
       <RbSheetComponent ref={sheetRef} height={hp(80)}>
         <View style={styles.sheetContainer}>
-          <View style={styles.header}>
+          <View style={styles.header} pointerEvents="auto">
             {(currentView === 'subcategory' || currentView === 'other') && (
               <TouchableOpacity onPress={handleBack} style={styles.backButton}>
                 <VectorIcons
@@ -208,7 +223,7 @@ const JobCategorySelector = ({ onSelect, selectedCategory, selectedSubCategory, 
           )}
 
           {currentView === 'category' && (
-            <View style={styles.listWrapper}>
+            <View style={styles.listWrapper} pointerEvents="auto">
               {filteredCategories.length === 0 ? (
                 <View style={styles.emptyContainer}>
                   <AppText variant={Variant.body} style={styles.emptyText}>
@@ -223,6 +238,8 @@ const JobCategorySelector = ({ onSelect, selectedCategory, selectedSubCategory, 
                   showsVerticalScrollIndicator={false}
                   contentContainerStyle={styles.listContent}
                   style={styles.list}
+                  keyboardShouldPersistTaps="handled"
+                  nestedScrollEnabled={true}
                   ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                       <AppText variant={Variant.body} style={styles.emptyText}>
@@ -243,6 +260,8 @@ const JobCategorySelector = ({ onSelect, selectedCategory, selectedSubCategory, 
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.listContent}
               style={styles.list}
+              keyboardShouldPersistTaps="handled"
+              nestedScrollEnabled={true}
             />
           )}
 
@@ -278,6 +297,9 @@ const JobCategorySelector = ({ onSelect, selectedCategory, selectedSubCategory, 
 export default JobCategorySelector;
 
 const styles = StyleSheet.create({
+  selectorButton: {
+    width: '100%',
+  },
   sheetContainer: {
     flex: 1,
     backgroundColor: colors.white,

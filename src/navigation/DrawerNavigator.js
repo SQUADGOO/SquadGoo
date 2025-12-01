@@ -157,6 +157,14 @@ const DrawerNavigator = () => {
         component={ui.QuickSearchActiveJobsRecruiter}
       />
       <Drawer.Screen
+        name={screenNames.QUICK_SEARCH_MATCH_LIST}
+        component={ui.QuickMatchList}
+      />
+      <Drawer.Screen
+        name={screenNames.QUICK_SEARCH_CANDIDATE_PROFILE}
+        component={ui.QuickCandidateProfile}
+      />
+      <Drawer.Screen
         name={screenNames.LIVE_TRACKING}
         component={ui.LiveTracking}
       />

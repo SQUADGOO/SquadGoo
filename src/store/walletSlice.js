@@ -65,7 +65,7 @@ const walletSlice = createSlice({
         createdAt: new Date().toISOString(),
       })
     },
-    // Hold coins for an active job
+    // Hold coins for an active job (initial hold)
     holdCoins: (state, action) => {
       const { amount, jobId, reason } = action.payload;
       
@@ -78,16 +78,27 @@ const walletSlice = createSlice({
         state.heldCoins = {};
       }
 
-      // Deduct from available coins
+      // If already holding for this job, update amount; otherwise deduct from available
+      const existingHold = state.heldCoins[jobId];
+      if (existingHold) {
+        // Update existing hold
+        const additionalAmount = amount - existingHold.amount;
+        if (additionalAmount > 0 && state.coins >= additionalAmount) {
+          state.coins -= additionalAmount;
+          state.heldCoins[jobId].amount = amount;
+          state.heldCoins[jobId].lastUpdated = new Date().toISOString();
+        }
+      } else {
+        // New hold - deduct from available coins
       state.coins -= amount;
-
-      // Add to held coins
       state.heldCoins[jobId] = {
         amount,
         reason: reason || 'Quick search job payment',
         heldAt: new Date().toISOString(),
+          lastUpdated: new Date().toISOString(),
         jobId,
       };
+      }
 
       // Add transaction record
       if (!state.transactions) {
@@ -102,6 +113,29 @@ const walletSlice = createSlice({
         status: 'Held',
         jobId,
       });
+    },
+    // Update incremental hold amount as timer runs
+    updateIncrementalHold: (state, action) => {
+      const { jobId, newAmount } = action.payload;
+      
+      if (!state.heldCoins || !state.heldCoins[jobId]) {
+        return;
+      }
+
+      const currentHold = state.heldCoins[jobId].amount;
+      const difference = newAmount - currentHold;
+
+      if (difference > 0 && state.coins >= difference) {
+        // Increase hold amount
+        state.coins -= difference;
+        state.heldCoins[jobId].amount = newAmount;
+        state.heldCoins[jobId].lastUpdated = new Date().toISOString();
+      } else if (difference < 0) {
+        // Decrease hold amount (shouldn't happen normally, but handle it)
+        state.coins += Math.abs(difference);
+        state.heldCoins[jobId].amount = newAmount;
+        state.heldCoins[jobId].lastUpdated = new Date().toISOString();
+      }
     },
     // Release held coins
     releaseCoins: (state, action) => {
@@ -168,5 +202,5 @@ const walletSlice = createSlice({
   },
 })
 
-export const { addCoins, withdrawCoins, holdCoins, releaseCoins, transferCoins, checkBalance } = walletSlice.actions
+export const { addCoins, withdrawCoins, holdCoins, updateIncrementalHold, releaseCoins, transferCoins, checkBalance } = walletSlice.actions
 export default walletSlice.reducer

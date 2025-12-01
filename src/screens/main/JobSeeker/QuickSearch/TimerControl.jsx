@@ -11,6 +11,8 @@ import {
   resumeTimer,
   updateTimer,
 } from '@/store/quickSearchSlice';
+import { updateIncrementalHold } from '@/store/walletSlice';
+import { calculateIncrementalHold } from '@/services/paymentService';
 import TimerClock from '@/components/QuickSearch/TimerClock';
 import { screenNames } from '@/navigation/screenNames';
 
@@ -26,6 +28,16 @@ const TimerControl = ({ navigation, route }) => {
     if (activeJob?.timer?.isRunning) {
       const interval = setInterval(() => {
         dispatch(updateTimer({ jobId: activeJob.id }));
+        
+        // Update incremental balance hold every minute
+        const timer = activeJob.timer;
+        if (timer.elapsedTime && timer.elapsedTime % 60 === 0) {
+          const holdAmount = calculateIncrementalHold(timer.elapsedTime, timer.hourlyRate || 0);
+          dispatch(updateIncrementalHold({
+            jobId: activeJob.id,
+            newAmount: holdAmount,
+          }));
+        }
       }, 1000);
       setTimerInterval(interval);
     } else {
@@ -40,7 +52,7 @@ const TimerControl = ({ navigation, route }) => {
         clearInterval(timerInterval);
       }
     };
-  }, [activeJob?.timer?.isRunning]);
+  }, [activeJob?.timer?.isRunning, activeJob?.timer?.elapsedTime]);
 
   if (!activeJob) {
     return (
@@ -59,8 +71,14 @@ const TimerControl = ({ navigation, route }) => {
   const payment = activeJob.payment || {};
 
   const handleStart = () => {
-    // Check if payment is set up for platform payment
-    if (payment.method === 'platform' && !payment.codeVerified) {
+    // Check if pre-settings are selected (both parties have platform payment enabled)
+    const hasPreSettings = payment.method === 'platform' && 
+                          payment.agreementDetails && 
+                          activeJob.job?.paymentMethod === 'platform';
+    
+    // If pre-settings: can start immediately (no code needed)
+    // If no pre-settings: require code verification
+    if (!hasPreSettings && payment.method === 'platform' && !payment.codeVerified) {
       Alert.alert(
         'Payment Not Verified',
         'Please complete payment setup first.',
@@ -71,9 +89,16 @@ const TimerControl = ({ navigation, route }) => {
       return;
     }
 
+    // Get agreement details or use defaults
+    const agreementDetails = payment.agreementDetails || {};
+    const hourlyRate = agreementDetails.hourlyRate || timer.hourlyRate || activeJob.salaryMin || 0;
+    const expectedHours = agreementDetails.expectedHours || 8;
+
     Alert.alert(
       'Start Timer',
-      'Are you ready to start the timer?',
+      hasPreSettings 
+        ? 'Starting timer immediately (pre-settings enabled).'
+        : 'Are you ready to start the timer?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -81,9 +106,18 @@ const TimerControl = ({ navigation, route }) => {
           onPress: () => {
             dispatch(startTimer({
               jobId: activeJob.id,
-              hourlyRate: timer.hourlyRate || 0,
-              expectedHours: 8,
+              hourlyRate,
+              expectedHours,
             }));
+            
+            // Start balance hold
+            if (payment.method === 'platform') {
+              const requiredBalance = hourlyRate * expectedHours;
+              dispatch(updateIncrementalHold({
+                jobId: activeJob.id,
+                newAmount: requiredBalance,
+            }));
+            }
           },
         },
       ]

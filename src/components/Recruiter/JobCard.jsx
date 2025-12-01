@@ -131,7 +131,7 @@ const JobCard = ({
             </AppText>
           </TouchableOpacity>
 
-          {job?.searchType === 'manual' && onViewMatches ? (
+          {(job?.searchType === 'manual' || job?.searchType === 'quick') && onViewMatches ? (
             <TouchableOpacity 
               style={[styles.actionButton, styles.matchesButton]}
               onPress={() => onViewMatches(job)}

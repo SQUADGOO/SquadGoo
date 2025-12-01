@@ -16,7 +16,45 @@ import { closeJob } from '@/store/jobsSlice'
 
 const ActiveJobOffersScreen = ({ navigation }) => {
   const dispatch = useDispatch()
-  const activeJobs = useSelector((state) => state.jobs?.activeJobs || [])
+  const jobsActiveJobs = useSelector((state) => state.jobs?.activeJobs || [])
+  const quickSearchJobs = useSelector((state) => state.quickSearch?.quickJobs || [])
+  
+  // Merge quick search jobs into active jobs list
+  // Convert quick search jobs to the format expected by JobCard
+  const quickJobsFormatted = quickSearchJobs.map(qj => ({
+    id: qj.id,
+    title: qj.jobTitle || qj.title,
+    type: 'Quick Search',
+    industry: qj.industry,
+    experience: `${qj.experienceYear || '0'} y ${qj.experienceMonth || ''}`,
+    staffNumber: qj.staffCount || '1',
+    location: qj.workLocation || qj.location,
+    rangeKm: qj.rangeKm || 0,
+    salaryRange: qj.salaryMin && qj.salaryMax 
+      ? `$${qj.salaryMin}/hr to $${qj.salaryMax}/hr`
+      : 'Not specified',
+    salaryMin: qj.salaryMin || 0,
+    salaryMax: qj.salaryMax || 0,
+    salaryType: 'Hourly',
+    jobStartDate: qj.jobStartDate,
+    jobEndDate: qj.jobEndDate,
+    expireDate: qj.expireDate,
+    extraPay: qj.extraPay || {},
+    availability: qj.availability || {},
+    taxType: qj.taxType || 'ABN',
+    searchType: 'quick',
+    createdAt: qj.createdAt,
+    offerDate: qj.createdAt ? new Date(qj.createdAt).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }) : '',
+  }))
+  
+  // Combine both lists, avoiding duplicates by id
+  const allJobIds = new Set(jobsActiveJobs.map(j => j.id))
+  const uniqueQuickJobs = quickJobsFormatted.filter(qj => !allJobIds.has(qj.id))
+  const activeJobs = [...jobsActiveJobs, ...uniqueQuickJobs]
   
   const [refreshing, setRefreshing] = useState(false)
   const [filteredJobs, setFilteredJobs] = useState([])
@@ -93,12 +131,15 @@ const ActiveJobOffersScreen = ({ navigation }) => {
   }
 
   const handleViewMatches = (job) => {
-    if (job?.searchType !== 'manual') {
-      Alert.alert('Matches unavailable', 'Match list is only available for manual search jobs.')
-      return
+    if (job?.searchType === 'manual') {
+      // Navigate to manual match list
+      navigation.navigate(screenNames.MANUAL_MATCH_LIST, { jobId: job.id })
+    } else if (job?.searchType === 'quick') {
+      // Navigate to quick search match list
+      navigation.navigate(screenNames.QUICK_SEARCH_MATCH_LIST, { jobId: job.id, fromJobPost: false })
+    } else {
+      Alert.alert('Matches unavailable', 'Match list is only available for manual or quick search jobs.')
     }
-    // Navigate directly to MANUAL_MATCH_LIST
-    navigation.navigate(screenNames.MANUAL_MATCH_LIST, { jobId: job.id })
   }
 
   const handleCloseJob = (job) => {

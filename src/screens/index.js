@@ -111,6 +111,8 @@ import QuickSearchActiveOffersRecruiter from './main/Recruiter/QuickSearch/Activ
 import QuickSearchActiveJobsRecruiter from './main/Recruiter/QuickSearch/ActiveJobs';
 import LiveTracking from './main/Recruiter/QuickSearch/LiveTracking';
 import TimerManagement from './main/Recruiter/QuickSearch/TimerManagement';
+import QuickMatchList from './main/Recruiter/QuickSearch/QuickMatchList';
+import QuickCandidateProfile from './main/Recruiter/QuickSearch/QuickCandidateProfile';
 
 // Tab Screens
 
@@ -224,4 +226,6 @@ CompletedOffersJobSeeker,
   QuickSearchActiveJobsRecruiter,
   LiveTracking,
   TimerManagement,
+  QuickMatchList,
+  QuickCandidateProfile,
 };
