@@ -13,6 +13,7 @@ import AppText, { Variant } from '@/core/AppText'
 import AppHeader from '@/core/AppHeader'
 import AppButton from '@/core/AppButton'
 import { addJob } from '@/store/jobsSlice'
+import { createQuickJob, autoMatchCandidates } from '@/store/quickSearchSlice'
 import { screenNames } from '@/navigation/screenNames'
 
 const QuickSearchPreview = ({ navigation, route }) => {
@@ -70,7 +71,7 @@ const QuickSearchPreview = ({ navigation, route }) => {
     const expiryDate = new Date()
     expiryDate.setDate(expiryDate.getDate() + 30)
     
-    // Format job data
+    // Format job data for both old jobsSlice (backward compatibility) and new quickSearchSlice
     const jobData = {
       title: quickSearchStep1Data?.jobTitle || 'Untitled Job',
       type: 'Full-time', // Default, you can extract from data if available
@@ -99,10 +100,40 @@ const QuickSearchPreview = ({ navigation, route }) => {
       rawData: allData, // Store complete data for future reference
     }
     
+    // Format for quick search slice
+    const quickJobData = {
+      jobTitle: quickSearchStep1Data?.jobTitle,
+      industry: quickSearchStep1Data?.industry,
+      experienceYear: quickSearchStep1Data?.experienceYear,
+      experienceMonth: quickSearchStep1Data?.experienceMonth,
+      staffCount: quickSearchStep1Data?.staffCount,
+      workLocation: quickSearchStep2Data?.workLocation,
+      rangeKm: quickSearchStep2Data?.rangeKm,
+      salaryMin: quickSearchStep3Data?.salaryMin,
+      salaryMax: quickSearchStep3Data?.salaryMax,
+      jobStartDate: quickSearchStep2Data?.jobStartDate,
+      jobEndDate: quickSearchStep2Data?.jobEndDate,
+      offerExpiryTimer: quickSearchStep4Data?.offerExpiryTimer || 30, // days
+      extraPay: quickSearchStep3Data?.extraPay || {},
+      availability: quickSearchStep4Data?.availability || {},
+      taxType: quickSearchStep4Data?.taxType || 'ABN',
+      jobDescription: quickSearchStep4Data?.jobDescription || '',
+      additionalRequirements: quickSearchStep4Data?.additionalRequirements || '',
+    }
+    
     console.log('Posting Quick Search Job:', jobData)
     
-    // Dispatch to Redux
+    // Dispatch to both slices for backward compatibility
     dispatch(addJob(jobData))
+    
+    // Create quick search job
+    dispatch(createQuickJob(quickJobData))
+    
+    // Auto-match candidates
+    const jobId = `quick-job-${Date.now()}`
+    setTimeout(() => {
+      dispatch(autoMatchCandidates({ jobId, settings: {} }))
+    }, 100)
     
     // Show success alert and navigate to home
     Alert.alert(

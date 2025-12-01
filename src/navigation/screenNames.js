@@ -23,6 +23,7 @@ export const screenNames = {
   VIEW_JOB_DETAILS: 'view_job_details',
   JOB_CANDIDATES: 'job_candidates',
   QUICK_SEARCH: 'quick_search',
+  QUICK_SEARCH_STACK: 'quick_search_stack',
   MANUAL_SEARCH: 'manual_search',
   MANUAL_SEARCH_STACK: 'manual_search_stack',
   MANUAL_MATCH_LIST: 'manual_match_list',
@@ -55,10 +56,10 @@ export const screenNames = {
   UPDATE_SECOND: 'update_second',
   UPDATE_THIRD: 'update_third',
   NOTICATIONS: 'notifications',
-  QUICK_SEARCH_STEPONE:'quick_search_stepone',
-QUICK_SEARCH_STEPTWO:'manual_search_steptwo',
-QUICK_SEARCH_STEPTHREE:'manual_search_stepthree',
-QUICK_SEARCH_STEPFOUR:'manual_search_stepfour',
+  QUICK_SEARCH_STEPONE: 'quick_search_stepone',
+  QUICK_SEARCH_STEPTWO: 'quick_search_steptwo',
+  QUICK_SEARCH_STEPTHREE: 'quick_search_stepthree',
+  QUICK_SEARCH_STEPFOUR: 'quick_search_stepfour',
   JOBSEEKER_SETTINGS:'jobseeker_settings',
 
    JOB_SETTINGS: 'job_settings',
@@ -107,6 +108,18 @@ QUICK_SEARCH_PREVIEW:'quick_search_preview',
 
 JOB_OFFER_DETAILS: 'job_offer_details',
 ACCEPTED_OFFERS: 'accepted_offers',
+
+  // Quick Search Screens
+  QUICK_SEARCH_ACTIVE_OFFERS_JS: 'quick_search_active_offers_js',
+  QUICK_SEARCH_ACTIVE_JOBS_JS: 'quick_search_active_jobs_js',
+  QUICK_SEARCH_ACTIVE_OFFERS_RECRUITER: 'quick_search_active_offers_recruiter',
+  QUICK_SEARCH_ACTIVE_JOBS_RECRUITER: 'quick_search_active_jobs_recruiter',
+  LOCATION_SHARING: 'location_sharing',
+  LIVE_TRACKING: 'live_tracking',
+  PAYMENT_REQUEST: 'payment_request',
+  TIMER_CONTROL: 'timer_control',
+  TIMER_MANAGEMENT: 'timer_management',
+  JOB_COMPLETE: 'job_complete',
 
 
   // FORGOT_PASSWORD: 'forgot_password',

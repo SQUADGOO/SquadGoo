@@ -6,6 +6,7 @@ import {screenNames} from './screenNames';
 import { JobPreview } from '@/screens';
 import * as ui from '@/screens';
 import SupportStack from './SupportStack';
+import QuickSearchStack from './QuickSearchStack';
 
 const Drawer = createDrawerNavigator();
 
@@ -120,22 +121,7 @@ const JobSeekerDrawerNavigator = () => {
         component={ui.Notifcations}
       />
 
-        <Drawer.Screen
-        name={screenNames.QUICK_SEARCH_STEPONE}
-        component={ui.StepOne}
-      />
-        <Drawer.Screen
-        name={screenNames.QUICK_SEARCH_STEPTWO}
-        component={ui.StepTwoQuickSearch}
-      />
-        <Drawer.Screen
-        name={screenNames.QUICK_SEARCH_STEPTHREE}
-        component={ui.StepThreeQuickSearch}
-      />
-            <Drawer.Screen
-        name={screenNames.QUICK_SEARCH_STEPFOUR}
-        component={ui.StepFourQuickSearch}
-      />
+       
       <Drawer.Screen
         name={screenNames.JOB_SETTINGS}
         component={ui.JobSettings}

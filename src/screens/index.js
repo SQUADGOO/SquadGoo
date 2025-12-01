@@ -99,6 +99,19 @@ import QuickSearchPreview from './main/Recruiter/QuickSearch/QuickSearchPreview'
 import AcceptedOffers from './main/JobSeeker/AcceptedOffers';
 import JobOfferDetails from './main/JobSeeker/JobOfferDetails';
 import CompletedOffersJobSeeker from './main/JobSeeker/CompletedOffers';
+
+// Quick Search Screens
+import QuickSearchActiveOffersJS from './main/JobSeeker/QuickSearch/ActiveOffers';
+import QuickSearchActiveJobsJS from './main/JobSeeker/QuickSearch/ActiveJobs';
+import LocationSharing from './main/JobSeeker/QuickSearch/LocationSharing';
+import PaymentRequest from './main/JobSeeker/QuickSearch/PaymentRequest';
+import TimerControl from './main/JobSeeker/QuickSearch/TimerControl';
+import JobComplete from './main/JobSeeker/QuickSearch/JobComplete';
+import QuickSearchActiveOffersRecruiter from './main/Recruiter/QuickSearch/ActiveOffers';
+import QuickSearchActiveJobsRecruiter from './main/Recruiter/QuickSearch/ActiveJobs';
+import LiveTracking from './main/Recruiter/QuickSearch/LiveTracking';
+import TimerManagement from './main/Recruiter/QuickSearch/TimerManagement';
+
 // Tab Screens
 
 export {
@@ -198,5 +211,17 @@ QuickSearchPreview,
 
 AcceptedOffers,
 JobOfferDetails,
-CompletedOffersJobSeeker
+CompletedOffersJobSeeker,
+
+  // Quick Search Screens
+  QuickSearchActiveOffersJS,
+  QuickSearchActiveJobsJS,
+  LocationSharing,
+  PaymentRequest,
+  TimerControl,
+  JobComplete,
+  QuickSearchActiveOffersRecruiter,
+  QuickSearchActiveJobsRecruiter,
+  LiveTracking,
+  TimerManagement,
 };

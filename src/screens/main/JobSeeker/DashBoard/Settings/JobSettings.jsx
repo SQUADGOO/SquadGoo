@@ -95,8 +95,17 @@ const JobSettings = () => {
           </AppText>
         </View>
 
-        {/* Calendar */}
+        <AppText variant={Variant.caption} style={styles.label}>
+          Availability for Quick Offers
+        </AppText>
         <CustomCalendar onDateSelect={handleDateSelect} />
+
+        <AppText variant={Variant.caption} style={styles.label}>
+          Receive offers within (km from home)
+        </AppText>
+        <AppText variant={Variant.body} style={styles.radiusText}>
+          Radius: 25 km (configurable in profile)
+        </AppText>
       </View>
       <View style={{height: 20}} />
       </ScrollView>
@@ -142,5 +151,10 @@ const styles = StyleSheet.create({
   switchLabel: {
     marginLeft: 8,
     flex: 1,
+  },
+  radiusText: {
+    marginTop: hp(0.5),
+    color: colors.textSecondary,
+    fontSize: 14,
   },
 });

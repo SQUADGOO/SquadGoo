@@ -54,7 +54,7 @@ const CustomDrawer = ({
           iconLib: iconLibName.Ionicons,
           expandable: true,
           subItems: [
-            { key: 'quick-search', title: 'Quick Search', icon: 'search-outline', route: screenNames.QUICK_SEARCH_STEPONE },
+          { key: 'quick-search', title: 'Quick Search', icon: 'search-outline', route: screenNames.QUICK_SEARCH_STACK },
             { key: 'manual-search', title: 'Manual Search', icon: 'search-circle-outline', route: screenNames.MANUAL_SEARCH },
           ],
         },
