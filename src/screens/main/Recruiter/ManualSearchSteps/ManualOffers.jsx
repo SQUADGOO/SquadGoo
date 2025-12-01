@@ -17,6 +17,8 @@ import {
   selectManualOffers,
   updateManualOfferStatus,
   expireManualOffers,
+  selectManualJobById,
+  initializeDummyData,
 } from '@/store/manualOffersSlice';
 import { showToast, toastTypes } from '@/utilities/toastConfig';
 import FormField from '@/core/FormField';
@@ -42,8 +44,10 @@ const ManualOffers = ({ navigation }) => {
   const [currentTab, setCurrentTab] = useState('pending');
   const [declineModal, setDeclineModal] = useState(null);
   const [modModal, setModModal] = useState(null);
+  const [detailModal, setDetailModal] = useState(null);
 
   useEffect(() => {
+    dispatch(initializeDummyData());
     dispatch(expireManualOffers());
   }, [dispatch]);
 
@@ -155,7 +159,12 @@ const ManualOffers = ({ navigation }) => {
   };
 
   const renderOffer = ({ item }) => (
-    <View style={styles.offerCard}>
+    <TouchableOpacity 
+      style={styles.offerCard}
+      activeOpacity={item.status === 'accepted' ? 0.7 : 1}
+      onPress={() => item.status === 'accepted' && setDetailModal(item)}
+      disabled={item.status !== 'accepted'}
+    >
       {/* Card Header */}
       <View style={styles.cardHeader}>
         <View style={styles.headerLeft}>
@@ -321,7 +330,7 @@ const ManualOffers = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       ) : null}
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -400,6 +409,12 @@ const ManualOffers = ({ navigation }) => {
         visible={Boolean(modModal)}
         onClose={() => setModModal(null)}
         onSubmit={handleModificationSubmit}
+      />
+
+      <OfferDetailModal
+        visible={Boolean(detailModal)}
+        offer={detailModal}
+        onClose={() => setDetailModal(null)}
       />
     </View>
   );
@@ -578,6 +593,168 @@ const ModificationModal = ({ visible, onClose, onSubmit }) => {
             >
               <AppText variant={Variant.bodyMedium} style={styles.modalSubmitText}>
                 Submit
+              </AppText>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+const OfferDetailModal = ({ visible, offer, onClose }) => {
+  const job = useSelector(state => offer ? selectManualJobById(state, offer.jobId) : null);
+
+  if (!offer) return null;
+
+  const DetailRow = ({ label, value }) => (
+    <View style={styles.detailModalRow}>
+      <AppText variant={Variant.caption} style={styles.detailModalLabel}>
+        {label}
+      </AppText>
+      <AppText variant={Variant.bodyMedium} style={styles.detailModalValue}>
+        {value || 'N/A'}
+      </AppText>
+    </View>
+  );
+
+  const SectionTitle = ({ title }) => (
+    <AppText variant={Variant.bodyMedium} style={styles.detailModalSectionTitle}>
+      {title}
+    </AppText>
+  );
+
+  // Get agreed rate - use modification rate if exists, otherwise use original job rate
+  const agreedRate = offer.response?.modification?.payRate 
+    ? offer.response.modification.payRate 
+    : job?.salaryRange || 'N/A';
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <View style={styles.modalBackdrop}>
+        <View style={styles.detailModalCard}>
+          <View style={styles.modalHeader}>
+            <AppText variant={Variant.subTitle} style={styles.modalTitle}>
+              Offer Details
+            </AppText>
+            <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
+              <VectorIcons
+                name={iconLibName.Ionicons}
+                iconName="close"
+                size={24}
+                color={colors.gray}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView showsVerticalScrollIndicator={false} style={styles.detailModalScroll}>
+            {/* Candidate Information */}
+            <SectionTitle title="Candidate Information" />
+            <View style={styles.detailModalSection}>
+              <DetailRow label="Name" value={offer.candidateName} />
+              <DetailRow label="Match Percentage" value={`${offer.matchPercentage}%`} />
+              <DetailRow label="Acceptance Rating" value={`${offer.acceptanceRating || 'N/A'}%`} />
+            </View>
+
+            {/* Job Information */}
+            {job && (
+              <>
+                <SectionTitle title="Job Information" />
+                <View style={styles.detailModalSection}>
+                  <DetailRow label="Job Title" value={job.title} />
+                  <DetailRow label="Job Type" value={job.type} />
+                  <DetailRow label="Industry" value={job.industry} />
+                  <DetailRow label="Location" value={job.location} />
+                  {job.rangeKm && <DetailRow label="Range" value={`${job.rangeKm} km`} />}
+                  <DetailRow label="Staff Needed" value={job.staffNumber} />
+                  {job.experience && <DetailRow label="Experience Required" value={job.experience} />}
+                </View>
+              </>
+            )}
+
+            {/* Agreed Terms */}
+            <SectionTitle title="Agreed Terms" />
+            <View style={styles.detailModalSection}>
+              <DetailRow label="Agreed Rate" value={agreedRate} />
+              {job?.salaryType && <DetailRow label="Salary Type" value={job.salaryType} />}
+              {job?.taxType && <DetailRow label="Tax Type" value={job.taxType} />}
+              {offer.expiresAt && (
+                <DetailRow 
+                  label="Offer Expires" 
+                  value={new Date(offer.expiresAt).toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                  })} 
+                />
+              )}
+              {offer.createdAt && (
+                <DetailRow 
+                  label="Offer Created" 
+                  value={new Date(offer.createdAt).toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                  })} 
+                />
+              )}
+            </View>
+
+            {/* Extra Pay Information */}
+            {job?.extraPay && Object.keys(job.extraPay).length > 0 && (
+              <>
+                <SectionTitle title="Extra Pay" />
+                <View style={styles.detailModalSection}>
+                  {job.extraPay.publicHolidays && <DetailRow label="Public Holidays" value="Yes" />}
+                  {job.extraPay.weekend && <DetailRow label="Weekend" value="Yes" />}
+                  {job.extraPay.shiftLoading && <DetailRow label="Shift Loading" value="Yes" />}
+                  {job.extraPay.bonuses && <DetailRow label="Bonuses" value="Yes" />}
+                  {job.extraPay.overtime && <DetailRow label="Overtime" value="Yes" />}
+                </View>
+              </>
+            )}
+
+            {/* Modification Request Details (if applicable) */}
+            {offer.response?.modification && (
+              <>
+                <SectionTitle title="Modification Request" />
+                <View style={styles.detailModalSection}>
+                  <DetailRow label="Requested Pay Rate" value={offer.response.modification.payRate} />
+                  {offer.response.modification.message && (
+                    <View style={styles.detailModalRow}>
+                      <AppText variant={Variant.caption} style={styles.detailModalLabel}>
+                        Message:
+                      </AppText>
+                      <AppText variant={Variant.bodyMedium} style={styles.detailModalValue}>
+                        {offer.response.modification.message}
+                      </AppText>
+                    </View>
+                  )}
+                </View>
+              </>
+            )}
+
+            {/* Original Offer Message */}
+            {offer.message && (
+              <>
+                <SectionTitle title="Original Offer Message" />
+                <View style={styles.detailModalSection}>
+                  <AppText variant={Variant.bodyMedium} style={styles.detailModalValue}>
+                    {offer.message}
+                  </AppText>
+                </View>
+              </>
+            )}
+          </ScrollView>
+
+          <View style={styles.modalActions}>
+            <TouchableOpacity
+              style={styles.modalSubmitButton}
+              onPress={onClose}
+              activeOpacity={0.8}
+            >
+              <AppText variant={Variant.bodyMedium} style={styles.modalSubmitText}>
+                Close
               </AppText>
             </TouchableOpacity>
           </View>
@@ -959,6 +1136,49 @@ const styles = StyleSheet.create({
   radioLabelActive: {
     color: colors.primary,
     fontWeight: '600',
+  },
+  detailModalCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: hp(2.5),
+    padding: wp(5),
+    maxHeight: hp(85),
+    width: '100%',
+  },
+  detailModalScroll: {
+    maxHeight: hp(60),
+  },
+  detailModalSection: {
+    marginBottom: hp(2),
+    paddingBottom: hp(1.5),
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  detailModalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: hp(1),
+    paddingVertical: hp(0.5),
+  },
+  detailModalLabel: {
+    fontSize: getFontSize(12),
+    fontWeight: '600',
+    color: colors.gray,
+    flex: 1,
+  },
+  detailModalValue: {
+    fontSize: getFontSize(14),
+    color: colors.secondary,
+    fontWeight: '500',
+    flex: 1,
+    textAlign: 'right',
+  },
+  detailModalSectionTitle: {
+    fontSize: getFontSize(16),
+    fontWeight: '700',
+    color: colors.secondary,
+    marginTop: hp(1.5),
+    marginBottom: hp(1),
   },
 });
 
