@@ -94,9 +94,9 @@ const QuickSearchPreview = ({ navigation, route }) => {
     const jobData = {
       id: jobId, // keep same ID across slices for easier tracking
       title: quickSearchStep1Data?.jobTitle || 'Untitled Job',
-      type: 'Full-time', // Default, you can extract from data if available
-      industry: quickSearchStep1Data?.industry || '',
-      experience: `${quickSearchStep1Data?.experienceYear || '0 y'} ${quickSearchStep1Data?.experienceMonth || ''}`,
+      type: 'Contract', // Default for quick search jobs
+      industry: quickSearchStep1Data?.industry || 'General Services',
+      experience: `${quickSearchStep1Data?.experienceYear || 0} Years ${quickSearchStep1Data?.experienceMonth || 0} Month`,
       staffNumber: quickSearchStep1Data?.staffCount || '1',
       location: quickSearchStep2Data?.workLocation || 'Location not specified',
       rangeKm: quickSearchStep2Data?.rangeKm || 0,
@@ -115,6 +115,8 @@ const QuickSearchPreview = ({ navigation, route }) => {
       }),
       extraPay: quickSearchStep3Data?.extraPay || {},
       availability: quickSearchStep4Data?.availability || {},
+      jobDescription: quickSearchStep4Data?.jobDescription || '',
+      description: quickSearchStep4Data?.jobDescription || '',
       taxType: quickSearchStep4Data?.taxType || 'ABN',
       searchType: 'quick',
       rawData: allData, // Store complete data for future reference

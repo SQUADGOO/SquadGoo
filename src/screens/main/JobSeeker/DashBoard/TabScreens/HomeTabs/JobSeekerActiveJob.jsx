@@ -11,7 +11,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch, useSelector } from 'react-redux';
 import { applyToOffer, declineActiveOffer, initializeDummyData as initializeOffersData } from '@/store/jobSeekerOffersSlice';
-import { addCandidateToJob, initializeDummyData as initializeJobsData } from '@/store/jobsSlice';
+import { addCandidateToJob, clearDummyJobs } from '@/store/jobsSlice';
 import RbSheetComponent from '@/core/RbSheetComponent';
 import AppText from '@/core/AppText';
 import AppInputField from '@/core/AppInputField';
@@ -37,11 +37,12 @@ const JobSeekerActiveJob = () => {
   const recruiterJobs = useSelector(state => state?.jobs?.activeJobs || []);
   const completedOffers = useSelector(state => state?.jobSeekerOffers?.completedOffers || []);
   
-  // Initialize dummy data if empty
+  // Clear any existing dummy jobs and only show real jobs posted by recruiters
   React.useEffect(() => {
-    if (recruiterJobs.length === 0) {
-      dispatch(initializeJobsData());
-    }
+    // Remove dummy jobs on mount to ensure clean state
+    dispatch(clearDummyJobs());
+    
+    // Initialize dummy data only for completed offers if needed
     if (completedOffers.length === 0 && isCompleted) {
       dispatch(initializeOffersData());
     }
@@ -143,9 +144,18 @@ const JobSeekerActiveJob = () => {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29);
 
     const filtered = jobOffers.filter((job) => {
-      // 🧮 Parse experience from "4 Years 0 Month"
-      const expParts = job.experience?.split(' ') || [];
-      const experienceYears = Number(expParts[0]) || 0;
+      // 🧮 Parse experience from "4 Years 0 Month" or "4 Years 0 Month" format
+      let experienceYears = 0;
+      if (job.experience) {
+        const expParts = job.experience.split(' ');
+        const yearsIndex = expParts.findIndex(part => part.toLowerCase() === 'years' || part.toLowerCase() === 'year');
+        if (yearsIndex > 0) {
+          experienceYears = Number(expParts[yearsIndex - 1]) || 0;
+        } else {
+          // Fallback: try to parse first number
+          experienceYears = Number(expParts[0]) || 0;
+        }
+      }
 
       // 💰 Parse salary range
       const salaryMin = Number(job.salaryMin) || 0;

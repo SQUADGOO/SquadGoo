@@ -700,7 +700,7 @@ const generateDummyActiveJobs = () => {
 const initialActiveJobs = generateDummyActiveJobs();
 
 const initialState = {
-  activeJobs: initialActiveJobs,
+  activeJobs: [], // Start with empty array - jobs will be added when recruiters post them
   completedJobs: initialCompletedJobs,
   expiredJobs: initialExpiredJobs,
   jobCandidates: initialJobCandidates,
@@ -873,10 +873,12 @@ const jobsSlice = createSlice({
     },
 
     // Initialize dummy data for active jobs (if empty)
+    // NOTE: Disabled - we want to show only real jobs posted by recruiters
     initializeDummyData: (state) => {
-      // Initialize dummy data if arrays are empty
-      if (!state.activeJobs || state.activeJobs.length === 0) {
-        state.activeJobs = initialActiveJobs;
+      // Don't initialize dummy active jobs - only show real posted jobs
+      // Keep this action for backward compatibility but don't populate dummy data
+      if (!state.activeJobs) {
+        state.activeJobs = [];
       }
     },
 
@@ -888,25 +890,32 @@ const jobsSlice = createSlice({
       state.jobCandidates = {};
       state.completedByCandidates = {};
     },
+
+    // Clear dummy jobs (remove jobs with dummy ID pattern)
+    clearDummyJobs: (state) => {
+      // Remove jobs that have dummy job ID pattern (dummy-active-job-*)
+      state.activeJobs = state.activeJobs.filter(
+        job => !job.id?.includes('dummy-active-job-')
+      );
+    },
   },
   extraReducers: (builder) => {
     // Handle rehydration from redux-persist
     builder.addCase('persist/REHYDRATE', (state, action) => {
       if (action.payload) {
-        // If activeJobs is empty after rehydration, populate with dummy data
-        if (!action.payload.jobs?.activeJobs || action.payload.jobs.activeJobs.length === 0) {
-          return {
-            ...state,
-            activeJobs: initialActiveJobs,
-            completedJobs: action.payload.jobs?.completedJobs || initialCompletedJobs,
-            expiredJobs: action.payload.jobs?.expiredJobs || initialExpiredJobs,
-            jobCandidates: action.payload.jobs?.jobCandidates || initialJobCandidates,
-            completedByCandidates: action.payload.jobs?.completedByCandidates || initialCompletedByCandidates,
-          };
-        }
+        // Filter out dummy jobs from persisted state
+        const persistedActiveJobs = action.payload.jobs?.activeJobs || [];
+        const realJobs = persistedActiveJobs.filter(
+          job => !job.id?.includes('dummy-active-job-')
+        );
+        
         return {
           ...state,
-          ...action.payload.jobs,
+          activeJobs: realJobs, // Only restore real posted jobs, no dummy jobs
+          completedJobs: action.payload.jobs?.completedJobs || initialCompletedJobs,
+          expiredJobs: action.payload.jobs?.expiredJobs || initialExpiredJobs,
+          jobCandidates: action.payload.jobs?.jobCandidates || initialJobCandidates,
+          completedByCandidates: action.payload.jobs?.completedByCandidates || initialCompletedByCandidates,
         };
       }
       return state;
@@ -924,6 +933,7 @@ export const {
   updateCandidateStatus,
   seedDummyData,
   clearJobs,
+  clearDummyJobs,
   initializeDummyData,
 } = jobsSlice.actions;
 

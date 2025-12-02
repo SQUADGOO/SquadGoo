@@ -42,7 +42,7 @@ const JobPreview = ({ navigation, route }) => {
       rangeKm: step1Data?.rangeKm || 0,
       staffNumber: step1Data?.staffNumber || '1',
       industry: step1Data?.industry || 'General Services',
-      experience: step2Data ? `${step2Data.experienceYears} ${step2Data.experienceMonths}` : 'Not specified',
+      experience: step2Data ? `${step2Data.experienceYears} Years ${step2Data.experienceMonths} Month` : 'Not specified',
       salaryRange: step2Data 
         ? `$${step2Data.salaryMin || '0'}/hr to $${step2Data.salaryMax || '0'}/hr`
         : 'Not specified',
@@ -62,6 +62,7 @@ const JobPreview = ({ navigation, route }) => {
       preferredLanguages: step3Data?.preferredLanguages || [],
       jobEndDate: step3Data?.jobEndDate || 'Not specified',
       jobDescription: step3Data?.jobDescription || 'No description provided',
+      description: step3Data?.jobDescription || 'No description provided',
       taxType: step3Data?.taxType || 'ABN',
       searchType: 'manual',
       rawData: { step1Data, step2Data, step3Data }, // Store complete data for future reference
