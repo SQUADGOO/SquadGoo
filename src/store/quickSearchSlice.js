@@ -811,7 +811,9 @@ export const selectQuickOffers = (state) => state.quickSearch.activeOffers;
 export const selectActiveQuickJobs = (state) => state.quickSearch.activeJobs;
 
 export const selectActiveQuickJobById = (state, jobId) =>
-  state.quickSearch.activeJobs.find(job => job.id === jobId);
+  state.quickSearch.activeJobs.find(
+    (job) => job.id === jobId || job.jobId === jobId
+  );
 
 export const selectLocationTracking = (state, jobId) =>
   state.quickSearch.locationTracking[jobId];

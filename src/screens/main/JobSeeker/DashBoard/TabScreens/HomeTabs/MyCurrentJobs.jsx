@@ -155,7 +155,7 @@ const MyCurrentJobs = () => {
       return;
     }
 
-    navigation.navigate(screenNames.TIMER_CONTROL, { jobId: job.id });
+    navigation.navigate(screenNames.TIMER_CONTROL, { jobId: job.id, job });
   };
 
   const getTimerStatusLabel = (job) => {

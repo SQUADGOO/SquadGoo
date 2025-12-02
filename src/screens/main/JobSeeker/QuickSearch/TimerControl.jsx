@@ -16,8 +16,9 @@ import { screenNames } from '@/navigation/screenNames';
 
 const TimerControl = ({ navigation, route }) => {
   const dispatch = useDispatch();
-  const { jobId } = route.params || {};
+  const { jobId, job: jobFromRoute } = route.params || {};
   const activeJob = useSelector(state => selectActiveQuickJobById(state, jobId));
+  const job = activeJob || jobFromRoute;
   
   const [timerInterval, setTimerInterval] = useState(null);
 
@@ -42,7 +43,7 @@ const TimerControl = ({ navigation, route }) => {
     };
   }, [activeJob?.timer?.isRunning]);
 
-  if (!activeJob) {
+  if (!job) {
     return (
       <View style={styles.container}>
         <AppHeader title="Timer Control" showTopIcons={false} />
@@ -55,10 +56,22 @@ const TimerControl = ({ navigation, route }) => {
     );
   }
 
-  const timer = activeJob.timer || {};
-  const payment = activeJob.payment || {};
+  const timer = job?.timer || {};
+  const payment = job?.payment || {};
+  const isReadOnly = !activeJob;
+
+  const guardActiveJob = () => {
+    if (activeJob) return true;
+    Alert.alert(
+      'Timer unavailable',
+      'This timer can be controlled only after the quick job becomes active.'
+    );
+    return false;
+  };
 
   const handleStart = () => {
+    if (!guardActiveJob()) return;
+
     // Check if payment is set up for platform payment
     if (payment.method === 'platform' && !payment.codeVerified) {
       Alert.alert(
@@ -91,6 +104,7 @@ const TimerControl = ({ navigation, route }) => {
   };
 
   const handleStop = () => {
+    if (!guardActiveJob()) return;
     Alert.alert(
       'Stop Timer',
       'Are you sure you want to stop the timer?',
@@ -112,6 +126,7 @@ const TimerControl = ({ navigation, route }) => {
   };
 
   const handleResume = () => {
+    if (!guardActiveJob()) return;
     // Check if within 1 hour window
     if (timer.stopTime) {
       const stopTime = new Date(timer.stopTime);
@@ -146,12 +161,20 @@ const TimerControl = ({ navigation, route }) => {
         {/* Job Info */}
         <View style={styles.jobInfo}>
           <AppText variant={Variant.bodyMedium} style={styles.jobTitle}>
-            {activeJob.jobTitle}
+            {job.jobTitle}
           </AppText>
           <AppText variant={Variant.caption} style={styles.jobLocation}>
-            {activeJob.locationTracking?.workplaceLocation || 'Workplace'}
+            {job.locationTracking?.workplaceLocation || 'Workplace'}
           </AppText>
         </View>
+
+        {!activeJob && (
+          <View style={styles.readOnlyBanner}>
+            <AppText variant={Variant.caption} style={styles.readOnlyText}>
+              Timer controls are disabled for this job preview. Accept the quick offer to enable live tracking.
+            </AppText>
+          </View>
+        )}
 
         {/* Timer Clock */}
         <TimerClock
@@ -289,6 +312,17 @@ const styles = StyleSheet.create({
     marginTop: hp(2),
   },
   warningText: {
+    color: '#92400E',
+    fontSize: getFontSize(12),
+    lineHeight: 16,
+  },
+  readOnlyBanner: {
+    backgroundColor: '#FEF3C7',
+    borderRadius: 8,
+    padding: wp(3),
+    marginBottom: hp(2),
+  },
+  readOnlyText: {
     color: '#92400E',
     fontSize: getFontSize(12),
     lineHeight: 16,
