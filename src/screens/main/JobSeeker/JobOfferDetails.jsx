@@ -12,9 +12,11 @@ import { colors, hp, wp, getFontSize } from '@/theme';
 import AppText, { Variant } from '@/core/AppText';
 import AppHeader from '@/core/AppHeader';
 import AppButton from '@/core/AppButton';
-import { addCandidateToJob } from '@/store/jobsSlice';
+import { addCandidateToJob, updateJobStatus } from '@/store/jobsSlice';
 import { applyToOffer } from '@/store/jobSeekerOffersSlice';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { selectContactRevealByJobId } from '@/store/contactRevealSlice';
+import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
 
 const JobOfferDetails = () => {
   const navigation = useNavigation();
@@ -26,6 +28,41 @@ const JobOfferDetails = () => {
   
   // Get current user info for candidate creation
   const userInfo = useSelector(state => state?.auth?.userInfo || {});
+  const currentUserId = userInfo?._id || userInfo?.id || 'js-001';
+  const currentCandidateId = userInfo?.candidateId || userInfo?._id || 'js-001';
+  
+  // Check if job seeker has already applied for this job
+  const acceptedOffers = useSelector(state => state?.jobSeekerOffers?.acceptedOffers || []);
+  const declinedOffers = useSelector(state => state?.jobSeekerOffers?.declinedOffers || []);
+  const jobCandidates = useSelector(state => state?.jobs?.jobCandidates || {});
+  
+  // Check if already applied
+  const hasApplied = acceptedOffers.some(offer => offer.id === job?.id);
+  const hasDeclined = declinedOffers.some(offer => offer.id === job?.id);
+  
+  // Check if candidate exists in job candidates
+  const candidates = jobCandidates[job?.id] || [];
+  const candidateExists = candidates.some(c => 
+    c.id === currentCandidateId || 
+    c.email === userInfo.email ||
+    (userInfo.name && c.name === userInfo.name) ||
+    (userInfo.firstName && userInfo.lastName && c.name === `${userInfo.firstName} ${userInfo.lastName}`)
+  );
+  
+  const alreadyApplied = hasApplied || hasDeclined || candidateExists;
+  
+  // Check if contact reveal is active for this job
+  const contactReveal = useSelector(state => 
+    selectContactRevealByJobId(state, job?.id, currentUserId)
+  );
+  const canSeeContacts = !!contactReveal;
+  
+  // Get recruiter info (in real app, this would come from job or user store)
+  const recruiterInfo = {
+    name: job?.recruiterName || 'Recruiter',
+    phone: job?.recruiterPhone || '+61 400 000 000', // In real app, get from user store
+    email: job?.recruiterEmail || 'recruiter@example.com', // In real app, get from user store
+  };
 
   if (!job) {
     return (
@@ -80,18 +117,21 @@ const JobOfferDetails = () => {
   const handleApply = () => {
     // Create candidate object from current user
     const candidate = {
-      id: `candidate-${job.id}-${Date.now()}`,
+      id: currentCandidateId,
       name: userInfo.name || (userInfo.firstName && userInfo.lastName ? `${userInfo.firstName} ${userInfo.lastName}` : 'Job Seeker'),
       email: userInfo.email || '',
       phone: userInfo.phone || '',
       experience: userInfo.experience || 'Not specified',
       location: userInfo.location || userInfo.address || 'Not specified',
-      status: 'pending',
+      status: 'accepted', // Job seeker accepted, so status is accepted
       appliedAt: new Date().toISOString(),
     };
     
-    // Add candidate to recruiter's job
-    dispatch(addCandidateToJob({ jobId: job.id, candidate }));
+    // Add candidate to recruiter's job with autoAccept flag
+    dispatch(addCandidateToJob({ jobId: job.id, candidate, autoAccept: true }));
+    
+    // Update job status to matched (match making is complete)
+    dispatch(updateJobStatus({ jobId: job.id, status: 'matched' }));
     
     // Add to job seeker's accepted offers
     dispatch(applyToOffer(job));
@@ -283,6 +323,37 @@ const JobOfferDetails = () => {
           </>
         )}
 
+        {/* Contact Information - Only show if contact reveal is active */}
+        {canSeeContacts && (
+          <>
+            <SectionTitle title="Recruiter Contact" />
+            <View style={styles.contactContainer}>
+              <View style={styles.contactRow}>
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="call-outline"
+                  size={20}
+                  color={colors.primary || '#FF6B35'}
+                />
+                <AppText variant={Variant.bodyMedium} style={styles.contactText}>
+                  {recruiterInfo.phone}
+                </AppText>
+              </View>
+              <View style={styles.contactRow}>
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="mail-outline"
+                  size={20}
+                  color={colors.primary || '#FF6B35'}
+                />
+                <AppText variant={Variant.bodyMedium} style={styles.contactText}>
+                  {recruiterInfo.email}
+                </AppText>
+              </View>
+            </View>
+          </>
+        )}
+
         {/* Completed Date if completed */}
         {(isCompleted || job.status === 'completed') && job.completedDate && (
           <>
@@ -295,8 +366,8 @@ const JobOfferDetails = () => {
           </>
         )}
 
-        {/* Apply Button - Only show if not completed */}
-        {!(isCompleted || job.status === 'completed') && (
+        {/* Apply Button - Only show if not completed and not already applied */}
+        {!(isCompleted || job.status === 'completed') && !alreadyApplied && (
           <View style={styles.buttonContainer}>
             <AppButton
               text="Apply for this Job"
@@ -304,6 +375,17 @@ const JobOfferDetails = () => {
               bgColor={colors.primary}
               textColor="#FFFFFF"
             />
+          </View>
+        )}
+        
+        {/* Show status if already applied */}
+        {alreadyApplied && !(isCompleted || job.status === 'completed') && (
+          <View style={styles.buttonContainer}>
+            <View style={styles.appliedStatusContainer}>
+              <AppText variant={Variant.bodyMedium} style={styles.appliedStatusText}>
+                {hasDeclined ? 'You have declined this job offer' : 'You have already applied for this job'}
+              </AppText>
+            </View>
           </View>
         )}
 
@@ -414,6 +496,32 @@ const styles = StyleSheet.create({
   buttonContainer: {
     marginTop: hp(3),
     marginBottom: hp(2),
+  },
+  contactContainer: {
+    backgroundColor: colors.grayE8 || '#F3F4F6',
+    borderRadius: wp(2),
+    padding: wp(4),
+    marginBottom: hp(2),
+  },
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp(1),
+  },
+  contactText: {
+    marginLeft: wp(3),
+    color: colors.black || '#111827',
+    fontWeight: '500',
+  },
+  appliedStatusContainer: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: wp(2),
+    padding: wp(4),
+    alignItems: 'center',
+  },
+  appliedStatusText: {
+    color: '#6B7280',
+    fontWeight: '600',
   },
 });
 

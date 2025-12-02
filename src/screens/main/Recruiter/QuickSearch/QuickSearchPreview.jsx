@@ -96,7 +96,18 @@ const QuickSearchPreview = ({ navigation, route }) => {
       title: quickSearchStep1Data?.jobTitle || 'Untitled Job',
       type: 'Contract', // Default for quick search jobs
       industry: quickSearchStep1Data?.industry || 'General Services',
-      experience: `${quickSearchStep1Data?.experienceYear || 0} Years ${quickSearchStep1Data?.experienceMonth || 0} Month`,
+      experience: (() => {
+        // Extract numbers from strings like "2 Years" or "2 Months"
+        const extractNumber = (str) => {
+          if (!str) return 0;
+          if (typeof str === 'number') return str;
+          const match = str.toString().match(/(\d+)/);
+          return match ? parseInt(match[1], 10) : 0;
+        };
+        const years = extractNumber(quickSearchStep1Data?.experienceYear);
+        const months = extractNumber(quickSearchStep1Data?.experienceMonth);
+        return `${years} Year${years !== 1 ? 's' : ''} ${months} Month${months !== 1 ? 's' : ''}`;
+      })(),
       staffNumber: quickSearchStep1Data?.staffCount || '1',
       location: quickSearchStep2Data?.workLocation || 'Location not specified',
       rangeKm: quickSearchStep2Data?.rangeKm || 0,

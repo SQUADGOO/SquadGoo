@@ -12,12 +12,21 @@ import {
   declineQuickOffer,
   expireQuickOffers 
 } from '@/store/quickSearchSlice';
+import { createChatSession } from '@/store/chatSlice';
+import { revealContacts } from '@/store/contactRevealSlice';
+import { addNotification } from '@/store/notificationsSlice';
+import { updateJobStatus } from '@/store/jobsSlice';
 import { screenNames } from '@/navigation/screenNames';
 
 const ActiveOffers = ({ navigation }) => {
   const dispatch = useDispatch();
   const allOffers = useSelector(selectQuickOffers);
+  const quickJobs = useSelector(state => state?.quickSearch?.quickJobs || []);
+  const userInfo = useSelector(state => state?.auth?.userInfo || {});
   const [offers, setOffers] = useState([]);
+  
+  const currentUserId = userInfo?._id || userInfo?.id || 'js-001';
+  const currentCandidateId = userInfo?.candidateId || userInfo?._id || 'js-001';
 
   useEffect(() => {
     // Filter pending offers for current user (job seeker)
@@ -32,6 +41,9 @@ const ActiveOffers = ({ navigation }) => {
   }, [allOffers, dispatch]);
 
   const handleAccept = (offerId) => {
+    const offer = allOffers.find(o => o.id === offerId);
+    if (!offer) return;
+    
     Alert.alert(
       'Accept Offer',
       'Are you sure you want to accept this job offer?',
@@ -41,7 +53,44 @@ const ActiveOffers = ({ navigation }) => {
           text: 'Accept',
           onPress: () => {
             dispatch(acceptQuickOffer({ offerId }));
-            Alert.alert('Success', 'Offer accepted! Location tracking will begin.');
+            
+            // Get job details
+            const job = quickJobs.find(j => j.id === offer.jobId);
+            if (job) {
+              // Update job status to matched
+              dispatch(updateJobStatus({ jobId: job.id, status: 'matched' }));
+              
+              // Create chat session (30 days expiration)
+              const recruiterId = job.recruiterId || 'recruiter-001';
+              dispatch(createChatSession({
+                jobId: job.id,
+                userId: currentUserId,
+                otherUserId: recruiterId,
+                jobTitle: offer.jobTitle || job.jobTitle,
+                searchType: 'quick',
+                expiresInDays: 30,
+              }));
+              
+              // Reveal contacts between job seeker and recruiter
+              dispatch(revealContacts({
+                jobId: job.id,
+                userId1: currentUserId,
+                userId2: recruiterId,
+                expiresInDays: 30,
+              }));
+              
+              // Create notification for recruiter
+              dispatch(addNotification({
+                type: 'offer_accepted',
+                title: 'Quick Offer Accepted',
+                message: `${userInfo.name || 'A job seeker'} has accepted your quick search offer for "${offer.jobTitle}"`,
+                jobId: job.id,
+                candidateId: currentCandidateId,
+                userId: recruiterId,
+              }));
+            }
+            
+            Alert.alert('Success', 'Offer accepted! Chat is now enabled. Location tracking will begin.');
             // Navigate to active jobs or location sharing
             navigation.navigate(screenNames.QUICK_SEARCH_ACTIVE_JOBS_JS);
           },

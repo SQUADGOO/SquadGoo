@@ -12,6 +12,9 @@ import walletReducer from './walletSlice'
 import bankReducer from './bankSlice'
 import manualOffersReducer from './manualOffersSlice'
 import quickSearchReducer from './quickSearchSlice'
+import notificationsReducer from './notificationsSlice'
+import chatReducer from './chatSlice'
+import contactRevealReducer from './contactRevealSlice'
 
 const rootReducer = combineReducers({
   auth: authSlice,
@@ -25,12 +28,15 @@ const rootReducer = combineReducers({
   bank: bankReducer,
   manualOffers: manualOffersReducer,
   quickSearch: quickSearchReducer,
+  notifications: notificationsReducer,
+  chat: chatReducer,
+  contactReveal: contactRevealReducer,
 });
 
 const presisConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['auth', 'marketplace', 'jobs', 'jobSeekerOffers', 'jobSeekerExperience', 'jobSeekerPreferred', 'wallet', 'bank', 'manualOffers', 'quickSearch'],
+  whitelist: ['auth', 'marketplace', 'jobs', 'jobSeekerOffers', 'jobSeekerExperience', 'jobSeekerPreferred', 'wallet', 'bank', 'manualOffers', 'quickSearch', 'notifications', 'chat', 'contactReveal'],
 };
 const presisReducer = persistReducer(presisConfig, rootReducer);
 

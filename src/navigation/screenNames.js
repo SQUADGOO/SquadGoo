@@ -56,6 +56,8 @@ export const screenNames = {
   UPDATE_SECOND: 'update_second',
   UPDATE_THIRD: 'update_third',
   NOTICATIONS: 'notifications',
+  NOTIFICATIONS: 'notifications',
+  MY_CURRENT_JOBS: 'my_current_jobs',
   QUICK_SEARCH_STEPONE: 'quick_search_stepone',
   QUICK_SEARCH_STEPTWO: 'quick_search_steptwo',
   QUICK_SEARCH_STEPTHREE: 'quick_search_stepthree',
@@ -112,6 +114,9 @@ ACCEPTED_OFFERS: 'accepted_offers',
   // Quick Search Screens
   QUICK_SEARCH_ACTIVE_OFFERS_JS: 'quick_search_active_offers_js',
   QUICK_SEARCH_ACTIVE_JOBS_JS: 'quick_search_active_jobs_js',
+  
+  // Manual Search Screens (Job Seeker)
+  MANUAL_OFFERS_JS: 'manual_offers_js',
   QUICK_SEARCH_ACTIVE_OFFERS_RECRUITER: 'quick_search_active_offers_recruiter',
   QUICK_SEARCH_ACTIVE_JOBS_RECRUITER: 'quick_search_active_jobs_recruiter',
   QUICK_SEARCH_MATCH_LIST: 'quick_search_match_list',

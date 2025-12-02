@@ -5,13 +5,14 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Image,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch, useSelector } from 'react-redux';
 import { applyToOffer, declineActiveOffer, initializeDummyData as initializeOffersData } from '@/store/jobSeekerOffersSlice';
-import { addCandidateToJob, clearDummyJobs } from '@/store/jobsSlice';
+import { addCandidateToJob, clearDummyJobs, updateJobStatus } from '@/store/jobsSlice';
+import { addNotification } from '@/store/notificationsSlice';
 import RbSheetComponent from '@/core/RbSheetComponent';
 import AppText from '@/core/AppText';
 import AppInputField from '@/core/AppInputField';
@@ -21,6 +22,8 @@ import Pressable from '@/core/Pressable';
 import ReactNative from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { screenNames } from '@/navigation/screenNames';
+import JobSeekerJobCard from '@/components/JobSeeker/JobCard';
+import { showToast, toastTypes } from '@/utilities/toastConfig';
 
 const JobSeekerActiveJob = () => {
   const dispatch = useDispatch();
@@ -36,6 +39,8 @@ const JobSeekerActiveJob = () => {
   // Fetch jobs based on type
   const recruiterJobs = useSelector(state => state?.jobs?.activeJobs || []);
   const completedOffers = useSelector(state => state?.jobSeekerOffers?.completedOffers || []);
+  const acceptedOffers = useSelector(state => state?.jobSeekerOffers?.acceptedOffers || []);
+  const declinedOffers = useSelector(state => state?.jobSeekerOffers?.declinedOffers || []);
   
   // Clear any existing dummy jobs and only show real jobs posted by recruiters
   React.useEffect(() => {
@@ -85,27 +90,76 @@ const JobSeekerActiveJob = () => {
   const sheetRef = React.useRef(null);
 
   const onAccept = (job) => {
-    // Create candidate object from current user
-    const candidate = {
-      id: `candidate-${job.id}-${Date.now()}`,
-      name: userInfo.name || (userInfo.firstName && userInfo.lastName ? `${userInfo.firstName} ${userInfo.lastName}` : 'Job Seeker'),
-      email: userInfo.email || '',
-      phone: userInfo.phone || '',
-      experience: userInfo.experience || 'Not specified',
-      location: userInfo.location || userInfo.address || 'Not specified',
-      status: 'pending',
-      appliedAt: new Date().toISOString(),
-    };
-    
-    // Add candidate to recruiter's job
-    dispatch(addCandidateToJob({ jobId: job.id, candidate }));
-    
-    // Add to job seeker's accepted offers
-    dispatch(applyToOffer(job));
+    Alert.alert(
+      'Apply to Job',
+      `Are you sure you want to apply for "${job.title}"?`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Apply',
+          onPress: () => {
+            // Create candidate object from current user
+            const currentCandidateId = userInfo?.candidateId || userInfo?._id || `candidate-${job.id}-${Date.now()}`;
+            const candidate = {
+              id: currentCandidateId,
+              name: userInfo.name || (userInfo.firstName && userInfo.lastName ? `${userInfo.firstName} ${userInfo.lastName}` : 'Job Seeker'),
+              email: userInfo.email || '',
+              phone: userInfo.phone || '',
+              experience: userInfo.experience || 'Not specified',
+              location: userInfo.location || userInfo.address || 'Not specified',
+              status: 'accepted', // Job seeker accepted
+              appliedAt: new Date().toISOString(),
+            };
+            
+            // Add candidate to recruiter's job with autoAccept flag
+            dispatch(addCandidateToJob({ jobId: job.id, candidate, autoAccept: true }));
+            
+            // Update job status to matched (match making is complete)
+            dispatch(updateJobStatus({ jobId: job.id, status: 'matched' }));
+            
+            // Add to job seeker's accepted offers
+            dispatch(applyToOffer(job));
+            
+            // Create notification for recruiter (if recruiter is logged in, they'll see it)
+            dispatch(addNotification({
+              type: 'application_received',
+              title: 'New Application Received',
+              message: `${candidate.name} has applied for "${job.title}"`,
+              jobId: job.id,
+              candidateId: candidate.id,
+              userId: 'recruiter', // In real app, this would be the recruiter's user ID
+            }));
+            
+            showToast('Job application submitted successfully!', 'Success', toastTypes.success);
+          },
+        },
+      ]
+    );
   };
 
-  const onDecline = (id) => {
-    dispatch(declineActiveOffer(id));
+  const onDecline = (job) => {
+    Alert.alert(
+      'Decline Job',
+      'Are you sure you want to decline this job offer?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Decline',
+          style: 'destructive',
+          onPress: () => {
+            // Pass the full job object to track declined jobs properly
+            dispatch(declineActiveOffer(job));
+            showToast('Job offer declined', 'Info', toastTypes.info);
+          },
+        },
+      ]
+    );
   };
 
   const openFilter = () => {
@@ -200,74 +254,27 @@ const JobSeekerActiveJob = () => {
     return filtered;
   }, [jobOffers, filters, postRange, isCompleted]);
 
-  const renderJobCard = ({ item: job }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => navigation.navigate(screenNames.JOB_OFFER_DETAILS, { job, isCompleted })}
-    >
-      <View style={{ gap: hp(1) }}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>{job.title}</Text>
-          {isCompleted ? (
-            <View style={styles.completedBadge}>
-              <Icon name="checkmark-circle" size={14} color="#4ADE80" />
-              <Text style={styles.completedText}>Completed</Text>
-            </View>
-          ) : (
-            <Text style={styles.expiry}>Expire on {job.expireDate}</Text>
-          )}
-        </View>
-
-        <View style={styles.cardHeader}>
-          <Text style={styles.salary}>{job.salaryRange}</Text>
-          <Text style={styles.expiry}>{job?.searchType?.toUpperCase() || 'N/A'}</Text>
-        </View>
-      </View>
-
-      <Text style={styles.description}>
-        {job?.description}
-        <Text style={styles.viewDetails}> View Details</Text>
-      </Text>
-
-      <View style={styles.companyRow}>
-        {job?.image ? (
-          <Image source={{ uri: job.image }} style={styles.logo} />
-        ) : (
-          <View style={[styles.logo, { backgroundColor: '#E0E0E0' }]} />
-        )}
-        <View style={styles.companyInfo}>
-          <Text style={styles.companyName}>{job.industry}</Text>
-          <View style={styles.locationRow}>
-            <Icon name="location-outline" size={14} color="#4F5D75" />
-            <Text style={styles.location}>{job.location}</Text>
-          </View>
-        </View>
-        <Text style={styles.experience}>Experience: {job.experience}</Text>
-      </View>
-
-      {!isCompleted && (
-        <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.acceptBtn} onPress={() => onAccept(job)}>
-            <Icon name="checkmark" size={18} color="green" />
-            <Text style={styles.acceptText}>Apply</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.declineBtn} onPress={() => onDecline(job.id)}>
-            <Icon name="close" size={18} color="red" />
-            <Text style={styles.declineText}>Decline</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-      
-      {isCompleted && job.completedDate && (
-        <View style={styles.completedInfoRow}>
-          <View style={styles.infoItem}>
-            <Icon name="calendar-outline" size={14} color="#4F5D75" />
-            <Text style={styles.infoText}>Completed: {job.completedDate}</Text>
-          </View>
-        </View>
-      )}
-    </TouchableOpacity>
-  );
+  const renderJobCard = ({ item: job }) => {
+    // Check if job is already accepted or declined
+    const isAccepted = acceptedOffers.some(offer => offer.id === job.id);
+    const isDeclined = declinedOffers.some(offer => offer.id === job.id);
+    const jobSeekerStatus = isAccepted ? 'accepted' : isDeclined ? 'declined' : null;
+    
+    // Create a decline handler that passes the full job object
+    const handleDecline = (jobId) => {
+      onDecline(job);
+    };
+    
+    return (
+      <JobSeekerJobCard
+        job={job}
+        isCompleted={isCompleted}
+        onAccept={onAccept}
+        onDecline={handleDecline}
+        jobSeekerStatus={jobSeekerStatus}
+      />
+    );
+  };
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
@@ -461,76 +468,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   dropdownText: { color: '#aaa', flex: 1 },
-  card: {
-    borderBottomWidth: 0.8,
-    borderColor: '#eee',
-    padding: 15,
-    marginVertical: 5,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  cardTitle: { fontWeight: '700', fontSize: 16, color: '#4F5D75', width: '60%' },
-  expiry: {
-    backgroundColor: '#E0D9E9',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-    fontSize: 12,
-    color: '#4F5D75',
-  },
-  salary: {
-    color: '#FF9800',
-    fontWeight: '700',
-    width: wp(50),
-    alignSelf: 'flex-start',
-    marginBottom: 8,
-  },
-  description: { color: '#4F5D75', fontSize: 13, marginBottom: 8 },
-  viewDetails: { color: '#FF9800', fontWeight: '600' },
-  companyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 8,
-    justifyContent: 'space-between',
-  },
-  logo: { width: 35, height: 35, borderRadius: 35 / 2, marginRight: 10 },
-  companyInfo: { flex: 1 },
-  companyName: { fontWeight: '600', color: '#000' },
-  locationRow: { flexDirection: 'row', alignItems: 'center', marginTop: 2 },
-  location: { marginLeft: 4, color: '#4F5D75', fontSize: 12 },
-  experience: { color: '#4F5D75', fontSize: 13 },
-  completedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#D1FAE5',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-    gap: 4,
-  },
-  completedText: {
-    fontSize: 12,
-    color: '#065F46',
-    fontWeight: '600',
-  },
-  completedInfoRow: {
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 0.5,
-    borderColor: '#E5E7EB',
-  },
-  infoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  infoText: {
-    color: '#4F5D75',
-    fontSize: 12,
-  },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -549,36 +486,6 @@ const styles = StyleSheet.create({
     fontSize: getFontSize(14),
     textAlign: 'center',
   },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  acceptBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'green',
-    borderRadius: 25,
-    paddingHorizontal: 18,
-    paddingVertical: 8,
-    flex: 1,
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  declineBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'red',
-    borderRadius: 25,
-    paddingHorizontal: 18,
-    paddingVertical: 8,
-    flex: 1,
-    justifyContent: 'center',
-  },
-  acceptText: { color: 'green', marginLeft: 6, fontWeight: '600' },
-  declineText: { color: 'red', marginLeft: 6, fontWeight: '600' },
   bottomNav: {
     flexDirection: 'row',
     justifyContent: 'space-around',

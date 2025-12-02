@@ -3,10 +3,9 @@ import {
   View, 
   StyleSheet, 
   ScrollView, 
-  TouchableOpacity,
-  Platform
+  TouchableOpacity
 } from 'react-native'
-import DateTimePicker from '@react-native-community/datetimepicker'
+import AppDatePickerModal from '@/core/AppDatePickerModal'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
 import AppText, { Variant } from '@/core/AppText'
@@ -18,28 +17,44 @@ const DAYS_OF_WEEK = [
   'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
 ]
 
-// Time Picker Field Component
-const TimePickerField = ({ label, value, onPress, disabled }) => (
-  <TouchableOpacity
-    style={[styles.timeField, disabled && styles.timeFieldDisabled]}
-    onPress={onPress}
-    disabled={disabled}
-    activeOpacity={0.7}
-  >
-    <AppText 
-      variant={Variant.bodyMedium} 
-      style={[styles.timeFieldText, !value && styles.timeFieldPlaceholder]}
-    >
-      {value || label}
-    </AppText>
-    <VectorIcons
-      name={iconLibName.Ionicons}
-      iconName="time-outline"
-      size={18}
-      color={value ? colors.primary : colors.gray}
+// Time Picker Field Component using AppDatePickerModal
+const TimePickerField = ({ label, value, onChange, disabled }) => {
+  // Convert string time (HH:MM) to Date object
+  const parseTimeString = (timeString) => {
+    if (!timeString || typeof timeString !== 'string') return new Date();
+    const [hours, minutes] = timeString.split(':').map(Number);
+    if (isNaN(hours) || isNaN(minutes)) return new Date();
+    const date = new Date();
+    date.setHours(hours, minutes, 0, 0);
+    return date;
+  };
+
+  // Convert Date object to string time (HH:MM)
+  const formatTimeToString = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    const hours = d.getHours().toString().padStart(2, '0');
+    const minutes = d.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
+  const handleTimeChange = (selectedDate) => {
+    if (selectedDate && onChange) {
+      const timeString = formatTimeToString(selectedDate);
+      onChange(timeString);
+    }
+  };
+
+  return (
+    <AppDatePickerModal
+      label=""
+      value={parseTimeString(value)}
+      onChange={handleTimeChange}
+      placeholder={label}
+      mode="time"
     />
-  </TouchableOpacity>
-)
+  );
+}
 
 // Day Row Component
 const DayRow = ({ 
@@ -48,8 +63,8 @@ const DayRow = ({
   onToggle, 
   startTime, 
   endTime, 
-  onStartTimePress, 
-  onEndTimePress 
+  onStartTimeChange, 
+  onEndTimeChange 
 }) => (
   <View style={styles.dayCard}>
     {/* Day Header */}
@@ -90,7 +105,7 @@ const DayRow = ({
           <TimePickerField
             label="Select start time"
             value={startTime}
-            onPress={onStartTimePress}
+            onChange={onStartTimeChange}
           />
         </View>
         
@@ -109,7 +124,7 @@ const DayRow = ({
           <TimePickerField
             label="Select end time"
             value={endTime}
-            onPress={onEndTimePress}
+            onChange={onEndTimeChange}
           />
         </View>
       </View>
@@ -131,9 +146,7 @@ const AbilityToWork = ({ navigation }) => {
 
   const [selectedDays, setSelectedDays] = useState(initialDaysState)
   const [dayTimes, setDayTimes] = useState(initialTimesState)
-  const [showTimePicker, setShowTimePicker] = useState({ day: null, field: null })
   const [commonTimeRange, setCommonTimeRange] = useState({ start: '', end: '' })
-  const [showCommonTimePicker, setShowCommonTimePicker] = useState({ field: null })
 
   // Calculate selected days count
   const selectedDaysCount = useMemo(() => {
@@ -148,73 +161,28 @@ const AbilityToWork = ({ navigation }) => {
     }))
   }
 
-  // Open time picker for individual day
-  const openTimePicker = (day, field) => {
+  // Handle time change for individual day
+  const handleDayTimeChange = (day, field, timeString) => {
     if (!selectedDays[day]) {
       showToast('Please select the day first', 'Info', toastTypes.info)
       return
     }
-    setShowTimePicker({ day, field })
-  }
-
-  // Handle time change for individual day
-  const handleTimeChange = (event, selectedDate) => {
-    if (Platform.OS === 'android') {
-      setShowTimePicker({ day: null, field: null })
-    }
-
-    if (event.type === 'set' && selectedDate && showTimePicker.day && showTimePicker.field) {
-      const timeString = selectedDate.toLocaleTimeString([], { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: false 
-      })
-      
-      setDayTimes(prev => ({
-        ...prev,
-        [showTimePicker.day]: {
-          ...prev[showTimePicker.day],
-          [showTimePicker.field]: timeString
-        }
-      }))
-      
-      if (Platform.OS === 'ios') {
-        setShowTimePicker({ day: null, field: null })
+    
+    setDayTimes(prev => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        [field]: timeString
       }
-    } else if (event.type === 'dismissed') {
-      setShowTimePicker({ day: null, field: null })
-    }
-  }
-
-  // Open common time picker
-  const openCommonTimePicker = (field) => {
-    setShowCommonTimePicker({ field })
+    }))
   }
 
   // Handle common time change
-  const handleCommonTimeChange = (event, selectedDate) => {
-    if (Platform.OS === 'android') {
-      setShowCommonTimePicker({ field: null })
-    }
-
-    if (event.type === 'set' && selectedDate && showCommonTimePicker.field) {
-      const timeString = selectedDate.toLocaleTimeString([], { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: false 
-      })
-      
-      setCommonTimeRange(prev => ({
-        ...prev,
-        [showCommonTimePicker.field]: timeString
-      }))
-      
-      if (Platform.OS === 'ios') {
-        setShowCommonTimePicker({ field: null })
-      }
-    } else if (event.type === 'dismissed') {
-      setShowCommonTimePicker({ field: null })
-    }
+  const handleCommonTimeChange = (field, timeString) => {
+    setCommonTimeRange(prev => ({
+      ...prev,
+      [field]: timeString
+    }))
   }
 
   // Apply common time to selected days
@@ -305,23 +273,6 @@ const AbilityToWork = ({ navigation }) => {
     navigation.goBack()
   }
 
-  // Get picker value (for showing current time in picker)
-  const getPickerValue = (day, field) => {
-    if (day && dayTimes[day]?.[field]) {
-      const [hours, minutes] = dayTimes[day][field].split(':')
-      const date = new Date()
-      date.setHours(parseInt(hours), parseInt(minutes))
-      return date
-    }
-    if (field && commonTimeRange[field]) {
-      const [hours, minutes] = commonTimeRange[field].split(':')
-      const date = new Date()
-      date.setHours(parseInt(hours), parseInt(minutes))
-      return date
-    }
-    return new Date()
-  }
-
   return (
     <>
       <AppHeader
@@ -366,9 +317,9 @@ const AbilityToWork = ({ navigation }) => {
                 Start Time
               </AppText>
               <TimePickerField
-                label="Start time"
+                label="Select start time"
                 value={commonTimeRange.start}
-                onPress={() => openCommonTimePicker('start')}
+                onChange={(timeString) => handleCommonTimeChange('start', timeString)}
               />
             </View>
             
@@ -377,9 +328,9 @@ const AbilityToWork = ({ navigation }) => {
                 End Time
               </AppText>
               <TimePickerField
-                label="End time"
+                label="Select end time"
                 value={commonTimeRange.end}
-                onPress={() => openCommonTimePicker('end')}
+                onChange={(timeString) => handleCommonTimeChange('end', timeString)}
               />
             </View>
           </View>
@@ -424,8 +375,8 @@ const AbilityToWork = ({ navigation }) => {
                 onToggle={() => toggleDay(day)}
                 startTime={dayTimes[day].start}
                 endTime={dayTimes[day].end}
-                onStartTimePress={() => openTimePicker(day, 'start')}
-                onEndTimePress={() => openTimePicker(day, 'end')}
+                onStartTimeChange={(timeString) => handleDayTimeChange(day, 'start', timeString)}
+                onEndTimeChange={(timeString) => handleDayTimeChange(day, 'end', timeString)}
               />
             ))}
           </View>
@@ -442,27 +393,6 @@ const AbilityToWork = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Time Picker for Individual Days */}
-      {showTimePicker.day && (
-        <DateTimePicker
-          value={getPickerValue(showTimePicker.day, showTimePicker.field)}
-          mode="time"
-          is24Hour={true}
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleTimeChange}
-        />
-      )}
-
-      {/* Time Picker for Common Time Range */}
-      {showCommonTimePicker.field && (
-        <DateTimePicker
-          value={getPickerValue(null, showCommonTimePicker.field)}
-          mode="time"
-          is24Hour={true}
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleCommonTimeChange}
-        />
-      )}
     </>
   )
 }
@@ -634,30 +564,6 @@ const styles = StyleSheet.create({
     fontSize: getFontSize(11),
     fontWeight: '500',
     marginBottom: hp(0.8),
-  },
-  timeField: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1.5,
-    borderColor: '#E5E7EB',
-    borderRadius: hp(1.5),
-    paddingHorizontal: wp(3),
-    paddingVertical: hp(1.2),
-    backgroundColor: '#FFFFFF',
-  },
-  timeFieldDisabled: {
-    backgroundColor: '#F9FAFB',
-    borderColor: '#F3F4F6',
-  },
-  timeFieldText: {
-    color: colors.secondary,
-    fontSize: getFontSize(14),
-    fontWeight: '500',
-  },
-  timeFieldPlaceholder: {
-    color: colors.gray,
-    fontWeight: '400',
   },
   separator: {
     flexDirection: 'row',

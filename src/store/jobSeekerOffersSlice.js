@@ -229,6 +229,7 @@ const initialCompletedOffers = generateDummyCompletedOffers();
 const initialState = {
   activeOffers: [],
   acceptedOffers: [],
+  declinedOffers: [],
   completedOffers: initialCompletedOffers,
 };
 
@@ -243,19 +244,53 @@ const jobSeekerOffersSlice = createSlice({
       
       // If we have the full job object, add it to accepted offers
       if (job) {
-        state.acceptedOffers.unshift(job);
+        // Mark job as accepted with status
+        const acceptedJob = {
+          ...job,
+          jobSeekerStatus: 'accepted',
+          acceptedAt: new Date().toISOString(),
+        };
+        state.acceptedOffers.unshift(acceptedJob);
       } else {
         // If we only have ID, try to find it in activeOffers (for backward compatibility)
         const index = state.activeOffers.findIndex(o => o.id === offerId);
         if (index !== -1) {
           const [offer] = state.activeOffers.splice(index, 1);
-          state.acceptedOffers.unshift(offer);
+          const acceptedOffer = {
+            ...offer,
+            jobSeekerStatus: 'accepted',
+            acceptedAt: new Date().toISOString(),
+          };
+          state.acceptedOffers.unshift(acceptedOffer);
         }
       }
     },
     declineActiveOffer: (state, { payload }) => {
+      const job = typeof payload === 'object' ? payload : null;
       const offerId = typeof payload === 'object' ? payload.id : payload;
-      state.activeOffers = state.activeOffers.filter(o => o.id !== offerId);
+      
+      // If we have the full job object, add it to declined offers
+      if (job) {
+        const declinedJob = {
+          ...job,
+          jobSeekerStatus: 'declined',
+          declinedAt: new Date().toISOString(),
+        };
+        state.declinedOffers.unshift(declinedJob);
+      } else {
+        // If we only have ID, try to find it in activeOffers (for backward compatibility)
+        const offerIndex = state.activeOffers.findIndex(o => o.id === offerId);
+        if (offerIndex !== -1) {
+          const [declinedOffer] = state.activeOffers.splice(offerIndex, 1);
+          // Store declined offer with status
+          const declinedJob = {
+            ...declinedOffer,
+            jobSeekerStatus: 'declined',
+            declinedAt: new Date().toISOString(),
+          };
+          state.declinedOffers.unshift(declinedJob);
+        }
+      }
     },
     removeAcceptedOffer: (state, { payload }) => {
       const offerId = typeof payload === 'object' ? payload.id : payload;
@@ -264,6 +299,7 @@ const jobSeekerOffersSlice = createSlice({
     clearAllOffers: (state) => {
       state.activeOffers = [];
       state.acceptedOffers = [];
+      state.declinedOffers = [];
       state.completedOffers = [];
     },
     initializeDummyData: (state) => {
@@ -295,12 +331,13 @@ const jobSeekerOffersSlice = createSlice({
       if (action.payload) {
         // If completedOffers is empty after rehydration, populate with dummy data
         if (!action.payload.jobSeekerOffers?.completedOffers || action.payload.jobSeekerOffers.completedOffers.length === 0) {
-          return {
-            ...state,
-            completedOffers: initialCompletedOffers,
-            activeOffers: action.payload.jobSeekerOffers?.activeOffers || [],
-            acceptedOffers: action.payload.jobSeekerOffers?.acceptedOffers || [],
-          };
+        return {
+          ...state,
+          completedOffers: initialCompletedOffers,
+          activeOffers: action.payload.jobSeekerOffers?.activeOffers || [],
+          acceptedOffers: action.payload.jobSeekerOffers?.acceptedOffers || [],
+          declinedOffers: action.payload.jobSeekerOffers?.declinedOffers || [],
+        };
         }
         return {
           ...state,

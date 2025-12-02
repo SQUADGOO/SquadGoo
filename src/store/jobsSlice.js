@@ -717,7 +717,8 @@ const jobsSlice = createSlice({
       const newJob = {
         ...action.payload,
         id: jobId,
-        status: 'active',
+        status: 'posted', // Changed from 'active' to 'posted' for proper status progression
+        applicationCount: 0,
         createdAt: new Date().toISOString(),
         offerDate: new Date().toLocaleDateString('en-GB', {
           day: '2-digit',
@@ -788,14 +789,61 @@ const jobsSlice = createSlice({
 
     // Add candidate to a job
     addCandidateToJob: (state, action) => {
-      const { jobId, candidate } = action.payload;
+      const { jobId, candidate, autoAccept = false } = action.payload;
       if (!state.jobCandidates[jobId]) {
         state.jobCandidates[jobId] = [];
       }
+      
+      // If autoAccept is true (job seeker accepted the offer), set status to 'accepted'
+      const candidateStatus = autoAccept ? 'accepted' : (candidate.status || 'pending');
+      
       state.jobCandidates[jobId].push({
         ...candidate,
+        status: candidateStatus,
         appliedAt: new Date().toISOString(),
       });
+      
+      // Update job status and application count
+      const jobIndex = state.activeJobs.findIndex(job => job.id === jobId);
+      if (jobIndex !== -1) {
+        const job = state.activeJobs[jobIndex];
+        // Update application count
+        job.applicationCount = (job.applicationCount || 0) + 1;
+        
+        // If job seeker accepted, match making is complete - set status to 'matched'
+        if (autoAccept) {
+          job.status = 'matched';
+        } else {
+          // Update status: posted → has_applicants (when first application)
+          if (job.status === 'posted' || job.status === 'active') {
+            job.status = 'has_applicants';
+          }
+        }
+        job.updatedAt = new Date().toISOString();
+      }
+    },
+
+    // Update job status explicitly
+    updateJobStatus: (state, action) => {
+      const { jobId, status } = action.payload;
+      const jobIndex = state.activeJobs.findIndex(job => job.id === jobId);
+      
+      if (jobIndex !== -1) {
+        const job = state.activeJobs[jobIndex];
+        const validTransitions = {
+          'posted': ['has_applicants'],
+          'has_applicants': ['matched', 'has_applicants'], // Can stay has_applicants if more apply
+          'matched': ['in_progress'],
+          'in_progress': ['completed'],
+        };
+        
+        // Validate status transition
+        const allowedStatuses = validTransitions[job.status] || [];
+        if (allowedStatuses.includes(status) || job.status === status) {
+          job.status = status;
+          job.updatedAt = new Date().toISOString();
+        }
+      }
     },
 
     // Update candidate status
@@ -931,6 +979,7 @@ export const {
   expireJob,
   addCandidateToJob,
   updateCandidateStatus,
+  updateJobStatus,
   seedDummyData,
   clearJobs,
   clearDummyJobs,

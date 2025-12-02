@@ -7,7 +7,7 @@ const generateDummyPreferredJobs = () => {
     {
       id: nanoid(),
       preferredIndustry: { id: 1, title: 'Construction' },
-      preferredJobTitle: { category: 'Painter', subCategory: 'Commercial Painter' },
+      preferredJobTitle: { category: 'Construction', subCategory: 'Foreman/Supervisor' },
       expectedPayMin: 28,
       expectedPayMax: 38,
       receiveWithinKm: '25',
@@ -22,7 +22,7 @@ const generateDummyPreferredJobs = () => {
     {
       id: nanoid(),
       preferredIndustry: { id: 9, title: 'Logistics' },
-      preferredJobTitle: { category: 'Warehouse Manager', subCategory: 'Inventory Manager' },
+      preferredJobTitle: { category: 'Manufacturing, Transport & Logistics', subCategory: 'Warehousing/Storage & Distribution' },
       expectedPayMin: 32,
       expectedPayMax: 45,
       receiveWithinKm: '30',
@@ -37,7 +37,7 @@ const generateDummyPreferredJobs = () => {
     {
       id: nanoid(),
       preferredIndustry: { id: 4, title: 'Hospitality' },
-      preferredJobTitle: { category: 'Event Crew', subCategory: 'Event Coordinator' },
+      preferredJobTitle: { category: 'Hospitality & Tourism', subCategory: 'Management' },
       expectedPayMin: 25,
       expectedPayMax: 35,
       receiveWithinKm: '20',

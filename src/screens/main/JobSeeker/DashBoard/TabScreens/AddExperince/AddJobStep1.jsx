@@ -105,7 +105,12 @@ const AddJobStep1 = () => {
   );
 
   const onNext = (data) => {
-    navigation.navigate(screenNames.ADD_JOB_STEP2, { formData: data, mode: isEdit ? 'edit' : 'add', id: editingJob?.id });
+    navigation.navigate(screenNames.ADD_JOB_STEP2, { 
+      formData: data, 
+      mode: isEdit ? 'edit' : 'add', 
+      id: editingJob?.id,
+      preferredJob: editingJob // Pass the full preferred job for Step2 to access startTime/endTime
+    });
   };
 
   return (

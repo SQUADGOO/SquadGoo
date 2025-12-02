@@ -202,6 +202,16 @@ const JobSeekerDrawerNavigator = () => {
           component={ui.JobOfferDetails}
         />
       
+      <Drawer.Screen
+        name={screenNames.QUICK_SEARCH_ACTIVE_OFFERS_JS}
+        component={ui.QuickSearchActiveOffersJS}
+      />
+      
+      <Drawer.Screen
+        name={screenNames.MANUAL_OFFERS_JS}
+        component={ui.ManualOffersJS}
+      />
+      
     </Drawer.Navigator>
   );
 };

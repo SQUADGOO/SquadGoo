@@ -42,7 +42,17 @@ const JobPreview = ({ navigation, route }) => {
       rangeKm: step1Data?.rangeKm || 0,
       staffNumber: step1Data?.staffNumber || '1',
       industry: step1Data?.industry || 'General Services',
-      experience: step2Data ? `${step2Data.experienceYears} Years ${step2Data.experienceMonths} Month` : 'Not specified',
+      experience: step2Data ? (() => {
+        // Extract numbers from strings like "2 Years" or "2 Months"
+        const extractNumber = (str) => {
+          if (!str) return 0;
+          const match = str.toString().match(/(\d+)/);
+          return match ? parseInt(match[1], 10) : 0;
+        };
+        const years = extractNumber(step2Data.experienceYears);
+        const months = extractNumber(step2Data.experienceMonths);
+        return `${years} Year${years !== 1 ? 's' : ''} ${months} Month${months !== 1 ? 's' : ''}`;
+      })() : 'Not specified',
       salaryRange: step2Data 
         ? `$${step2Data.salaryMin || '0'}/hr to $${step2Data.salaryMax || '0'}/hr`
         : 'Not specified',

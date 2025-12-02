@@ -46,6 +46,7 @@ import UpdateMain from './main/Recruiter/Update/UpdateMain';
 import UpdateSecond from './main/Recruiter/Update/UpdateSecond';
 import UpdateThird from './main/Recruiter/Update/UpdateThird';
 import Notifcations from './main/Recruiter/Notifications';
+import Notifications from './main/Notifications';
 import StepOne from './main/Recruiter/QuickSearch/StepOne';
 import StepTwoQuickSearch from './main/Recruiter/QuickSearch/StepTwo';
 import StepThreeQuickSearch from './main/Recruiter/QuickSearch/StepThree';
@@ -105,6 +106,10 @@ import CompletedOffersJobSeeker from './main/JobSeeker/CompletedOffers';
 // Quick Search Screens
 import QuickSearchActiveOffersJS from './main/JobSeeker/QuickSearch/ActiveOffers';
 import QuickSearchActiveJobsJS from './main/JobSeeker/QuickSearch/ActiveJobs';
+
+// Manual Search Screens (Job Seeker)
+import ManualOffersJS from './main/JobSeeker/ManualSearch/ManualOffers';
+import MyCurrentJobs from './main/JobSeeker/DashBoard/TabScreens/HomeTabs/MyCurrentJobs';
 import LocationSharing from './main/JobSeeker/QuickSearch/LocationSharing';
 import PaymentRequest from './main/JobSeeker/QuickSearch/PaymentRequest';
 import TimerControl from './main/JobSeeker/QuickSearch/TimerControl';
@@ -165,6 +170,7 @@ export {
   UpdateSecond,
   UpdateThird,
   Notifcations,
+  Notifications,
   StepOne,
   StepTwoQuickSearch,
   StepThreeQuickSearch,
@@ -228,4 +234,8 @@ CompletedOffersJobSeeker,
   QuickSearchActiveJobsRecruiter,
   LiveTracking,
   TimerManagement,
+  
+  // Manual Search Screens (Job Seeker)
+  ManualOffersJS,
+  MyCurrentJobs,
 };

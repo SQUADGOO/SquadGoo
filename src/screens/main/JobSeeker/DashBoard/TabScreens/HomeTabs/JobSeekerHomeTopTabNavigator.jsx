@@ -5,6 +5,7 @@ import { colors, hp, wp, getFontSize } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import { screenNames } from '@/navigation/screenNames'
 import JobSeekerActiveJob from './JobSeekerActiveJob'
+import MyCurrentJobs from './MyCurrentJobs'
 
 
 
@@ -46,6 +47,17 @@ const JobSeekerHomeTopTabNavigator = () => {
           tabBarLabel: ({ focused }) => (
             <CustomTabLabel focused={focused}>
               Active job offers
+            </CustomTabLabel>
+          ),
+        }}
+      />
+      <Tab.Screen
+        name={screenNames.MY_CURRENT_JOBS}
+        component={MyCurrentJobs}
+        options={{
+          tabBarLabel: ({ focused }) => (
+            <CustomTabLabel focused={focused}>
+              My Current Jobs
             </CustomTabLabel>
           ),
         }}
