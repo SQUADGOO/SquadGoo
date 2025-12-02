@@ -113,6 +113,22 @@ const ActiveOffers = ({ navigation, route }) => {
     });
   };
 
+  const handleMessage = (offer) => {
+    const { jobId, candidateId, candidateName, jobTitle } = offer;
+    
+    // Navigate to Messages screen
+    // Chat session should exist if offer is accepted (created when job seeker accepts)
+    navigation.navigate(screenNames.MESSAGES, {
+      chatData: {
+        jobId,
+        name: candidateName,
+        jobTitle,
+        jobType: 'quick',
+        otherUserId: candidateId,
+      },
+    });
+  };
+
   const formatExpiryLabel = (expiresAt) => {
     if (!expiresAt) return 'N/A';
     const date = new Date(expiresAt);
@@ -197,6 +213,11 @@ const ActiveOffers = ({ navigation, route }) => {
               candidateId={item.candidateId}
               jobId={item.jobId}
               onViewProfile={handleViewProfile}
+              onMessage={
+                item.status === 'accepted'
+                  ? () => handleMessage(item)
+                  : undefined
+              }
               onCancel={
                 item.status === 'pending'
                   ? () => handleCancel(item.id)

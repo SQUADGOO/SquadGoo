@@ -167,6 +167,22 @@ const ManualOffers = ({ navigation }) => {
     });
   };
 
+  const handleMessage = (offer) => {
+    const { jobId, candidateId, candidateName, jobTitle } = offer;
+    
+    // Navigate to Messages screen
+    // Chat session should exist if offer is accepted (created when job seeker accepts)
+    navigation.navigate(screenNames.MESSAGES, {
+      chatData: {
+        jobId,
+        name: candidateName,
+        jobTitle,
+        jobType: 'manual',
+        otherUserId: candidateId,
+      },
+    });
+  };
+
   const renderOffer = ({ item }) => (
     <OfferCard
       mode="manual"
@@ -181,6 +197,11 @@ const ManualOffers = ({ navigation }) => {
       candidateId={item.candidateId}
       jobId={item.jobId}
       onViewProfile={handleViewProfile}
+      onMessage={
+        item.status === 'accepted'
+          ? () => handleMessage(item)
+          : undefined
+      }
       onPress={item.status === 'accepted' ? () => setDetailModal(item) : undefined}
       onAcceptModification={
         item.status === 'modification_requested'

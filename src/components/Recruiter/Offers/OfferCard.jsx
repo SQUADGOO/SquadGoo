@@ -27,6 +27,7 @@ import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
  * - candidateId (for profile navigation)
  * - jobId (for profile navigation)
  * - onViewProfile (callback when avatar/name is clicked)
+ * - onMessage (callback for message button when offer is accepted)
  */
 const OfferCard = ({
   mode = 'manual',
@@ -48,6 +49,7 @@ const OfferCard = ({
   candidateId,
   jobId,
   onViewProfile,
+  onMessage,
 }) => {
   const getStatusColor = (value) => {
     switch (value) {
@@ -342,20 +344,64 @@ const OfferCard = ({
           )}
 
         {mode === 'quick' && status === 'accepted' && (
-          <View style={styles.acceptedBadge}>
+          <>
+            {onMessage ? (
+              <TouchableOpacity
+                style={styles.messageButton}
+                onPress={onMessage}
+                activeOpacity={0.8}
+              >
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="chatbubble-outline"
+                  size={18}
+                  color={colors.primary}
+                />
+                <AppText
+                  variant={Variant.bodyMedium}
+                  style={styles.messageButtonText}
+                >
+                  Message
+                </AppText>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.acceptedBadge}>
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="checkmark-circle"
+                  size={18}
+                  color="#10B981"
+                />
+                <AppText
+                  variant={Variant.bodyMedium}
+                  style={styles.acceptedText}
+                >
+                  Offer Accepted
+                </AppText>
+              </View>
+            )}
+          </>
+        )}
+
+        {mode === 'manual' && status === 'accepted' && onMessage && (
+          <TouchableOpacity
+            style={styles.messageButton}
+            onPress={onMessage}
+            activeOpacity={0.8}
+          >
             <VectorIcons
               name={iconLibName.Ionicons}
-              iconName="checkmark-circle"
+              iconName="chatbubble-outline"
               size={18}
-              color="#10B981"
+              color={colors.primary}
             />
             <AppText
               variant={Variant.bodyMedium}
-              style={styles.acceptedText}
+              style={styles.messageButtonText}
             >
-              Offer Accepted
+              Message
             </AppText>
-          </View>
+          </TouchableOpacity>
         )}
 
         {mode === 'manual' &&
@@ -646,6 +692,23 @@ const styles = StyleSheet.create({
   viewMatchesText: {
     color: colors.primary,
     fontSize: getFontSize(12),
+    fontWeight: '600',
+  },
+  messageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(1.5),
+    paddingHorizontal: wp(4),
+    borderRadius: hp(2),
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    gap: wp(1.5),
+  },
+  messageButtonText: {
+    color: colors.primary,
+    fontSize: getFontSize(14),
     fontWeight: '600',
   },
 });
