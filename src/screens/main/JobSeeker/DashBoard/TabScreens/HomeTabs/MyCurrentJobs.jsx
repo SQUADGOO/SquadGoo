@@ -10,6 +10,13 @@ import { useNavigation } from '@react-navigation/native';
 import { removeAcceptedOffer } from '@/store/jobSeekerOffersSlice';
 import { showToast, toastTypes } from '@/utilities/toastConfig';
 
+const formatDuration = (seconds = 0) => {
+  if (!seconds || seconds <= 0) return '0h 0m';
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  return `${hours}h ${minutes}m`;
+};
+
 const MyCurrentJobs = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -64,36 +71,38 @@ const MyCurrentJobs = () => {
   // Check chat availability and get recruiter status for each job
   const jobsWithChatStatus = useMemo(() => {
     return currentJobs.map(job => {
-      const canChatStatus = ['accepted', 'matched', 'in_progress'].includes(job.status);
       const chatSession = chatSessions.find(
-        s => s.jobId === job.id && 
-        s.isActive && 
-        (s.userId === currentCandidateId || s.otherUserId === currentCandidateId) &&
-        new Date(s.expiresAt) > new Date()
+        s =>
+          s.jobId === job.id &&
+          s.isActive &&
+          (s.userId === currentCandidateId || s.otherUserId === currentCandidateId) &&
+          new Date(s.expiresAt) > new Date()
       );
-      
+
       // Get candidate status from recruiter's perspective
       const candidates = jobCandidates[job.id] || [];
-      // Try to match candidate by ID, email, or name
-      const candidate = candidates.find(c => 
-        c.id === currentCandidateId || 
-        c.email === userInfo.email ||
-        c.email === userInfo?.email ||
-        (userInfo.name && c.name === userInfo.name) ||
-        (userInfo.firstName && userInfo.lastName && c.name === `${userInfo.firstName} ${userInfo.lastName}`)
+      const candidate = candidates.find(
+        c =>
+          c.id === currentCandidateId ||
+          c.email === userInfo.email ||
+          c.email === userInfo?.email ||
+          (userInfo.name && c.name === userInfo.name) ||
+          (userInfo.firstName &&
+            userInfo.lastName &&
+            c.name === `${userInfo.firstName} ${userInfo.lastName}`)
       );
       const recruiterStatus = candidate?.status || 'pending'; // 'pending', 'accepted', 'rejected'
-      
+
       return {
         ...job,
-        canChat: canChatStatus && !!chatSession,
-        recruiterStatus, // Status from recruiter: pending, accepted, rejected
+        canChat: true, // My Current Jobs always allows messaging
+        chatSessionId: chatSession?.id,
+        recruiterStatus,
       };
     });
   }, [currentJobs, chatSessions, currentCandidateId, jobCandidates, userInfo.email]);
 
   const handleChatPress = (job) => {
-    // Navigate to chat with job context
     navigation.navigate(screenNames.MESSAGES, {
       chatData: {
         id: job.id,
@@ -133,7 +142,42 @@ const MyCurrentJobs = () => {
     );
   };
 
+  const isQuickJob = (job) => job.source === 'quick' || job.searchType === 'quick';
+
+  const handleTimerPress = (job) => {
+    if (!isQuickJob(job)) return;
+
+    const requiresPaymentVerification =
+      job?.payment?.method === 'platform' && !job?.payment?.codeVerified;
+
+    if (requiresPaymentVerification) {
+      navigation.navigate(screenNames.PAYMENT_REQUEST, { jobId: job.id });
+      return;
+    }
+
+    navigation.navigate(screenNames.TIMER_CONTROL, { jobId: job.id });
+  };
+
+  const getTimerStatusLabel = (job) => {
+    const timer = job?.timer || {};
+    if (timer.isRunning) {
+      return `Timer running • ${formatDuration(timer.elapsedTime)}`;
+    }
+    if (timer.elapsedTime > 0) {
+      return `Paused • ${formatDuration(timer.elapsedTime)}`;
+    }
+    return 'Timer not started';
+  };
+
+  const getTimerButtonLabel = (job) => {
+    const timer = job?.timer || {};
+    if (timer.isRunning) return 'View Timer';
+    if (timer.elapsedTime > 0) return 'Resume Timer';
+    return 'Start Timer';
+  };
+
   const renderJobCard = ({ item: job }) => {
+    const quickJob = isQuickJob(job);
     return (
       <View style={styles.cardWrapper}>
         <JobSeekerJobCard
@@ -141,7 +185,12 @@ const MyCurrentJobs = () => {
           isCompleted={false}
           isCurrentJob={true}
           recruiterStatus={job.recruiterStatus}
-          showChatButton={job.canChat}
+          showChatButton={true}
+          chatEnabled={job.canChat}
+          showTimerButton={quickJob}
+          timerLabel={quickJob ? getTimerButtonLabel(job) : undefined}
+          timerStatus={quickJob ? getTimerStatusLabel(job) : null}
+          onTimerPress={() => handleTimerPress(job)}
           onChatPress={() => handleChatPress(job)}
           onCancel={() => handleCancel(job)}
           onViewDetails={() => handleViewDetails(job)}
