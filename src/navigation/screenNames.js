@@ -126,6 +126,7 @@ ACCEPTED_OFFERS: 'accepted_offers',
   PAYMENT_REQUEST: 'payment_request',
   TIMER_CONTROL: 'timer_control',
   TIMER_MANAGEMENT: 'timer_management',
+  CANDIDATE_HOURS: 'candidate_hours',
   JOB_COMPLETE: 'job_complete',
 
 

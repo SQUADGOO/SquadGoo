@@ -146,6 +146,10 @@ const DrawerNavigator = () => {
         name={screenNames.JOB_COMPLETE}
         component={ui.JobComplete}
       />
+      <Drawer.Screen
+        name={screenNames.CANDIDATE_HOURS}
+        component={ui.CandidateHours}
+      />
       
       {/* Quick Search Screens - Recruiter */}
       <Drawer.Screen

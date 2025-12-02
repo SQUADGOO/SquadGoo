@@ -129,6 +129,24 @@ const ActiveOffers = ({ navigation, route }) => {
     });
   };
 
+  const handleTrackHours = (offer) => {
+    const job =
+      quickJobs.find(j => j.id === offer.jobId) ||
+      {
+        id: offer.jobId,
+        title: offer.jobTitle,
+        jobTitle: offer.jobTitle,
+        salaryMin: offer.salaryMin,
+      };
+    navigation.navigate(screenNames.CANDIDATE_HOURS, {
+      job,
+      candidate: {
+        id: offer.candidateId,
+        name: offer.candidateName,
+      },
+    });
+  };
+
   const formatExpiryLabel = (expiresAt) => {
     if (!expiresAt) return 'N/A';
     const date = new Date(expiresAt);
@@ -216,6 +234,11 @@ const ActiveOffers = ({ navigation, route }) => {
               onMessage={
                 item.status === 'accepted'
                   ? () => handleMessage(item)
+                  : undefined
+              }
+              onTrackHours={
+                item.status === 'accepted'
+                  ? () => handleTrackHours(item)
                   : undefined
               }
               onCancel={

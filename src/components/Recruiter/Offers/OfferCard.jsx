@@ -50,6 +50,7 @@ const OfferCard = ({
   jobId,
   onViewProfile,
   onMessage,
+  onTrackHours,
 }) => {
   const getStatusColor = (value) => {
     switch (value) {
@@ -344,7 +345,7 @@ const OfferCard = ({
           )}
 
         {mode === 'quick' && status === 'accepted' && (
-          <>
+          <View style={styles.acceptedActions}>
             {onMessage ? (
               <TouchableOpacity
                 style={styles.messageButton}
@@ -353,7 +354,7 @@ const OfferCard = ({
               >
                 <VectorIcons
                   name={iconLibName.Ionicons}
-                  iconName="chatbubble-outline"
+                  iconName='chatbubble-outline'
                   size={18}
                   color={colors.primary}
                 />
@@ -368,9 +369,9 @@ const OfferCard = ({
               <View style={styles.acceptedBadge}>
                 <VectorIcons
                   name={iconLibName.Ionicons}
-                  iconName="checkmark-circle"
+                  iconName='checkmark-circle'
                   size={18}
-                  color="#10B981"
+                  color='#10B981'
                 />
                 <AppText
                   variant={Variant.bodyMedium}
@@ -380,7 +381,28 @@ const OfferCard = ({
                 </AppText>
               </View>
             )}
-          </>
+
+            {onTrackHours ? (
+              <TouchableOpacity
+                style={styles.trackButton}
+                onPress={onTrackHours}
+                activeOpacity={0.8}
+              >
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName='time-outline'
+                  size={18}
+                  color='#0D9488'
+                />
+                <AppText
+                  variant={Variant.bodyMedium}
+                  style={styles.trackButtonText}
+                >
+                  Track Hours
+                </AppText>
+              </TouchableOpacity>
+            ) : null}
+          </View>
         )}
 
         {mode === 'manual' && status === 'accepted' && onMessage && (
@@ -708,6 +730,28 @@ const styles = StyleSheet.create({
   },
   messageButtonText: {
     color: colors.primary,
+    fontSize: getFontSize(14),
+    fontWeight: '600',
+  },
+  acceptedActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: wp(2),
+  },
+  trackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(1.5),
+    paddingHorizontal: wp(4),
+    borderRadius: hp(2),
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#0D9488',
+    gap: wp(1.5),
+  },
+  trackButtonText: {
+    color: '#0D9488',
     fontSize: getFontSize(14),
     fontWeight: '600',
   },

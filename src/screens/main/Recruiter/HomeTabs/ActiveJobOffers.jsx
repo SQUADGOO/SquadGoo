@@ -113,6 +113,21 @@ const ActiveJobOffersScreen = ({ navigation }) => {
     navigation.navigate(screenNames.MANUAL_MATCH_LIST, { jobId: job.id })
   }
 
+  const handleTrackHours = (job) => {
+    const candidate =
+      job?.acceptedCandidates?.[0] ||
+      job?.candidates?.find(c => c.status === 'accepted') ||
+      job?.candidates?.[0] ||
+      {
+        id: 'candidate-demo',
+        name: 'Candidate',
+      }
+    navigation.navigate(screenNames.CANDIDATE_HOURS, {
+      job,
+      candidate,
+    })
+  }
+
   const handleCloseJob = (job) => {
     Alert.alert(
       'Close Job',
@@ -150,6 +165,7 @@ const ActiveJobOffersScreen = ({ navigation }) => {
       onViewCandidates={handleViewCandidates}
       onCloseJob={handleCloseJob}
       onViewMatches={handleViewMatches}
+      onTrackHours={handleTrackHours}
     />
   )
 
