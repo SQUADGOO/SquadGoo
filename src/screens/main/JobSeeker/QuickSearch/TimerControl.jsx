@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { colors, hp, wp, getFontSize } from '@/theme';
@@ -19,7 +19,30 @@ const TimerControl = ({ navigation, route }) => {
   const { jobId, job: jobFromRoute } = route.params || {};
   const activeJob = useSelector(state => selectActiveQuickJobById(state, jobId));
   const job = activeJob || jobFromRoute;
-  
+
+  const createInitialLocalTimer = useCallback(() => {
+    const baseTimer = job?.timer;
+    if (baseTimer) {
+      return {
+        ...baseTimer,
+        runningStartTime: null,
+        elapsedBeforeStart: baseTimer.elapsedTime || 0,
+      };
+    }
+    return {
+      isRunning: false,
+      elapsedTime: 0,
+      elapsedBeforeStart: 0,
+      runningStartTime: null,
+      hourlyRate: job?.salaryMin || 0,
+      totalCost: 0,
+      expectedHours: 8,
+      startTime: null,
+      stopTime: null,
+    };
+  }, [job]);
+
+  const [localTimer, setLocalTimer] = useState(createInitialLocalTimer);
   const [timerInterval, setTimerInterval] = useState(null);
 
   useEffect(() => {
@@ -43,6 +66,36 @@ const TimerControl = ({ navigation, route }) => {
     };
   }, [activeJob?.timer?.isRunning]);
 
+  useEffect(() => {
+    if (activeJob) return;
+    setLocalTimer(createInitialLocalTimer());
+  }, [activeJob, createInitialLocalTimer]);
+
+  const isLocalRunning = !activeJob && localTimer.isRunning;
+  const localRunningStart = localTimer.runningStartTime;
+
+  useEffect(() => {
+    if (!isLocalRunning || !localRunningStart) return;
+
+    const interval = setInterval(() => {
+      setLocalTimer(prev => {
+        if (!prev.isRunning || !prev.runningStartTime) return prev;
+        const elapsedSeconds =
+          (prev.elapsedBeforeStart || 0) +
+          Math.floor((Date.now() - prev.runningStartTime) / 1000);
+        const elapsedHours = elapsedSeconds / 3600;
+        const totalCost = elapsedHours * (prev.hourlyRate || 0);
+        return {
+          ...prev,
+          elapsedTime: elapsedSeconds,
+          totalCost,
+        };
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isLocalRunning, localRunningStart, activeJob]);
+
   if (!job) {
     return (
       <View style={styles.container}>
@@ -56,29 +109,75 @@ const TimerControl = ({ navigation, route }) => {
     );
   }
 
-  const timer = job?.timer || {};
+  const timer = activeJob ? job?.timer || {} : localTimer;
   const payment = job?.payment || {};
-  const isReadOnly = !activeJob;
+  const dispatchJobId = activeJob?.id || job?.id;
 
-  const guardActiveJob = () => {
-    if (activeJob) return true;
-    Alert.alert(
-      'Timer unavailable',
-      'This timer can be controlled only after the quick job becomes active.'
-    );
-    return false;
+  const startLocalTimer = () => {
+    setLocalTimer(prev => ({
+      ...prev,
+      isRunning: true,
+      startTime: prev.startTime || new Date().toISOString(),
+      stopTime: null,
+      runningStartTime: Date.now(),
+      elapsedBeforeStart: prev.elapsedTime || prev.elapsedBeforeStart || 0,
+    }));
+  };
+
+  const finalizeLocalTimer = () => {
+    setLocalTimer(prev => {
+      if (!prev.isRunning) return prev;
+      const elapsedSeconds =
+        (prev.elapsedBeforeStart || 0) +
+        Math.floor((Date.now() - (prev.runningStartTime || Date.now())) / 1000);
+      const elapsedHours = elapsedSeconds / 3600;
+      const totalCost = elapsedHours * (prev.hourlyRate || 0);
+      return {
+        ...prev,
+        elapsedTime: elapsedSeconds,
+        elapsedBeforeStart: elapsedSeconds,
+        totalCost,
+      };
+    });
+  };
+
+  const stopLocalTimer = () => {
+    setLocalTimer(prev => {
+      const elapsedSeconds =
+        (prev.elapsedBeforeStart || 0) +
+        Math.floor((Date.now() - (prev.runningStartTime || Date.now())) / 1000);
+      const elapsedHours = elapsedSeconds / 3600;
+      const totalCost = elapsedHours * (prev.hourlyRate || 0);
+      return {
+        ...prev,
+        isRunning: false,
+        stopTime: new Date().toISOString(),
+        runningStartTime: null,
+        elapsedTime: elapsedSeconds,
+        elapsedBeforeStart: elapsedSeconds,
+        totalCost,
+      };
+    });
+  };
+
+  const resumeLocalTimer = () => {
+    setLocalTimer(prev => ({
+      ...prev,
+      isRunning: true,
+      runningStartTime: Date.now(),
+      stopTime: null,
+      elapsedBeforeStart: prev.elapsedTime || prev.elapsedBeforeStart || 0,
+    }));
   };
 
   const handleStart = () => {
-    if (!guardActiveJob()) return;
-
     // Check if payment is set up for platform payment
     if (payment.method === 'platform' && !payment.codeVerified) {
       Alert.alert(
         'Payment Not Verified',
         'Please complete payment setup first.',
         [
-          { text: 'OK', onPress: () => navigation.navigate(screenNames.PAYMENT_REQUEST, { jobId: activeJob.id }) }
+          { text: 'OK', onPress: () => navigation.navigate(screenNames.PAYMENT_REQUEST, { jobId: dispatchJobId }) }
         ]
       );
       return;
@@ -92,11 +191,17 @@ const TimerControl = ({ navigation, route }) => {
         {
           text: 'Start',
           onPress: () => {
-            dispatch(startTimer({
-              jobId: activeJob.id,
-              hourlyRate: timer.hourlyRate || 0,
-              expectedHours: 8,
-            }));
+            if (activeJob && dispatchJobId) {
+              dispatch(
+                startTimer({
+                  jobId: dispatchJobId,
+                  hourlyRate: timer.hourlyRate || 0,
+                  expectedHours: timer.expectedHours || 8,
+                }),
+              );
+            } else {
+              startLocalTimer();
+            }
           },
         },
       ]
@@ -104,7 +209,6 @@ const TimerControl = ({ navigation, route }) => {
   };
 
   const handleStop = () => {
-    if (!guardActiveJob()) return;
     Alert.alert(
       'Stop Timer',
       'Are you sure you want to stop the timer?',
@@ -114,11 +218,17 @@ const TimerControl = ({ navigation, route }) => {
           text: 'Stop',
           style: 'destructive',
           onPress: () => {
-            dispatch(stopTimer({
-              jobId: activeJob.id,
-              stoppedBy: 'jobseeker',
-              requiresCode: false, // Job seeker doesn't need code
-            }));
+            if (activeJob && dispatchJobId) {
+              dispatch(
+                stopTimer({
+                  jobId: dispatchJobId,
+                  stoppedBy: 'jobseeker',
+                  requiresCode: false, // Job seeker doesn't need code
+                }),
+              );
+            } else {
+              stopLocalTimer();
+            }
           },
         },
       ]
@@ -126,7 +236,6 @@ const TimerControl = ({ navigation, route }) => {
   };
 
   const handleResume = () => {
-    if (!guardActiveJob()) return;
     // Check if within 1 hour window
     if (timer.stopTime) {
       const stopTime = new Date(timer.stopTime);
@@ -143,11 +252,18 @@ const TimerControl = ({ navigation, route }) => {
       }
     }
 
-    dispatch(resumeTimer({
-      jobId: activeJob.id,
-      hourlyRate: timer.hourlyRate,
-      requiresCode: false, // Job seeker doesn't need code to resume
-    }));
+    if (activeJob && dispatchJobId) {
+      dispatch(
+        resumeTimer({
+          jobId: dispatchJobId,
+          hourlyRate: timer.hourlyRate,
+          requiresCode: false, // Job seeker doesn't need code to resume
+        }),
+      );
+    } else {
+      finalizeLocalTimer();
+      resumeLocalTimer();
+    }
   };
 
   return (
@@ -168,13 +284,6 @@ const TimerControl = ({ navigation, route }) => {
           </AppText>
         </View>
 
-        {!activeJob && (
-          <View style={styles.readOnlyBanner}>
-            <AppText variant={Variant.caption} style={styles.readOnlyText}>
-              Timer controls are disabled for this job preview. Accept the quick offer to enable live tracking.
-            </AppText>
-          </View>
-        )}
 
         {/* Timer Clock */}
         <TimerClock
@@ -312,17 +421,6 @@ const styles = StyleSheet.create({
     marginTop: hp(2),
   },
   warningText: {
-    color: '#92400E',
-    fontSize: getFontSize(12),
-    lineHeight: 16,
-  },
-  readOnlyBanner: {
-    backgroundColor: '#FEF3C7',
-    borderRadius: 8,
-    padding: wp(3),
-    marginBottom: hp(2),
-  },
-  readOnlyText: {
     color: '#92400E',
     fontSize: getFontSize(12),
     lineHeight: 16,
