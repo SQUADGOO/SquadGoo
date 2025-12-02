@@ -24,6 +24,7 @@ import { showToast, toastTypes } from '@/utilities/toastConfig';
 import FormField from '@/core/FormField';
 import OfferCard from '@/components/Recruiter/Offers/OfferCard';
 import { FormProvider, useForm } from 'react-hook-form';
+import { screenNames } from '@/navigation/screenNames';
 
 const tabs = [
   { id: 'pending', label: 'Pending' },
@@ -159,6 +160,13 @@ const ManualOffers = ({ navigation }) => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
+  const handleViewProfile = (candidateId, jobId) => {
+    navigation.navigate(screenNames.MANUAL_CANDIDATE_PROFILE, {
+      jobId,
+      candidateId,
+    });
+  };
+
   const renderOffer = ({ item }) => (
     <OfferCard
       mode="manual"
@@ -170,6 +178,9 @@ const ManualOffers = ({ navigation }) => {
       expiresLabel={formatDate(item.expiresAt)}
       message={item.message}
       response={item.response}
+      candidateId={item.candidateId}
+      jobId={item.jobId}
+      onViewProfile={handleViewProfile}
       onPress={item.status === 'accepted' ? () => setDetailModal(item) : undefined}
       onAcceptModification={
         item.status === 'modification_requested'

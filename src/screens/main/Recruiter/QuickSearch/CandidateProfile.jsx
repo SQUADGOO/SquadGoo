@@ -7,8 +7,10 @@ import AppButton from '@/core/AppButton';
 import { colors, getFontSize, hp, wp } from '@/theme';
 import {
   selectQuickMatchesByJobId,
+  selectQuickOffers,
   sendQuickOffer,
 } from '@/store/quickSearchSlice';
+import { DUMMY_JOB_SEEKERS } from '@/utilities/dummyJobSeekers';
 import SendManualOfferModal from '@/components/Recruiter/ManualSearch/SendManualOfferModal';
 import { showToast, toastTypes } from '@/utilities/toastConfig';
 import { screenNames } from '@/navigation/screenNames';
@@ -17,10 +19,54 @@ const QuickSearchCandidateProfile = ({ route, navigation }) => {
   const { jobId, candidateId } = route.params || {};
   const dispatch = useDispatch();
   const matches = useSelector(state => selectQuickMatchesByJobId(state, jobId));
-  const candidate = useMemo(
-    () => matches.find(match => match.id === candidateId),
-    [matches, candidateId],
-  );
+  const allOffers = useSelector(selectQuickOffers);
+  const acceptanceRatings = useSelector(state => state.quickSearch.acceptanceRatings);
+  
+  // Find candidate in matches first, then fall back to DUMMY_JOB_SEEKERS
+  const candidate = useMemo(() => {
+    // First try to find in matches
+    let foundCandidate = matches.find(match => match.id === candidateId);
+    
+    if (foundCandidate) {
+      return foundCandidate;
+    }
+    
+    // If not found in matches, get from DUMMY_JOB_SEEKERS
+    const baseCandidate = DUMMY_JOB_SEEKERS.find(js => js.id === candidateId);
+    if (!baseCandidate) {
+      return null;
+    }
+    
+    // Find offer to get matchPercentage and acceptanceRating
+    const offer = allOffers.find(o => o.candidateId === candidateId && o.jobId === jobId);
+    const matchPercentage = offer?.matchPercentage ?? 0;
+    const acceptanceRating = offer?.acceptanceRating ?? acceptanceRatings[candidateId] ?? baseCandidate.acceptanceRating;
+    
+    // Build candidate snapshot similar to buildQuickCandidateSnapshot
+    return {
+      id: baseCandidate.id,
+      name: baseCandidate.name,
+      badge: baseCandidate.badge,
+      avatar: baseCandidate.avatar,
+      acceptanceRating,
+      matchPercentage,
+      location: baseCandidate.location,
+      suburb: baseCandidate.suburb,
+      radiusKm: baseCandidate.radiusKm,
+      taxTypes: baseCandidate.taxTypes,
+      languages: baseCandidate.languages,
+      qualifications: baseCandidate.qualifications,
+      education: baseCandidate.education,
+      availability: baseCandidate.availability,
+      payPreference: baseCandidate.payPreference,
+      industries: baseCandidate.industries,
+      preferredRoles: baseCandidate.preferredRoles,
+      experienceYears: baseCandidate.experienceYears,
+      bio: baseCandidate.bio,
+      skills: baseCandidate.skills,
+    };
+  }, [matches, candidateId, jobId, allOffers, acceptanceRatings]);
+  
   const [offerModal, setOfferModal] = useState(false);
 
   const handleSendOffer = ({ expiresAt, message }) => {

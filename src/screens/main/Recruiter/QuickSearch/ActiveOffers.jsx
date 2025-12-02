@@ -106,6 +106,13 @@ const ActiveOffers = ({ navigation, route }) => {
     }
   };
 
+  const handleViewProfile = (candidateId, jobId) => {
+    navigation.navigate(screenNames.QUICK_SEARCH_CANDIDATE_PROFILE, {
+      jobId,
+      candidateId,
+    });
+  };
+
   const formatExpiryLabel = (expiresAt) => {
     if (!expiresAt) return 'N/A';
     const date = new Date(expiresAt);
@@ -187,6 +194,9 @@ const ActiveOffers = ({ navigation, route }) => {
               expiresLabel={formatExpiryLabel(item.expiresAt)}
               message={item.message}
               autoSent={item.autoSent}
+              candidateId={item.candidateId}
+              jobId={item.jobId}
+              onViewProfile={handleViewProfile}
               onCancel={
                 item.status === 'pending'
                   ? () => handleCancel(item.id)

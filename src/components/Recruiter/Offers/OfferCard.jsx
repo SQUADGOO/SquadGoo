@@ -24,6 +24,9 @@ import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
  * - onAcceptModification (manual)
  * - onDeclineModification (manual)
  * - onViewMatches (quick)
+ * - candidateId (for profile navigation)
+ * - jobId (for profile navigation)
+ * - onViewProfile (callback when avatar/name is clicked)
  */
 const OfferCard = ({
   mode = 'manual',
@@ -42,6 +45,9 @@ const OfferCard = ({
   onAcceptModification,
   onDeclineModification,
   onViewMatches,
+  candidateId,
+  jobId,
+  onViewProfile,
 }) => {
   const getStatusColor = (value) => {
     switch (value) {
@@ -84,20 +90,43 @@ const OfferCard = ({
     ? { activeOpacity: 0.7, onPress }
     : {};
 
+  const handleViewProfile = (e) => {
+    e?.stopPropagation?.();
+    if (onViewProfile && candidateId && jobId) {
+      onViewProfile(candidateId, jobId);
+    }
+  };
+
+  const AvatarWrapper = onViewProfile && candidateId && jobId ? TouchableOpacity : View;
+  const NameWrapper = onViewProfile && candidateId && jobId ? TouchableOpacity : View;
+  const avatarWrapperProps = onViewProfile && candidateId && jobId
+    ? { onPress: handleViewProfile, activeOpacity: 0.7 }
+    : {};
+  const nameWrapperProps = onViewProfile && candidateId && jobId
+    ? { onPress: handleViewProfile, activeOpacity: 0.7 }
+    : {};
+
   return (
     <Wrapper style={styles.offerCard} {...wrapperProps}>
       {/* Header */}
       <View style={styles.cardHeader}>
         <View style={styles.headerLeft}>
-          <View style={styles.avatarContainer}>
+          <AvatarWrapper
+            {...avatarWrapperProps}
+            style={styles.avatarContainer}
+          >
             <AppText variant={Variant.bodyMedium} style={styles.avatarText}>
               {candidateName?.charAt(0)?.toUpperCase() || 'U'}
             </AppText>
-          </View>
+          </AvatarWrapper>
           <View style={styles.headerInfo}>
-            <AppText variant={Variant.bodyMedium} style={styles.offerTitle}>
-              {candidateName}
-            </AppText>
+            <NameWrapper
+              {...nameWrapperProps}
+            >
+              <AppText variant={Variant.bodyMedium} style={styles.offerTitle}>
+                {candidateName}
+              </AppText>
+            </NameWrapper>
             <View style={styles.metaRow}>
               <VectorIcons
                 name={iconLibName.Ionicons}
