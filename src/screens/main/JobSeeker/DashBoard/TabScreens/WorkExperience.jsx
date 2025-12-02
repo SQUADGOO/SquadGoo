@@ -10,6 +10,26 @@ import { removeExperience } from '@/store/jobSeekerExperienceSlice';
 import { Linking } from 'react-native';
 import { downloadAndOpenFile } from '@/utilities/helperFunctions';
 
+// Format job title - handle both string and object formats
+const formatJobTitle = (value) => {
+  if (!value) return '-';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'object') {
+    return value?.subCategory || value?.category || value?.title || '-';
+  }
+  return '-';
+};
+
+// Format industry - handle both string and object formats
+const formatIndustry = (value) => {
+  if (!value) return '-';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'object') {
+    return value?.title || value?.name || value?.category || '-';
+  }
+  return '-';
+};
+
 const WorkExperienceScreen = ({navigation}) => {
   const dispatch = useDispatch();
   const experiences = useSelector(state => state?.jobSeekerExperience?.experiences || []);
@@ -33,7 +53,7 @@ const WorkExperienceScreen = ({navigation}) => {
         experiences.map((exp) => (
           <View key={exp.id}>
             <View style={styles.headerRow}>
-              <Text style={styles.jobTitle}>{exp.jobTitle || 'Job Title'}</Text>
+              <Text style={styles.jobTitle}>{formatJobTitle(exp.jobTitle) || 'Job Title'}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <TouchableOpacity onPress={() => navigation.navigate(screenNames.ADD_EXPERIENCE, { mode: 'edit', experience: exp })}>
                   <Icon name="create-outline" size={22} color="#fff" />
@@ -46,8 +66,13 @@ const WorkExperienceScreen = ({navigation}) => {
 
             <View style={styles.contentBox}>
               <Text style={styles.label}>
-                Job title: <Text style={styles.value}>{exp.jobTitle || '-'}</Text>
+                Job title: <Text style={styles.value}>{formatJobTitle(exp.jobTitle)}</Text>
               </Text>
+              {exp.industry ? (
+                <Text style={styles.label}>
+                  Industry: <Text style={styles.value}>{formatIndustry(exp.industry)}</Text>
+                </Text>
+              ) : null}
               <Text style={styles.label}>
                 Company name: <Text style={styles.value}>{exp.companyName || '-'}</Text>
               </Text>

@@ -1,5 +1,65 @@
 import { createSlice, nanoid } from '@reduxjs/toolkit';
 
+// Generate dummy experience data
+const generateDummyExperiences = () => {
+  const now = new Date();
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  
+  return [
+    {
+      id: nanoid(),
+      industry: { id: 1, title: 'Construction' },
+      jobTitle: 'Commercial Painter',
+      companyName: 'ABC Construction Group',
+      country: 'Australia',
+      jobDescription: 'Worked as a commercial painter for residential and commercial projects. Specialized in surface preparation, painting, and finishing work. Managed teams of 3-5 painters on large-scale projects.',
+      expectedPayMin: 28,
+      expectedPayMax: 38,
+      startMonth: months[now.getMonth()],
+      startYear: (now.getFullYear() - 2).toString(),
+      endMonth: months[now.getMonth()],
+      endYear: (now.getFullYear() - 1).toString(),
+      references: [],
+      slips: [],
+      createdAt: new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      id: nanoid(),
+      industry: { id: 9, title: 'Logistics' },
+      jobTitle: 'Warehouse Manager',
+      companyName: 'Global Logistics Solutions',
+      country: 'Australia',
+      jobDescription: 'Managed warehouse operations including inventory management, staff supervision, and logistics coordination. Implemented new inventory tracking systems and improved efficiency by 30%.',
+      expectedPayMin: 32,
+      expectedPayMax: 45,
+      startMonth: months[now.getMonth()],
+      startYear: (now.getFullYear() - 4).toString(),
+      endMonth: months[now.getMonth()],
+      endYear: (now.getFullYear() - 2).toString(),
+      references: [],
+      slips: [],
+      createdAt: new Date(now.getTime() - 240 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      id: nanoid(),
+      industry: { id: 4, title: 'Hospitality' },
+      jobTitle: 'Event Coordinator',
+      companyName: 'Premier Events Management',
+      country: 'Australia',
+      jobDescription: 'Coordinated event setup and breakdown for corporate events, weddings, and conferences. Managed event logistics, equipment setup, and team coordination. Ensured timely completion of all event requirements.',
+      expectedPayMin: 25,
+      expectedPayMax: 35,
+      startMonth: months[now.getMonth()],
+      startYear: (now.getFullYear() - 1).toString(),
+      endMonth: months[Math.max(0, now.getMonth() - 3)],
+      endYear: now.getFullYear().toString(),
+      references: [],
+      slips: [],
+      createdAt: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+  ];
+};
+
 const initialState = {
   experiences: [],
 };
@@ -35,6 +95,31 @@ const jobSeekerExperienceSlice = createSlice({
     clearExperiences: (state) => {
       state.experiences = [];
     },
+    initializeDummyExperiences: (state) => {
+      // Only initialize if experiences array is empty
+      if (state.experiences.length === 0) {
+        state.experiences = generateDummyExperiences();
+      }
+    },
+  },
+  extraReducers: (builder) => {
+    // Handle rehydration from redux-persist
+    builder.addCase('persist/REHYDRATE', (state, action) => {
+      if (action.payload) {
+        // If experiences is empty after rehydration, populate with dummy data
+        if (!action.payload.jobSeekerExperience?.experiences || action.payload.jobSeekerExperience.experiences.length === 0) {
+          return {
+            ...state,
+            experiences: generateDummyExperiences(),
+          };
+        }
+        return {
+          ...state,
+          ...action.payload.jobSeekerExperience,
+        };
+      }
+      return state;
+    });
   },
 });
 
@@ -43,6 +128,7 @@ export const {
   updateExperience,
   removeExperience,
   clearExperiences,
+  initializeDummyExperiences,
 } = jobSeekerExperienceSlice.actions;
 
 export default jobSeekerExperienceSlice.reducer;

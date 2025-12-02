@@ -96,6 +96,7 @@ import EditProfile from './main/Recruiter/profile/EditProfile';
 
 import QuickSearchPreview from './main/Recruiter/QuickSearch/QuickSearchPreview';
 import QuickSearchMatchList from './main/Recruiter/QuickSearch/MatchList';
+import QuickSearchCandidateProfile from './main/Recruiter/QuickSearch/CandidateProfile';
 
 import AcceptedOffers from './main/JobSeeker/AcceptedOffers';
 import JobOfferDetails from './main/JobSeeker/JobOfferDetails';
@@ -210,6 +211,7 @@ Members,
 EditProfile,
   QuickSearchPreview,
   QuickSearchMatchList,
+  QuickSearchCandidateProfile,
 
 AcceptedOffers,
 JobOfferDetails,

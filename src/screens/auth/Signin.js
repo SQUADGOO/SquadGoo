@@ -26,6 +26,8 @@ import { login as loginAction } from '@/store/authSlice'
 import { useDispatch } from 'react-redux'
 import { validateDummyCredentials, getDisplayCredentials, isDummyMode } from '@/utilities/dummyData'
 import { addCoins } from '@/store/walletSlice'
+import { initializeDummyExperiences } from '@/store/jobSeekerExperienceSlice'
+import { initializeDummyPreferredJobs } from '@/store/jobSeekerPreferredSlice'
 
 const SignIn = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -59,6 +61,12 @@ const handleLogin = async (data) => {
         // Initialize wallet with dummy user's wallet balance
         if (dummyUser.wallet && dummyUser.wallet.coins > 0) {
           dispatch(addCoins({ amount: dummyUser.wallet.coins }));
+        }
+        
+        // Initialize dummy experience and preferred jobs for job seekers
+        if (dummyUser.role === 'jobseeker') {
+          dispatch(initializeDummyExperiences());
+          dispatch(initializeDummyPreferredJobs());
         }
         
         const welcomeMessage = `Welcome back, ${dummyUser.firstName}!`;

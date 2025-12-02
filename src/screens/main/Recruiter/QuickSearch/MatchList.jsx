@@ -73,132 +73,18 @@ const QuickSearchMatchList = ({ route, navigation }) => {
   };
 
   const renderCandidate = ({ item }) => (
-    <View style={styles.card}>
-      {/* Header with profile + match badge (mirrors ManualMatchList) */}
-      <View style={styles.cardHeader}>
-        <View style={styles.profileSection}>
-          <View style={styles.avatarContainer}>
-            <AppText variant={Variant.bodyMedium} style={styles.avatarText}>
-              {item.name?.charAt(0)?.toUpperCase() || 'U'}
-            </AppText>
-          </View>
-          <View style={styles.profileInfo}>
-            <AppText variant={Variant.bodyMedium} style={styles.name}>
-              {item.name}
-            </AppText>
-            <View style={styles.metaRow}>
-              <VectorIcons
-                name={iconLibName.Ionicons}
-                iconName="location-outline"
-                size={14}
-                color={colors.gray}
-              />
-              <AppText variant={Variant.caption} style={styles.meta}>
-                {item.location}
-              </AppText>
-              {item.badge && (
-                <>
-                  <View style={styles.dot} />
-                  <AppText variant={Variant.caption} style={styles.badgeMeta}>
-                    {item.badge}
-                  </AppText>
-                </>
-              )}
-            </View>
-          </View>
-        </View>
-
-        <View
-          style={[
-            styles.matchBadge,
-            item.matchPercentage >= 90 && styles.matchBadgeExcellent,
-            item.matchPercentage >= 80 &&
-              item.matchPercentage < 90 &&
-              styles.matchBadgeGood,
-            item.matchPercentage >= 70 &&
-              item.matchPercentage < 80 &&
-              styles.matchBadgeFair,
-          ]}
-        >
-          <AppText variant={Variant.caption} style={styles.matchBadgeText}>
-            {item.matchPercentage}%
-          </AppText>
-        </View>
-      </View>
-
-      {/* Stats row */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <VectorIcons
-            name={iconLibName.Ionicons}
-            iconName="star"
-            size={16}
-            color="#F59E0B"
-          />
-          <AppText variant={Variant.caption} style={styles.statText}>
-            {item.acceptanceRating ?? 'N/A'}% rating
-          </AppText>
-        </View>
-        <View style={styles.statItem}>
-          <VectorIcons
-            name={iconLibName.Ionicons}
-            iconName="briefcase-outline"
-            size={16}
-            color={colors.primary}
-          />
-          <AppText variant={Variant.caption} style={styles.statText}>
-            {item.experienceYears ?? 0}+ yrs
-          </AppText>
-        </View>
-        <View style={styles.statItem}>
-          <VectorIcons
-            name={iconLibName.Ionicons}
-            iconName="cash-outline"
-            size={16}
-            color="#10B981"
-          />
-          <AppText variant={Variant.caption} style={styles.statText}>
-            {item.payPreference
-              ? `$${item.payPreference.min}-${item.payPreference.max}/hr`
-              : 'Rate not set'}
-          </AppText>
-        </View>
-      </View>
-
-      {/* Availability summary if present */}
-      {item.availability?.summary && (
-        <View style={styles.availabilityContainer}>
-          <VectorIcons
-            name={iconLibName.Ionicons}
-            iconName="time-outline"
-            size={14}
-            color={colors.gray}
-          />
-          <AppText variant={Variant.caption} style={styles.availabilityText}>
-            {item.availability.summary}
-          </AppText>
-        </View>
-      )}
-
-      {/* Action Button: Send Offer manually (quick search) */}
-      <View style={styles.cardActions}>
-        <TouchableOpacity
-          style={styles.sendOfferButton}
-          onPress={() => handleOpenOfferModal(item)}
-          activeOpacity={0.8}
-        >
-          <VectorIcons
-            name={iconLibName.Ionicons}
-            iconName="send"
-            size={16}
-            color="#FFFFFF"
-          />
-          <AppText variant={Variant.bodyMedium} style={styles.sendOfferText}>
-            Send Offer
-          </AppText>
-        </TouchableOpacity>
-      </View>
-    </View>
+    <TouchableOpacity
+      activeOpacity={0.8}
+      style={styles.card}
+      onPress={() =>
+        navigation.navigate(screenNames.QUICK_SEARCH_CANDIDATE_PROFILE, {
+          jobId,
+          candidateId: item.id,
+        })
+      }
+    >
+     
+    </TouchableOpacity>
   );
 
   const listHeader = (
