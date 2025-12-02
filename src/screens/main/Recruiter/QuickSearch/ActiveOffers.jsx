@@ -45,20 +45,22 @@ const ActiveOffers = ({ navigation, route }) => {
     dispatch(expireQuickOffers());
   }, [dispatch]);
 
-  const offers = useMemo(
-    () =>
-      allOffers.filter(
-        offer =>
-          ['pending', 'accepted', 'declined', 'expired'].includes(offer.status) &&
-          (!jobIdFromRoute || offer.jobId === jobIdFromRoute),
-      ),
-    [allOffers, jobIdFromRoute],
-  );
 
   const filteredOffers = useMemo(
-    () => offers.filter(offer => offer.status === currentTab),
-    [offers, currentTab],
+    () => {
+      // console.log('testng', allOffers)
+      return  allOffers.filter(offer => offer.status === currentTab)
+    },
+    [currentTab],
   );
+
+  // Debug logging
+  useEffect(() => {
+    console.log('=== Quick Search Active Offers Debug ===');
+   
+    console.log('Accepted offers:', filteredOffers);
+    console.log('========================================');
+  }, [filteredOffers]);
 
   const handleCancel = (offerId) => {
     Alert.alert(

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   View,
   StyleSheet,
@@ -27,6 +27,16 @@ const JobCandidates = ({ navigation, route }) => {
   const job = useSelector((state) => 
     state.jobs?.activeJobs?.find(j => j.id === jobId)
   )
+
+  // Debug logging
+  useEffect(() => {
+    console.log('=== JobCandidates Debug ===')
+    console.log('JobId:', jobId)
+    console.log('Job:', job?.title || 'Not found')
+    console.log('Candidates count:', candidates.length)
+    console.log('Candidates:', candidates)
+    console.log('========================')
+  }, [jobId, candidates, job])
 
   const [selectedFilter, setSelectedFilter] = useState('all') // all, pending, accepted, rejected
 

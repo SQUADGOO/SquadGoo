@@ -15,7 +15,8 @@ import {
 import { createChatSession } from '@/store/chatSlice';
 import { revealContacts } from '@/store/contactRevealSlice';
 import { addNotification } from '@/store/notificationsSlice';
-import { updateJobStatus } from '@/store/jobsSlice';
+import { updateJobStatus, addCandidateToJob } from '@/store/jobsSlice';
+import { applyToOffer } from '@/store/jobSeekerOffersSlice';
 import { screenNames } from '@/navigation/screenNames';
 
 const ActiveOffers = ({ navigation }) => {
@@ -57,8 +58,38 @@ const ActiveOffers = ({ navigation }) => {
             // Get job details
             const job = quickJobs.find(j => j.id === offer.jobId);
             if (job) {
-              // Update job status to matched
+              // Use the candidateId from the offer (this is the ID the recruiter used when sending the offer)
+              // This ensures we update the correct candidate if they already exist with status 'pending'
+              const candidateId = offer.candidateId || currentCandidateId;
+              
+              // Create candidate object from current user
+              const candidate = {
+                id: candidateId, // Use offer.candidateId to match existing candidates
+                name: userInfo.name || (userInfo.firstName && userInfo.lastName ? `${userInfo.firstName} ${userInfo.lastName}` : offer.candidateName || 'Job Seeker'),
+                email: userInfo.email || '',
+                phone: userInfo.phone || '',
+                experience: userInfo.experience || 'Not specified',
+                location: userInfo.location || userInfo.address || 'Not specified',
+                status: 'accepted', // Job seeker accepted, so status is accepted
+                appliedAt: new Date().toISOString(),
+              };
+              
+              // Add candidate to recruiter's job with autoAccept flag (so it shows in accepted list)
+              // This will update existing candidate from 'pending' to 'accepted' if they already exist
+              dispatch(addCandidateToJob({ jobId: job.id, candidate, autoAccept: true }));
+              
+              // Update job status to matched (match making is complete)
               dispatch(updateJobStatus({ jobId: job.id, status: 'matched' }));
+              
+              // Add to job seeker's accepted offers
+              const jobForOffers = {
+                ...job,
+                id: job.id,
+                title: offer.jobTitle || job.jobTitle,
+                description: job.jobDescription || job.description || '',
+                searchType: 'quick',
+              };
+              dispatch(applyToOffer(jobForOffers));
               
               // Create chat session (30 days expiration)
               const recruiterId = job.recruiterId || 'recruiter-001';
@@ -83,7 +114,7 @@ const ActiveOffers = ({ navigation }) => {
               dispatch(addNotification({
                 type: 'offer_accepted',
                 title: 'Quick Offer Accepted',
-                message: `${userInfo.name || 'A job seeker'} has accepted your quick search offer for "${offer.jobTitle}"`,
+                message: `${candidate.name} has accepted your quick search offer for "${offer.jobTitle}"`,
                 jobId: job.id,
                 candidateId: currentCandidateId,
                 userId: recruiterId,

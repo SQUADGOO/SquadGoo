@@ -1,24 +1,19 @@
 // QuickSearchStepFour.js - Availability & Tax Type
-import React, { useState } from 'react'
+import React from 'react'
 import {
   View,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
 } from 'react-native'
-import { useForm, FormProvider, Controller } from 'react-hook-form'
+import { useForm, FormProvider } from 'react-hook-form'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import AppButton from '@/core/AppButton'
 import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
-import CustomCheckBox from '@/core/CustomCheckBox'
-import FormField from '@/core/FormField'
-
-const daysOfWeek = [
-  'Monday', 'Tuesday', 'Wednesday',
-  'Thursday', 'Friday', 'Saturday', 'Sunday'
-]
+import AvailabilitySelector, { DAYS_OF_WEEK } from '@/components/AvailabilitySelector'
+import { showToast, toastTypes } from '@/utilities/toastConfig'
 
 const QuickSearchStepFour = ({ navigation, route }) => {
   // Get data from all previous steps
@@ -31,20 +26,53 @@ const QuickSearchStepFour = ({ navigation, route }) => {
   const methods = useForm({
     mode: 'onChange',
     defaultValues: {
-      availability: daysOfWeek.reduce((acc, day) => {
-        acc[day] = { enabled: false, from: '', to: '' }
+      availability: DAYS_OF_WEEK.reduce((acc, day) => {
+        acc[day] = { enabled: false, from: '09:00', to: '17:00' } // Default: 9:00 AM to 5:00 PM
         return acc
       }, {}),
       taxType: 'ABN',
+      commonTimeRange: { start: '09:00', end: '17:00' }, // Default: 9:00 AM to 5:00 PM
     },
   })
 
-  const { watch, control, handleSubmit } = methods
+  const { watch, control, handleSubmit, setValue } = methods
 
-  const availability = watch('availability')
   const taxType = watch('taxType')
 
   const onSubmit = (data) => {
+    // Validate that all selected days have times
+    const selectedDaysList = DAYS_OF_WEEK.filter(day => data.availability[day]?.enabled)
+    
+    if (selectedDaysList.length === 0) {
+      showToast('Please select at least one day', 'Warning', toastTypes.warning)
+      return
+    }
+
+    const incompleteDays = selectedDaysList.filter(day => {
+      const times = data.availability[day]
+      return !times.from || !times.to
+    })
+
+    if (incompleteDays.length > 0) {
+      showToast('Please set times for all selected days', 'Warning', toastTypes.warning)
+      return
+    }
+
+    // Validate time ranges for each day
+    const invalidDays = selectedDaysList.filter(day => {
+      const times = data.availability[day]
+      const [startHour, startMin] = times.from.split(':').map(Number)
+      const [endHour, endMin] = times.to.split(':').map(Number)
+      const startMinutes = startHour * 60 + startMin
+      const endMinutes = endHour * 60 + endMin
+      return endMinutes <= startMinutes
+    })
+
+    if (invalidDays.length > 0) {
+      showToast('End time must be after start time for all days', 'Error', toastTypes.error)
+      return
+    }
+
     const quickSearchStep4Data = data
 
     console.log('Quick Search Step 4 Data:', quickSearchStep4Data)
@@ -79,49 +107,14 @@ const QuickSearchStepFour = ({ navigation, route }) => {
           Choose days and time you want seeker to be available
         </AppText>
 
-        {/* Days List */}
-        {daysOfWeek.map((day) => (
-          <View key={day} style={styles.dayContainer}>
-            {/* Day Checkbox */}
-            <View style={styles.dayHeader}>
-              <Controller
-                control={control}
-                name={`availability.${day}.enabled`}
-                render={({ field: { value, onChange } }) => (
-                  <CustomCheckBox checked={value} onPress={() => onChange(!value)} />
-                )}
-              />
-              <AppText variant={Variant.bodyMedium} style={styles.dayText}>
-                {day}
-              </AppText>
-            </View>
-
-            {/* Time Pickers - using shared timePicker FormField */}
-            {availability[day]?.enabled && (
-              <View style={styles.timeRow}>
-                <View style={styles.timeInput}>
-                  <FormField
-                    name={`availability.${day}.from`}
-                    label="From"
-                    placeholder="00:00"
-                    type="timePicker"
-                  />
-                </View>
-
-                <AppText style={styles.toText}>To</AppText>
-
-                <View style={styles.timeInput}>
-                  <FormField
-                    name={`availability.${day}.to`}
-                    label="To"
-                    placeholder="00:00"
-                    type="timePicker"
-                  />
-                </View>
-              </View>
-            )}
-          </View>
-        ))}
+        {/* Shared Availability Selector Component */}
+        <AvailabilitySelector
+          control={control}
+          setValue={setValue}
+          defaultStartTime="09:00"
+          defaultEndTime="17:00"
+          containerStyle={styles.availabilityContainer}
+        />
 
         {/* Tax Type */}
         <AppText variant={Variant.h2} style={styles.sectionTitle}>
@@ -135,7 +128,7 @@ const QuickSearchStepFour = ({ navigation, route }) => {
                 styles.taxTypeBtn,
                 taxType === type && styles.taxTypeBtnActive,
               ]}
-              onPress={() => methods.setValue('taxType', type)}
+              onPress={() => setValue('taxType', type)}
             >
               <AppText
                 style={[
@@ -184,36 +177,8 @@ const styles = StyleSheet.create({
     color: colors.gray,
     marginBottom: hp(2),
   },
-  dayContainer: {
+  availabilityContainer: {
     marginBottom: hp(2),
-  },
-  dayHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: hp(1),
-  },
-  dayText: {
-    color: colors.secondary,
-    marginLeft: wp(2),
-  },
-  timeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  timeInput: {
-    flex: 1,
-    // paddingVertical: hp(1.5),
-    // borderWidth: 1,
-    // borderColor: colors.lightGray,
-    // borderRadius: 8,
-    // alignItems: 'center',
-  },
-  timeText: {
-    color: colors.gray,
-  },
-  toText: {
-    marginHorizontal: wp(2),
-    color: colors.secondary,
   },
   taxTypeRow: {
     flexDirection: 'row',

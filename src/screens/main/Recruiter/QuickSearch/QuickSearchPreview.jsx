@@ -60,8 +60,31 @@ const QuickSearchPreview = ({ navigation, route }) => {
     </AppText>
   )
 
+  // Format time string (HH:MM) to readable format (e.g., "09:00" -> "9:00 AM")
+  const formatTimeString = (timeString) => {
+    if (!timeString || typeof timeString !== 'string') return 'Not specified'
+    
+    // Check if it's already in HH:MM format
+    const timeMatch = timeString.match(/^(\d{1,2}):(\d{2})$/)
+    if (timeMatch) {
+      const hours = parseInt(timeMatch[1], 10)
+      const minutes = timeMatch[2]
+      const period = hours >= 12 ? 'PM' : 'AM'
+      const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours
+      return `${displayHours}:${minutes} ${period}`
+    }
+    
+    // If it's not a simple time string, try formatTime (for Date objects)
+    return formatTime(timeString) || 'Not specified'
+  }
+
   const AvailabilityRow = ({ day, timeData }) => {
     if (!timeData?.enabled) return null
+    
+    // Validate that times exist
+    if (!timeData.from || !timeData.to) {
+      return null
+    }
     
     return (
       <View style={styles.availabilityRow}>
@@ -69,7 +92,7 @@ const QuickSearchPreview = ({ navigation, route }) => {
           {day}:
         </AppText>
         <AppText variant={Variant.bodyMedium} style={styles.hoursText}>
-          {formatTime(timeData.from)} - {formatTime(timeData.to)}
+          {formatTimeString(timeData.from)} - {formatTimeString(timeData.to)}
         </AppText>
       </View>
     )

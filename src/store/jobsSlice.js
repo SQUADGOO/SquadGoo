@@ -360,6 +360,86 @@ initialExpiredJobs.forEach(job => {
   initialJobCandidates[job.id] = generateDummyCandidates(job.id);
 });
 
+// Add dummy accepted candidates for quick search offers
+// These correspond to the dummy accepted offers in quickSearchSlice
+const quickJobId1 = 'quick-job-dummy-001';
+const quickJobId2 = 'quick-job-dummy-002';
+
+initialJobCandidates[quickJobId1] = [
+  {
+    id: 'js-001',
+    name: 'Jane Jobseeker',
+    email: 'jane.jobseeker@email.com',
+    phone: '+61 400 000 001',
+    experience: '4 years',
+    location: 'Sydney, Parramatta',
+    status: 'accepted',
+    appliedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    skills: ['Painting', 'Surface Prep', 'Team Leadership'],
+  },
+];
+
+initialJobCandidates[quickJobId2] = [
+  {
+    id: 'js-002',
+    name: 'Michael Torres',
+    email: 'michael.torres@email.com',
+    phone: '+61 400 000 002',
+    experience: '6 years',
+    location: 'Melbourne, Footscray',
+    status: 'accepted',
+    appliedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    skills: ['Inventory Systems', 'Team Training', 'Forklift Operation'],
+  },
+];
+
+// Add 3 more dummy accepted candidates for quick search offers
+const quickJobId3 = 'quick-job-dummy-003';
+const quickJobId4 = 'quick-job-dummy-004';
+const quickJobId5 = 'quick-job-dummy-005';
+
+initialJobCandidates[quickJobId3] = [
+  {
+    id: 'js-003',
+    name: 'Aisha Khan',
+    email: 'aisha.khan@email.com',
+    phone: '+61 400 000 003',
+    experience: '2 years',
+    location: 'Brisbane, Fortitude Valley',
+    status: 'accepted',
+    appliedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    skills: ['Customer Service', 'Manual Handling', 'Scheduling'],
+  },
+];
+
+initialJobCandidates[quickJobId4] = [
+  {
+    id: 'js-004',
+    name: 'Liam Chen',
+    email: 'liam.chen@email.com',
+    phone: '+61 400 000 004',
+    experience: '5 years',
+    location: 'Perth, Scarborough',
+    status: 'accepted',
+    appliedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    skills: ['Team Leadership', 'Chemical Handling', 'Quality Assurance'],
+  },
+];
+
+initialJobCandidates[quickJobId5] = [
+  {
+    id: 'js-005',
+    name: 'Sofia Romero',
+    email: 'sofia.romero@email.com',
+    phone: '+61 400 000 005',
+    experience: '7 years',
+    location: 'Adelaide, Norwood',
+    status: 'accepted',
+    appliedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    skills: ['Design', 'Site Management', 'Client Liaison'],
+  },
+];
+
 // Generate dummy active jobs for job seekers
 const generateDummyActiveJobs = () => {
   const expiryDate = new Date();
@@ -699,8 +779,143 @@ const generateDummyActiveJobs = () => {
 
 const initialActiveJobs = generateDummyActiveJobs();
 
+// Add dummy quick search jobs for accepted offers
+const now = new Date();
+const dummyQuickJobs = [
+  {
+    id: 'quick-job-dummy-001',
+    title: 'Commercial Painting Project',
+    jobTitle: 'Commercial Painting Project',
+    description: 'Large-scale commercial painting project requiring skilled painters. Experience with industrial equipment preferred.',
+    industry: 'Construction',
+    experienceYear: 4,
+    staffCount: 2,
+    location: 'Sydney CBD',
+    rangeKm: 25,
+    salaryMin: 30,
+    salaryMax: 40,
+    salaryType: 'Hourly',
+    taxType: 'ABN',
+    searchType: 'quick',
+    status: 'matched',
+    applicationCount: 1,
+    recruiterId: 'recruiter-001',
+    createdAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    offerDate: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }),
+  },
+  {
+    id: 'quick-job-dummy-002',
+    title: 'Warehouse Inventory Management',
+    jobTitle: 'Warehouse Inventory Management',
+    description: 'Warehouse operations role focusing on inventory management and team coordination.',
+    industry: 'Logistics',
+    experienceYear: 5,
+    staffCount: 1,
+    location: 'Melbourne CBD',
+    rangeKm: 30,
+    salaryMin: 35,
+    salaryMax: 45,
+    salaryType: 'Hourly',
+    taxType: 'ABN',
+    searchType: 'quick',
+    status: 'matched',
+    applicationCount: 1,
+    recruiterId: 'recruiter-001',
+    createdAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    offerDate: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }),
+  },
+  {
+    id: 'quick-job-dummy-003',
+    title: 'Event Setup and Management',
+    jobTitle: 'Event Setup and Management',
+    description: 'Event crew role for corporate events and functions. Setup and packdown experience required.',
+    industry: 'Events',
+    experienceYear: 2,
+    staffCount: 3,
+    location: 'Brisbane CBD',
+    rangeKm: 20,
+    salaryMin: 25,
+    salaryMax: 32,
+    salaryType: 'Hourly',
+    taxType: 'ABN',
+    searchType: 'quick',
+    status: 'matched',
+    applicationCount: 1,
+    recruiterId: 'recruiter-001',
+    createdAt: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    offerDate: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }),
+  },
+  {
+    id: 'quick-job-dummy-004',
+    title: 'Commercial Deep Cleaning Service',
+    jobTitle: 'Commercial Deep Cleaning Service',
+    description: 'Deep cleaning supervisor role for large commercial facilities. Experience with commercial kitchens preferred.',
+    industry: 'Cleaning Services',
+    experienceYear: 5,
+    staffCount: 2,
+    location: 'Perth CBD',
+    rangeKm: 35,
+    salaryMin: 28,
+    salaryMax: 36,
+    salaryType: 'Hourly',
+    taxType: 'TFN',
+    searchType: 'quick',
+    status: 'matched',
+    applicationCount: 1,
+    recruiterId: 'recruiter-001',
+    createdAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    offerDate: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }),
+  },
+  {
+    id: 'quick-job-dummy-005',
+    title: 'Landscape Design and Installation',
+    jobTitle: 'Landscape Design and Installation',
+    description: 'Landscape design project requiring experienced landscape professional for bespoke outdoor projects.',
+    industry: 'Landscaping',
+    experienceYear: 7,
+    staffCount: 1,
+    location: 'Adelaide CBD',
+    rangeKm: 40,
+    salaryMin: 38,
+    salaryMax: 55,
+    salaryType: 'Hourly',
+    taxType: 'ABN',
+    searchType: 'quick',
+    status: 'matched',
+    applicationCount: 1,
+    recruiterId: 'recruiter-001',
+    createdAt: new Date(now.getTime() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    offerDate: new Date(now.getTime() - 8 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }),
+  },
+];
+
 const initialState = {
-  activeJobs: [], // Start with empty array - jobs will be added when recruiters post them
+  activeJobs: dummyQuickJobs, // Start with dummy quick search jobs for accepted offers
   completedJobs: initialCompletedJobs,
   expiredJobs: initialExpiredJobs,
   jobCandidates: initialJobCandidates,
@@ -797,29 +1012,54 @@ const jobsSlice = createSlice({
       // If autoAccept is true (job seeker accepted the offer), set status to 'accepted'
       const candidateStatus = autoAccept ? 'accepted' : (candidate.status || 'pending');
       
-      state.jobCandidates[jobId].push({
+      // Check if candidate already exists (by ID, email, or name)
+      const existingCandidateIndex = state.jobCandidates[jobId].findIndex(
+        c => c.id === candidate.id || 
+             (candidate.email && c.email === candidate.email) ||
+             (candidate.name && c.name === candidate.name && candidate.email && c.email === candidate.email)
+      );
+      
+      const candidateData = {
         ...candidate,
         status: candidateStatus,
-        appliedAt: new Date().toISOString(),
-      });
+        appliedAt: candidate.appliedAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
       
-      // Update job status and application count
-      const jobIndex = state.activeJobs.findIndex(job => job.id === jobId);
-      if (jobIndex !== -1) {
-        const job = state.activeJobs[jobIndex];
-        // Update application count
-        job.applicationCount = (job.applicationCount || 0) + 1;
+      if (existingCandidateIndex !== -1) {
+        // Update existing candidate - merge existing data with new data and set status
+        state.jobCandidates[jobId][existingCandidateIndex] = {
+          ...state.jobCandidates[jobId][existingCandidateIndex],
+          ...candidateData,
+          // Preserve original appliedAt if it exists
+          appliedAt: state.jobCandidates[jobId][existingCandidateIndex].appliedAt || candidateData.appliedAt,
+        };
+      } else {
+        // Add new candidate
+        state.jobCandidates[jobId].push(candidateData);
         
-        // If job seeker accepted, match making is complete - set status to 'matched'
-        if (autoAccept) {
-          job.status = 'matched';
-        } else {
+        // Update job status and application count only when adding new candidate
+        const jobIndex = state.activeJobs.findIndex(job => job.id === jobId);
+        if (jobIndex !== -1) {
+          const job = state.activeJobs[jobIndex];
+          // Update application count
+          job.applicationCount = (job.applicationCount || 0) + 1;
+          
           // Update status: posted → has_applicants (when first application)
-          if (job.status === 'posted' || job.status === 'active') {
+          if (!autoAccept && (job.status === 'posted' || job.status === 'active')) {
             job.status = 'has_applicants';
           }
+          job.updatedAt = new Date().toISOString();
         }
-        job.updatedAt = new Date().toISOString();
+      }
+      
+      // If job seeker accepted, match making is complete - set status to 'matched'
+      if (autoAccept) {
+        const jobIndex = state.activeJobs.findIndex(job => job.id === jobId);
+        if (jobIndex !== -1) {
+          state.activeJobs[jobIndex].status = 'matched';
+          state.activeJobs[jobIndex].updatedAt = new Date().toISOString();
+        }
       }
     },
 
@@ -951,15 +1191,20 @@ const jobsSlice = createSlice({
     // Handle rehydration from redux-persist
     builder.addCase('persist/REHYDRATE', (state, action) => {
       if (action.payload) {
-        // Filter out dummy jobs from persisted state
+        // Filter out old dummy jobs from persisted state, but keep our quick search dummy jobs
         const persistedActiveJobs = action.payload.jobs?.activeJobs || [];
         const realJobs = persistedActiveJobs.filter(
           job => !job.id?.includes('dummy-active-job-')
         );
         
+        // Merge with dummy quick search jobs (avoid duplicates)
+        const existingJobIds = new Set(realJobs.map(j => j.id));
+        const newDummyJobs = dummyQuickJobs.filter(j => !existingJobIds.has(j.id));
+        const mergedJobs = [...realJobs, ...newDummyJobs];
+        
         return {
           ...state,
-          activeJobs: realJobs, // Only restore real posted jobs, no dummy jobs
+          activeJobs: mergedJobs, // Merge real jobs with dummy quick search jobs
           completedJobs: action.payload.jobs?.completedJobs || initialCompletedJobs,
           expiredJobs: action.payload.jobs?.expiredJobs || initialExpiredJobs,
           jobCandidates: action.payload.jobs?.jobCandidates || initialJobCandidates,
