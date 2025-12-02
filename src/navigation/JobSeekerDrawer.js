@@ -212,6 +212,31 @@ const JobSeekerDrawerNavigator = () => {
         component={ui.ManualOffersJS}
       />
       
+      <Drawer.Screen
+        name={screenNames.QUICK_SEARCH_ACTIVE_JOBS_JS}
+        component={ui.QuickSearchActiveJobsJS}
+      />
+      
+      <Drawer.Screen
+        name={screenNames.LOCATION_SHARING}
+        component={ui.LocationSharing}
+      />
+      
+      <Drawer.Screen
+        name={screenNames.PAYMENT_REQUEST}
+        component={ui.PaymentRequest}
+      />
+      
+      <Drawer.Screen
+        name={screenNames.TIMER_CONTROL}
+        component={ui.TimerControl}
+      />
+      
+      <Drawer.Screen
+        name={screenNames.JOB_COMPLETE}
+        component={ui.JobComplete}
+      />
+      
     </Drawer.Navigator>
   );
 };

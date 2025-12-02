@@ -142,8 +142,10 @@ const MyCurrentJobs = () => {
     );
   };
 
+  const isQuickJob = (job) => job.source === 'quick' || job.searchType === 'quick';
+
   const handleTimerPress = (job) => {
-    if (job.source !== 'quick') return;
+    if (!isQuickJob(job)) return;
 
     const requiresPaymentVerification =
       job?.payment?.method === 'platform' && !job?.payment?.codeVerified;
@@ -175,8 +177,7 @@ const MyCurrentJobs = () => {
   };
 
   const renderJobCard = ({ item: job }) => {
-    const isQuickJob = job.source === 'quick' || job.searchType === 'quick';
-
+    const quickJob = isQuickJob(job);
     return (
       <View style={styles.cardWrapper}>
         <JobSeekerJobCard
@@ -186,9 +187,9 @@ const MyCurrentJobs = () => {
           recruiterStatus={job.recruiterStatus}
           showChatButton={true}
           chatEnabled={job.canChat}
-          showTimerButton={isQuickJob}
-          timerLabel={isQuickJob ? getTimerButtonLabel(job) : undefined}
-          timerStatus={isQuickJob ? getTimerStatusLabel(job) : null}
+          showTimerButton={quickJob}
+          timerLabel={quickJob ? getTimerButtonLabel(job) : undefined}
+          timerStatus={quickJob ? getTimerStatusLabel(job) : null}
           onTimerPress={() => handleTimerPress(job)}
           onChatPress={() => handleChatPress(job)}
           onCancel={() => handleCancel(job)}
