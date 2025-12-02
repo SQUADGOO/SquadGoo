@@ -5,7 +5,6 @@ import AuthNavigator from "./AuthNavigator";
 import { screenNames } from "./screenNames";
 import { useSelector } from "react-redux";
 import MainNavigator from "./MainNavigator";
-import TabNavigator from "./TabNavigator";
 import DrawerNavigator from "./DrawerNavigator";
 import JobSeekerDrawerNavigator from "./JobSeekerDrawer";
 import { Address, BasicDetails, Biography, ContactDetails, JobQualification, KycBusiness, KycDocument, KycSubmit, KycVerification, Password, Profile, SocialMedia, TaxInformation, VisaDetails } from "@/screens";
@@ -15,6 +14,7 @@ const Stack = createStackNavigator();
 
 const RootNavigator = () => {
   const token = useSelector((state) => state.auth.token);
+  // const role = useSelector((state) => state.auth.role);
   const role = useSelector((state) => state.auth.role);
 
   return (
@@ -25,7 +25,7 @@ const RootNavigator = () => {
             name={screenNames.DRAWER_NAVIGATION}
             component={DrawerNavigator}
           />
-        ) : role === "job_seeker" ? (
+        ) : role === "jobseeker" ? (
           <Stack.Screen
             name={screenNames.JOBSEEKER_DRAWER}
             component={JobSeekerDrawerNavigator}

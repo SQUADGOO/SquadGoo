@@ -17,13 +17,20 @@ import FormField from '@/core/FormField'
 import AppButton from '@/core/AppButton'
 import AppText, { Variant } from '@/core/AppText'
 import { screenNames } from '@/navigation/screenNames'
+import { useRegister } from '@/api/auth/auth.query'
+import { login as loginAction } from '@/store/authSlice'
+import { useDispatch } from 'react-redux'
+import { createDummyUser, isDummyMode } from '@/utilities/dummyData'
 
 const SignUp = ({ navigation }) => {
-  const [selectedUserType, setSelectedUserType] = useState('Jobseeker')
+  const dispatch = useDispatch();
+  const [selectedUserType, setSelectedUserType] = useState('jobseeker')
   const [acceptTerms, setAcceptTerms] = useState(false)
+  const [isRegistering, setIsRegistering] = useState(false)
+  // const { mutate: register, isPending } = useRegister() // Commented out for local testing
 
   // User type options
-  const userTypes = ['Jobseeker', 'Recruiter', 'Individual']
+  const userTypes = ['jobseeker', 'recruiter', 'individual']
 
   // Initialize form methods
   const methods = useForm({
@@ -38,6 +45,15 @@ const SignUp = ({ navigation }) => {
 
   const { handleSubmit, formState: { isSubmitting }, watch } = methods
   const password = watch('password')
+
+  // Password validation checks
+  const passwordValidations = {
+    minLength: password?.length >= 8,
+    hasUppercase: /[A-Z]/.test(password || ''),
+    hasLowercase: /[a-z]/.test(password || ''),
+    hasNumber: /\d/.test(password || ''),
+    hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password || ''),
+  }
 
   // Validation rules for signup
   const signupValidationRules = {
@@ -89,19 +105,63 @@ const SignUp = ({ navigation }) => {
     
 
     try {
-      const signupData = {
-        ...data,
-        userType: selectedUserType,
-        acceptedTerms: acceptTerms
+      setIsRegistering(true);
+      
+      // === DUMMY SIGNUP (FOR LOCAL TESTING) ===
+      if (isDummyMode()) {
+        const signupData = {
+          ...data,
+          role: selectedUserType,
+          acceptedTerms: acceptTerms,
+        };
+
+        const dummyUserData = createDummyUser(signupData);
+
+        // Simulate successful registration
+        console.log('Dummy signup successful:', dummyUserData);
+        
+        // Show success message
+        Alert.alert(
+          'Success', 
+          'Account created successfully! You can now login with your credentials.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                setIsRegistering(false);
+                // Navigate to sign in screen
+                navigation.navigate(screenNames.SIGN_IN);
+              }
+            }
+          ]
+        );
+        return;
       }
       
-      console.log('Sign up with:', signupData);
-      // Add your signup logic here
-      // Example: await signUpUser(signupData)
-      Alert.alert('Success', 'Account created successfully!')
-      navigation.navigate(screenNames.VERIFY_EMAIL)
-      // navigation.navigate('Home') or verification screen
+      // === FOR API INTEGRATION ===
+      /*
+      const signupData = {
+        ...data,
+        role: selectedUserType,
+        acceptedTerms: acceptTerms
+      }
+
+      register(signupData, {
+        onSuccess: (response) => {
+          Alert.alert('Success', 'Account created successfully!')
+          navigation.navigate(screenNames.VERIFY_EMAIL, {
+            email: data?.email
+          })
+        },
+        onError: (error) => {
+          console.error('Signup error:', error)
+          Alert.alert('Error', error?.response?.data?.message || 'Sign up failed. Please try again.')
+        }
+      })
+      */
+      
     } catch (error) {
+      setIsRegistering(false);
       Alert.alert('Error', 'Sign up failed. Please try again.')
       console.error('Signup error:', error)
     }
@@ -133,6 +193,27 @@ const SignUp = ({ navigation }) => {
         {type}
       </AppText>
     </TouchableOpacity>
+  )
+
+  // Render password validation rule
+  const renderValidationRule = (isValid, text) => (
+    <View style={styles.validationRule}>
+      <VectorIcons
+        name={iconLibName.Ionicons}
+        iconName={isValid ? "checkmark-circle" : "close-circle"}
+        size={16}
+        color={isValid ? colors.green || '#4CAF50' : colors.red || '#F44336'}
+      />
+      <AppText 
+        variant={Variant.caption} 
+        style={[
+          styles.validationText,
+          { color: isValid ? colors.green || '#4CAF50' : colors.red || '#F44336' }
+        ]}
+      >
+        {text}
+      </AppText>
+    </View>
   )
 
   return (
@@ -221,6 +302,17 @@ const SignUp = ({ navigation }) => {
                   inputWrapperStyle={styles.inputContainer}
                   style={styles.inputText}
                 />
+                
+                {/* Password Validation Status */}
+                {password && (
+                  <View style={styles.validationContainer}>
+                    {renderValidationRule(passwordValidations.minLength, 'At least 8 characters')}
+                    {renderValidationRule(passwordValidations.hasUppercase, 'One uppercase letter')}
+                    {renderValidationRule(passwordValidations.hasLowercase, 'One lowercase letter')}
+                    {renderValidationRule(passwordValidations.hasNumber, 'One number')}
+                    {renderValidationRule(passwordValidations.hasSpecialChar, 'One special character')}
+                  </View>
+                )}
               </View>
 
               {/* Referral Code */}
@@ -274,8 +366,8 @@ const SignUp = ({ navigation }) => {
                   bgColor={colors.primary || '#FF6B35'}
                   text="Join Squad Goo"
                   onPress={handleSubmit(handleSignUp)}
-                  isLoading={isSubmitting}
-                  disabled={isSubmitting}
+                  isLoading={isRegistering}
+                  disabled={isSubmitting || isRegistering}
                 />
               </View>
               </View>
@@ -455,5 +547,19 @@ const styles = StyleSheet.create({
   loginLink: {
     color: colors.primary || '#FF6B35',
     textDecorationLine: 'underline',
+  },
+  validationContainer: {
+    bottom: hp(1),
+    paddingHorizontal: wp(2),
+    gap: hp(0.5),
+  },
+  validationRule: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+    marginBottom: hp(0.3),
+  },
+  validationText: {
+    fontSize: getFontSize(12),
   },
 })

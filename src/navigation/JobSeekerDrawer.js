@@ -2,10 +2,11 @@ import {StyleSheet} from 'react-native';
 import React from 'react';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import CustomDrawer from '@/core/CustomDrawer';
-import TabNavigator from './TabNavigator';
 import {screenNames} from './screenNames';
 import { JobPreview } from '@/screens';
 import * as ui from '@/screens';
+import SupportStack from './SupportStack';
+import QuickSearchStack from './QuickSearchStack';
 
 const Drawer = createDrawerNavigator();
 
@@ -90,7 +91,7 @@ const JobSeekerDrawerNavigator = () => {
       />
           <Drawer.Screen
         name={screenNames.COMPLETED_OFFERS}
-        component={ui.CompletedOffers}
+        component={ui.CompletedOffersJobSeeker}
       />
 
           <Drawer.Screen  
@@ -120,22 +121,7 @@ const JobSeekerDrawerNavigator = () => {
         component={ui.Notifcations}
       />
 
-        <Drawer.Screen
-        name={screenNames.QUICK_SEARCH_STEPONE}
-        component={ui.StepOne}
-      />
-        <Drawer.Screen
-        name={screenNames.QUICK_SEARCH_STEPTWO}
-        component={ui.StepTwoQuickSearch}
-      />
-        <Drawer.Screen
-        name={screenNames.QUICK_SEARCH_STEPTHREE}
-        component={ui.StepThreeQuickSearch}
-      />
-            <Drawer.Screen
-        name={screenNames.QUICK_SEARCH_STEPFOUR}
-        component={ui.StepFourQuickSearch}
-      />
+       
       <Drawer.Screen
         name={screenNames.JOB_SETTINGS}
         component={ui.JobSettings}
@@ -156,7 +142,7 @@ const JobSeekerDrawerNavigator = () => {
 
             <Drawer.Screen
         name={screenNames.SUPPORT}
-        component={ui.Support}
+        component={SupportStack}
       />
 
       <Drawer.Screen  
@@ -165,12 +151,20 @@ const JobSeekerDrawerNavigator = () => {
       />
    
       <Drawer.Screen  
-        name={screenNames.MARKET_PLACE}
-        component={ui.MarketPlace}
+        name={screenNames.MARKETPLACE_STACK}
+        component={ui.MarketplaceStack}
       />
-        <Drawer.Screen  
-        name={screenNames.PRODUCT_DETAILS}
-        component={ui.ProductDetails}
+      <Drawer.Screen  
+        name={screenNames.MARKETPLACE_ORDERS}
+        component={ui.Orders}
+      />
+      <Drawer.Screen  
+        name={screenNames.VIEW_JOB_DETAILS}
+        component={ui.ViewJobDetails}
+      />
+      <Drawer.Screen  
+        name={screenNames.JOB_CANDIDATES}
+        component={ui.JobCandidates}
       />
         <Drawer.Screen  
         name={screenNames.ADD_EXPERIENCE}
@@ -196,6 +190,26 @@ const JobSeekerDrawerNavigator = () => {
               <Drawer.Screen
         name={screenNames.MEMBERS}
         component={ui.Members}
+      />
+
+      <Drawer.Screen
+          name={screenNames.ACCEPTED_OFFERS}
+          component={ui.AcceptedOffers}
+        />
+      
+      <Drawer.Screen
+          name={screenNames.JOB_OFFER_DETAILS}
+          component={ui.JobOfferDetails}
+        />
+      
+      <Drawer.Screen
+        name={screenNames.QUICK_SEARCH_ACTIVE_OFFERS_JS}
+        component={ui.QuickSearchActiveOffersJS}
+      />
+      
+      <Drawer.Screen
+        name={screenNames.MANUAL_OFFERS_JS}
+        component={ui.ManualOffersJS}
       />
       
     </Drawer.Navigator>

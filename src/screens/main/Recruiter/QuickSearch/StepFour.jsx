@@ -1,63 +1,95 @@
-// AvailabilityScreen.js
-import React, { useState } from 'react'
+// QuickSearchStepFour.js - Availability & Tax Type
+import React from 'react'
 import {
   View,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Platform
 } from 'react-native'
-import { useForm, FormProvider, Controller } from 'react-hook-form'
-import DateTimePicker from '@react-native-community/datetimepicker'
+import { useForm, FormProvider } from 'react-hook-form'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import AppButton from '@/core/AppButton'
 import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
-import CustomCheckBox from '@/core/CustomCheckBox'
+import AvailabilitySelector, { DAYS_OF_WEEK } from '@/components/AvailabilitySelector'
+import { showToast, toastTypes } from '@/utilities/toastConfig'
 
-const daysOfWeek = [
-  'Monday', 'Tuesday', 'Wednesday',
-  'Thursday', 'Friday', 'Saturday', 'Sunday'
-]
+const QuickSearchStepFour = ({ navigation, route }) => {
+  // Get data from all previous steps
+  const { 
+    quickSearchStep1Data, 
+    quickSearchStep2Data, 
+    quickSearchStep3Data 
+  } = route.params || {}
 
-const StepFourQuickSearch = ({ navigation }) => {
   const methods = useForm({
     mode: 'onChange',
     defaultValues: {
-      availability: daysOfWeek.reduce((acc, day) => {
-        acc[day] = { enabled: false, from: null, to: null }
+      availability: DAYS_OF_WEEK.reduce((acc, day) => {
+        acc[day] = { enabled: false, from: '09:00', to: '17:00' } // Default: 9:00 AM to 5:00 PM
         return acc
       }, {}),
-      taxType: 'ABN'
-    }
+      taxType: 'ABN',
+      commonTimeRange: { start: '09:00', end: '17:00' }, // Default: 9:00 AM to 5:00 PM
+    },
   })
 
-  const { watch, setValue, control, handleSubmit } = methods
-  const [showPicker, setShowPicker] = useState({ day: null, field: null })
+  const { watch, control, handleSubmit, setValue } = methods
 
-  const availability = watch('availability')
   const taxType = watch('taxType')
 
-  const handleTimeChange = (event, selectedDate) => {
-    if (showPicker.day && showPicker.field) {
-      const timeString = selectedDate
-        ? selectedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        : null
-      setValue(`availability.${showPicker.day}.${showPicker.field}`, timeString)
-    }
-    setShowPicker({ day: null, field: null })
-  }
-
   const onSubmit = (data) => {
-    console.log('Availability Data:', data)
-    navigation.navigate(screenNames.REVIEW, { formData: data })
+    // Validate that all selected days have times
+    const selectedDaysList = DAYS_OF_WEEK.filter(day => data.availability[day]?.enabled)
+    
+    if (selectedDaysList.length === 0) {
+      showToast('Please select at least one day', 'Warning', toastTypes.warning)
+      return
+    }
+
+    const incompleteDays = selectedDaysList.filter(day => {
+      const times = data.availability[day]
+      return !times.from || !times.to
+    })
+
+    if (incompleteDays.length > 0) {
+      showToast('Please set times for all selected days', 'Warning', toastTypes.warning)
+      return
+    }
+
+    // Validate time ranges for each day
+    const invalidDays = selectedDaysList.filter(day => {
+      const times = data.availability[day]
+      const [startHour, startMin] = times.from.split(':').map(Number)
+      const [endHour, endMin] = times.to.split(':').map(Number)
+      const startMinutes = startHour * 60 + startMin
+      const endMinutes = endHour * 60 + endMin
+      return endMinutes <= startMinutes
+    })
+
+    if (invalidDays.length > 0) {
+      showToast('End time must be after start time for all days', 'Error', toastTypes.error)
+      return
+    }
+
+    const quickSearchStep4Data = data
+
+    console.log('Quick Search Step 4 Data:', quickSearchStep4Data)
+    
+    // Navigate to preview with ALL data from all 4 steps
+    navigation.navigate(screenNames.QUICK_SEARCH_PREVIEW, { 
+      quickSearchStep1Data,
+      quickSearchStep2Data,
+      quickSearchStep3Data,
+      quickSearchStep4Data
+    })
   }
 
   return (
     <FormProvider {...methods}>
       <AppHeader
-        title="Quick Search"
+        title="Availability"
         showTopIcons={false}
         rightComponent={
           <AppText variant={Variant.body} style={styles.stepText}>
@@ -75,49 +107,14 @@ const StepFourQuickSearch = ({ navigation }) => {
           Choose days and time you want seeker to be available
         </AppText>
 
-        {/* Days List */}
-        {daysOfWeek.map((day) => (
-          <View key={day} style={styles.dayContainer}>
-            {/* Day Checkbox */}
-            <View style={styles.dayHeader}>
-         <Controller
-    control={control}
-    name={`availability.${day}.enabled`}
-    render={({ field: { value, onChange } }) => (
-      <CustomCheckBox checked={value} onPress={() => onChange(!value)} />
-    )}
-  />
-              <AppText variant={Variant.bodyMedium} style={styles.dayText}>
-                {day}
-              </AppText>
-            </View>
-
-            {/* Time Pickers */}
-            {availability[day]?.enabled && (
-              <View style={styles.timeRow}>
-                <TouchableOpacity
-                  style={styles.timeInput}
-                  onPress={() => setShowPicker({ day, field: 'from' })}
-                >
-                  <AppText style={styles.timeText}>
-                    {availability[day].from || '00:00'}
-                  </AppText>
-                </TouchableOpacity>
-
-                <AppText style={styles.toText}>To</AppText>
-
-                <TouchableOpacity
-                  style={styles.timeInput}
-                  onPress={() => setShowPicker({ day, field: 'to' })}
-                >
-                  <AppText style={styles.timeText}>
-                    {availability[day].to || '00:00'}
-                  </AppText>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        ))}
+        {/* Shared Availability Selector Component */}
+        <AvailabilitySelector
+          control={control}
+          setValue={setValue}
+          defaultStartTime="09:00"
+          defaultEndTime="17:00"
+          containerStyle={styles.availabilityContainer}
+        />
 
         {/* Tax Type */}
         <AppText variant={Variant.h2} style={styles.sectionTitle}>
@@ -145,27 +142,20 @@ const StepFourQuickSearch = ({ navigation }) => {
           ))}
         </View>
 
-        {/* Next Button */}
+        {/* Submit Button */}
         <View style={styles.buttonContainer}>
-          <AppButton text="Next" onPress={handleSubmit(onSubmit)} textColor="#FFF" />
+          <AppButton 
+            text="Preview" 
+            onPress={handleSubmit(onSubmit)} 
+            textColor="#FFF" 
+          />
         </View>
       </ScrollView>
-
-      {/* Time Picker */}
-      {showPicker.day && (
-        <DateTimePicker
-          value={new Date()}
-          mode="time"
-          is24Hour={true}
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleTimeChange}
-        />
-      )}
     </FormProvider>
   )
 }
 
-export default StepFourQuickSearch
+export default QuickSearchStepFour
 
 const styles = StyleSheet.create({
   container: {
@@ -187,36 +177,8 @@ const styles = StyleSheet.create({
     color: colors.gray,
     marginBottom: hp(2),
   },
-  dayContainer: {
+  availabilityContainer: {
     marginBottom: hp(2),
-  },
-  dayHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: hp(1),
-  },
-  dayText: {
-    color: colors.secondary,
-    marginLeft: wp(2),
-  },
-  timeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  timeInput: {
-    flex: 1,
-    paddingVertical: hp(1.5),
-    borderWidth: 1,
-    borderColor: colors.lightGray,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  timeText: {
-    color: colors.gray,
-  },
-  toText: {
-    marginHorizontal: wp(2),
-    color: colors.secondary,
   },
   taxTypeRow: {
     flexDirection: 'row',

@@ -4,10 +4,16 @@ import {screenNames} from '@/navigation/screenNames';
 import {colors} from '@/theme';
 import {useState} from 'react';
 import {FlatList, StyleSheet, View} from 'react-native';
+import {supportAgentProfile} from './supportData';
 
 const Chat = ({navigation}) => {
   // ... your messages data
   const [messages] = useState([
+    {
+      ...supportAgentProfile,
+      unreadCount: 1,
+      lastMessage: "We're here to help - tap to start the chat.",
+    },
     {
       id: 1,
       name: 'Alex Linderson',
@@ -94,9 +100,7 @@ const Chat = ({navigation}) => {
 
   const handleChatPress = chatItem => {
     console.log('Open chat with:', chatItem.name);
-    navigation.navigate(screenNames.MESSAGES);
-
-    // navigation.navigate('ChatDetail', { chatId: chatItem.id })
+    navigation.navigate(screenNames.MESSAGES, {chatData: chatItem});
   };
 
   const renderMessageItem = ({item, index}) => (

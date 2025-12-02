@@ -1,174 +1,139 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { 
   View, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity
+  StyleSheet
 } from 'react-native'
 import { colors, hp, wp, getFontSize } from '@/theme'
-import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
 import AppText, { Variant } from '@/core/AppText'
 import AppButton from '@/core/AppButton'
-import AppInputField from '@/core/AppInputField'
 import AppHeader from '@/core/AppHeader'
-
-const TimePickerField = ({ placeholder, value, onPress }) => (
-    <View style={{width: wp(40)}}>
-
-  <AppInputField
-    placeholder={placeholder}
-    // value={value}
-    // editable={false}
-    onPress={onPress}
-    // style={styles.timePickerField}
-    />
-    </View>
-)
-
-const DayRow = ({ day, isSelected, onToggle, startTime, endTime, onStartTimePress, onEndTimePress }) => (
-  <View style={styles.dayContainer}>
-    {/* Day Checkbox */}
-    <TouchableOpacity
-      style={styles.checkboxRow}
-      onPress={onToggle}
-      activeOpacity={0.7}
-    >
-      <View style={[styles.checkbox, isSelected && styles.checkboxActive]}>
-        {isSelected && (
-          <VectorIcons
-            name={iconLibName.Ionicons}
-            iconName="checkmark"
-            size={16}
-            color="#FFFFFF"
-          />
-        )}
-      </View>
-      <AppText variant={Variant.bodyMedium} style={styles.dayText}>
-        {day}
-      </AppText>
-    </TouchableOpacity>
-
-    {/* Time Pickers */}
-    <View style={styles.timeRow}>
-      <TimePickerField
-        placeholder="00:00"
-        value={startTime}
-        onPress={onStartTimePress}
-      />
-      
-      <AppText variant={Variant.body} style={styles.toText}>
-        To
-      </AppText>
-      
-      <TimePickerField
-        placeholder="00:00"
-        value={endTime}
-        onPress={onEndTimePress}
-      />
-    </View>
-  </View>
-)
+import { showToast, toastTypes } from '@/utilities/toastConfig'
+import AvailabilitySelector, { DAYS_OF_WEEK } from '@/components/AvailabilitySelector'
 
 const AbilityToWork = ({ navigation }) => {
-  const [selectedDays, setSelectedDays] = useState({
-    Monday: false,
-    Tuesday: false,
-    Wednesday: false,
-    Thursday: false,
-    Friday: false,
-    Saturday: false,
-    Sunday: false
-  })
+  // Initialize availability state in the format expected by AvailabilitySelector
+  const initialAvailability = DAYS_OF_WEEK.reduce((acc, day) => {
+    acc[day] = { enabled: false, from: '', to: '' }
+    return acc
+  }, {})
 
-  const [dayTimes, setDayTimes] = useState({
-    Monday: { start: '', end: '' },
-    Tuesday: { start: '', end: '' },
-    Wednesday: { start: '', end: '' },
-    Thursday: { start: '', end: '' },
-    Friday: { start: '', end: '' },
-    Saturday: { start: '', end: '' },
-    Sunday: { start: '', end: '' }
-  })
+  const [availability, setAvailability] = useState(initialAvailability)
+  const [commonTimeRange, setCommonTimeRange] = useState({ start: '', end: '' })
 
-  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  // Handle availability change from shared component
+  const handleAvailabilityChange = (newAvailability) => {
+    setAvailability(newAvailability)
+  }
 
-  const toggleDay = (day) => {
-    setSelectedDays(prev => ({
+  // Handle common time change
+  const handleCommonTimeChange = (field, timeString) => {
+    setCommonTimeRange(prev => ({
       ...prev,
-      [day]: !prev[day]
+      [field]: timeString
     }))
   }
 
-  const openTimePicker = (day, timeType) => {
-    console.log(`Open time picker for ${day} ${timeType}`)
-    // Here you would typically open a time picker modal
-    // For demo purposes, setting a sample time
-    const sampleTime = timeType === 'start' ? '09:00' : '17:00'
-    setDayTimes(prev => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [timeType]: sampleTime
-      }
-    }))
+  // Handle apply common time - clear the common time range after applying
+  const handleApplyCommonTime = () => {
+    setCommonTimeRange({ start: '', end: '' })
   }
 
+  // Calculate selected days count
+  const selectedDaysCount = useMemo(() => {
+    return DAYS_OF_WEEK.filter(day => availability[day]?.enabled === true).length
+  }, [availability])
+
+  // Handle final selection
   const handleSelect = () => {
+    const selectedDaysList = DAYS_OF_WEEK.filter(day => availability[day]?.enabled === true)
+    
+    if (selectedDaysList.length === 0) {
+      showToast('Please select at least one day', 'Warning', toastTypes.warning)
+      return
+    }
+
+    // Validate that all selected days have times
+    const incompleteDays = selectedDaysList.filter(day => {
+      const dayData = availability[day]
+      return !dayData?.from || !dayData?.to
+    })
+
+    if (incompleteDays.length > 0) {
+      showToast('Please set times for all selected days', 'Warning', toastTypes.warning)
+      return
+    }
+
+    // Validate time ranges for each day
+    const invalidDays = selectedDaysList.filter(day => {
+      const dayData = availability[day]
+      const [startHour, startMin] = dayData.from.split(':').map(Number)
+      const [endHour, endMin] = dayData.to.split(':').map(Number)
+      const startMinutes = startHour * 60 + startMin
+      const endMinutes = endHour * 60 + endMin
+      return endMinutes <= startMinutes
+    })
+
+    if (invalidDays.length > 0) {
+      showToast('End time must be after start time for all days', 'Error', toastTypes.error)
+      return
+    }
+
+    // Prepare availability data
     const availabilityData = {
-      selectedDays: Object.keys(selectedDays).filter(day => selectedDays[day]),
-      schedule: dayTimes
+      selectedDays: selectedDaysList,
+      schedule: selectedDaysList.reduce((acc, day) => {
+        const dayData = availability[day]
+        acc[day] = { start: dayData.from, end: dayData.to }
+        return acc
+      }, {})
     }
     
     console.log('Availability data:', availabilityData)
-    // Process the availability data and navigate
     navigation.goBack()
   }
 
   return (
     <>
-    <AppHeader
+      <AppHeader
         title='Availability to work'
         showTopIcons={false}
-    />
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <AppText variant={Variant.title} style={styles.headerTitle}>
-          Availability to work
-        </AppText>
-        <AppText variant={Variant.body} style={styles.headerSubtitle}>
-          Choose days and time you want seeker to be available
-        </AppText>
-      </View>
+        showBackButton={true}
+        onBackPress={() => navigation.goBack()}
+      />
+      
+      <View style={styles.container}>
+        {/* Header Section */}
+        <View style={styles.headerSection}>
+          <AppText variant={Variant.subTitle} style={styles.headerTitle}>
+            Set Availability Schedule
+          </AppText>
+          <AppText variant={Variant.body} style={styles.headerSubtitle}>
+            Select days and set working hours for each day
+          </AppText>
+        </View>
 
-      {/* Days List */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {days.map((day) => (
-            <DayRow
-            key={day}
-            day={day}
-            isSelected={selectedDays[day]}
-            onToggle={() => toggleDay(day)}
-            startTime={dayTimes[day].start}
-            endTime={dayTimes[day].end}
-            onStartTimePress={() => openTimePicker(day, 'start')}
-            onEndTimePress={() => openTimePicker(day, 'end')}
-            />
-        ))}
-      </ScrollView>
+        {/* Shared Availability Selector Component */}
+        <AvailabilitySelector
+          availability={availability}
+          onAvailabilityChange={handleAvailabilityChange}
+          commonTimeRange={commonTimeRange}
+          onCommonTimeChange={handleCommonTimeChange}
+          onApplyCommonTime={handleApplyCommonTime}
+          containerStyle={styles.availabilityContainer}
+        />
 
-      {/* Select Button */}
-      <View style={styles.buttonContainer}>
-        <AppButton
-          text="Select"
-          onPress={handleSelect}
-          bgColor="#F59E0B"
-          textColor="#FFFFFF"
-          //   style={styles.selectButton}
+        {/* Action Button */}
+        <View style={styles.actionButtonContainer}>
+          <AppButton
+            text={`Save Schedule (${selectedDaysCount} day${selectedDaysCount !== 1 ? 's' : ''})`}
+            onPress={handleSelect}
+            bgColor="#F59E0B"
+            textColor="#FFFFFF"
           />
+        </View>
       </View>
-    </View>
-          </>
+
+    </>
   )
 }
 
@@ -177,93 +142,34 @@ export default AbilityToWork
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white || '#FFFFFF',
+    backgroundColor: '#F5F7FA',
   },
-  header: {
+  headerSection: {
     paddingHorizontal: wp(4),
-    paddingVertical: hp(3),
+    paddingVertical: hp(2.5),
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: colors.grayE8 || '#F3F4F6',
+    borderBottomColor: '#E5E7EB',
   },
   headerTitle: {
     color: colors.secondary,
-    fontSize: getFontSize(16),
-    fontWeight: '600',
-    marginBottom: hp(1),
+    fontSize: getFontSize(18),
+    fontWeight: '700',
+    marginBottom: hp(0.5),
   },
   headerSubtitle: {
-    color: colors.textPrimary || '#6B7280',
+    color: colors.gray,
     fontSize: getFontSize(13),
     lineHeight: 20,
   },
-  content: {
+  availabilityContainer: {
     flex: 1,
+  },
+  actionButtonContainer: {
     paddingHorizontal: wp(4),
-    paddingTop: hp(2),
-  },
-  dayContainer: {
-    marginBottom: hp(2),
-  },
-  checkboxRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: hp(2),
-  },
-  checkbox: {
-    width: wp(6),
-    height: wp(6),
-    borderRadius: wp(1.5),
-    borderWidth: 2,
-    borderColor: '#F59E0B',
-    marginRight: wp(3),
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-  },
-  checkboxActive: {
-    backgroundColor: '#F59E0B',
-    borderColor: '#F59E0B',
-  },
-  dayText: {
-    color: colors.secondary,
-    fontSize: getFontSize(14),
-    fontWeight: '500',
-  },
-  timeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  timePickerField: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: colors.grayE8 || '#E5E7EB',
-    borderRadius: hp(3),
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(1),
-    backgroundColor: colors.white,
-    width: '42%',
-  },
-  timeText: {
-    color: colors.gray || '#9CA3AF',
-    fontSize: getFontSize(16),
-  },
-  toText: {
-    color: colors.gray || '#6B7280',
-    fontSize: getFontSize(14),
-    fontWeight: '500',
-    bottom: 10,
-  },
-  buttonContainer: {
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(3),
+    paddingVertical: hp(2),
+    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: colors.grayE8 || '#F3F4F6',
-  },
-  selectButton: {
-    borderRadius: hp(3),
-    paddingVertical: hp(2.5),
+    borderTopColor: '#E5E7EB',
   },
 })

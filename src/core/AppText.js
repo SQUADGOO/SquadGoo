@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
   },
   body: {
     fontSize: getFontSize(14),
-    fontFamily: fonts.regular,
+    // fontFamily: fonts.regular,
   },
   ligntBody: {
     fontSize: getFontSize(14),

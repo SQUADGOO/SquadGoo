@@ -30,7 +30,7 @@ const AppWrapper = ({
           <View
             style={{
               flex: 1,
-              backgroundColor: color ? color : colors.white,
+              backgroundColor: color ? color : 'transparent',
             }}>
             <StatusBar
               barStyle={'dark-content'}

@@ -1,5 +1,5 @@
 import PoolHeader from "@/core/PoolHeader";
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import React from "react";
 import {
   View,
@@ -8,12 +8,113 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
+  Alert,
+  Share,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  toggleFavorite,
+  addToCart,
+  toggleHeldItem,
+} from "@/store/marketplaceSlice";
+import { screenNames } from "@/navigation/screenNames";
+import { colors, hp, wp } from "@/theme";
+import { showToast, toastTypes } from "@/utilities/toastConfig";
+import { getPriceNumber, formatPrice } from "@/utilities/marketplaceHelpers";
 
 const ProductDetails = () => {
-    const route = useRoute();
-    const { item } = route.params;
+  const route = useRoute();
+  const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const { item } = route.params;
+
+  const favorites = useSelector((state) => state.marketplace.favorites);
+  const heldItems = useSelector((state) => state.marketplace.heldItems);
+  const cart = useSelector((state) => state.marketplace.cart);
+
+  const isFavorite = favorites.some((fav) => fav.id === item.id);
+  const isHeld = heldItems.some((held) => held.id === item.id);
+  const isInCart = cart.some((cartItem) => cartItem.id === item.id);
+
+  const price = getPriceNumber(item.price);
+  const priceText = item.price || formatPrice(price);
+
+  const handleFavorite = () => {
+    dispatch(toggleFavorite(item));
+    showToast(
+      isFavorite ? "Removed from favorites" : "Added to favorites",
+      "Success",
+      isFavorite ? toastTypes.info : toastTypes.success
+    );
+  };
+
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: `Check out this product: ${item.title} - ${priceText}`,
+        title: item.title,
+      });
+    } catch (error) {
+      console.log("Share error:", error);
+    }
+  };
+
+  const handleBuy = () => {
+    if (isInCart) {
+      Alert.alert(
+        "Already in Cart",
+        "This item is already in your cart. Would you like to view your cart?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "View Cart",
+            onPress: () => navigation.navigate(screenNames.MARKETPLACE_CART),
+          },
+        ]
+      );
+    } else {
+      dispatch(addToCart(item));
+      showToast("Item added to cart", "Success", toastTypes.success);
+      Alert.alert(
+        "Added to Cart",
+        "Item has been added to your cart. Would you like to proceed to checkout?",
+        [
+          { text: "Continue Shopping", style: "cancel" },
+          {
+            text: "View Cart",
+            onPress: () => navigation.navigate(screenNames.MARKETPLACE_CART),
+          },
+        ]
+      );
+    }
+  };
+
+  const handleHoldListing = () => {
+    dispatch(toggleHeldItem(item));
+    showToast(
+      isHeld ? "Removed from held items" : "Added to held items",
+      "Success",
+      isHeld ? toastTypes.info : toastTypes.success
+    );
+  };
+
+  const handleChatWithSeller = () => {
+    // TODO: Navigate to chat with seller
+    // For now, navigate to chat screen
+    navigation.navigate(screenNames.CHAT, {
+      userId: item.sellerId || item.seller,
+      userName: item.seller,
+    });
+  };
+
+  const handleViewProfile = () => {
+    // TODO: Navigate to seller profile
+    // For now, navigate to profile screen
+    navigation.navigate(screenNames.PROFILE, {
+      userId: item.sellerId || item.seller,
+    });
+  };
   return (
 <>
    <PoolHeader title="Product Details"/>
@@ -21,10 +122,19 @@ const ProductDetails = () => {
     <ScrollView style={styles.container}>
       {/* Title + Icons */}
       <View style={styles.headerRow}>
-        <Text style={styles.title}>iPhone 14 Pro Max - 256GB</Text>
+        <Text style={styles.title}>{item.title}</Text>
         <View style={styles.iconRow}>
-          <Icon name="heart-outline" size={22} color="#333" style={styles.icon} />
-          <Icon name="share-social-outline" size={22} color="#333" />
+          <TouchableOpacity onPress={handleFavorite} style={styles.iconButton}>
+            <Icon
+              name={isFavorite ? "heart" : "heart-outline"}
+              size={22}
+              color={isFavorite ? colors.red : "#333"}
+              style={styles.icon}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleShare} style={styles.iconButton}>
+            <Icon name="share-social-outline" size={22} color="#333" />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -35,19 +145,26 @@ const ProductDetails = () => {
       />
 
       {/* Price + Location */}
-      <Text style={styles.price}>1200 SG</Text>
-      <Text style={styles.subText}>Sydney CBD • 2.5 km | 2 hours ago</Text>
+      <Text style={styles.price}>{priceText}</Text>
+      <Text style={styles.subText}>
+        {item.location || "Location not specified"} • {item.time || "Recently posted"}
+      </Text>
 
       {/* Seller */}
       <View style={styles.sellerCard}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <View style={styles.avatar} />
           <View>
-            <Text style={styles.sellerName}>John Doe</Text>
-            <Text style={styles.rating}>⭐ 4.8 (18)</Text>
+            <Text style={styles.sellerName}>{item.seller || "Seller"}</Text>
+            <Text style={styles.rating}>
+              ⭐ {item.rating || "4.0"} {item.ratingCount ? `(${item.ratingCount})` : ""}
+            </Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.viewProfileBtn}>
+        <TouchableOpacity
+          style={styles.viewProfileBtn}
+          onPress={handleViewProfile}
+        >
           <Text style={styles.viewProfileText}>View Profile</Text>
         </TouchableOpacity>
       </View>
@@ -69,21 +186,45 @@ const ProductDetails = () => {
       {/* Delivery Options */}
       <Text style={styles.sectionTitle}>Delivery Options</Text>
       <View style={styles.deliveryList}>
-        <Text style={styles.deliveryItem}>• Pickup available</Text>
-        <Text style={styles.deliveryItem}>• Seller delivery available</Text>
-        <Text style={styles.deliveryItem}>• Squad Courier available</Text>
+        {item.tags?.includes("Pickup") && (
+          <Text style={styles.deliveryItem}>• Pickup available</Text>
+        )}
+        {item.tags?.includes("Delivery") && (
+          <Text style={styles.deliveryItem}>• Seller delivery available</Text>
+        )}
+        {item.tags?.includes("Squad Courier") && (
+          <Text style={styles.deliveryItem}>• Squad Courier available</Text>
+        )}
       </View>
 
       {/* Action Buttons */}
-      <TouchableOpacity style={styles.buyBtn}>
-        <Text style={styles.buyBtnText}>Buy Item - 1200 SG</Text>
+      <TouchableOpacity
+        style={[styles.buyBtn, isInCart && styles.buyBtnInCart]}
+        onPress={handleBuy}
+      >
+        <Text style={styles.buyBtnText}>
+          {isInCart ? "View in Cart" : `Buy Item - ${priceText}`}
+        </Text>
       </TouchableOpacity>
 
       <View style={styles.rowBtn}>
-        <TouchableOpacity style={styles.outlinedBtn}>
-          <Text style={styles.outlinedBtnText}>Hold Listing</Text>
+        <TouchableOpacity
+          style={[styles.outlinedBtn, isHeld && styles.outlinedBtnActive]}
+          onPress={handleHoldListing}
+        >
+          <Text
+            style={[
+              styles.outlinedBtnText,
+              isHeld && styles.outlinedBtnTextActive,
+            ]}
+          >
+            {isHeld ? "Held" : "Hold Listing"}
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.outlinedBtn}>
+        <TouchableOpacity
+          style={styles.outlinedBtn}
+          onPress={handleChatWithSeller}
+        >
           <Text style={styles.outlinedBtnText}>Chat With Seller</Text>
         </TouchableOpacity>
       </View>
@@ -92,7 +233,7 @@ const ProductDetails = () => {
       <View style={styles.safeBox}>
         <Text style={styles.sectionTitle}>Safe Transaction</Text>
         <Text style={styles.safeText}>
-          All payments are secured with SG Coins. Funds are held until both
+          All payments are secured. Funds are held until both
           parties confirm the transaction.
         </Text>
       </View>
@@ -100,8 +241,8 @@ const ProductDetails = () => {
       {/* Description */}
       <Text style={styles.sectionTitle}>Description</Text>
       <Text style={styles.desc}>
-        Barely used iPhone 14 Pro Max in excellent condition. Includes original
-        box and charger.
+        {item.description ||
+          "Barely used iPhone 14 Pro Max in excellent condition. Includes original box and charger."}
       </Text>
     </ScrollView>
 </>
@@ -119,8 +260,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: { fontSize: 18, fontWeight: "bold", color: "#000", flex: 1 },
-  iconRow: { flexDirection: "row" },
+  iconRow: { flexDirection: "row", alignItems: "center" },
   icon: { marginLeft: 15 },
+  iconButton: {
+    padding: wp(1),
+    marginLeft: wp(2),
+  },
   image: {
     width: "100%",
     height: 250,
@@ -183,6 +328,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginVertical: 10,
   },
+  buyBtnInCart: {
+    backgroundColor: "#4CAF50",
+  },
   buyBtnText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
 
   rowBtn: { flexDirection: "row", justifyContent: "space-between" },
@@ -195,7 +343,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     margin: 5,
   },
+  outlinedBtnActive: {
+    backgroundColor: "#FF8C00",
+  },
   outlinedBtnText: { color: "#FF8C00", fontWeight: "bold" },
+  outlinedBtnTextActive: { color: "#fff", fontWeight: "bold" },
 
   safeBox: {
     backgroundColor: "#fff",

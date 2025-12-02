@@ -4,11 +4,9 @@ import {
   StyleSheet, 
   ScrollView, 
   TouchableOpacity,
-  TextInput,
-  FlatList,
   Image
 } from 'react-native'
-import { useForm, FormProvider, Form } from 'react-hook-form'
+import { useForm, FormProvider } from 'react-hook-form'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
 import AppText, { Variant } from '@/core/AppText'
@@ -19,15 +17,14 @@ import Slider from '@react-native-community/slider'
 import AppHeader from '@/core/AppHeader'
 import globalStyles from '@/styles/globalStyles'
 import BottomDataSheet from '@/components/Recruiter/JobBottomSheet'
+import JobCategorySelector from '@/components/JobCategorySelector'
 import { screenNames } from '@/navigation/screenNames'
 
 const ManualSearch = ({ navigation }) => {
-  const [selectedJobTitle, setSelectedJobTitle] = useState(['Full house painting'])
-  const [selectedJobType, setSelectedJobType] = useState('Full time')
   const [rangeKm, setRangeKm] = useState(119)
-  const {setValue, getValues, watch} = useForm()
+  const [jobCategory, setJobCategory] = useState(null)
+  const [jobSubCategory, setJobSubCategory] = useState(null)
   
-  const jobTitleSheetRef = useRef(null)
   const jobTypeSheetRef = useRef(null)
   
   const methods = useForm({
@@ -35,21 +32,12 @@ const ManualSearch = ({ navigation }) => {
     defaultValues: {
       workLocation: 'Sydney',
       staffNumber: '5',
-      jobTitle: null,
-      jobType: null,
+      jobTitle: '',
+      jobType: '',
     }
   })
 
-  const jobTitleOptions = [
-    { id: 1, title: 'Full house painting' },
-    { id: 2, title: 'House renovation' },
-    { id: 3, title: 'Garden maintenance' },
-    { id: 4, title: 'Cleaning services' },
-    { id: 5, title: 'Plumbing services' },
-    { id: 6, title: 'Electrical work' },
-    { id: 7, title: 'Carpentry' },
-    { id: 8, title: 'Interior design' }
-  ]
+  const { watch, setValue } = methods
 
   const jobTypeOptions = [
     { id: 1, title: 'Full time' },
@@ -60,38 +48,34 @@ const ManualSearch = ({ navigation }) => {
     { id: 6, title: 'Freelance' }
   ]
 
- const handleJobTitleSelect = (item) => {
-  if (item?.title) {
-    setValue('jobTitle', item.title, { shouldValidate: true, shouldDirty: true })
+  const handleJobCategorySelect = (data) => {
+    setJobCategory(data.category)
+    setJobSubCategory(data.subCategory)
+    const jobTitleValue = data.subCategory || data.category
+    setValue('jobTitle', jobTitleValue, { shouldValidate: true, shouldDirty: true })
   }
-  jobTitleSheetRef.current?.close()
-}
 
-const handleJobTypeSelect = (item) => {
-  if (item?.title) {
-    setValue('jobType', item.title, { shouldValidate: true, shouldDirty: true })
-  }
-  jobTypeSheetRef.current?.close()
-}
-  const onSubmit = (data) => {
-    const searchData = {
-      jobTitle: selectedJobTitle,
-      jobType: selectedJobType,
-      workLocation: data.workLocation,
-      rangeKm: rangeKm,
-      staffNumber: data.staffNumber
+  const handleJobTypeSelect = (item) => {
+    if (item?.title) {
+      setValue('jobType', item.title, { shouldValidate: true, shouldDirty: true })
     }
-    
-    console.log('Search data:', searchData)
-    // Navigate to search results or next step
+    jobTypeSheetRef.current?.close()
   }
 
-  const handleNext = () => {
-    // jobTitleSheetRef.current?.open()
-    console.log('fdks manual search')
-    navigation.navigate(screenNames.STEP_TWO)
-    methods.handleSubmit(onSubmit)()
-  }
+  const handleNext = methods.handleSubmit((data) => {
+    const searchData = {
+      jobTitle: data.jobTitle,
+      jobType: data.jobType,
+      workLocation: data.workLocation,
+      rangeKm,
+      staffNumber: data.staffNumber,
+      industry: jobCategory,
+      jobCategory: jobCategory,
+      jobSubCategory: jobSubCategory,
+    }
+    console.log('Step 1 data:', searchData)
+    navigation.navigate(screenNames.STEP_TWO, { step1Data: searchData })
+  })
 
   return (
     <FormProvider {...methods}>
@@ -101,8 +85,6 @@ const handleJobTypeSelect = (item) => {
         rightComponent={
           <View style={{}}>
             <TouchableOpacity 
-              // style={styles.nextButton}
-              // onPress={handleNext}
               activeOpacity={0.7}
             >
               <AppText variant={Variant.body} style={{
@@ -119,15 +101,15 @@ const handleJobTypeSelect = (item) => {
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Job Title */}
         <View style={styles.formGroup}>
-         <FormField
-            onPressField={() => jobTitleSheetRef.current?.open()}
-            name="jobTitle"
-            value={watch('jobTitle')}
-            label="Job title"  
-            placeholder="Enter job title"
-           
-            // inputWrapperStyle={styles.formFieldWrapper}
-          />  
+          <AppText variant={Variant.boldCaption} style={styles.label}>
+            Job title
+          </AppText>
+          <JobCategorySelector
+            onSelect={handleJobCategorySelect}
+            selectedCategory={jobCategory}
+            selectedSubCategory={jobSubCategory}
+            placeholder="Select job category"
+          />
         </View>
 
         {/* Job Type */}
@@ -138,8 +120,6 @@ const handleJobTypeSelect = (item) => {
             label="Job type"
             value={watch('jobType')} 
             placeholder="Enter job type"
-            
-            // inputWrapperStyle={styles.formFieldWrapper}
           />
         </View>
 
@@ -151,7 +131,6 @@ const handleJobTypeSelect = (item) => {
           rules={{
             required: 'Work location is required'
           }}
-          // inputWrapperStyle={styles.formFieldWrapper}
         />
 
         {/* Range Slider */}
@@ -180,7 +159,6 @@ const handleJobTypeSelect = (item) => {
         {/* Map Preview */}
         <View style={styles.mapContainer}>
           <View style={styles.mapPlaceholder}>
-            {/* This would be replaced with actual map component */}
             <Image 
               source={{ uri: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=400&h=300&fit=crop' }}
               style={styles.mapImage}
@@ -211,7 +189,6 @@ const handleJobTypeSelect = (item) => {
               message: 'Please enter a valid number'
             }
           }}
-          // inputWrapperStyle={styles.formFieldWrapper}
         />
 
         {/* Next Button */}
@@ -219,25 +196,12 @@ const handleJobTypeSelect = (item) => {
           <AppButton
             text="Next"
             onPress={handleNext}
-            // bgColor="#F59E0B"
             textColor="#FFFFFF"
-            // style={styles.nextButton}
           />
         </View>
       </ScrollView>
 
       {/* Bottom Sheets */}
-      <RbSheetComponent
-        ref={jobTitleSheetRef}
-        height={hp(90)}
-        bgColor={colors.white}
-        containerStyle={styles.sheetContainer}
-      >
-        <BottomDataSheet
-          onSelect={handleJobTitleSelect}
-        optionsData={jobTitleOptions} onClose={() => jobTitleSheetRef.current?.close()} />
-      </RbSheetComponent>
-
       <RbSheetComponent
         ref={jobTypeSheetRef}
         height={hp(90)}
@@ -246,7 +210,9 @@ const handleJobTypeSelect = (item) => {
       >
         <BottomDataSheet
           onSelect={handleJobTypeSelect}
-        optionsData={jobTypeOptions} onClose={() => jobTypeSheetRef.current?.close()} />
+          optionsData={jobTypeOptions} 
+          onClose={() => jobTypeSheetRef.current?.close()} 
+        />
       </RbSheetComponent>
     </FormProvider>
   )

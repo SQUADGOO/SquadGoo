@@ -25,7 +25,8 @@ const JobCard = ({
   onPreview, 
   onUpdate, 
   onViewCandidates, 
-  onCloseJob 
+  onCloseJob,
+  onViewMatches,
 }) => {
   return (
     <View style={styles.cardContainer}>
@@ -35,10 +36,22 @@ const JobCard = ({
         <AppText variant={Variant.subTitle} style={styles.jobTitle}>
           {job.title}
         </AppText>
-        <View style={styles.jobTypeBadge}>
-          <AppText variant={Variant.caption} style={styles.jobTypeText}>
-            {job.type}
-          </AppText>
+        <View style={styles.badgeContainer}>
+          <View style={styles.jobTypeBadge}>
+            <AppText variant={Variant.caption} style={styles.jobTypeText}>
+              {job.type}
+            </AppText>
+          </View>
+          {job.searchType && (
+            <View style={[
+              styles.searchTypeBadge,
+              job.searchType === 'quick' ? styles.quickSearchBadge : styles.manualSearchBadge
+            ]}>
+              <AppText variant={Variant.caption} style={styles.searchTypeText}>
+                {job.searchType === 'quick' ? 'Quick Search' : 'Manual Search'}
+              </AppText>
+            </View>
+          )}
         </View>
       </View>
 
@@ -118,6 +131,18 @@ const JobCard = ({
             </AppText>
           </TouchableOpacity>
 
+          {job?.searchType === 'manual' && onViewMatches ? (
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.matchesButton]}
+              onPress={() => onViewMatches(job)}
+              activeOpacity={0.8}
+            >
+              <AppText variant={Variant.bodyMedium} style={styles.matchesButtonText}>
+                Matches
+              </AppText>
+            </TouchableOpacity>
+          ) : null}
+
           <TouchableOpacity 
             style={[styles.actionButton, styles.closeJobButton]}
             onPress={() => onCloseJob(job)}
@@ -163,6 +188,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginRight: wp(3),
   },
+  badgeContainer: {
+    alignItems: 'flex-end',
+    gap: hp(0.5),
+  },
   jobTypeBadge: {
     backgroundColor:  '#C0B5C9',
     paddingHorizontal: wp(3),
@@ -172,6 +201,22 @@ const styles = StyleSheet.create({
   jobTypeText: {
     color: colors.white,
     fontSize: getFontSize(12),
+  },
+  searchTypeBadge: {
+    paddingHorizontal: wp(2.5),
+    paddingVertical: hp(0.6),
+    borderRadius: hp(2.5),
+  },
+  quickSearchBadge: {
+    backgroundColor: '#10B981',
+  },
+  manualSearchBadge: {
+    backgroundColor: '#3B82F6',
+  },
+  searchTypeText: {
+    color: colors.white,
+    fontSize: getFontSize(10),
+    fontWeight: 'bold',
   },
   salaryText: {
     color: colors.primary,
@@ -206,6 +251,7 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: 'row',
     gap: wp(3),
+    flexWrap: 'wrap',
   },
   actionButton: {
     flex: 1,
@@ -235,6 +281,13 @@ const styles = StyleSheet.create({
   },
   candidatesButtonText: {
     color: '#6366F1',
+  },
+  matchesButton: {
+    backgroundColor: 'transparent',
+    borderColor: '#F97316',
+  },
+  matchesButtonText: {
+    color: '#F97316',
   },
   closeJobButton: {
     backgroundColor: 'transparent',

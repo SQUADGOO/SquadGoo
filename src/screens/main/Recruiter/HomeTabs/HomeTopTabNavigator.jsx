@@ -5,6 +5,8 @@ import { colors, hp, wp, getFontSize } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import { screenNames } from '@/navigation/screenNames'
 import ActiveJobOffers from './ActiveJobOffers'
+import CompletedOffers from './CompletedOffers'
+import ExpiredOffers from './ExpiredOffers'
 
 
 
@@ -51,7 +53,7 @@ const HomeTopTabNavigator = () => {
       />
       <Tab.Screen
         name="CompletedOffers"
-        component={CompletedOffersScreen}
+        component={CompletedOffers}
         options={{
           tabBarLabel: ({ focused }) => (
             <CustomTabLabel focused={focused}>
@@ -62,7 +64,7 @@ const HomeTopTabNavigator = () => {
       />
       <Tab.Screen
         name="ExpiredOffers"
-        component={ExpiredOffersScreen}
+        component={ExpiredOffers}
         options={{
           tabBarLabel: ({ focused }) => (
             <CustomTabLabel focused={focused}>
@@ -102,34 +104,6 @@ const styles = StyleSheet.create({
     fontSize: getFontSize(14),
     fontWeight: 'bold',
     textAlign: 'center',
-  },
-})
-
-// Example screen components (you'll need to create these)
-// ActiveJobOffersScreen.js
-
-
-// CompletedOffersScreen.js  
-export const CompletedOffersScreen = () => (
-  <View style={screenStyles.container}>
-    <AppText variant={Variant.body}>Completed Offers Content</AppText>
-    {/* Your completed offers content here */}
-  </View>
-)
-
-// ExpiredOffersScreen.js
-export const ExpiredOffersScreen = () => (
-  <View style={screenStyles.container}>
-    <AppText variant={Variant.body}>Expired Offers Content</AppText>
-    {/* Your expired offers content here */}
-  </View>
-)
-
-const screenStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.white || '#FFFFFF',
-    padding: wp(6),
   },
 })
 

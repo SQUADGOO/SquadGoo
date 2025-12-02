@@ -22,10 +22,18 @@ import { screenNames } from '@/navigation/screenNames'
 import { store } from '@/store/store'
 import { showToast, toastTypes } from '@/utilities/toastConfig'
 import { useLogin } from '@/api/auth/auth.query'
+import { login as loginAction } from '@/store/authSlice'
+import { useDispatch } from 'react-redux'
+import { validateDummyCredentials, getDisplayCredentials, isDummyMode } from '@/utilities/dummyData'
+import { addCoins } from '@/store/walletSlice'
+import { initializeDummyExperiences } from '@/store/jobSeekerExperienceSlice'
+import { initializeDummyPreferredJobs } from '@/store/jobSeekerPreferredSlice'
 
 const SignIn = ({ navigation }) => {
+  const dispatch = useDispatch();
   const [rememberMe, setRememberMe] = useState(true);
-  const { mutate: login, isPending, isError } = useLogin();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  // const { mutate: login, isPending, isError } = useLogin(); // Commented out for local testing
   
   // Initialize form methods
   const methods = useForm({
@@ -39,41 +47,44 @@ const SignIn = ({ navigation }) => {
 
 const handleLogin = async (data) => {
   try {
-    const { email, password } = methods.getValues();
+    setIsLoggingIn(true);
+    const { email, password } = data;
     console.log('Login with:', data);
-    await login({ email, password });
-    return
-    // Recruiter credentials
-    if (
-      (email === 'recruiter@gmail.com' || email === 'Recruiter@gmail.com') &&
-      password === 'Recruiter@123'
-    ) {
-      store?.dispatch(
-        login({
-          token: 'token',
-          userInfo: { email, password },
-          role: 'recruiter',
-        })
-      );
+    
+    // === DUMMY USER LOGIN (FOR LOCAL TESTING) ===
+    if (isDummyMode()) {
+      const dummyUser = validateDummyCredentials(email, password);
+      
+      if (dummyUser) {
+        dispatch(loginAction(dummyUser));
+        
+        // Initialize wallet with dummy user's wallet balance
+        if (dummyUser.wallet && dummyUser.wallet.coins > 0) {
+          dispatch(addCoins({ amount: dummyUser.wallet.coins }));
+        }
+        
+        // Initialize dummy experience and preferred jobs for job seekers
+        if (dummyUser.role === 'jobseeker') {
+          dispatch(initializeDummyExperiences());
+          dispatch(initializeDummyPreferredJobs());
+        }
+        
+        const welcomeMessage = `Welcome back, ${dummyUser.firstName}!`;
+        showToast(welcomeMessage, 'Success', toastTypes.success);
+        setIsLoggingIn(false);
+        return;
+      } else {
+        showToast('Invalid email or password', 'Error', toastTypes.error);
+        setIsLoggingIn(false);
+        return;
+      }
     }
-    // Jobseeker credentials
-    else if (
-      (email === 'jobseeker@gmail.com' || email === 'Jobseeker@gmail.com') &&
-      password === 'Jobseeker@123'
-    ) {
-      store?.dispatch(
-        login({
-          token: 'token',
-          userInfo: { email, password },
-          role: 'jobseeker',
-        })
-      );
-    }
-    // Invalid credentials
-    else {
-      showToast('Invalid email or password', 'error', toastTypes.error);
-    }
+    
+    // === FOR API INTEGRATION ===
+    // await login({ email, password });
+    
   } catch (error) {
+    setIsLoggingIn(false);
     Alert.alert('Error', 'Login failed. Please try again.');
     console.error('Login error:', error);
   }
@@ -163,7 +174,7 @@ const handleLogin = async (data) => {
               bgColor={colors.primary}
               text="Log in"
               onPress={handleSubmit(handleLogin)}
-              isLoading={isPending}
+              isLoading={isLoggingIn}
               />
               </View>
               {/* <TouchableOpacity 
@@ -216,6 +227,21 @@ const handleLogin = async (data) => {
                 <AppText style={styles.signupLink}>Sign up here</AppText>
               </TouchableOpacity>
             </View>
+
+            {/* Dummy Credentials Info (For Testing) */}
+            {isDummyMode() && (
+              <View style={styles.dummyCredentials}>
+                <Text style={styles.dummyTitle}>🔧 Test Credentials (Local Mode)</Text>
+                {getDisplayCredentials().map((cred, index) => (
+                  <View key={index} style={styles.credentialItem}>
+                    <Text style={styles.credentialRole}>{cred.role}:</Text>
+                    <Text style={styles.credentialText}>
+                      {cred.email} / {cred.password}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -382,5 +408,34 @@ const styles = StyleSheet.create({
     color: '#FFD93D',
     fontWeight: '600',
     textDecorationLine: 'underline',
+  },
+  dummyCredentials: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: hp(2),
+    padding: wp(4),
+    marginTop: hp(2),
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  dummyTitle: {
+    fontSize: getFontSize(14),
+    color: '#FFD93D',
+    fontWeight: '700',
+    marginBottom: hp(1.5),
+    textAlign: 'center',
+  },
+  credentialItem: {
+    marginBottom: hp(0.8),
+  },
+  credentialRole: {
+    fontSize: getFontSize(12),
+    color: '#FFF',
+    fontWeight: '600',
+    marginBottom: hp(0.3),
+  },
+  credentialText: {
+    fontSize: getFontSize(11),
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
 })

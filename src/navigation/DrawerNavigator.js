@@ -6,6 +6,9 @@ import TabNavigator from './TabNavigator';
 import {screenNames} from './screenNames';
 import { JobPreview } from '@/screens';
 import * as ui from '@/screens';
+import SupportStack from './SupportStack';
+import ManualSearchStack from './ManualSearchStack';
+import QuickSearchStack from './QuickSearchStack';
 
 const Drawer = createDrawerNavigator();
 
@@ -19,17 +22,35 @@ const DrawerNavigator = () => {
         drawerStyle: styles.drawerStyle,
       }}>
       <Drawer.Screen name={screenNames.Tab_NAVIGATION} component={TabNavigator} />
-            <Drawer.Screen
+      <Drawer.Screen
         name={screenNames.JOB_PREVIEW}
         component={JobPreview}
       />
-            <Drawer.Screen
+      <Drawer.Screen
         name={screenNames.QUICK_SEARCH}
         component={ui.QuickSearch}
       />
-            <Drawer.Screen
-        name={screenNames.MANUAL_SEARCH}
-        component={ui.ManualSearch}
+      <Drawer.Screen
+        name={screenNames.QUICK_SEARCH_STACK}
+        component={QuickSearchStack}
+      />
+      <Drawer.Screen
+        name={screenNames.MANUAL_SEARCH_STACK}
+        component={ManualSearchStack}
+      />
+      
+      {/* Manual Search Result Screens - moved out of stack */}
+      <Drawer.Screen
+        name={screenNames.MANUAL_MATCH_LIST}
+        component={ui.ManualMatchList}
+      />
+      <Drawer.Screen
+        name={screenNames.MANUAL_CANDIDATE_PROFILE}
+        component={ui.ManualCandidateProfile}
+      />
+      <Drawer.Screen
+        name={screenNames.MANUAL_OFFERS}
+        component={ui.ManualOffers}
       />
 
         <Drawer.Screen
@@ -40,18 +61,6 @@ const DrawerNavigator = () => {
         <Drawer.Screen
         name={screenNames.MESSAGES}
         component={ui.Messages}
-      />
-        <Drawer.Screen
-        name={screenNames.ABILITY_TO_WORK}
-        component={ui.AbilityToWork}
-      />
-        <Drawer.Screen
-        name={screenNames.STEP_THREE}
-        component={ui.StepThree}
-      />
-        <Drawer.Screen
-        name={screenNames.STEP_TWO}
-        component={ui.StepTwo}
       />
              <Drawer.Screen
         name={screenNames.MAIN_DASHBOARD}
@@ -111,21 +120,78 @@ const DrawerNavigator = () => {
         component={ui.Notifcations}
       />
 
-        <Drawer.Screen
-        name={screenNames.QUICK_SEARCH_STEPONE}
-        component={ui.StepOne}
+       
+      {/* Quick Search Screens - Job Seeker */}
+      <Drawer.Screen
+        name={screenNames.QUICK_SEARCH_ACTIVE_OFFERS_JS}
+        component={ui.QuickSearchActiveOffersJS}
       />
-        <Drawer.Screen
-        name={screenNames.QUICK_SEARCH_STEPTWO}
-        component={ui.StepTwoQuickSearch}
+      <Drawer.Screen
+        name={screenNames.QUICK_SEARCH_ACTIVE_JOBS_JS}
+        component={ui.QuickSearchActiveJobsJS}
       />
-        <Drawer.Screen
-        name={screenNames.QUICK_SEARCH_STEPTHREE}
-        component={ui.StepThreeQuickSearch}
+      <Drawer.Screen
+        name={screenNames.LOCATION_SHARING}
+        component={ui.LocationSharing}
       />
+      <Drawer.Screen
+        name={screenNames.PAYMENT_REQUEST}
+        component={ui.PaymentRequest}
+      />
+      <Drawer.Screen
+        name={screenNames.TIMER_CONTROL}
+        component={ui.TimerControl}
+      />
+      <Drawer.Screen
+        name={screenNames.JOB_COMPLETE}
+        component={ui.JobComplete}
+      />
+      
+      {/* Quick Search Screens - Recruiter */}
+      <Drawer.Screen
+        name={screenNames.QUICK_SEARCH_ACTIVE_OFFERS_RECRUITER}
+        component={ui.QuickSearchActiveOffersRecruiter}
+      />
+      <Drawer.Screen
+        name={screenNames.QUICK_SEARCH_ACTIVE_JOBS_RECRUITER}
+        component={ui.QuickSearchActiveJobsRecruiter}
+      />
+      <Drawer.Screen
+        name={screenNames.LIVE_TRACKING}
+        component={ui.LiveTracking}
+      />
+      <Drawer.Screen
+        name={screenNames.TIMER_MANAGEMENT}
+        component={ui.TimerManagement}
+      />
+      <Drawer.Screen
+        name={screenNames.QUICK_SEARCH_MATCH_LIST}
+        component={ui.QuickSearchMatchList}
+      />
+      <Drawer.Screen
+        name={screenNames.QUICK_SEARCH_CANDIDATE_PROFILE}
+        component={ui.QuickSearchCandidateProfile}
+      />
+      {/* <Drawer.Screen
+        name={screenNames.QUICK_SEARCH_MATCH_LIST}
+        component={ui.QuickSearchMatchList}
+      />
+       */}
             <Drawer.Screen
-        name={screenNames.QUICK_SEARCH_STEPFOUR}
-        component={ui.StepFourQuickSearch}
+        name={screenNames.MARKETPLACE_STACK}
+        component={ui.MarketplaceStack}
+      />
+      <Drawer.Screen
+        name={screenNames.MARKETPLACE_ORDERS}
+        component={ui.Orders}
+      />
+      <Drawer.Screen
+        name={screenNames.VIEW_JOB_DETAILS}
+        component={ui.ViewJobDetails}
+      />
+      <Drawer.Screen
+        name={screenNames.JOB_CANDIDATES}
+        component={ui.JobCandidates}
       />
   <Drawer.Screen
         name={screenNames.CHAT}
@@ -171,9 +237,13 @@ const DrawerNavigator = () => {
       />
       <Drawer.Screen
         name={screenNames.SUPPORT}
-        component={ui.Support}
+        component={SupportStack}
       />
 
+<Drawer.Screen
+        name={screenNames.ACCEPTED_OFFERS}
+        component={ui.AcceptedOffers}
+      />
        
     </Drawer.Navigator>
   );

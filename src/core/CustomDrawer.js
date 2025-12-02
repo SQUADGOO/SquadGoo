@@ -9,9 +9,9 @@ import { logout } from '@/store/authSlice'
 import icons from '@/assets/icons'
 import { screenNames } from '../navigation/screenNames'
 import { useSelector } from 'react-redux'
-import { useNavigation } from '@react-navigation/native'
-import MarketPlace from '@/screens/main/JobSeeker/DashBoard/MarketPlace/MarketPlace'
+import { useNavigation, CommonActions } from '@react-navigation/native'
 import FastImageView from './FastImageView'
+import { Images } from '@/assets'
 
 const CustomDrawer = ({
   onNavigate,
@@ -22,7 +22,7 @@ const CustomDrawer = ({
   const navigation = useNavigation()
   // 🔹 Get current user info from Redux
   const { userInfo, role } = useSelector((state) => state.auth)
-  // console.log('User Info from Redux:', userInfo, 'Role:', role)
+  console.log('User Info from Redux:', userInfo, 'Role:', role)
 
   const toggleSection = (sectionKey) => {
     setExpandedSections(prev => ({
@@ -34,6 +34,13 @@ const CustomDrawer = ({
   const getMenuItemsByRole = (role) => {
     if (role?.toLowerCase() === 'recruiter') {
       return [
+        {
+          key: 'home',
+          title: 'Home',
+          icon: 'home-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.Tab_NAVIGATION,
+        },
         {
           key: 'dashboard',
           title: 'Dashboard',
@@ -47,7 +54,7 @@ const CustomDrawer = ({
           iconLib: iconLibName.Ionicons,
           expandable: true,
           subItems: [
-            { key: 'quick-search', title: 'Quick Search', icon: 'search-outline', route: screenNames.QUICK_SEARCH_STEPONE },
+          { key: 'quick-search', title: 'Quick Search', icon: 'search-outline', route: screenNames.QUICK_SEARCH_STACK },
             { key: 'manual-search', title: 'Manual Search', icon: 'search-circle-outline', route: screenNames.MANUAL_SEARCH },
           ],
         },
@@ -142,7 +149,14 @@ const CustomDrawer = ({
           title: 'Marketplace',
           icon: 'storefront-outline',
           iconLib: iconLibName.Ionicons,
-          route: MarketPlace,
+          route: screenNames.MARKETPLACE_STACK,
+        },
+        {
+          key: 'orders',
+          title: 'My Orders',
+          icon: 'receipt-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.MARKETPLACE_ORDERS,
         },
         {
           key: 'logout',
@@ -154,7 +168,7 @@ const CustomDrawer = ({
       ]
     }
 
-    if (role?.toLowerCase() === 'job_seeker') {
+    if (role?.toLowerCase() === 'jobseeker') {
       return [
         {
           key: 'settings',
@@ -239,7 +253,14 @@ const CustomDrawer = ({
           title: 'Marketplace',
           icon: 'storefront-outline',
           iconLib: iconLibName.Ionicons,
-          route: screenNames.MARKET_PLACE,
+          route: screenNames.MARKETPLACE_STACK,
+        },
+        {
+          key: 'orders',
+          title: 'My Orders',
+          icon: 'receipt-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.MARKETPLACE_ORDERS,
         },
       ]
     }
@@ -255,12 +276,12 @@ const CustomDrawer = ({
     <View style={styles.profileSection}>
       <View style={styles.profileContainer}>
         <TouchableOpacity onPress={() => navigation.navigate(screenNames.PROFILE)} style={styles.avatarContainer}>
-          {userInfo?.profile_picture &&
+      
             <FastImageView
-              source={{ uri: userInfo?.profile_picture }}
+              source={userInfo?.profile_picture ? { uri: userInfo?.profile_picture } : Images.logo}
               style={styles.avatar}
-              resizeMode={'contain'}
-            />}
+              resizeMode={'cover'}
+            />
           {userInfo?.isVerified && (
             <View style={styles.verificationBadge}>
               <VectorIcons
@@ -302,7 +323,19 @@ const CustomDrawer = ({
             if (item.expandable) {
               toggleSection(item.key)
             } else if (item.route) {
-              onNavigate(item.route)
+              // Handle nested navigation for marketplace orders
+              if (item.route === screenNames.MARKETPLACE_ORDERS) {
+                navigation.dispatch(
+                  CommonActions.navigate({
+                    name: screenNames.MARKETPLACE_STACK,
+                    params: {
+                      screen: screenNames.MARKETPLACE_ORDERS,
+                    },
+                  })
+                )
+              } else {
+                onNavigate(item.route)
+              }
             }
           }}
           activeOpacity={0.7}

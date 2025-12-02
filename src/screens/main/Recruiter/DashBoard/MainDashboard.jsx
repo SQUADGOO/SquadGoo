@@ -5,6 +5,7 @@ import { colors, hp, wp } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import AppHeader from '@/core/AppHeader'
 import VectorIcons from '@/theme/vectorIcon'
+import { screenNames } from '@/navigation/screenNames'
 
 const StatCard = ({ title, value, subtitle }) => (
     <View style={styles.statCard}>
@@ -14,21 +15,21 @@ const StatCard = ({ title, value, subtitle }) => (
     </View>
 )
 const AnalyticsCard = ({ title, value, valueColor, leftNote, rightNote, rightNoteColor }) => (
-  <View style={styles.analyticsCard}>
-    <View style={styles.analyticsHeader}>
-      <AppText variant={Variant.body} style={styles.analyticsTitle}>{title}</AppText>
-      <AppText variant={Variant.title} style={[styles.analyticsValue, valueColor ? { color: valueColor } : null]}>
-        {value}
-      </AppText>
-    </View>
+    <View style={styles.analyticsCard}>
+        <View style={styles.analyticsHeader}>
+            <AppText variant={Variant.body} style={styles.analyticsTitle}>{title}</AppText>
+            <AppText variant={Variant.title} style={[styles.analyticsValue, valueColor ? { color: valueColor } : null]}>
+                {value}
+            </AppText>
+        </View>
 
-    <View style={styles.analyticsFooter}>
-      <AppText variant={Variant.caption} style={styles.analyticsLeftNote}>{leftNote}</AppText>
-      <AppText variant={Variant.caption} style={[styles.analyticsRightNote, rightNoteColor ? { color: rightNoteColor } : null]}>
-        {rightNote}
-      </AppText>
+        <View style={styles.analyticsFooter}>
+            <AppText variant={Variant.caption} style={styles.analyticsLeftNote}>{leftNote}</AppText>
+            <AppText variant={Variant.caption} style={[styles.analyticsRightNote, rightNoteColor ? { color: rightNoteColor } : null]}>
+                {rightNote}
+            </AppText>
+        </View>
     </View>
-  </View>
 )
 
 const ActivityItem = ({ color, text, time }) => (
@@ -41,23 +42,48 @@ const ActivityItem = ({ color, text, time }) => (
     </View>
 )
 
-const QuickAction = ({ iconLib, iconName, label }) => (
-    <TouchableOpacity style={styles.quickAction}>
+const QuickAction = ({ iconLib, iconName, label, onPress }) => (
+    <TouchableOpacity style={styles.quickAction} onPress={onPress} activeOpacity={0.7}>
         <VectorIcons name={iconLib} iconName={iconName} size={22} color={'#7C4DFF'} />
         <AppText variant={Variant.body} style={styles.quickActionText}>{label}</AppText>
     </TouchableOpacity>
 )
 
-const DashboardScreen = () => {
+const DashboardScreen = ({ navigation }) => {
+    // Quick Action Handlers
+    const handleFindStaff = () => {
+        navigation.navigate(screenNames.FIND_STAFF)
+    }
+
+    const handleViewPools = () => {
+        navigation.navigate(screenNames.LABOR_POOL)
+    }
+
+    const handleManageOffers = () => {
+        navigation.navigate(screenNames.HOME)
+    }
+
+    const handleMessages = () => {
+        navigation.navigate(screenNames.MESSAGES)
+    }
+
+    const handleNotifications = () => {
+        navigation.navigate(screenNames.NOTICATIONS)
+    }
+
+    const handleSearch = () => {
+        navigation.navigate(screenNames.FIND_STAFF)
+    }
+
     return (
         <View style={styles.container}>
 
             <AppHeader
                 title="Dashboard"
                 rightIcons={[
-                    { name: 'Feather', iconName: 'message-circle', onPress: () => { } },
-                    { name: 'Feather', iconName: 'bell', onPress: () => { } },
-                    { name: 'Feather', iconName: 'search', onPress: () => { } },
+                    { name: 'Feather', iconName: 'message-circle', onPress: handleMessages },
+                    { name: 'Feather', iconName: 'bell', onPress: handleNotifications },
+                    { name: 'Feather', iconName: 'search', onPress: handleSearch },
                 ]}
                 titleStyle={{ color: '#fff' }}
                 containerStyle={{ backgroundColor: 'transparent' }}
@@ -84,12 +110,32 @@ const DashboardScreen = () => {
                 {/* Quick Actions */}
                 <AppText variant={Variant.subTitle} style={styles.sectionTitle}>Quick Actions</AppText>
                 <View style={styles.quickActionsRow}>
-                    <QuickAction iconLib="Feather" iconName="user-plus" label="Find a Staff" />
-                    <QuickAction iconLib="Feather" iconName="users" label="View Pools" />
+                    <QuickAction 
+                        iconLib="Feather" 
+                        iconName="user-plus" 
+                        label="Find a Staff" 
+                        onPress={handleFindStaff}
+                    />
+                    <QuickAction 
+                        iconLib="Feather" 
+                        iconName="users" 
+                        label="View Pools" 
+                        onPress={handleViewPools}
+                    />
                 </View>
                 <View style={styles.quickActionsRow}>
-                    <QuickAction iconLib="Feather" iconName="file-text" label="Manage Offers" />
-                    <QuickAction iconLib="Feather" iconName="send" label="Messages" />
+                    <QuickAction 
+                        iconLib="Feather" 
+                        iconName="file-text" 
+                        label="Manage Offers" 
+                        onPress={handleManageOffers}
+                    />
+                    <QuickAction 
+                        iconLib="Feather" 
+                        iconName="send" 
+                        label="Messages" 
+                        onPress={handleMessages}
+                    />
                 </View>
 
                 <AppText variant={Variant.subTitle} style={styles.sectionTitle}>
@@ -99,34 +145,34 @@ const DashboardScreen = () => {
                     Track your recruitment success metrics
                 </AppText>
 
-         <View>
-  <AnalyticsCard
-    title="Offer Acceptance Rate"
-    value="78%"
-    valueColor="#41D761"                 // green value
-    leftNote="Last 30 days"
-    rightNote="+5% from last month"
-    rightNoteColor="#41D761"            // green note
-  />
+                <View>
+                    <AnalyticsCard
+                        title="Offer Acceptance Rate"
+                        value="78%"
+                        valueColor="#41D761"                 // green value
+                        leftNote="Last 30 days"
+                        rightNote="+5% from last month"
+                        rightNoteColor="#41D761"            // green note
+                    />
 
-  <AnalyticsCard
-    title="Average Time to Hire"
-    value="3.2 days"
-    valueColor="#222222"                // dark value
-    leftNote="From posting to acceptance"
-    rightNote="-0.8 days improvement"
-    rightNoteColor="#8E93A8"            // muted grey for improvement text
-  />
+                    <AnalyticsCard
+                        title="Average Time to Hire"
+                        value="3.2 days"
+                        valueColor="#222222"                // dark value
+                        leftNote="From posting to acceptance"
+                        rightNote="-0.8 days improvement"
+                        rightNoteColor="#8E93A8"            // muted grey for improvement text
+                    />
 
-  <AnalyticsCard
-    title="Cost per Hire"
-    value="145 SG"
-    valueColor="#222222"
-    leftNote="Average SG coins spent"
-    rightNote="+12 SG from last month"
-    rightNoteColor="#7C4DFF"            // purple accent for coin-change
-  />
-</View>
+                    <AnalyticsCard
+                        title="Cost per Hire"
+                        value="145 SG"
+                        valueColor="#222222"
+                        leftNote="Average SG coins spent"
+                        rightNote="+12 SG from last month"
+                        rightNoteColor="#7C4DFF"            // purple accent for coin-change
+                    />
+                </View>
                 {/* Hiring Metrics */}
                 <View style={styles.metricsGrid}>
                     <View style={[styles.metricCard, { borderColor: '#2979FF' }]}>
@@ -222,51 +268,51 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 4,
     },
-/* ====== Styles: add these to your StyleSheet (or merge with existing) ====== */
+    /* ====== Styles: add these to your StyleSheet (or merge with existing) ====== */
 
-analyticsCard: {
-  backgroundColor: '#FFFFFF',
-  borderWidth: 1,
-  borderColor: '#EADFF7',   // light purple border like the mock
-  borderRadius: 12,
-  paddingVertical: hp(1.2),
-  paddingHorizontal: wp(4),
-  marginBottom: hp(1.4),
-  // keeps the cards visually flat like the screenshot
-},
-analyticsHeader: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: hp(0.6),
-},
-analyticsTitle: {
-  fontSize: wp(3.4),
-  fontWeight: '600',
-  color: '#222222',        // near-black title color
-},
-analyticsValue: {
-  fontSize: wp(4.6),
-  fontWeight: '700',
-  color: '#222222',
-  textAlign: 'right',
-},
+    analyticsCard: {
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1,
+        borderColor: '#EADFF7',   // light purple border like the mock
+        borderRadius: 12,
+        paddingVertical: hp(1.2),
+        paddingHorizontal: wp(4),
+        marginBottom: hp(1.4),
+        // keeps the cards visually flat like the screenshot
+    },
+    analyticsHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: hp(0.6),
+    },
+    analyticsTitle: {
+        fontSize: wp(3.4),
+        fontWeight: '600',
+        color: '#222222',        // near-black title color
+    },
+    analyticsValue: {
+        fontSize: wp(4.6),
+        fontWeight: '700',
+        color: '#222222',
+        textAlign: 'right',
+    },
 
-analyticsFooter: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginTop: hp(0.2),
-},
-analyticsLeftNote: {
-  fontSize: wp(3),
-  color: '#8E93A8',        // muted grey/blue for left small caption
-},
-analyticsRightNote: {
-  fontSize: wp(3),
-  color: '#8E93A8',
-  textAlign: 'right',
-},
+    analyticsFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: hp(0.2),
+    },
+    analyticsLeftNote: {
+        fontSize: wp(3),
+        color: '#8E93A8',        // muted grey/blue for left small caption
+    },
+    analyticsRightNote: {
+        fontSize: wp(3),
+        color: '#8E93A8',
+        textAlign: 'right',
+    },
 
 
 

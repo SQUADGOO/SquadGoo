@@ -32,6 +32,7 @@ const FastImageView = ({
               : fallbackImage
         }
         resizeMode={resizeMode}
+        defaultSource={Images.logo}
         onLoadEnd={() => setLoading(false)}
         onError={() => {
           setLoading(false);

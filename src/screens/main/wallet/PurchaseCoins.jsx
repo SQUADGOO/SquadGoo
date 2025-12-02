@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
-import { 
-  View, 
-  StyleSheet, 
-  ScrollView, 
+import {
+  View,
+  StyleSheet,
+  ScrollView,
   TouchableOpacity
 } from 'react-native'
 import { useForm, FormProvider } from 'react-hook-form'
@@ -12,10 +12,14 @@ import AppText, { Variant } from '@/core/AppText'
 import AppButton from '@/core/AppButton'
 import FormField from '@/core/FormField'
 import AppHeader from '@/core/AppHeader'
+import { showToast, toastTypes } from '@/utilities/toastConfig'
+import { useDispatch } from 'react-redux'
+import { addCoins } from '@/store/walletSlice'
 
 const PurchaseCoins = ({ navigation }) => {
+  const dispatch = useDispatch()
   const [coinQuantity, setCoinQuantity] = useState(1)
-  
+
   const methods = useForm({
     defaultValues: {
       cardNumber: '',
@@ -37,28 +41,29 @@ const PurchaseCoins = ({ navigation }) => {
     }
   }
 
-  const onSubmit = (data) => {
-    console.log('Processing payment...', {
-      coins: coinQuantity,
-      amount: totalAmount,
-      cardData: {
-        ...data,
-        cardNumber: data.cardNumber.slice(-4) // Only log last 4 digits for security
-      }
-    })
-    // Handle payment processing
+  const handlePayNow = (data) => {
+    showToast('Payment successful! Coins have been added to your account.', 'success', toastTypes.success)
+    dispatch(addCoins({ amount: totalAmount }))
+    navigation.goBack()
   }
 
-  const handlePayNow = () => {
-    methods.handleSubmit(onSubmit)()
-  }
+  // const handlePayNow = async () => {
+  //   showToast('Payment successful! Coins have been added to your account.', 'success', toastTypes.success)
+  //   dispatch(addCoins({ amount: totalAmount }))
+
+  //   setTimeout(() => {
+  //   navigation.goBack()
+  //   }, 1500);
+  //   methods.handleSubmit(onSubmit)()
+
+  // }
 
   return (
     <FormProvider {...methods}>
-        <AppHeader
-            title='Purchase Coins'
-            showTopIcons={false}
-        />
+      <AppHeader
+        title='Purchase Coins'
+        showTopIcons={false}
+      />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Title */}
         <AppText variant={Variant.title} style={styles.title}>
@@ -70,14 +75,14 @@ const PurchaseCoins = ({ navigation }) => {
           <AppText variant={Variant.bodyMedium} style={styles.coinLabel}>
             Coin
           </AppText>
-          
+
           <View style={styles.coinSelector}>
             <AppText variant={Variant.body} style={styles.coinDisplay}>
               {coinQuantity}
             </AppText>
-            
+
             <View style={styles.coinControls}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.controlButton}
                 onPress={decrementCoins}
                 activeOpacity={0.7}
@@ -89,8 +94,8 @@ const PurchaseCoins = ({ navigation }) => {
                   color={colors.gray}
                 />
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.controlButton}
                 onPress={incrementCoins}
                 activeOpacity={0.7}
@@ -126,7 +131,7 @@ const PurchaseCoins = ({ navigation }) => {
             <AppText variant={Variant.bodyMedium} style={styles.cardTitle}>
               Enter card details
             </AppText>
-            
+
             {/* Payment Method Icons */}
             <View style={styles.paymentIcons}>
               <View style={styles.paymentIcon}>
@@ -170,12 +175,12 @@ const PurchaseCoins = ({ navigation }) => {
                 required: 'Expiry date is required',
                 pattern: {
                   value: /^(0[1-9]|1[0-2])\/([0-9]{2})$/,
-                  message: 'Please enter valid expiry date (MM/YY)'
+                  // message: 'Please enter valid expiry date (MM/YY)'
                 }
               }}
               inputWrapperStyle={[styles.formFieldWrapper, styles.halfInput]}
             />
-            
+
             <FormField
               name="cvc"
               placeholder="CVC"
@@ -288,7 +293,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   cardSection: {
-    marginBottom: hp(4),
+    marginBottom: hp(1),
   },
   cardHeader: {
     flexDirection: 'row',
@@ -297,7 +302,7 @@ const styles = StyleSheet.create({
     marginBottom: hp(2),
   },
   cardTitle: {
-   color: colors.secondary,
+    color: colors.secondary,
     fontSize: getFontSize(13),
   },
   paymentIcons: {
@@ -363,6 +368,7 @@ const styles = StyleSheet.create({
   },
   halfInput: {
     flex: 1,
+    width: wp(35)
   },
   payButtonContainer: {
     marginBottom: hp(4),

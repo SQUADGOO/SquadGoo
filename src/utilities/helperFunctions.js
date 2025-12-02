@@ -62,3 +62,37 @@ export const openGallery = async (options = {}) => {
     console.log("Error in opening gallery ::: ", error.toString());
   }
 };
+
+
+export const downloadAndOpenFile = async (uri, suggestedName = 'document') => {
+  try {
+    if (!uri) return;
+
+    const fileExt = uri.split('.').pop()?.split('?')[0] || 'png';
+    const destPath =
+      Platform.OS === 'android'
+        ? `${RNFS.DownloadDirectoryPath}/${suggestedName}.${fileExt}`
+        : `${RNFS.DocumentDirectoryPath}/${suggestedName}.${fileExt}`;
+
+    // Copy to a readable directory
+    await RNFS.copyFile(uri, destPath);
+
+    // Create a content:// URI via react-native-share
+    await Share.open({
+      url: `file://${destPath}`,
+      type: `image/${fileExt}`,
+      showAppsToView: true,
+      failOnCancel: false,
+    });
+  } catch (error) {
+    console.log('openLocalImageFile error:', error);
+  }
+};
+
+
+export const formatTime = (value) => {
+  if (!value) return '';
+  
+  const date = new Date(value);
+  return date.toTimeString().slice(0, 5); 
+}

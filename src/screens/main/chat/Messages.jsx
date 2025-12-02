@@ -1,6 +1,8 @@
-import React, { useState } from 'react'
+import React, {useEffect, useMemo, useState} from 'react'
 import { View, StyleSheet, FlatList, KeyboardAvoidingView, Platform } from 'react-native'
-import { colors } from '@/theme'
+import { useSelector } from 'react-redux'
+import { colors, hp, wp, getFontSize } from '@/theme'
+import AppText, { Variant } from '@/core/AppText'
 import { 
   TextMessage, 
   VoiceMessage, 
@@ -10,69 +12,123 @@ import {
 } from '@/components/chat/TextMessageComp'
 import ChatHeader from '@/core/ChatHeader'
 import ChatInput from '@/components/chat/ChatInput'
+import { selectContactRevealByJobId } from '@/store/contactRevealSlice'
+import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
 
 const Messages = ({ navigation, route }) => {
   const { chatData } = route.params || {}
+  const authUserInfo = useSelector(state => state?.auth?.userInfo || {})
+  const currentUserId = authUserInfo?._id || authUserInfo?.id || 'js-001'
   
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      type: 'date',
-      date: 'Today'
-    },
-    {
-      id: 2,
-      type: 'text',
-      message: 'Have a great working week!!',
-      isOwn: false,
-      showAvatar: true,
-      timestamp: '09:25 AM'
-    },
-    {
-      id: 3,
-      type: 'text',
-      message: 'Hope you like it',
-      isOwn: false,
-      showAvatar: false,
-      timestamp: '09:25 AM'
-    },
-    {
-      id: 4,
-      type: 'voice',
-      duration: '00:16',
-      isOwn: true,
-      showAvatar: false,
-      timestamp: '09:25 AM'
-    },
-    {
-      id: 5,
-      type: 'image',
-      message: 'Look at my work man!!',
-      images: [
-        'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=300&h=300&fit=crop',
-        'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=300&h=300&fit=crop'
-      ],
-      isOwn: false,
-      showAvatar: true,
-      timestamp: '09:25 AM'
-    },
-    {
-      id: 6,
-      type: 'text',
-      message: 'Hello! Jhon abraham',
-      isOwn: true,
-      showAvatar: false,
-      timestamp: '09:25 AM'
+  // Get job details if jobId is present
+  const jobId = chatData?.jobId
+  const job = jobId ? useSelector(state => {
+    // Try to find job in different slices
+    const manualJob = state?.manualOffers?.jobs?.find(j => j.id === jobId)
+    const quickJob = state?.quickSearch?.quickJobs?.find(j => j.id === jobId)
+    const activeJob = state?.jobs?.activeJobs?.find(j => j.id === jobId)
+    return manualJob || quickJob || activeJob
+  }) : null
+  
+  // Check if contact reveal is active
+  const contactReveal = jobId ? useSelector(state => 
+    selectContactRevealByJobId(state, jobId, currentUserId)
+  ) : null
+  const canSeeContacts = !!contactReveal
+
+  const buildInitialMessages = useMemo(() => {
+    if (chatData?.isSupport) {
+      return [
+        {
+          id: 1,
+          type: 'date',
+          date: 'Today'
+        },
+        {
+          id: 2,
+          type: 'text',
+          message: "Hi! You're connected to SquadGoo support. How can we help you today?",
+          isOwn: false,
+          showAvatar: true,
+          timestamp: '09:25 AM'
+        },
+        {
+          id: 3,
+          type: 'text',
+          message: 'Share a few more details and we will guide you through.',
+          isOwn: false,
+          showAvatar: false,
+          timestamp: '09:26 AM'
+        }
+      ]
     }
-  ])
+
+    return [
+      {
+        id: 1,
+        type: 'date',
+        date: 'Today'
+      },
+      {
+        id: 2,
+        type: 'text',
+        message: 'Have a great working week!!',
+        isOwn: false,
+        showAvatar: true,
+        timestamp: '09:25 AM'
+      },
+      {
+        id: 3,
+        type: 'text',
+        message: 'Hope you like it',
+        isOwn: false,
+        showAvatar: false,
+        timestamp: '09:25 AM'
+      },
+      {
+        id: 4,
+        type: 'voice',
+        duration: '00:16',
+        isOwn: true,
+        showAvatar: false,
+        timestamp: '09:25 AM'
+      },
+      {
+        id: 5,
+        type: 'image',
+        message: 'Look at my work man!!',
+        images: [
+          'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=300&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=300&h=300&fit=crop'
+        ],
+        isOwn: false,
+        showAvatar: true,
+        timestamp: '09:25 AM'
+      },
+      {
+        id: 6,
+        type: 'text',
+        message: 'Hello! Jhon abraham',
+        isOwn: true,
+        showAvatar: false,
+        timestamp: '09:25 AM'
+      }
+    ]
+  }, [chatData])
+
+  const [messages, setMessages] = useState(buildInitialMessages)
+
+  useEffect(() => {
+    setMessages(buildInitialMessages)
+  }, [buildInitialMessages])
 
   const [isRecording, setIsRecording] = useState(false)
 
   const userInfo = {
-    name: 'Jhon Abraham',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-    isOnline: true,
-    status: 'Active now'
+    name: chatData?.name || 'Jhon Abraham',
+    avatar: chatData?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
+    isOnline: chatData?.isOnline ?? true,
+    status: chatData?.status || (chatData?.isOnline ? 'Active now' : 'Offline')
   }
 
   const handleSendMessage = (messageText) => {
@@ -243,6 +299,39 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
+  },
+  jobBanner: {
+    backgroundColor: colors.grayE8 || '#F3F4F6',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.5),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.grayE8 || '#E5E7EB',
+  },
+  jobBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  jobBannerText: {
+    marginLeft: wp(3),
+    flex: 1,
+  },
+  jobBannerTitle: {
+    fontWeight: '600',
+    color: colors.black || '#111827',
+    fontSize: getFontSize(14),
+  },
+  jobBannerSubtitle: {
+    color: colors.gray || '#6B7280',
+    fontSize: getFontSize(12),
+    marginTop: hp(0.2),
+  },
+  contactInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   messagesList: {
     flex: 1,

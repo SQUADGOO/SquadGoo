@@ -5,6 +5,7 @@ import { colors, hp, wp, getFontSize } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import { screenNames } from '@/navigation/screenNames'
 import JobSeekerActiveJob from './JobSeekerActiveJob'
+import MyCurrentJobs from './MyCurrentJobs'
 
 
 
@@ -41,6 +42,7 @@ const JobSeekerHomeTopTabNavigator = () => {
       <Tab.Screen
         name={screenNames.ACTIVE_JOB_OFFERS}
         component={JobSeekerActiveJob}
+        initialParams={{ type: 'active' }}
         options={{
           tabBarLabel: ({ focused }) => (
             <CustomTabLabel focused={focused}>
@@ -50,8 +52,20 @@ const JobSeekerHomeTopTabNavigator = () => {
         }}
       />
       <Tab.Screen
+        name={screenNames.MY_CURRENT_JOBS}
+        component={MyCurrentJobs}
+        options={{
+          tabBarLabel: ({ focused }) => (
+            <CustomTabLabel focused={focused}>
+              My Current Jobs
+            </CustomTabLabel>
+          ),
+        }}
+      />
+      <Tab.Screen
         name="CompletedOffers"
         component={JobSeekerActiveJob}
+        initialParams={{ type: 'completed' }} 
         options={{
           tabBarLabel: ({ focused }) => (
             <CustomTabLabel focused={focused}>
@@ -97,7 +111,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 })
-
 // Example screen components (you'll need to create these)
 // ActiveJobOffersScreen.js
 

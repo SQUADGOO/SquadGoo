@@ -1,4 +1,4 @@
-import {StyleSheet, View} from 'react-native';
+import {Alert, StyleSheet, View} from 'react-native';
 import React, {useState} from 'react';
 import AppHeader from '@/core/AppHeader';
 import AppButton from '@/core/AppButton';
@@ -8,28 +8,35 @@ import AppInputField from '@/core/AppInputField';
 import AppDropDown from '@/core/AppDropDown';
 import Scrollable from '@/core/Scrollable';
 import Spacer from '@/core/Spacer';
+import {useNavigation} from '@react-navigation/native';
+import {screenNames} from '@/navigation/screenNames';
+import {
+  defaultTickets,
+  supportAgentProfile,
+  supportFaqs,
+} from './supportData';
 
 const supportOptions = [
   {
-    id: '1',
-    title: 'FAQ’s',
+    id: 'faqs',
+    title: "FAQ's",
     subtitle: 'Find answers to common questions',
-    buttonText: 'Browse FAQ’s',
+    buttonText: "Browse FAQ's",
   },
   {
-    id: '2',
+    id: 'chat',
     title: 'Live Chat',
     subtitle: 'Chat with our support team',
     buttonText: 'Start Chat',
   },
   {
-    id: '3',
+    id: 'callback',
     title: 'Request Callback',
     subtitle: 'Schedule a call with support',
     buttonText: 'Schedule Call',
   },
   {
-    id: '4',
+    id: 'tickets',
     title: 'Support Tickets',
     subtitle: 'View and manage your tickets',
     buttonText: 'View Tickets',
@@ -44,8 +51,12 @@ const postOptions = [
 ];
 
 const Support = () => {
+  const navigation = useNavigation();
   const [isVisible, setIsVisible] = useState(false);
   const [postFilter, setPostFilter] = useState('all');
+  const [subject, setSubject] = useState('');
+  const [description, setDescription] = useState('');
+  const [tickets, setTickets] = useState(defaultTickets);
 
   const handlePostFilterChange = (value, option) => {
     setPostFilter(value);
@@ -53,13 +64,60 @@ const Support = () => {
   };
 
   const handleSubmitTicket = () => {
-    console.log('Submitting new ticket...');
+    if (!subject.trim() || !description.trim()) {
+      Alert.alert(
+        'Add more details',
+        'Please provide both subject and description for your ticket.',
+      );
+      return;
+    }
+
+    const newTicket = {
+      id: `TCK-${Math.floor(1000 + Math.random() * 9000)}`,
+      subject: subject.trim(),
+      status: 'Open',
+      priority: 'Medium',
+      lastUpdated: 'Just now',
+    };
+
+    setTickets(prev => [newTicket, ...prev]);
+    setSubject('');
+    setDescription('');
+    setPostFilter('all');
+    Alert.alert(
+      'Ticket submitted',
+      'Thanks! Our support team will get back to you shortly.',
+    );
+  };
+
+  const handleSupportAction = action => {
+    switch (action) {
+      case 'faqs':
+        navigation.navigate(screenNames.SUPPORT_FAQ, {faqs: supportFaqs});
+        break;
+      case 'chat':
+        navigation.navigate(screenNames.MESSAGES, {
+          chatData: supportAgentProfile,
+        });
+        break;
+      case 'callback':
+        Alert.alert(
+          'Callback scheduled',
+          'A support specialist will reach out within the next 30 minutes.',
+        );
+        break;
+      case 'tickets':
+        navigation.navigate(screenNames.SUPPORT_TICKETS, {tickets});
+        break;
+      default:
+        break;
+    }
   };
 
   return (
     <>
       <AppHeader title="Support" showTopIcons={false} />
-      <Scrollable>
+      <Scrollable hasInput>
         <View style={styles.container}>
           {/* Support Options */}
           {supportOptions.map(option => (
@@ -70,7 +128,11 @@ const Support = () => {
               <AppText variant={Variant.caption} style={styles.sectionSubtitle}>
                 {option.subtitle}
               </AppText>
-              <AppButton text={option.buttonText} bgColor={colors.primary} />
+              <AppButton
+                text={option.buttonText}
+                bgColor={colors.primary}
+                onPress={() => handleSupportAction(option.id)}
+              />
             </View>
           ))}
 
@@ -87,6 +149,8 @@ const Support = () => {
           </AppText>
           <AppInputField
             placeholder="Brief Description of your issue"
+            value={subject}
+            onChangeText={setSubject}
             style={styles.inputField}
           />
 
@@ -108,10 +172,13 @@ const Support = () => {
           </AppText>
           <AppInputField
             placeholder="Provide Detailed Information..."
+            value={description}
+            onChangeText={setDescription}
+            multiline
             style={styles.textArea}
           />
 
-          <Spacer size={12} />
+          {/* <Spacer size={hp(5)} /> */}
           <AppButton
             text="Submit Ticket"
             bgColor={colors.primary}
@@ -169,6 +236,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   submitBtn: {
-    marginTop: 8,
+    // marginTop: 8,
+    marginVertical: hp(5),
+
   },
 });

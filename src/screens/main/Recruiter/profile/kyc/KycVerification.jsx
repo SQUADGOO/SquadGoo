@@ -19,9 +19,11 @@ const KycVerification = () => {
   const navigation = useNavigation();
 
   return (
-    <ScrollView style={{flex: 1, backgroundColor: colors.white}}>
-      {/* Header */}
+    <>
+ 
+    {/* Header */}
    <AppHeader showTopIcons={false} title="KYC/KYB Verification" />
+    <ScrollView style={{flex: 1, backgroundColor: colors.white}}>
 
       <View style={styles.container}>
         {/* Title */}
@@ -119,6 +121,7 @@ const KycVerification = () => {
         </View>
       </View>
     </ScrollView>
+       </>
   );
 };
 

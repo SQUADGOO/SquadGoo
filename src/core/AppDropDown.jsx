@@ -1,10 +1,12 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { 
   View, 
   TouchableOpacity, 
   StyleSheet, 
   FlatList,
-  Dimensions 
+  Dimensions,
+  Modal,
+  Pressable
 } from 'react-native'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
@@ -34,7 +36,14 @@ const AppDropDown = ({
   }
 
   const handleSelect = (option) => {
-    onSelect && onSelect(option.value, option)
+    if (onSelect) {
+      // Call onSelect with the value first, then close
+      onSelect(option.value, option);
+    }
+    setIsVisible(false);
+  }
+
+  const handleOutsidePress = () => {
     setIsVisible(false)
   }
 
@@ -69,64 +78,133 @@ const AppDropDown = ({
     </TouchableOpacity>
   )
 
-  return (
-    <View style={styles.container}>
-      {/* Dropdown Button */}
-      <TouchableOpacity
-        style={[styles.dropdownButton, style, disabled && styles.disabledButton]}
-        onPress={handleToggle}
-        activeOpacity={0.8}
-        disabled={disabled}
-      >
-        <AppText 
-          variant={Variant.body} 
-          style={[
-            styles.buttonText,
-            !selectedOption && styles.placeholderText,
-            disabled && styles.disabledText
-          ]}
-        >
-          {selectedOption ? selectedOption.label : placeholder}
-        </AppText>
-        
-        {showChevron && (
-          <VectorIcons
-            name={iconLibName.Ionicons}
-            iconName={isVisible ? "chevron-up" : "chevron-down"}
-            size={20}
-            color={chevronColor || (disabled ? colors.gray : colors.black)}
-          />
-        )}
-      </TouchableOpacity>
+  const containerRef = useRef(null);
+  const buttonRef = useRef(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ x: 0, y: 0, width: 0, height: 0 });
 
-      {/* Dropdown List - Positioned View */}
-      {isVisible && (
-        <View 
-          style={[
-            styles.dropdownList,
-            dropdownStyle,
-            { maxHeight: maxHeight }
-          ]}
+  const measureDropdown = () => {
+    if (buttonRef.current) {
+      // Use measureInWindow for more accurate positioning
+      buttonRef.current.measureInWindow((x, y, width, height) => {
+        setDropdownPosition({ x, y, width, height });
+      });
+    } else if (containerRef.current) {
+      // Fallback to measure if measureInWindow not available
+      containerRef.current.measureInWindow((x, y, width, height) => {
+        setDropdownPosition({ x, y, width, height });
+      });
+    }
+  };
+
+  const handleToggleWithMeasure = () => {
+    if (!disabled) {
+      setIsVisible(!isVisible);
+    }
+  };
+
+  // Measure position when dropdown becomes visible
+  useEffect(() => {
+    if (isVisible) {
+      // Small delay to ensure measurement happens after render
+      const timer = setTimeout(() => {
+        measureDropdown();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible]);
+
+  return (
+    <>
+      <View 
+        ref={containerRef}
+        style={[styles.container, style]}
+        collapsable={false}
+      >
+        {/* Dropdown Button */}
+        <TouchableOpacity
+          ref={buttonRef}
+          style={[styles.dropdownButton, disabled && styles.disabledButton]}
+          onPress={handleToggleWithMeasure}
+          onLayout={() => {
+            // Measure on layout to get accurate position
+            if (buttonRef.current) {
+              buttonRef.current.measureInWindow((x, y, width, height) => {
+                setDropdownPosition({ x, y, width, height });
+              });
+            }
+          }}
+          activeOpacity={0.8}
+          disabled={disabled}
         >
-          {options.length > 0 ? (
-            <FlatList
-              data={options}
-              renderItem={renderOption}
-              keyExtractor={(item, index) => `${item.value}_${index}`}
-              showsVerticalScrollIndicator={false}
-              bounces={false}
-              nestedScrollEnabled={true}
+          <AppText 
+            variant={Variant.body} 
+            style={[
+              styles.buttonText,
+              !selectedOption && styles.placeholderText,
+              disabled && styles.disabledText
+            ]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {selectedOption ? selectedOption.label : placeholder}
+          </AppText>
+          
+          {showChevron && (
+            <VectorIcons
+              name={iconLibName.Ionicons}
+              iconName={isVisible ? "chevron-up" : "chevron-down"}
+              size={20}
+              color={chevronColor || (disabled ? colors.gray : colors.black)}
             />
-          ) : (
-            <View style={styles.noOptionsContainer}>
-              <AppText variant={Variant.body} style={styles.noOptionsText}>
-                No options available
-              </AppText>
-            </View>
           )}
-        </View>
-      )}
-    </View>
+        </TouchableOpacity>
+      </View>
+
+      {/* Modal for dropdown list - allows outside click detection */}
+      <Modal
+        transparent
+        visible={isVisible}
+        animationType="fade"
+        onRequestClose={handleOutsidePress}
+      >
+        <Pressable style={styles.modalOverlay} onPress={handleOutsidePress}>
+          <View 
+            style={[
+              styles.modalDropdownList,
+              {
+                top: dropdownPosition.y && dropdownPosition.height 
+                  ? Math.max(0, dropdownPosition.y + dropdownPosition.height + hp(0.5))
+                  : 100,
+                left: dropdownPosition.x || wp(5),
+                width: dropdownPosition.width || (Dimensions.get('window').width - wp(10)),
+                maxHeight: maxHeight
+              },
+              dropdownStyle
+            ]}
+            pointerEvents="box-none"
+          >
+            <View pointerEvents="auto">
+              {options.length > 0 ? (
+                <FlatList
+                  data={options}
+                  renderItem={renderOption}
+                  keyExtractor={(item, index) => `${item.value}_${index}`}
+                  showsVerticalScrollIndicator={false}
+                  bounces={false}
+                  nestedScrollEnabled={true}
+                />
+              ) : (
+                <View style={styles.noOptionsContainer}>
+                  <AppText variant={Variant.body} style={styles.noOptionsText}>
+                    No options available
+                  </AppText>
+                </View>
+              )}
+            </View>
+          </View>
+        </Pressable>
+      </Modal>
+    </>
   )
 }
 
@@ -144,10 +222,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white || '#FFFFFF',
     borderWidth: 1,
     borderColor: colors.grayE8 || '#E5E7EB',
-    borderRadius: hp(3),
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(1.5),
-    minHeight: hp(6),
+    borderRadius: hp(1),
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(1),
+    minHeight: hp(5),
   },
   disabledButton: {
     backgroundColor: colors.grayE8 || '#F3F4F6',
@@ -156,7 +234,7 @@ const styles = StyleSheet.create({
   buttonText: {
     flex: 1,
     color: colors.black,
-    fontSize: getFontSize(14),
+    fontSize: getFontSize(13),
   },
   placeholderText: {
     color: colors.gray || '#9CA3AF',
@@ -168,13 +246,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: '100%',
     left: 0,
-    zIndex: 2,
     right: 0,
     backgroundColor: colors.white || '#FFFFFF',
     borderRadius: hp(1.5),
     borderWidth: 1,
     borderColor: colors.grayE8 || '#E5E7EB',
-    marginTop: hp(3),
+    marginTop: hp(0.5),
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -216,5 +293,25 @@ const styles = StyleSheet.create({
   },
   noOptionsText: {
     color: colors.gray,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  modalDropdownList: {
+    position: 'absolute',
+    backgroundColor: colors.white || '#FFFFFF',
+    borderRadius: hp(1.5),
+    borderWidth: 1,
+    borderColor: colors.grayE8 || '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 10000,
   },
 })

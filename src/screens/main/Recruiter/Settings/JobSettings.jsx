@@ -95,6 +95,37 @@ const JobSettings = () => {
           </AppText>
         </View>
 
+        <AppText variant={Variant.caption} style={styles.label}>
+          Quick Search Settings
+        </AppText>
+        <View style={styles.switchRow}>
+          <Switch />
+          <AppText variant={Variant.caption} style={styles.switchLabel}>
+            Enable AI auto-matching
+          </AppText>
+        </View>
+
+        <View style={styles.switchRow}>
+          <Switch />
+          <AppText variant={Variant.caption} style={styles.switchLabel}>
+            Only PRO job seekers
+          </AppText>
+        </View>
+
+        <View style={styles.switchRow}>
+          <Switch />
+          <AppText variant={Variant.caption} style={styles.switchLabel}>
+            Only profiles that accept in-app payments
+          </AppText>
+        </View>
+
+        <View style={styles.switchRow}>
+          <Switch />
+          <AppText variant={Variant.caption} style={styles.switchLabel}>
+            Enable Squad matching (when multiple staff needed)
+          </AppText>
+        </View>
+
         {/* Calendar */}
         <CustomCalendar onDateSelect={handleDateSelect} />
       </View>
@@ -126,7 +157,7 @@ const styles = StyleSheet.create({
   label: {
     marginTop: hp(2.5),
     marginVertical: 4,
-    color: colors.text1
+    color: colors.textSecondary
   },
   filterDropdown: {
     flex: 1,
