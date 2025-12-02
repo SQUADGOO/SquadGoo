@@ -17,12 +17,17 @@ const JobSeekerJobCard = ({
   onAccept,
   onDecline,
   showChatButton = false,
+  chatEnabled = true,
   onChatPress,
   jobSeekerStatus = null, // 'accepted', 'declined', or null
   isCurrentJob = false, // true when job is in "My Current Jobs"
   recruiterStatus = null, // 'pending', 'accepted', 'rejected' - status from recruiter
   onCancel, // Cancel/withdraw application
   onViewDetails, // View job details
+  showTimerButton = false,
+  timerLabel = 'Manage Timer',
+  timerStatus = null,
+  onTimerPress,
 }) => {
   const navigation = useNavigation();
 
@@ -45,6 +50,12 @@ const JobSeekerJobCard = ({
   const handleChat = () => {
     if (onChatPress) {
       onChatPress(job);
+    }
+  };
+
+  const handleTimer = () => {
+    if (onTimerPress) {
+      onTimerPress(job);
     }
   };
 
@@ -126,6 +137,13 @@ const JobSeekerJobCard = ({
           <Text style={styles.viewDetails}> View Details</Text>
         </Text>
 
+        {timerStatus && (
+          <View style={styles.timerStatusRow}>
+            <Icon name="time-outline" size={16} color={colors.primary || '#FF6B35'} />
+            <Text style={styles.timerStatusText}>{timerStatus}</Text>
+          </View>
+        )}
+
         <View style={styles.companyRow}>
           {job?.image ? (
             <Image source={{ uri: job.image }} style={styles.logo} />
@@ -145,24 +163,65 @@ const JobSeekerJobCard = ({
 
       {/* Show buttons based on context */}
       {isCurrentJob ? (
-        // For current jobs: show cancel button and view details (no accept/decline)
-        <View style={styles.buttonRow}>
-          <TouchableOpacity 
-            style={styles.cancelBtn} 
-            onPress={handleCancel}
-            activeOpacity={0.8}
-          >
-            <Icon name="close-circle-outline" size={18} color="#EF4444" />
-            <Text style={styles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.viewDetailsBtn} 
-            onPress={handleViewDetails}
-            activeOpacity={0.8}
-          >
-            <Icon name="eye-outline" size={18} color={colors.primary || '#FF6B35'} />
-            <Text style={styles.viewDetailsText}>View Details</Text>
-          </TouchableOpacity>
+        <View style={[styles.buttonRow, styles.currentJobActions]}>
+          <View style={styles.actionItem}>
+            <TouchableOpacity 
+              style={styles.cancelBtn} 
+              onPress={handleCancel}
+              activeOpacity={0.8}
+            >
+              <Icon name="close-circle-outline" size={18} color="#EF4444" />
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+
+          {showChatButton && (
+            <View style={styles.actionItem}>
+              <TouchableOpacity 
+                style={[styles.chatBtn, !chatEnabled && styles.disabledBtn]} 
+                onPress={handleChat}
+                activeOpacity={0.8}
+              >
+                <Icon
+                  name="chatbubble-outline"
+                  size={18}
+                  color={chatEnabled ? (colors.primary || '#FF6B35') : '#9CA3AF'}
+                />
+                <Text
+                  style={[
+                    styles.chatText,
+                    !chatEnabled && styles.disabledText,
+                  ]}
+                >
+                  Message
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {showTimerButton && (
+            <View style={styles.actionItem}>
+              <TouchableOpacity 
+                style={styles.timerBtn} 
+                onPress={handleTimer}
+                activeOpacity={0.8}
+              >
+                <Icon name="timer-outline" size={18} color="#2563EB" />
+                <Text style={styles.timerText}>{timerLabel}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <View style={styles.actionItem}>
+            <TouchableOpacity 
+              style={styles.viewDetailsBtn} 
+              onPress={handleViewDetails}
+              activeOpacity={0.8}
+            >
+              <Icon name="eye-outline" size={18} color={colors.primary || '#FF6B35'} />
+              <Text style={styles.viewDetailsText}>View Details</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       ) : showChatButton ? (
         <View style={styles.buttonRow}>
@@ -372,7 +431,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     flex: 1,
     justifyContent: 'center',
-    marginRight: 10,
+    marginRight: 0,
+    width: '100%',
     backgroundColor: colors.white,
   },
   cancelText: {
@@ -400,6 +460,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 10,
   },
+  currentJobActions: {
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: wp(2),
+  },
+  actionItem: {
+    width: '48%',
+  },
   acceptBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -410,7 +478,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     flex: 1,
     justifyContent: 'center',
-    marginRight: 10,
+    marginRight: 0,
   },
   declineBtn: {
     flexDirection: 'row',
@@ -444,12 +512,49 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     marginRight: 10,
+    width: '100%',
     backgroundColor: colors.white,
   },
   chatText: { 
     color: colors.primary || '#FF6B35', 
     marginLeft: 6, 
     fontWeight: '600' 
+  },
+  timerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 25,
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: '#EEF2FF',
+    borderWidth: 1,
+    borderColor: '#2563EB',
+    minWidth: wp(28),
+    width: '100%',
+  },
+  timerText: {
+    color: '#1D4ED8',
+    marginLeft: 6,
+    fontWeight: '600',
+  },
+  timerStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: hp(0.5),
+  },
+  timerStatusText: {
+    color: '#1F2937',
+    fontSize: getFontSize(12),
+    fontWeight: '500',
+  },
+  disabledBtn: {
+    borderColor: '#D1D5DB',
+  },
+  disabledText: {
+    color: '#9CA3AF',
   },
   viewDetailsBtn: {
     flexDirection: 'row',
@@ -461,6 +566,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     flex: 1,
     justifyContent: 'center',
+    width: '100%',
     backgroundColor: colors.white,
     maxWidth: '100%',
   },
