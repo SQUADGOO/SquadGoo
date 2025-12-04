@@ -90,16 +90,23 @@ const JobSeekerActiveJob = () => {
   const sheetRef = React.useRef(null);
 
   const onAccept = (job) => {
+    const isQuickOffer = job?.searchType?.toLowerCase?.() === 'quick';
+    const actionLabel = isQuickOffer ? 'Accept' : 'Apply';
+    const alertTitle = isQuickOffer ? 'Accept Job Offer' : 'Apply to Job';
+    const alertMessage = isQuickOffer
+      ? `Are you sure you want to accept "${job.title}"?`
+      : `Are you sure you want to apply for "${job.title}"?`;
+
     Alert.alert(
-      'Apply to Job',
-      `Are you sure you want to apply for "${job.title}"?`,
+      alertTitle,
+      alertMessage,
       [
         {
           text: 'Cancel',
           style: 'cancel',
         },
         {
-          text: 'Apply',
+          text: actionLabel,
           onPress: () => {
             // Create candidate object from current user
             const currentCandidateId = userInfo?.candidateId || userInfo?._id || `candidate-${job.id}-${Date.now()}`;
@@ -125,15 +132,21 @@ const JobSeekerActiveJob = () => {
             
             // Create notification for recruiter (if recruiter is logged in, they'll see it)
             dispatch(addNotification({
-              type: 'application_received',
-              title: 'New Application Received',
-              message: `${candidate.name} has applied for "${job.title}"`,
+              type: isQuickOffer ? 'offer_accepted' : 'application_received',
+              title: isQuickOffer ? 'Offer Accepted' : 'New Application Received',
+              message: isQuickOffer
+                ? `${candidate.name} accepted the quick offer for "${job.title}".`
+                : `${candidate.name} has applied for "${job.title}"`,
               jobId: job.id,
               candidateId: candidate.id,
               userId: 'recruiter', // In real app, this would be the recruiter's user ID
             }));
             
-            showToast('Job application submitted successfully!', 'Success', toastTypes.success);
+            showToast(
+              isQuickOffer ? 'Job offer accepted successfully!' : 'Job application submitted successfully!',
+              'Success',
+              toastTypes.success
+            );
           },
         },
       ]

@@ -30,6 +30,9 @@ const JobSeekerJobCard = ({
   onTimerPress,
 }) => {
   const navigation = useNavigation();
+  const isQuickJob = job?.searchType?.toLowerCase?.() === 'quick' || job?.source === 'quick';
+  const acceptActionLabel = isQuickJob ? 'Accept' : 'Apply';
+  const acceptedBadgeLabel = isQuickJob ? 'Accepted' : 'Applied';
 
   const handleCardPress = () => {
     navigation.navigate(screenNames.JOB_OFFER_DETAILS, { job, isCompleted });
@@ -114,7 +117,7 @@ const JobSeekerJobCard = ({
             ) : jobSeekerStatus === 'accepted' ? (
               <View style={styles.acceptedBadge}>
                 <Icon name="checkmark-circle" size={14} color="#10B981" />
-                <Text style={styles.acceptedText}>Applied</Text>
+                <Text style={styles.acceptedText}>{acceptedBadgeLabel}</Text>
               </View>
             ) : jobSeekerStatus === 'declined' ? (
               <View style={styles.declinedBadge}>
@@ -262,7 +265,7 @@ const JobSeekerJobCard = ({
             activeOpacity={0.8}
           >
             <Icon name="checkmark" size={18} color="green" />
-            <Text style={styles.acceptText}>Apply</Text>
+            <Text style={styles.acceptText}>{acceptActionLabel}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.declineBtn} 
