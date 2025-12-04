@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { View, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert, TouchableOpacity, Linking } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { colors, hp, wp, getFontSize } from '@/theme';
 import AppText, { Variant } from '@/core/AppText';
@@ -277,28 +277,46 @@ const TimerControl = ({ navigation, route }) => {
       return;
     }
 
+    const startClock = () => {
+      if (activeJob && dispatchJobId) {
+        dispatch(
+          startTimer({
+            jobId: dispatchJobId,
+            hourlyRate: timer.hourlyRate || 0,
+            expectedHours: timer.expectedHours || 8,
+          }),
+        );
+      } else {
+        startLocalTimer();
+      }
+    };
+
+    const openLocationSettings = () => {
+      if (typeof Linking.openSettings === 'function') {
+        Linking.openSettings().catch(error => console.warn('Unable to open settings', error));
+      } else {
+        Linking.openURL('app-settings:').catch(error => console.warn('Unable to open settings', error));
+      }
+    };
+
+    const buttons = [
+      { text: 'Not Now', style: 'cancel' },
+    ];
+
+    buttons.push({
+      text: 'Open Settings',
+      onPress: openLocationSettings,
+    });
+
+    buttons.push({
+      text: 'Turn On & Start Clock',
+      onPress: startClock,
+    });
+
     Alert.alert(
-      'Start Timer',
-      'Are you ready to start the timer?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Start',
-          onPress: () => {
-            if (activeJob && dispatchJobId) {
-              dispatch(
-                startTimer({
-                  jobId: dispatchJobId,
-                  hourlyRate: timer.hourlyRate || 0,
-                  expectedHours: timer.expectedHours || 8,
-                }),
-              );
-            } else {
-              startLocalTimer();
-            }
-          },
-        },
-      ]
+      'Enable Location Tracking',
+      'Please turn on your device location services. Your live location will be tracked in real-time while the clock runs so the recruiter can monitor your arrival.',
+      buttons,
     );
   };
 
