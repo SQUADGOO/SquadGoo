@@ -117,8 +117,8 @@ const JobSeekerDrawerNavigator = () => {
         component={ui.UpdateThird}
       />
        <Drawer.Screen
-        name={screenNames.NOTICATIONS}
-        component={ui.Notifcations}
+        name={screenNames.NOTIFICATIONS}
+        component={ui.Notifications}
       />
 
        

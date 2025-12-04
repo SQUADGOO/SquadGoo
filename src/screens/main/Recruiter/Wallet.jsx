@@ -5,7 +5,9 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
-  Image
+  Image,
+  Modal,
+  Dimensions
 } from 'react-native'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
@@ -220,6 +222,233 @@ const Wallet = ({ navigation }) => {
     () => mockEscrowEntries.filter((entry) => entry.persona === 'recruiter'),
     [mockEscrowEntries],
   )
+
+  const [selectedEscrow, setSelectedEscrow] = useState(null)
+  const [modalVisible, setModalVisible] = useState(false)
+
+  // Calculate release date from escrow data
+  const getReleaseDate = (entry) => {
+    if (!entry.timeline) return null
+    const releaseStep = entry.timeline.find(step => step.key === 'release')
+    if (releaseStep?.timestampLabel) {
+      // Extract date from timestamp label like "Auto-release 09 Dec · 6:00 AM"
+      return releaseStep.timestampLabel
+    }
+    // If hold started, calculate 7 days from hold start
+    if (entry.holdStartedLabel) {
+      try {
+        // Try to parse the holdStartedLabel format: "Wed 3 Dec · 08:02 PM"
+        const parts = entry.holdStartedLabel.split(' · ')
+        if (parts.length === 2) {
+          const datePart = parts[0] // "Wed 3 Dec"
+          const timePart = parts[1] // "08:02 PM"
+          // Create a date object (approximate parsing)
+          const now = new Date()
+          const releaseDate = new Date(now)
+          releaseDate.setDate(releaseDate.getDate() + 7)
+          return releaseDate.toLocaleDateString('en-AU', { 
+            day: 'numeric', 
+            month: 'short', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        }
+      } catch (e) {
+        // Fallback
+      }
+    }
+    return null
+  }
+
+  const handleEscrowPress = (entry) => {
+    setSelectedEscrow(entry)
+    setModalVisible(true)
+  }
+
+  const closeModal = () => {
+    setModalVisible(false)
+    setSelectedEscrow(null)
+  }
+
+  // Simplified escrow card renderer
+  const renderSimpleEscrowCard = (entry) => (
+    <TouchableOpacity
+      key={entry.id}
+      style={styles.simpleEscrowCard}
+      activeOpacity={0.7}
+      onPress={() => handleEscrowPress(entry)}
+    >
+      <View style={styles.simpleCardHeader}>
+        <View style={styles.simpleCardLeft}>
+          <AppText variant={Variant.bodyMedium} style={styles.simpleJobTitle}>
+            {entry.jobTitle}
+          </AppText>
+          <AppText variant={Variant.caption} style={styles.simpleCounterparty}>
+            {entry.counterpart}
+          </AppText>
+        </View>
+        <EscrowStatusBadge
+          label={entry.stageLabel}
+          value={entry.stageValue}
+          tone={entry.stageTone}
+        />
+      </View>
+      <View style={styles.simpleCardFooter}>
+        <View>
+          <AppText variant={Variant.caption} style={styles.amountLabel}>
+            Held Amount
+          </AppText>
+          <AppText variant={Variant.bodyMedium} style={styles.amountValue}>
+            {entry.heldAmount ? `${entry.heldAmount.toFixed(2)} SG` : 'Awaiting hold'}
+          </AppText>
+        </View>
+        <VectorIcons
+          name={iconLibName.Ionicons}
+          iconName="chevron-forward"
+          size={20}
+          color={colors.gray}
+        />
+      </View>
+    </TouchableOpacity>
+  )
+
+  // Modal component for escrow details
+  const renderEscrowDetailModal = () => {
+    if (!selectedEscrow) return null
+
+    const releaseDate = getReleaseDate(selectedEscrow)
+
+    return (
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={closeModal}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalBackdrop}
+            activeOpacity={1}
+            onPress={closeModal}
+          />
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <AppText variant={Variant.title} style={styles.modalTitle}>
+                Escrow Details
+              </AppText>
+              <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="close"
+                  size={24}
+                  color={colors.secondary}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+              {/* Job Info */}
+              <View style={styles.modalSection}>
+                <AppText variant={Variant.bodyMedium} style={styles.modalJobTitle}>
+                  {selectedEscrow.jobTitle}
+                </AppText>
+                <AppText variant={Variant.caption} style={styles.modalCounterparty}>
+                  Counterparty: {selectedEscrow.counterpart}
+                </AppText>
+              </View>
+
+              {/* Status Badge */}
+              <View style={styles.modalSection}>
+                <EscrowStatusBadge
+                  label={selectedEscrow.stageLabel}
+                  value={selectedEscrow.stageValue}
+                  tone={selectedEscrow.stageTone}
+                />
+              </View>
+
+              {/* Amount Info */}
+              <View style={styles.modalSection}>
+                <View style={styles.modalAmountRow}>
+                  <View>
+                    <AppText variant={Variant.caption} style={styles.amountLabel}>
+                      Held SG Coins
+                    </AppText>
+                    <AppText variant={Variant.title} style={styles.amountValue}>
+                      {selectedEscrow.heldAmount ? `${selectedEscrow.heldAmount.toFixed(2)} SG` : 'Awaiting hold'}
+                    </AppText>
+                  </View>
+                  <View style={styles.amountMeta}>
+                    <AppText variant={Variant.caption} style={styles.metaLabel}>
+                      Hourly Rate: {selectedEscrow.hourlyRate} SG
+                    </AppText>
+                    <AppText variant={Variant.caption} style={styles.metaLabel}>
+                      Expected Hours: {selectedEscrow.expectedHours}h
+                    </AppText>
+                  </View>
+                </View>
+              </View>
+
+              {/* Timeline */}
+              <View style={styles.modalSection}>
+                <AppText variant={Variant.bodyMedium} style={styles.modalSectionTitle}>
+                  Escrow Timeline
+                </AppText>
+                <EscrowTimeline steps={selectedEscrow.timeline} />
+              </View>
+
+              {/* Release Date */}
+              {releaseDate && (
+                <View style={styles.modalSection}>
+                  <View style={styles.releaseDateCard}>
+                    <View style={styles.releaseDateHeader}>
+                      <VectorIcons
+                        name={iconLibName.Ionicons}
+                        iconName="calendar-outline"
+                        size={20}
+                        color={colors.primary}
+                      />
+                      <AppText variant={Variant.bodyMedium} style={styles.releaseDateTitle}>
+                        Payment Release Date
+                      </AppText>
+                    </View>
+                    <AppText variant={Variant.title} style={styles.releaseDateValue}>
+                      {releaseDate}
+                    </AppText>
+                  </View>
+                </View>
+              )}
+
+              {/* Code Sharing if applicable */}
+              {selectedEscrow.showCodeSharing && (
+                <View style={styles.modalSection}>
+                  <CodeSharing
+                    code={selectedEscrow.code}
+                    codeLabel="Escrow Code"
+                    helperText={selectedEscrow.helperText}
+                    codeExpiry={selectedEscrow.codeExpiry}
+                    showKeypad={!selectedEscrow.readOnlyCode}
+                    readOnly={!!selectedEscrow.readOnlyCode}
+                  />
+                </View>
+              )}
+
+              {/* Notice */}
+              {selectedEscrow.notice && (
+                <View style={styles.modalSection}>
+                  <View style={styles.noticeCard}>
+                    <AppText variant={Variant.caption} style={styles.noticeText}>
+                      {selectedEscrow.notice}
+                    </AppText>
+                  </View>
+                </View>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+    )
+  }
 
   const renderEscrowOverviewCard = (title, entry) => {
     if (!entry) return null
@@ -697,13 +926,24 @@ const Wallet = ({ navigation }) => {
       />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.escrowOverviewContainer}>
-          {renderEscrowOverviewCard('Job Seeker Escrow Overview', jobSeekerEscrows[0])}
-          {renderEscrowOverviewCard('Recruiter Escrow Overview', recruiterEscrows[0])}
-        </View>
+        {/* Simplified Escrow Sections */}
+        {jobSeekerEscrows.length > 0 && (
+          <View style={styles.escrowSection}>
+            <AppText variant={Variant.title} style={styles.sectionTitle}>
+              Job Seeker Escrows
+            </AppText>
+            {jobSeekerEscrows.map(renderSimpleEscrowCard)}
+          </View>
+        )}
 
-        {renderEscrowSection('Job Seeker Escrow Timelines', jobSeekerEscrows)}
-        {renderEscrowSection('Recruiter Escrow Timelines', recruiterEscrows)}
+        {recruiterEscrows.length > 0 && (
+          <View style={styles.escrowSection}>
+            <AppText variant={Variant.title} style={styles.sectionTitle}>
+              Recruiter Escrows
+            </AppText>
+            {recruiterEscrows.map(renderSimpleEscrowCard)}
+          </View>
+        )}
 
         {/* Bank Account Info Section */}
         {selectedAccount && (
@@ -828,7 +1068,8 @@ const Wallet = ({ navigation }) => {
         </View>
       </ScrollView>
 
-
+      {/* Escrow Detail Modal */}
+      {renderEscrowDetailModal()}
     </View>
   )
 }
@@ -1281,5 +1522,128 @@ const styles = StyleSheet.create({
   withdrawDate: {
     color: colors.gray || '#6B7280',
     fontSize: getFontSize(12),
+  },
+  // Simple Escrow Card Styles
+  simpleEscrowCard: {
+    backgroundColor: colors.white,
+    borderRadius: hp(2),
+    padding: wp(4),
+    marginBottom: hp(1.5),
+    borderWidth: 1,
+    borderColor: colors.grayE8 || '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  simpleCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: hp(1.5),
+  },
+  simpleCardLeft: {
+    flex: 1,
+    marginRight: wp(2),
+  },
+  simpleJobTitle: {
+    color: colors.secondary,
+    fontSize: getFontSize(15),
+    fontWeight: '600',
+    marginBottom: hp(0.3),
+  },
+  simpleCounterparty: {
+    color: colors.gray,
+    fontSize: getFontSize(12),
+  },
+  simpleCardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  modalContainer: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: hp(3),
+    borderTopRightRadius: hp(3),
+    maxHeight: Dimensions.get('window').height * 0.9,
+    paddingBottom: hp(2),
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: wp(4),
+    paddingTop: hp(2),
+    paddingBottom: hp(1.5),
+    borderBottomWidth: 1,
+    borderBottomColor: colors.grayE8 || '#E5E7EB',
+  },
+  modalTitle: {
+    color: colors.secondary,
+    fontSize: getFontSize(20),
+    fontWeight: '700',
+  },
+  closeButton: {
+    padding: wp(1),
+  },
+  modalContent: {
+    paddingHorizontal: wp(4),
+  },
+  modalSection: {
+    marginTop: hp(2),
+  },
+  modalJobTitle: {
+    color: colors.secondary,
+    fontSize: getFontSize(16),
+    fontWeight: '600',
+    marginBottom: hp(0.5),
+  },
+  modalCounterparty: {
+    color: colors.gray,
+    fontSize: getFontSize(13),
+  },
+  modalSectionTitle: {
+    color: colors.secondary,
+    fontSize: getFontSize(16),
+    fontWeight: '600',
+    marginBottom: hp(1),
+  },
+  modalAmountRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  releaseDateCard: {
+    backgroundColor: colors.grayE8 || '#F3F4F6',
+    borderRadius: hp(2),
+    padding: wp(4),
+    borderLeftWidth: 4,
+    borderLeftColor: colors.primary,
+  },
+  releaseDateHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp(1),
+  },
+  releaseDateTitle: {
+    color: colors.secondary,
+    fontSize: getFontSize(14),
+    fontWeight: '600',
+    marginLeft: wp(2),
+  },
+  releaseDateValue: {
+    color: colors.primary,
+    fontSize: getFontSize(18),
+    fontWeight: '700',
   },
 })
