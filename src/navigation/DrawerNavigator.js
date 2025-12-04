@@ -117,7 +117,7 @@ const DrawerNavigator = () => {
       />
        <Drawer.Screen
         name={screenNames.NOTICATIONS}
-        component={ui.Notifcations}
+        component={ui.Notifications}
       />
 
        

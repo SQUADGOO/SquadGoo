@@ -45,7 +45,6 @@ import StaffPreferences from './main/Recruiter/Settings/StaffPreferences';
 import UpdateMain from './main/Recruiter/Update/UpdateMain';
 import UpdateSecond from './main/Recruiter/Update/UpdateSecond';
 import UpdateThird from './main/Recruiter/Update/UpdateThird';
-import Notifcations from './main/Recruiter/Notifications';
 import Notifications from './main/Notifications';
 import StepOne from './main/Recruiter/QuickSearch/StepOne';
 import StepTwoQuickSearch from './main/Recruiter/QuickSearch/StepTwo';
@@ -170,7 +169,6 @@ export {
   UpdateMain,
   UpdateSecond,
   UpdateThird,
-  Notifcations,
   Notifications,
   StepOne,
   StepTwoQuickSearch,
