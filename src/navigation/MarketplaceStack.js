@@ -66,6 +66,14 @@ const MarketplaceStack = () => {
         name="MARKETPLACE_FAQ"
         component={ui.MarketplaceFAQ}
       />
+      <Stack.Screen
+        name="MARKETPLACE_REQUEST_CALLBACK"
+        component={ui.MarketplaceRequestCallback}
+      />
+      <Stack.Screen
+        name="MARKETPLACE_SUPPORT_TICKETS"
+        component={ui.MarketplaceSupportTickets}
+      />
     </Stack.Navigator>
   );
 };

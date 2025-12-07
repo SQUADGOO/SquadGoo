@@ -46,7 +46,7 @@ const supportOptions = [
     icon: "call-outline",
     iconColor: "#6366F1",
     bgColor: "#E0E7FF",
-    route: null, // TODO: Implement callback request
+    route: "MARKETPLACE_REQUEST_CALLBACK",
   },
   {
     id: "tickets",
@@ -55,7 +55,7 @@ const supportOptions = [
     icon: "ticket-outline",
     iconColor: "#8B5CF6",
     bgColor: "#EDE9FE",
-    route: null, // TODO: Implement tickets for marketplace
+    route: "MARKETPLACE_SUPPORT_TICKETS",
   },
 ];
 
