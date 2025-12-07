@@ -17,10 +17,146 @@ import {
   formatPrice,
 } from "@/utilities/marketplaceHelpers";
 
+// Dummy orders for Report Issue tab
+const dummyOrders = [
+  {
+    id: "ORD-2024-001234",
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    status: "delivered",
+    total: 125.99,
+    items: [
+      { title: "Wireless Bluetooth Headphones" },
+      { title: "USB-C Charging Cable" },
+    ],
+    seller: {
+      name: "TechStore AU",
+      id: "seller-001",
+    },
+  },
+  {
+    id: "ORD-2024-001189",
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    status: "shipped",
+    total: 89.50,
+    items: [
+      { title: "Running Shoes - Size 10" },
+    ],
+    seller: {
+      name: "SportGear Pro",
+      id: "seller-002",
+    },
+  },
+  {
+    id: "ORD-2024-001156",
+    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    status: "delivered",
+    total: 299.00,
+    items: [
+      { title: "Smart Watch Series 5" },
+      { title: "Watch Band - Black Leather" },
+      { title: "Screen Protector Pack" },
+    ],
+    seller: {
+      name: "GadgetWorld",
+      id: "seller-003",
+    },
+  },
+  {
+    id: "ORD-2024-001098",
+    createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+    status: "processing",
+    total: 45.00,
+    items: [
+      { title: "Organic Coffee Beans 1kg" },
+      { title: "Ceramic Coffee Mug" },
+    ],
+    seller: {
+      name: "BeansBrew Co",
+      id: "seller-004",
+    },
+  },
+  {
+    id: "ORD-2024-001045",
+    createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    status: "delivered",
+    total: 178.50,
+    items: [
+      { title: "Yoga Mat Premium" },
+      { title: "Resistance Bands Set" },
+      { title: "Foam Roller" },
+    ],
+    seller: {
+      name: "FitLife Store",
+      id: "seller-005",
+    },
+  },
+];
+
+// Dummy disputes for Dispute History tab
+const dummyDisputes = [
+  {
+    id: "DSP-2024-000456",
+    orderId: "ORD-2024-000987",
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    status: "in_progress",
+    reasonLabel: "Item not as described - Color different from listing",
+    heldCoins: 89.99,
+    complainantType: "buyer",
+    description: "The headphones I received are black but the listing showed blue.",
+  },
+  {
+    id: "DSP-2024-000412",
+    orderId: "ORD-2024-000876",
+    createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+    status: "pending",
+    reasonLabel: "Item damaged during delivery",
+    heldCoins: 156.00,
+    complainantType: "buyer",
+    description: "Package arrived with visible damage and the product inside was broken.",
+  },
+  {
+    id: "DSP-2024-000389",
+    orderId: "ORD-2024-000765",
+    createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+    status: "resolved",
+    reasonLabel: "Missing items from order",
+    heldCoins: 0,
+    complainantType: "buyer",
+    description: "Only received 2 out of 3 items. Missing the charging cable.",
+    resolution: "Partial refund issued",
+  },
+  {
+    id: "DSP-2024-000345",
+    orderId: "ORD-2024-000654",
+    createdAt: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000).toISOString(),
+    status: "closed",
+    reasonLabel: "Seller not responding to messages",
+    heldCoins: 0,
+    complainantType: "buyer",
+    description: "Tried to contact seller multiple times about delivery but no response.",
+    resolution: "Full refund processed",
+  },
+  {
+    id: "DSP-2024-000298",
+    orderId: "ORD-2024-000543",
+    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    status: "resolved",
+    reasonLabel: "Wrong item shipped",
+    heldCoins: 0,
+    complainantType: "buyer",
+    description: "Ordered a large size shirt but received medium.",
+    resolution: "Replacement sent",
+  },
+];
+
 const DisputeResolution = ({ navigation }) => {
-  const orders = useSelector((state) => state.marketplace?.orders || []);
-  const disputes = useSelector((state) => state.marketplace?.disputes || []);
+  const storeOrders = useSelector((state) => state.marketplace?.orders || []);
+  const storeDisputes = useSelector((state) => state.marketplace?.disputes || []);
   const [activeTab, setActiveTab] = useState("create"); // 'create' or 'history'
+
+  // Always include dummy data for UI demonstration, combine with store data
+  const orders = [...dummyOrders, ...storeOrders];
+  const disputes = [...dummyDisputes, ...storeDisputes];
 
   // Get orders that can have disputes (exclude already disputed ones)
   const disputedOrderIds = disputes.map((d) => d.orderId);
