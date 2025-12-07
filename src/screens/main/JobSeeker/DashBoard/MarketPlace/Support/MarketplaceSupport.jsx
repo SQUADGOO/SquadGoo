@@ -37,7 +37,7 @@ const supportOptions = [
     icon: "chatbubbles-outline",
     iconColor: "#10B981",
     bgColor: "#D1FAE5",
-    route: null, // TODO: Implement live chat
+    route: "MARKETPLACE_LIVE_CHAT",
   },
   {
     id: "callback",

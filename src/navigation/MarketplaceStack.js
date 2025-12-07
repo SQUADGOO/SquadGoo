@@ -74,6 +74,10 @@ const MarketplaceStack = () => {
         name="MARKETPLACE_SUPPORT_TICKETS"
         component={ui.MarketplaceSupportTickets}
       />
+      <Stack.Screen
+        name="MARKETPLACE_LIVE_CHAT"
+        component={ui.MarketplaceLiveChat}
+      />
     </Stack.Navigator>
   );
 };

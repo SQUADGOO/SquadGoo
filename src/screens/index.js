@@ -94,6 +94,7 @@ import {
   MarketplaceFAQ,
   MarketplaceRequestCallback,
   MarketplaceSupportTickets,
+  MarketplaceLiveChat,
 } from './main/JobSeeker/DashBoard/MarketPlace/Support';
 import KycBusiness from './main/Recruiter/profile/kyc/KycBusiness';
 import AddExperience from './main/JobSeeker/DashBoard/TabScreens/AddExperince/AddExpericnce';
@@ -226,6 +227,7 @@ DisputeDetails,
 MarketplaceFAQ,
 MarketplaceRequestCallback,
 MarketplaceSupportTickets,
+MarketplaceLiveChat,
 KycBusiness,
 AddExperience,
 AddJobStep1,

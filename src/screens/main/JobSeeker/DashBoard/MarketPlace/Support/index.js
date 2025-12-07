@@ -5,4 +5,5 @@ export { default as DisputeDetails } from './DisputeDetails';
 export { default as MarketplaceFAQ } from './MarketplaceFAQ';
 export { default as MarketplaceRequestCallback } from './RequestCallback';
 export { default as MarketplaceSupportTickets } from './SupportTickets';
+export { default as MarketplaceLiveChat } from './LiveChat';
 
