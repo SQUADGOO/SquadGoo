@@ -45,6 +45,27 @@ const MarketplaceStack = () => {
         name={screenNames.MARKETPLACE_ORDER_DETAILS}
         component={ui.OrderDetails}
       />
+      {/* Marketplace Support Screens */}
+      <Stack.Screen
+        name="MARKETPLACE_SUPPORT"
+        component={ui.MarketplaceSupport}
+      />
+      <Stack.Screen
+        name="MARKETPLACE_DISPUTE_RESOLUTION"
+        component={ui.DisputeResolution}
+      />
+      <Stack.Screen
+        name="MARKETPLACE_CREATE_DISPUTE"
+        component={ui.CreateDispute}
+      />
+      <Stack.Screen
+        name="MARKETPLACE_DISPUTE_DETAILS"
+        component={ui.DisputeDetails}
+      />
+      <Stack.Screen
+        name="MARKETPLACE_FAQ"
+        component={ui.MarketplaceFAQ}
+      />
     </Stack.Navigator>
   );
 };

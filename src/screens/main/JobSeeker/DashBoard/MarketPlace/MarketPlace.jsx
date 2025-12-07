@@ -20,6 +20,7 @@ import { useSelector, useDispatch } from "react-redux";
 import VectorIcons, { iconLibName } from "@/theme/vectorIcon";
 import { addToCart } from "@/store/marketplaceSlice";
 import { showToast, toastTypes } from "@/utilities/toastConfig";
+import MoreMenu from "@/components/marketplace/MoreMenu";
 
 const items = [
   {
@@ -347,11 +348,16 @@ const MarketPlace = ({navigation}) => {
     );
   };
 
+  const handleExitMarketplace = () => {
+    navigation.goBack();
+  };
+
   const renderHeaderIcons = () => (
     <View style={styles.headerIconsContainer}>
       {renderOrdersIcon()}
       {renderFavoritesIcon()}
       {renderCartIcon()}
+      <MoreMenu navigation={navigation} onExit={handleExitMarketplace} />
     </View>
   );
 

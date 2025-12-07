@@ -84,6 +84,15 @@ import Payment from './main/JobSeeker/DashBoard/MarketPlace/Payment';
 import Orders from './main/JobSeeker/DashBoard/MarketPlace/Orders';
 import OrderDetails from './main/JobSeeker/DashBoard/MarketPlace/OrderDetails';
 import MarketplaceStack from '@/navigation/MarketplaceStack';
+
+// Marketplace Support Screens
+import { 
+  MarketplaceSupport, 
+  DisputeResolution, 
+  CreateDispute, 
+  DisputeDetails, 
+  MarketplaceFAQ 
+} from './main/JobSeeker/DashBoard/MarketPlace/Support';
 import KycBusiness from './main/Recruiter/profile/kyc/KycBusiness';
 import AddExperience from './main/JobSeeker/DashBoard/TabScreens/AddExperince/AddExpericnce';
 import AddJobStep1 from './main/JobSeeker/DashBoard/TabScreens/AddExperince/AddJobStep1';
@@ -206,6 +215,13 @@ Payment,
 Orders,
 OrderDetails,
 MarketplaceStack,
+
+// Marketplace Support
+MarketplaceSupport,
+DisputeResolution,
+CreateDispute,
+DisputeDetails,
+MarketplaceFAQ,
 KycBusiness,
 AddExperience,
 AddJobStep1,
