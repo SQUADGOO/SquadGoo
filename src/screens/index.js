@@ -37,6 +37,7 @@ import MainDashboard from './main/Recruiter/DashBoard/MainDashboard';
 import LaborPoolScreen from './main/Recruiter/LaborPool/LaborPool';
 import SquadPoolScreen from './main/Recruiter/LaborPool/SquadPool';
 import Contractors from './main/Recruiter/LaborPool/Contractors';
+import Employees from './main/Recruiter/LaborPool/Employees';
 import ActiveOffers from './main/Recruiter/CurrentOffers/ActiveOffers';
 import DraftedOffers from './main/Recruiter/CurrentOffers/DraftedOffers';
 import CompletedOffers from './main/Recruiter/HomeTabs/CompletedOffers';
@@ -173,6 +174,7 @@ export {
   LaborPoolScreen,
   SquadPoolScreen,
   Contractors,
+  Employees,
   ActiveOffers,
   DraftedOffers,
   CompletedOffers,

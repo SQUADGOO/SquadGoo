@@ -6,45 +6,45 @@ import PoolHeader from '../../../../core/PoolHeader';
 import WorkerCard from '@/components/Recruiter/LaborPool/WorkerCard';
 import SendManualOfferModal from '@/components/Recruiter/ManualSearch/SendManualOfferModal';
 import { screenNames } from '@/navigation/screenNames';
-import { DUMMY_CONTRACTORS } from '@/utilities/dummyContractors';
+import { DUMMY_EMPLOYEES } from '@/utilities/dummyEmployees';
 import { sendQuickOffer } from '@/store/quickSearchSlice';
 import { showToast, toastTypes } from '@/utilities/toastConfig';
 
-const Contractors = ({ navigation }) => {
+const Employees = ({ navigation }) => {
   const dispatch = useDispatch();
   const quickJobs = useSelector(state => state.quickSearch.quickJobs);
   const [offerModal, setOfferModal] = useState(false);
-  const [selectedContractor, setSelectedContractor] = useState(null);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
 
-  // Transform dummy contractors data to match WorkerCard props
-  const contractors = useMemo(() => {
-    return DUMMY_CONTRACTORS.map((contractor) => ({
-      id: contractor.id,
-      name: contractor.name,
-      role: contractor.preferredRoles?.[0] || 'Contractor',
-      location: `${contractor.suburb}, ${contractor.location}${contractor.radiusKm ? ` (${contractor.radiusKm}km radius)` : ''}`,
-      availability: contractor.availability?.summary || 'Available',
-      rate: `$${contractor.payPreference?.min || 0}–${contractor.payPreference?.max || 0}/hour`,
-      rating: (contractor.acceptanceRating / 10).toFixed(1), // Convert 92 to 9.2, 88 to 8.8, etc.
+  // Transform dummy employees data to match WorkerCard props
+  const employees = useMemo(() => {
+    return DUMMY_EMPLOYEES.map((employee) => ({
+      id: employee.id,
+      name: employee.name,
+      role: employee.preferredRoles?.[0] || 'Employee',
+      location: `${employee.suburb}, ${employee.location}${employee.radiusKm ? ` (${employee.radiusKm}km radius)` : ''}`,
+      availability: employee.availability?.summary || 'Available',
+      rate: `$${employee.payPreference?.min || 0}–${employee.payPreference?.max || 0}/hour`,
+      rating: (employee.acceptanceRating / 10).toFixed(1), // Convert 92 to 9.2, 88 to 8.8, etc.
       // Keep original data for profile navigation
-      originalData: contractor,
+      originalData: employee,
     }));
   }, []);
 
-  const handleView = (contractor) => {
+  const handleView = (employee) => {
     // Navigate to candidate profile screen
     navigation.navigate(screenNames.QUICK_SEARCH_CANDIDATE_PROFILE, {
-      candidateId: contractor.id,
-      jobId: null, // Contractors don't have an associated job
-      source: 'contractors_pool', // To identify where the navigation came from
+      candidateId: employee.id,
+      jobId: null, // Employees don't have an associated job
+      source: 'employees_pool', // To identify where the navigation came from
     });
   };
 
-  const handleOffer = (contractor) => {
-    // Get the full candidate data from DUMMY_CONTRACTORS
-    const candidateData = DUMMY_CONTRACTORS.find(c => c.id === contractor.id);
+  const handleOffer = (employee) => {
+    // Get the full candidate data from DUMMY_EMPLOYEES
+    const candidateData = DUMMY_EMPLOYEES.find(e => e.id === employee.id);
     if (!candidateData) {
-      Alert.alert('Error', 'Contractor data not found');
+      Alert.alert('Error', 'Employee data not found');
       return;
     }
 
@@ -52,18 +52,18 @@ const Contractors = ({ navigation }) => {
     const candidate = {
       id: candidateData.id,
       name: candidateData.name,
-      matchPercentage: 0, // Contractors don't have match percentage
+      matchPercentage: 0, // Employees don't have match percentage
       acceptanceRating: candidateData.acceptanceRating,
       payPreference: candidateData.payPreference,
       availability: candidateData.availability,
     };
 
-    setSelectedContractor({ ...contractor, candidate });
+    setSelectedEmployee({ ...employee, candidate });
     setOfferModal(true);
   };
 
   const handleSendOffer = ({ expiresAt, message }) => {
-    if (!selectedContractor) return;
+    if (!selectedEmployee) return;
 
     // Check if user has any active quick search jobs
     if (quickJobs.length === 0) {
@@ -79,8 +79,8 @@ const Contractors = ({ navigation }) => {
               setOfferModal(false);
               navigation.navigate(screenNames.QUICK_SEARCH_STEPONE, {
                 pendingOffer: {
-                  candidateId: selectedContractor.id,
-                  candidateName: selectedContractor.name,
+                  candidateId: selectedEmployee.id,
+                  candidateName: selectedEmployee.name,
                   expiresAt,
                   message,
                 },
@@ -97,7 +97,7 @@ const Contractors = ({ navigation }) => {
     dispatch(
       sendQuickOffer({
         jobId,
-        candidateId: selectedContractor.id,
+        candidateId: selectedEmployee.id,
         expiresAt,
         message,
         autoSent: false,
@@ -106,7 +106,7 @@ const Contractors = ({ navigation }) => {
 
     showToast('Offer sent successfully', 'Success', toastTypes.success);
     setOfferModal(false);
-    setSelectedContractor(null);
+    setSelectedEmployee(null);
 
     navigation.navigate(screenNames.QUICK_SEARCH_ACTIVE_OFFERS_RECRUITER, {
       jobId,
@@ -116,14 +116,14 @@ const Contractors = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <PoolHeader
-        title="Contractors"
+        title="Employees"
         leftIcon={{ name: 'Feather', iconName: 'arrow-left', onPress: () => navigation.goBack() }}
         containerStyle={{ backgroundColor: 'transparent' }}
         titleStyle={{ color: '#fff' }}
       />
 
       <FlatList
-        data={contractors}
+        data={employees}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
           <WorkerCard
@@ -143,10 +143,10 @@ const Contractors = ({ navigation }) => {
 
       <SendManualOfferModal
         visible={offerModal}
-        candidate={selectedContractor?.candidate}
+        candidate={selectedEmployee?.candidate}
         onClose={() => {
           setOfferModal(false);
-          setSelectedContractor(null);
+          setSelectedEmployee(null);
         }}
         onSubmit={handleSendOffer}
       />
@@ -154,7 +154,7 @@ const Contractors = ({ navigation }) => {
   );
 };
 
-export default Contractors;
+export default Employees;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F7FA' },
@@ -164,3 +164,4 @@ const styles = StyleSheet.create({
     paddingTop: hp(1),
   },
 });
+

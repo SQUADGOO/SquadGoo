@@ -78,6 +78,10 @@ const DrawerNavigator = () => {
         name={screenNames.CONTRACTORS}
         component={ui.Contractors}
       />
+          <Drawer.Screen
+        name={screenNames.EMPLOYEES}
+        component={ui.Employees}
+      />
 
           <Drawer.Screen
         name={screenNames.ACTIVE_OFFERS}  

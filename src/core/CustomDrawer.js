@@ -68,7 +68,7 @@ const CustomDrawer = ({
             { key: 'labor-pool', title: 'Labor Pool', icon: 'briefcase-outline', route: screenNames.LABOR_POOL },
             { key: 'squad-pool', title: 'Squad Pool', icon: 'people-circle-outline', route: screenNames.SQUAD_POOL },
             { key: 'contractors', title: 'Contractors', icon: 'hammer-outline', route: screenNames.CONTRACTORS },
-            { key: 'employees', title: 'Employees', icon: 'person-outline', route: 'Employees' },
+            { key: 'employees', title: 'Employees', icon: 'person-outline', route: screenNames.EMPLOYEES },
           ],
         },
         {

@@ -47,6 +47,7 @@ export const screenNames = {
   LABOR_POOL: 'labor_pool',
   SQUAD_POOL: 'squad_pool',
   CONTRACTORS: 'contractors',
+  EMPLOYEES: 'employees',
   ACTIVE_OFFERS: 'active_offers',
   DRAFTED_OFFERS: 'drafted_offers',
   COMPLETED_OFFERS: 'completed_offers',
