@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, FlatList, Alert } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { colors, hp, wp } from '@/theme';
+import { hp, wp } from '@/theme';
 import PoolHeader from '../../../../core/PoolHeader';
 import WorkerCard from '@/components/Recruiter/LaborPool/WorkerCard';
 import SendManualOfferModal from '@/components/Recruiter/ManualSearch/SendManualOfferModal';
@@ -9,6 +9,15 @@ import { screenNames } from '@/navigation/screenNames';
 import { DUMMY_CONTRACTORS } from '@/utilities/dummyContractors';
 import { sendQuickOffer } from '@/store/quickSearchSlice';
 import { showToast, toastTypes } from '@/utilities/toastConfig';
+import PoolFilters from '@/components/Recruiter/LaborPool/PoolFilters';
+import {
+  getBadgeOptions,
+  getLocationOptions,
+  getPreferredRoleOptions,
+  POOL_RADIUS_OPTIONS,
+  POOL_SORT_OPTIONS,
+} from '@/utilities/poolFilterHelpers';
+import { filterAndSortWorkers, toWorkerCardItems } from '@/utilities/workerPoolHelpers';
 
 const Contractors = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -16,20 +25,36 @@ const Contractors = ({ navigation }) => {
   const [offerModal, setOfferModal] = useState(false);
   const [selectedContractor, setSelectedContractor] = useState(null);
 
-  // Transform dummy contractors data to match WorkerCard props
+  // Filters
+  const [query, setQuery] = useState('');
+  const [location, setLocation] = useState('all');
+  const [role, setRole] = useState('all');
+  const [badge, setBadge] = useState('all');
+  const [radius, setRadius] = useState('all');
+  const [sort, setSort] = useState('rating_desc');
+
+  const locationOptions = useMemo(() => getLocationOptions(DUMMY_CONTRACTORS), []);
+  const roleOptions = useMemo(() => getPreferredRoleOptions(DUMMY_CONTRACTORS), []);
+  const badgeOptions = useMemo(() => getBadgeOptions(DUMMY_CONTRACTORS), []);
+
+  const sortOptions = useMemo(
+    () => POOL_SORT_OPTIONS.filter((o) => o.value !== 'members_desc'),
+    []
+  );
+
+  const clearFilters = () => {
+    setQuery('');
+    setLocation('all');
+    setRole('all');
+    setBadge('all');
+    setRadius('all');
+    setSort('rating_desc');
+  };
+
   const contractors = useMemo(() => {
-    return DUMMY_CONTRACTORS.map((contractor) => ({
-      id: contractor.id,
-      name: contractor.name,
-      role: contractor.preferredRoles?.[0] || 'Contractor',
-      location: `${contractor.suburb}, ${contractor.location}${contractor.radiusKm ? ` (${contractor.radiusKm}km radius)` : ''}`,
-      availability: contractor.availability?.summary || 'Available',
-      rate: `$${contractor.payPreference?.min || 0}–${contractor.payPreference?.max || 0}/hour`,
-      rating: (contractor.acceptanceRating / 10).toFixed(1), // Convert 92 to 9.2, 88 to 8.8, etc.
-      // Keep original data for profile navigation
-      originalData: contractor,
-    }));
-  }, []);
+    const filtered = filterAndSortWorkers(DUMMY_CONTRACTORS, { query, location, role, badge, radius, sort });
+    return toWorkerCardItems(filtered, { roleFallback: 'Contractor' });
+  }, [badge, location, query, radius, role, sort]);
 
   const handleView = (contractor) => {
     // Navigate to candidate profile screen
@@ -120,6 +145,49 @@ const Contractors = ({ navigation }) => {
         leftIcon={{ name: 'Feather', iconName: 'arrow-left', onPress: () => navigation.goBack() }}
         containerStyle={{ backgroundColor: 'transparent' }}
         titleStyle={{ color: '#fff' }}
+      />
+
+      <PoolFilters
+        query={query}
+        onChangeQuery={setQuery}
+        resultCount={contractors.length}
+        onClear={clearFilters}
+        filters={[
+          {
+            key: 'location',
+            placeholder: 'Location',
+            options: locationOptions,
+            value: location,
+            onChange: setLocation,
+          },
+          {
+            key: 'role',
+            placeholder: 'Role',
+            options: roleOptions,
+            value: role,
+            onChange: setRole,
+          },
+          {
+            key: 'badge',
+            placeholder: 'Badge',
+            options: badgeOptions,
+            value: badge,
+            onChange: setBadge,
+          },
+          {
+            key: 'radius',
+            placeholder: 'Radius',
+            options: POOL_RADIUS_OPTIONS,
+            value: radius,
+            onChange: setRadius,
+          },
+        ]}
+        sort={{
+          placeholder: 'Sort',
+          options: sortOptions,
+          value: sort,
+          onChange: setSort,
+        }}
       />
 
       <FlatList
