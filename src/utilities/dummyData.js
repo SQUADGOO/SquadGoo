@@ -342,3 +342,111 @@ export const USE_DUMMY_DATA = true; // Set to false when API is ready
  * @returns {boolean}
  */
 export const isDummyMode = () => USE_DUMMY_DATA;
+
+/**
+ * Recruiter account upgrade plans (Badges)
+ * Note: extra fields (key/tier/billingPeriod) are safe; UI can ignore them.
+ * billingPeriod: null = one-time (no expiry). Set to '12m' later if needed.
+ */
+export const recruiterBadges = [
+  {
+    id: 'recruiter_bronze',
+    key: 'bronze',
+    tier: 'BRONZE',
+    title: 'Bronze Badge',
+    price: 50,
+    color: '#CD7F32',
+    billingPeriod: null,
+    requirements: [
+      'Registered for over 3 months',
+      'Completed at least 2 job offers (Manual or Quick)',
+      'KYC/KYB verified (recommended)',
+    ],
+    benefits: [
+      'Unlock Squad hiring',
+      'Unlock in-app payment to eligible Jobseekers (ABN contractors only)',
+      'Bronze badge displayed on your recruiter profile',
+    ],
+    buttonLabel: 'Upgrade to Bronze',
+  },
+  {
+    id: 'recruiter_platinum',
+    key: 'platinum',
+    tier: 'PLATINUM',
+    title: 'Platinum Badge',
+    price: 100,
+    color: '#7A8A99',
+    billingPeriod: null,
+    requirements: [
+      'Registered for over 6 months',
+      'Completed at least 4 job offers (Manual or Quick)',
+      'KYC/KYB verified (recommended)',
+    ],
+    benefits: [
+      'Unlock Squad hiring',
+      'Unlock in-app payment to eligible Jobseekers (ABN contractors only)',
+      'VIP level customer service',
+      '10% discount on squad hiring fee',
+      '10% discount on transaction fees',
+      'Platinum badge displayed on your recruiter profile',
+    ],
+    buttonLabel: 'Upgrade to Platinum',
+  },
+  {
+    id: 'recruiter_gold',
+    key: 'gold',
+    tier: 'GOLD',
+    title: 'Gold Badge',
+    price: 200,
+    color: '#D4AF37',
+    billingPeriod: null,
+    requirements: [
+      'Registered for over 8 months',
+      'Completed at least 8 job offers (Manual or Quick)',
+      'KYC/KYB verified (recommended)',
+    ],
+    benefits: [
+      'Unlock Squad hiring',
+      'Unlock in-app payment to eligible Jobseekers (ABN contractors only)',
+      'VIP level customer service (highest priority)',
+      '10% discount on each Manual and Quick match fee',
+      '10% discount on squad hiring fee',
+      '50% off transaction fees',
+      'Unlock News feed',
+      'Gold badge displayed on your recruiter profile',
+    ],
+    buttonLabel: 'Upgrade to Gold',
+  },
+  // PRO as a plan card too (your preference: show in both sections)
+  {
+    id: 'recruiter_pro',
+    key: 'pro',
+    tier: 'PRO',
+    title: 'PRO (Enhanced Due Diligence)',
+    price: 200,
+    color: '#3D5AFE',
+    billingPeriod: null,
+    requirements: ['Complete business details', 'KYC verified', 'KYB verified'],
+    benefits: [
+      'PRO badge displayed on your business profile',
+      'Enhanced due diligence checks to improve trust',
+      'Helps jobseekers identify higher-authenticity recruiters',
+    ],
+    buttonLabel: 'Purchase PRO',
+  },
+];
+
+/**
+ * Recruiter extra purchases (separate section)
+ */
+export const recruiterExtraPurchases = [
+  {
+    id: 'recruiter_pro_extra',
+    key: 'pro',
+    title: 'PRO (Enhanced Due Diligence)',
+    price: 200,
+    description:
+      'Get PRO verification on your business profile. Enhanced due diligence checks. Duration configurable.',
+    billingPeriod: null,
+  },
+];
