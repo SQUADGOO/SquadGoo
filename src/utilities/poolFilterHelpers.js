@@ -61,4 +61,15 @@ export const POOL_SORT_OPTIONS = [
   { label: 'Radius (low → high)', value: 'radius_asc' },
 ];
 
+// Common radius filter options (km)
+// Values are either 'all' or a number representing "max radius" in km.
+export const POOL_RADIUS_OPTIONS = [
+  { label: 'Any radius', value: 'all' },
+  { label: 'Within 10 km', value: 10 },
+  { label: 'Within 20 km', value: 20 },
+  { label: 'Within 30 km', value: 30 },
+  { label: 'Within 40 km', value: 40 },
+  { label: 'Within 50 km', value: 50 },
+];
+
 

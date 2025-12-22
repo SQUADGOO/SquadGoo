@@ -23,12 +23,18 @@ export const squadMatchesQuery = (squad, query) => {
 
 export const filterAndSortSquads = (
   squads,
-  { query = '', location = 'all', job = 'all', badge = 'all', sort = 'rating_desc' } = {}
+  { query = '', location = 'all', job = 'all', badge = 'all', radius = 'all', sort = 'rating_desc' } = {}
 ) => {
   let list = (squads || []).filter((squad) => {
     if (location !== 'all' && squad?.location !== location) return false;
     if (badge !== 'all' && squad?.badge !== badge) return false;
     if (job !== 'all' && !(squad?.preferredJobs || []).includes(job)) return false;
+    if (radius !== 'all') {
+      const maxRadius = typeof radius === 'number' ? radius : Number(radius);
+      if (!Number.isNaN(maxRadius)) {
+        if ((squad?.radiusKm || 0) > maxRadius) return false;
+      }
+    }
     return squadMatchesQuery(squad, query);
   });
 

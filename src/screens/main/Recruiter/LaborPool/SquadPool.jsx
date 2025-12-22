@@ -6,7 +6,13 @@ import WorkerCard from '@/components/Recruiter/LaborPool/WorkerCard';
 import { screenNames } from '@/navigation/screenNames';
 import { DUMMY_SQUADS } from '@/utilities/dummySquads';
 import PoolFilters from '@/components/Recruiter/LaborPool/PoolFilters';
-import { getBadgeOptions, getLocationOptions, getPreferredJobOptions, POOL_SORT_OPTIONS } from '@/utilities/poolFilterHelpers';
+import {
+  getBadgeOptions,
+  getLocationOptions,
+  getPreferredJobOptions,
+  POOL_RADIUS_OPTIONS,
+  POOL_SORT_OPTIONS,
+} from '@/utilities/poolFilterHelpers';
 import { filterAndSortSquads, toSquadWorkerCardItems } from '@/utilities/squadPoolHelpers';
 
 const SquadPoolScreen = ({ navigation }) => {
@@ -15,6 +21,7 @@ const SquadPoolScreen = ({ navigation }) => {
   const [location, setLocation] = useState('all');
   const [job, setJob] = useState('all');
   const [badge, setBadge] = useState('all');
+  const [radius, setRadius] = useState('all');
   const [sort, setSort] = useState('rating_desc');
 
   const locationOptions = useMemo(() => getLocationOptions(DUMMY_SQUADS), []);
@@ -28,14 +35,15 @@ const SquadPoolScreen = ({ navigation }) => {
     setLocation('all');
     setJob('all');
     setBadge('all');
+    setRadius('all');
     setSort('rating_desc');
   };
 
   // Filter + sort + transform dummy squads data to match WorkerCard props
   const squads = useMemo(() => {
-    const filtered = filterAndSortSquads(DUMMY_SQUADS, { query, location, job, badge, sort });
+    const filtered = filterAndSortSquads(DUMMY_SQUADS, { query, location, job, badge, radius, sort });
     return toSquadWorkerCardItems(filtered);
-  }, [badge, job, location, query, sort]);
+  }, [badge, job, location, query, radius, sort]);
 
   const handleView = (squad) => {
     // Navigate to profile with squad information
@@ -87,6 +95,13 @@ const SquadPoolScreen = ({ navigation }) => {
             options: badgeOptions,
             value: badge,
             onChange: setBadge,
+          },
+          {
+            key: 'radius',
+            placeholder: 'Radius',
+            options: POOL_RADIUS_OPTIONS,
+            value: radius,
+            onChange: setRadius,
           },
         ]}
         sort={{
