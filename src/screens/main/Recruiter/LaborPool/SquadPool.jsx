@@ -1,26 +1,41 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
-import { colors, hp, wp } from '@/theme';
+import { hp, wp } from '@/theme';
 import PoolHeader from '../../../../core/PoolHeader';
 import WorkerCard from '@/components/Recruiter/LaborPool/WorkerCard';
 import { screenNames } from '@/navigation/screenNames';
 import { DUMMY_SQUADS } from '@/utilities/dummySquads';
+import PoolFilters from '@/components/Recruiter/LaborPool/PoolFilters';
+import { getBadgeOptions, getLocationOptions, getPreferredJobOptions, POOL_SORT_OPTIONS } from '@/utilities/poolFilterHelpers';
+import { filterAndSortSquads, toSquadWorkerCardItems } from '@/utilities/squadPoolHelpers';
 
 const SquadPoolScreen = ({ navigation }) => {
-  // Transform dummy squads data to match WorkerCard props
+  // Filters (main screen)
+  const [query, setQuery] = useState('');
+  const [location, setLocation] = useState('all');
+  const [job, setJob] = useState('all');
+  const [badge, setBadge] = useState('all');
+  const [sort, setSort] = useState('rating_desc');
+
+  const locationOptions = useMemo(() => getLocationOptions(DUMMY_SQUADS), []);
+  const jobOptions = useMemo(() => getPreferredJobOptions(DUMMY_SQUADS), []);
+  const badgeOptions = useMemo(() => getBadgeOptions(DUMMY_SQUADS), []);
+
+  const sortOptions = POOL_SORT_OPTIONS;
+
+  const clearFilters = () => {
+    setQuery('');
+    setLocation('all');
+    setJob('all');
+    setBadge('all');
+    setSort('rating_desc');
+  };
+
+  // Filter + sort + transform dummy squads data to match WorkerCard props
   const squads = useMemo(() => {
-    return DUMMY_SQUADS.map((squad) => ({
-      id: squad.id,
-      name: squad.name,
-      role: `${squad.memberCount} member${squad.memberCount > 1 ? 's' : ''} • ${squad.preferredJobs?.[0] || 'General'}`,
-      location: `${squad.suburb}, ${squad.location}${squad.radiusKm ? ` (${squad.radiusKm}km radius)` : ''}`,
-      availability: squad.availability?.summary || 'Flexible',
-      rate: `$${squad.payPreference?.min || 0}–${squad.payPreference?.max || 0}/hour`,
-      rating: (squad.averageRating / 10).toFixed(1), // Convert to 0-10 scale
-      // Keep original data for navigation
-      originalData: squad,
-    }));
-  }, []);
+    const filtered = filterAndSortSquads(DUMMY_SQUADS, { query, location, job, badge, sort });
+    return toSquadWorkerCardItems(filtered);
+  }, [badge, job, location, query, sort]);
 
   const handleView = (squad) => {
     // Navigate to profile with squad information
@@ -44,6 +59,42 @@ const SquadPoolScreen = ({ navigation }) => {
         leftIcon={{ name: 'Feather', iconName: 'arrow-left', onPress: () => navigation.goBack() }}
         containerStyle={{ backgroundColor: 'transparent' }}
         titleStyle={{ color: '#fff' }}
+      />
+
+      <PoolFilters
+        query={query}
+        onChangeQuery={setQuery}
+        resultCount={squads.length}
+        onClear={clearFilters}
+        filters={[
+          {
+            key: 'location',
+            placeholder: 'Location',
+            options: locationOptions,
+            value: location,
+            onChange: setLocation,
+          },
+          {
+            key: 'job',
+            placeholder: 'Job',
+            options: jobOptions,
+            value: job,
+            onChange: setJob,
+          },
+          {
+            key: 'badge',
+            placeholder: 'Badge',
+            options: badgeOptions,
+            value: badge,
+            onChange: setBadge,
+          },
+        ]}
+        sort={{
+          placeholder: 'Sort',
+          options: sortOptions,
+          value: sort,
+          onChange: setSort,
+        }}
       />
 
       <FlatList
