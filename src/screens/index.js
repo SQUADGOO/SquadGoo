@@ -38,6 +38,7 @@ import LaborPoolScreen from './main/Recruiter/LaborPool/LaborPool';
 import SquadPoolScreen from './main/Recruiter/LaborPool/SquadPool';
 import Contractors from './main/Recruiter/LaborPool/Contractors';
 import Employees from './main/Recruiter/LaborPool/Employees';
+import SendOffer from './main/Recruiter/Offers/SendOffer';
 import ActiveOffers from './main/Recruiter/CurrentOffers/ActiveOffers';
 import DraftedOffers from './main/Recruiter/CurrentOffers/DraftedOffers';
 import CompletedOffers from './main/Recruiter/HomeTabs/CompletedOffers';
@@ -175,6 +176,7 @@ export {
   SquadPoolScreen,
   Contractors,
   Employees,
+  SendOffer,
   ActiveOffers,
   DraftedOffers,
   CompletedOffers,

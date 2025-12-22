@@ -56,8 +56,18 @@ const SquadPoolScreen = ({ navigation }) => {
   };
 
   const handleOffer = (squad) => {
-    // TODO: Implement offer creation for squad
-    console.log('Offer to squad:', squad);
+    navigation.navigate(screenNames.SEND_OFFER, {
+      mode: 'squad',
+      recipient: {
+        squadId: squad.id,
+        name: squad.name,
+        memberIds: squad.originalData?.memberIds || [],
+      },
+      prefill: {
+        workType: squad.originalData?.preferredJobs?.[0] || '',
+        availability: squad.originalData?.availability?.summary || '',
+      },
+    });
   };
 
   return (

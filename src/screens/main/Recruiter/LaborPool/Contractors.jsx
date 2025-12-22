@@ -1,14 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { View, StyleSheet, FlatList, Alert } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { View, StyleSheet, FlatList } from 'react-native';
 import { hp, wp } from '@/theme';
 import PoolHeader from '../../../../core/PoolHeader';
 import WorkerCard from '@/components/Recruiter/LaborPool/WorkerCard';
-import SendManualOfferModal from '@/components/Recruiter/ManualSearch/SendManualOfferModal';
 import { screenNames } from '@/navigation/screenNames';
 import { DUMMY_CONTRACTORS } from '@/utilities/dummyContractors';
-import { sendQuickOffer } from '@/store/quickSearchSlice';
-import { showToast, toastTypes } from '@/utilities/toastConfig';
 import PoolFilters from '@/components/Recruiter/LaborPool/PoolFilters';
 import {
   getBadgeOptions,
@@ -20,11 +16,6 @@ import {
 import { filterAndSortWorkers, toWorkerCardItems } from '@/utilities/workerPoolHelpers';
 
 const Contractors = ({ navigation }) => {
-  const dispatch = useDispatch();
-  const quickJobs = useSelector(state => state.quickSearch.quickJobs);
-  const [offerModal, setOfferModal] = useState(false);
-  const [selectedContractor, setSelectedContractor] = useState(null);
-
   // Filters
   const [query, setQuery] = useState('');
   const [location, setLocation] = useState('all');
@@ -66,75 +57,16 @@ const Contractors = ({ navigation }) => {
   };
 
   const handleOffer = (contractor) => {
-    // Get the full candidate data from DUMMY_CONTRACTORS
-    const candidateData = DUMMY_CONTRACTORS.find(c => c.id === contractor.id);
-    if (!candidateData) {
-      Alert.alert('Error', 'Contractor data not found');
-      return;
-    }
-
-    // Prepare candidate object for the modal
-    const candidate = {
-      id: candidateData.id,
-      name: candidateData.name,
-      matchPercentage: 0, // Contractors don't have match percentage
-      acceptanceRating: candidateData.acceptanceRating,
-      payPreference: candidateData.payPreference,
-      availability: candidateData.availability,
-    };
-
-    setSelectedContractor({ ...contractor, candidate });
-    setOfferModal(true);
-  };
-
-  const handleSendOffer = ({ expiresAt, message }) => {
-    if (!selectedContractor) return;
-
-    // Check if user has any active quick search jobs
-    if (quickJobs.length === 0) {
-      // No jobs available - navigate to create a job first
-      Alert.alert(
-        'Create Job First',
-        'You need to create a job before sending an offer. Would you like to create a Quick Search job now?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Create Job',
-            onPress: () => {
-              setOfferModal(false);
-              navigation.navigate(screenNames.QUICK_SEARCH_STEPONE, {
-                pendingOffer: {
-                  candidateId: selectedContractor.id,
-                  candidateName: selectedContractor.name,
-                  expiresAt,
-                  message,
-                },
-              });
-            },
-          },
-        ]
-      );
-      return;
-    }
-
-    const jobId = quickJobs[0].id;
-
-    dispatch(
-      sendQuickOffer({
-        jobId,
-        candidateId: selectedContractor.id,
-        expiresAt,
-        message,
-        autoSent: false,
-      })
-    );
-
-    showToast('Offer sent successfully', 'Success', toastTypes.success);
-    setOfferModal(false);
-    setSelectedContractor(null);
-
-    navigation.navigate(screenNames.QUICK_SEARCH_ACTIVE_OFFERS_RECRUITER, {
-      jobId,
+    navigation.navigate(screenNames.SEND_OFFER, {
+      mode: 'worker',
+      recipient: {
+        candidateId: contractor.id,
+        name: contractor.name,
+      },
+      prefill: {
+        workType: contractor.originalData?.preferredRoles?.[0] || '',
+        availability: contractor.originalData?.availability?.summary || '',
+      },
     });
   };
 
@@ -207,16 +139,6 @@ const Contractors = ({ navigation }) => {
         )}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
-      />
-
-      <SendManualOfferModal
-        visible={offerModal}
-        candidate={selectedContractor?.candidate}
-        onClose={() => {
-          setOfferModal(false);
-          setSelectedContractor(null);
-        }}
-        onSubmit={handleSendOffer}
       />
     </View>
   );

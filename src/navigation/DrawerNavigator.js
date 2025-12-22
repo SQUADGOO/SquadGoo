@@ -180,6 +180,10 @@ const DrawerNavigator = () => {
         name={screenNames.QUICK_SEARCH_CANDIDATE_PROFILE}
         component={ui.QuickSearchCandidateProfile}
       />
+      <Drawer.Screen
+        name={screenNames.SEND_OFFER}
+        component={ui.SendOffer}
+      />
       {/* <Drawer.Screen
         name={screenNames.QUICK_SEARCH_MATCH_LIST}
         component={ui.QuickSearchMatchList}

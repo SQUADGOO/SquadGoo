@@ -1,5 +1,7 @@
 import { createSlice, nanoid } from '@reduxjs/toolkit';
 import { DUMMY_JOB_SEEKERS } from '@/utilities/dummyJobSeekers';
+import { DUMMY_CONTRACTORS } from '@/utilities/dummyContractors';
+import { DUMMY_EMPLOYEES } from '@/utilities/dummyEmployees';
 
 const clamp = (value, min = 0, max = 100) => Math.max(min, Math.min(max, value));
 
@@ -77,11 +79,15 @@ const buildQuickCandidateSnapshot = (candidate, matchPercentage, currentRating) 
 });
 
 // Build acceptance rating map
+const getAllCandidates = () => [...DUMMY_JOB_SEEKERS, ...DUMMY_CONTRACTORS, ...DUMMY_EMPLOYEES];
+
 const buildAcceptanceRatingMap = () =>
-  DUMMY_JOB_SEEKERS.reduce((acc, seeker) => {
+  getAllCandidates().reduce((acc, seeker) => {
     acc[seeker.id] = seeker.acceptanceRating;
     return acc;
   }, {});
+
+const findCandidateById = (candidateId) => getAllCandidates().find(c => c.id === candidateId) || null;
 
 // Generate dummy accepted offers for quick search
 const generateDummyAcceptedOffers = () => {
@@ -345,7 +351,7 @@ const quickSearchSlice = createSlice({
       if (!job) return;
 
       // Filter candidates based on job seeker settings
-      let candidates = DUMMY_JOB_SEEKERS.filter(candidate => {
+      let candidates = getAllCandidates().filter(candidate => {
         // Check if candidate has quick offers enabled (would come from settings in real app)
         // For now, we'll include all candidates
         
@@ -391,9 +397,25 @@ const quickSearchSlice = createSlice({
     sendQuickOffer: (state, { payload }) => {
       const { jobId, candidateId, expiresAt, message, autoSent = false } = payload;
       const job = state.quickJobs.find(j => j.id === jobId);
-      const candidate = state.matchesByJobId[jobId]?.find(m => m.id === candidateId);
+      let candidate = state.matchesByJobId[jobId]?.find(m => m.id === candidateId);
 
-      if (!job || !candidate) return;
+      if (!job) return;
+
+      // If the candidate isn't in the current match list, fall back to lookup + compute a snapshot.
+      // This enables sending offers from pools (Employees/Contractors/Squads) without requiring prior matching.
+      if (!candidate) {
+        const baseCandidate = findCandidateById(candidateId);
+        if (!baseCandidate) return;
+
+        const score = computeQuickMatchScore(job, baseCandidate);
+        const currentRating = state.acceptanceRatings[candidateId] ?? baseCandidate.acceptanceRating;
+        candidate = buildQuickCandidateSnapshot(baseCandidate, score, currentRating);
+
+        if (!state.matchesByJobId[jobId]) state.matchesByJobId[jobId] = [];
+        // Avoid duplicates
+        const exists = state.matchesByJobId[jobId].some(m => m.id === candidateId);
+        if (!exists) state.matchesByJobId[jobId].unshift(candidate);
+      }
 
       const offerId = nanoid();
       const offer = {
