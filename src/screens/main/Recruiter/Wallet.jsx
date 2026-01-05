@@ -31,6 +31,7 @@ import { Platform } from 'react-native'
 
 const Wallet = ({ navigation }) => {
   const { coins, transactions = [], withdrawRequests = [] } = useSelector((state) => state.wallet)
+  const { userInfo } = useSelector((state) => state.auth)
   const bankAccounts = useSelector((state) => state.bank.accounts)
   const selectedAccount = bankAccounts.find(acc => acc.isSelected)
 
@@ -855,6 +856,29 @@ const Wallet = ({ navigation }) => {
     }
   }
 
+  const handleReferNow = async () => {
+    try {
+      const referralCode =
+        userInfo?.referralCode ||
+        userInfo?.referral_code ||
+        userInfo?.referCode ||
+        userInfo?.refer_code ||
+        ''
+
+      const message = referralCode
+        ? `Join SquadGoo using my referral code: ${referralCode}`
+        : 'Join SquadGoo!'
+
+      await Share.open({
+        title: 'Invite to SquadGoo',
+        message,
+        failOnCancel: false,
+      })
+    } catch {
+      // user-cancel is fine; ignore
+    }
+  }
+
 
   const renderCoinCard = (title, amount, color, icon) => (
     <View style={[styles.coinCard, { borderColor: color }]}>
@@ -1063,6 +1087,7 @@ const Wallet = ({ navigation }) => {
 
             <AppButton
               text={'Refer Now'}
+              onPress={handleReferNow}
             />
           </View>
         </View>

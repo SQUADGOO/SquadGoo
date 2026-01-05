@@ -15,7 +15,7 @@ const Drawer = createDrawerNavigator();
 const DrawerNavigator = () => {
   return (
     <Drawer.Navigator
-      drawerContent={props => <CustomDrawer {...props}  onNavigate={(route) => props.navigation.navigate(route)}
+      drawerContent={props => <CustomDrawer {...props}  onNavigate={(route, params) => props.navigation.navigate(route, params)}
  />}
       screenOptions={{
         headerShown: false,
@@ -85,7 +85,7 @@ const DrawerNavigator = () => {
 
           <Drawer.Screen
         name={screenNames.ACTIVE_OFFERS}  
-        component={ui.ActiveOffers}
+        component={ui.ActiveJobOffers}
       />
 
           <Drawer.Screen

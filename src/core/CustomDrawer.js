@@ -78,10 +78,34 @@ const CustomDrawer = ({
           iconLib: iconLibName.Ionicons,
           expandable: true,
           subItems: [
-            { key: 'active-offers', title: 'Active', icon: 'checkmark-circle-outline', route: screenNames.ACTIVE_OFFERS },
-            { key: 'completed-offers', title: 'Completed', icon: 'checkmark-done-outline', route: screenNames.COMPLETED_OFFERS },
-            { key: 'expired-offers', title: 'Expired', icon: 'time-outline', route: screenNames.EXPIRED_OFFERS },
-            { key: 'drafted-offers', title: 'Drafted', icon: 'document-outline', route: screenNames.DRAFTED_OFFERS },
+            {
+              key: 'active-offers',
+              title: 'Active',
+              icon: 'checkmark-circle-outline',
+              route: screenNames.ACTIVE_OFFERS,
+              params: { fromDrawer: true, headerTitle: 'Active Offers' },
+            },
+            {
+              key: 'completed-offers',
+              title: 'Completed',
+              icon: 'checkmark-done-outline',
+              route: screenNames.COMPLETED_OFFERS,
+              params: { fromDrawer: true, headerTitle: 'Completed Offers' },
+            },
+            {
+              key: 'expired-offers',
+              title: 'Expired',
+              icon: 'time-outline',
+              route: screenNames.EXPIRED_OFFERS,
+              params: { fromDrawer: true, headerTitle: 'Expired Offers' },
+            },
+            {
+              key: 'drafted-offers',
+              title: 'Drafted',
+              icon: 'document-outline',
+              route: screenNames.DRAFTED_OFFERS,
+              params: { fromDrawer: true, headerTitle: 'Drafted Offers' },
+            },
           ],
         },
         {
@@ -334,7 +358,7 @@ const CustomDrawer = ({
                   })
                 )
               } else {
-                onNavigate(item.route)
+                onNavigate(item.route, item.params)
               }
             }
           }}
@@ -381,7 +405,7 @@ const CustomDrawer = ({
                 style={styles.subMenuItem}
                 onPress={() => {
                   if (subItem.route) {
-                    onNavigate(subItem.route)
+                    onNavigate(subItem.route, subItem.params)
                   } else {
                     onNavigate(subItem.key) // fallback
                   }

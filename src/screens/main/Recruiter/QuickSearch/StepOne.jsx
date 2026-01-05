@@ -1,5 +1,5 @@
 // QuickSearchStepOne.js - Job Requirements
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native'
 import { useForm, FormProvider } from 'react-hook-form'
 import { colors, hp, wp, getFontSize } from '@/theme'
@@ -13,19 +13,37 @@ import BottomDataSheet from '@/components/Recruiter/JobBottomSheet'
 import JobCategorySelector from '@/components/JobCategorySelector'
 import { screenNames } from '@/navigation/screenNames'
 
-const QuickSearchStepOne = ({ navigation }) => {
-  const [jobCategory, setJobCategory] = useState(null)
-  const [jobSubCategory, setJobSubCategory] = useState(null)
+const QuickSearchStepOne = ({ navigation, route }) => {
+  // Draft edit mode params
+  const editMode = route?.params?.editMode
+  const draftJob = route?.params?.draftJob
+
+  const [jobCategory, setJobCategory] = useState(draftJob?.jobCategory || null)
+  const [jobSubCategory, setJobSubCategory] = useState(draftJob?.jobSubCategory || null)
 
   const methods = useForm({
     mode: 'onChange',
     defaultValues: {
-      industry: '',
-      experienceYear: '0 Year',
-      experienceMonth: '0 Month',
-      staffCount: '',
+      industry: draftJob?.industry || '',
+      experienceYear: draftJob?.experienceYear || '0 Year',
+      experienceMonth: draftJob?.experienceMonth || '0 Month',
+      staffCount: draftJob?.staffCount ? String(draftJob.staffCount) : '',
     },
   })
+
+  // Prefill form when opening in edit mode
+  useEffect(() => {
+    if (editMode && draftJob) {
+      methods.reset({
+        industry: draftJob.industry || '',
+        experienceYear: draftJob.experienceYear || '0 Year',
+        experienceMonth: draftJob.experienceMonth || '0 Month',
+        staffCount: draftJob.staffCount ? String(draftJob.staffCount) : '',
+      })
+      if (draftJob.jobCategory) setJobCategory(draftJob.jobCategory)
+      if (draftJob.jobSubCategory) setJobSubCategory(draftJob.jobSubCategory)
+    }
+  }, [editMode, draftJob])
 
   const { watch, setValue, handleSubmit } = methods
 

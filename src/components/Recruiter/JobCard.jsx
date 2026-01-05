@@ -22,12 +22,15 @@ const JobDetailRow = ({ iconName, label, value }) => (
 
 const JobCard = ({ 
   job, 
+  mode = 'default',
   onPreview, 
   onUpdate, 
   onViewCandidates, 
   onCloseJob,
   onViewMatches,
   onTrackHours,
+  onContinueEdit,
+  onDeleteDraft,
 }) => {
   return (
     <View style={styles.cardContainer}>
@@ -96,81 +99,106 @@ const JobCard = ({
 
       {/* Action Buttons */}
       <View style={styles.buttonContainer}>
-        
-        {/* First Row */}
-        <View style={styles.buttonRow}>
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.previewButton]}
-            onPress={() => onPreview(job)}
-            activeOpacity={0.8}
-          >
-            <AppText variant={Variant.bodyMedium} style={styles.previewButtonText}>
-              Preview
-            </AppText>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.updateButton]}
-            onPress={() => onUpdate(job)}
-            activeOpacity={0.8}
-          >
-            <AppText variant={Variant.bodyMedium} style={styles.updateButtonText}>
-              Update
-            </AppText>
-          </TouchableOpacity>
-        </View>
-
-        {/* Second Row */}
-        <View style={styles.buttonRow}>
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.candidatesButton]}
-            onPress={() => onViewCandidates(job)}
-            activeOpacity={0.8}
-          >
-            <AppText variant={Variant.bodyMedium} style={styles.candidatesButtonText}>
-              Candidates
-            </AppText>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.closeJobButton]}
-            onPress={() => onCloseJob(job)}
-            activeOpacity={0.8}
-          >
-            <AppText variant={Variant.bodyMedium} style={styles.closeJobButtonText}>
-              Close Job
-            </AppText>
-          </TouchableOpacity>
-        </View>
-
-        {/* Third Row */}
-        {(job?.searchType === 'manual' && onViewMatches) || onTrackHours ? (
+        {mode === 'draft' ? (
           <View style={styles.buttonRow}>
-            {(job?.searchType === 'manual' && onViewMatches) ? (
-              <TouchableOpacity 
-                style={[styles.actionButton, styles.matchesButton]}
-                onPress={() => onViewMatches(job)}
-                activeOpacity={0.8}
-              >
-                <AppText variant={Variant.bodyMedium} style={styles.matchesButtonText}>
-                  Matches
-                </AppText>
-              </TouchableOpacity>
-            ) : null}
+            <TouchableOpacity
+              style={[styles.actionButton, styles.updateButton]}
+              onPress={() => onContinueEdit?.(job)}
+              activeOpacity={0.8}
+            >
+              <AppText variant={Variant.bodyMedium} style={styles.updateButtonText}>
+                Continue Editing
+              </AppText>
+            </TouchableOpacity>
 
-            {onTrackHours ? (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.closeJobButton]}
+              onPress={() => onDeleteDraft?.(job)}
+              activeOpacity={0.8}
+            >
+              <AppText variant={Variant.bodyMedium} style={styles.closeJobButtonText}>
+                Delete Draft
+              </AppText>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            {/* First Row */}
+            <View style={styles.buttonRow}>
               <TouchableOpacity 
-                style={[styles.actionButton, styles.trackButton]}
-                onPress={() => onTrackHours(job)}
+                style={[styles.actionButton, styles.previewButton]}
+                onPress={() => onPreview?.(job)}
                 activeOpacity={0.8}
               >
-                <AppText variant={Variant.bodyMedium} style={styles.trackButtonText}>
-                  Track Hours
+                <AppText variant={Variant.bodyMedium} style={styles.previewButtonText}>
+                  Preview
                 </AppText>
               </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={[styles.actionButton, styles.updateButton]}
+                onPress={() => onUpdate?.(job)}
+                activeOpacity={0.8}
+              >
+                <AppText variant={Variant.bodyMedium} style={styles.updateButtonText}>
+                  Update
+                </AppText>
+              </TouchableOpacity>
+            </View>
+
+            {/* Second Row */}
+            <View style={styles.buttonRow}>
+              <TouchableOpacity 
+                style={[styles.actionButton, styles.candidatesButton]}
+                onPress={() => onViewCandidates?.(job)}
+                activeOpacity={0.8}
+              >
+                <AppText variant={Variant.bodyMedium} style={styles.candidatesButtonText}>
+                  Candidates
+                </AppText>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={[styles.actionButton, styles.closeJobButton]}
+                onPress={() => onCloseJob?.(job)}
+                activeOpacity={0.8}
+              >
+                <AppText variant={Variant.bodyMedium} style={styles.closeJobButtonText}>
+                  Close Job
+                </AppText>
+              </TouchableOpacity>
+            </View>
+
+            {/* Third Row */}
+            {(job?.searchType === 'manual' && onViewMatches) || onTrackHours ? (
+              <View style={styles.buttonRow}>
+                {(job?.searchType === 'manual' && onViewMatches) ? (
+                  <TouchableOpacity 
+                    style={[styles.actionButton, styles.matchesButton]}
+                    onPress={() => onViewMatches?.(job)}
+                    activeOpacity={0.8}
+                  >
+                    <AppText variant={Variant.bodyMedium} style={styles.matchesButtonText}>
+                      Matches
+                    </AppText>
+                  </TouchableOpacity>
+                ) : null}
+
+                {onTrackHours ? (
+                  <TouchableOpacity 
+                    style={[styles.actionButton, styles.trackButton]}
+                    onPress={() => onTrackHours?.(job)}
+                    activeOpacity={0.8}
+                  >
+                    <AppText variant={Variant.bodyMedium} style={styles.trackButtonText}>
+                      Track Hours
+                    </AppText>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
             ) : null}
-          </View>
-        ) : null}
+          </>
+        )}
 
       </View>
     </View>

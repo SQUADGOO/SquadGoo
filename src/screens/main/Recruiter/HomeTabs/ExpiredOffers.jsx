@@ -9,12 +9,15 @@ import { useSelector, useDispatch } from 'react-redux'
 import { colors, hp, wp } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import ExpiredJobCard from '@/components/Recruiter/ExpiredJobCard'
+import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
 import { seedDummyData } from '@/store/jobsSlice'
 
-const ExpiredOffersScreen = ({ navigation }) => {
+const ExpiredOffersScreen = ({ navigation, route }) => {
   const dispatch = useDispatch()
   const expiredJobs = useSelector((state) => state.jobs?.expiredJobs || [])
+  const fromDrawer = route?.params?.fromDrawer
+  const headerTitle = route?.params?.headerTitle || 'Expired Offers'
   const [refreshing, setRefreshing] = React.useState(false)
 
   // Seed dummy data on mount if empty
@@ -57,6 +60,9 @@ const ExpiredOffersScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      {fromDrawer ? (
+        <AppHeader title={headerTitle} showBackButton={false} />
+      ) : null}
       {expiredJobs.length > 0 ? (
         <>
           <View style={styles.headerContainer}>
