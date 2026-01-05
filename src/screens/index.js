@@ -73,6 +73,7 @@ import SocialMedia from './main/Recruiter/profile/SocialMedia';
 import Password from './main/Recruiter/profile/Password';
 import KycDocument from './main/Recruiter/profile/kyc/KycDocument';
 import KycSubmit from './main/Recruiter/profile/kyc/KycSubmit';
+import AccountSettings from './main/Recruiter/profile/AccountSettings';
 import JobSeekerTabNavigator from '@/navigation/JobSeekerTab';
 import WorkExperienceScreen from './main/JobSeeker/DashBoard/TabScreens/WorkExperience';
 import JobSeekerDashboard from './main/JobSeeker/DashBoard/Dashboard';
@@ -208,6 +209,7 @@ export {
   Biography,
   SocialMedia,
   Password,
+  AccountSettings,
   KycDocument,
   KycSubmit,
   JobSeekerTabNavigator,

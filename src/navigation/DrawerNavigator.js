@@ -224,6 +224,7 @@ const DrawerNavigator = () => {
       <Drawer.Screen name={screenNames.SOCIAL_MEDIA} component={ui.SocialMedia} />
       <Drawer.Screen name={screenNames.PASSWORD} component={ui.Password} />
       <Drawer.Screen name={screenNames.PROFILE} component={ui.Profile} />
+      <Drawer.Screen name={'AccountSettings'} component={ui.AccountSettings} />
       <Drawer.Screen name={screenNames.KYC_KYB_DOC} component={ui.KycDocument} />
       <Drawer.Screen name={screenNames.KYC_KYB_SUBMIT} component={ui.KycSubmit} />
 

@@ -119,7 +119,7 @@ const CustomDrawer = ({
             { key: 'staff-preferences', title: 'Staff Preferences', icon: 'options-outline', route: screenNames.STAFF_PREFERENCES },
             { key: 'app-settings', title: 'App Settings', icon: 'phone-portrait-outline', route: screenNames.APP_SETTINGS },
             { key: 'squad-settings', title: 'Squad Settings', icon: 'people-outline', route: screenNames.SQUAD_SETTINGS },
-            { key: 'account-settings', title: 'Account Settings', icon: 'person-circle-outline', route: 'AccountSettings' },
+            // { key: 'account-settings', title: 'Account Settings', icon: 'person-circle-outline', route: 'AccountSettings' },
           ],
         },
         {
