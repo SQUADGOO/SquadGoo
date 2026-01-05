@@ -175,20 +175,20 @@ const CustomDrawer = ({
           iconLib: iconLibName.Ionicons,
           route: screenNames.MARKETPLACE_STACK,
         },
-        {
-          key: 'orders',
-          title: 'My Orders',
-          icon: 'receipt-outline',
-          iconLib: iconLibName.Ionicons,
-          route: screenNames.MARKETPLACE_ORDERS,
-        },
-        {
-          key: 'logout',
-          title: 'Log out',
-          icon: 'log-out-outline',
-          iconLib: iconLibName.Ionicons,
-          route: 'Logout',
-        },
+        // {
+        //   key: 'orders',
+        //   title: 'My Orders',
+        //   icon: 'receipt-outline',
+        //   iconLib: iconLibName.Ionicons,
+        //   route: screenNames.MARKETPLACE_ORDERS,
+        // },
+        // {
+        //   key: 'logout',
+        //   title: 'Log out',
+        //   icon: 'log-out-outline',
+        //   iconLib: iconLibName.Ionicons,
+        //   route: 'Logout',
+        // },
       ]
     }
 
@@ -279,13 +279,13 @@ const CustomDrawer = ({
           iconLib: iconLibName.Ionicons,
           route: screenNames.MARKETPLACE_STACK,
         },
-        {
-          key: 'orders',
-          title: 'My Orders',
-          icon: 'receipt-outline',
-          iconLib: iconLibName.Ionicons,
-          route: screenNames.MARKETPLACE_ORDERS,
-        },
+        // {
+        //   key: 'orders',
+        //   title: 'My Orders',
+        //   icon: 'receipt-outline',
+        //   iconLib: iconLibName.Ionicons,
+        //   route: screenNames.MARKETPLACE_ORDERS,
+        // },
       ]
     }
 
