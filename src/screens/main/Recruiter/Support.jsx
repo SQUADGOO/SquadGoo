@@ -1,13 +1,13 @@
-import {Alert, StyleSheet, View} from 'react-native';
+import {Alert, StyleSheet, View, TouchableOpacity} from 'react-native';
 import React, {useState} from 'react';
-import AppHeader from '@/core/AppHeader';
+import PoolHeader from '@/core/PoolHeader';
 import AppButton from '@/core/AppButton';
-import {colors, hp, wp} from '@/theme';
+import {colors, hp, wp, getFontSize} from '@/theme';
 import AppText, {Variant} from '@/core/AppText';
 import AppInputField from '@/core/AppInputField';
 import AppDropDown from '@/core/AppDropDown';
-import Scrollable from '@/core/Scrollable';
-import Spacer from '@/core/Spacer';
+import {ScrollView} from 'react-native-gesture-handler';
+import VectorIcons, {iconLibName} from '@/theme/vectorIcon';
 import {useNavigation} from '@react-navigation/native';
 import {screenNames} from '@/navigation/screenNames';
 import {
@@ -21,39 +21,47 @@ const supportOptions = [
     id: 'faqs',
     title: "FAQ's",
     subtitle: 'Find answers to common questions',
-    buttonText: "Browse FAQ's",
+    icon: 'help-circle-outline',
+    iconColor: colors.primary,
+    bgColor: '#FEF3C7',
   },
   {
     id: 'chat',
     title: 'Live Chat',
     subtitle: 'Chat with our support team',
-    buttonText: 'Start Chat',
+    icon: 'chatbubbles-outline',
+    iconColor: '#10B981',
+    bgColor: '#D1FAE5',
   },
   {
     id: 'callback',
     title: 'Request Callback',
     subtitle: 'Schedule a call with support',
-    buttonText: 'Schedule Call',
+    icon: 'call-outline',
+    iconColor: '#6366F1',
+    bgColor: '#E0E7FF',
   },
   {
     id: 'tickets',
     title: 'Support Tickets',
     subtitle: 'View and manage your tickets',
-    buttonText: 'View Tickets',
+    icon: 'ticket-outline',
+    iconColor: '#8B5CF6',
+    bgColor: '#EDE9FE',
   },
 ];
 
-const postOptions = [
-  {label: 'All Post', value: 'all'},
-  {label: 'Last week', value: 'last_week'},
-  {label: 'Last 2 weeks', value: 'last_2_weeks'},
-  {label: 'Last month', value: 'last_month'},
+const issueTypeOptions = [
+  {label: 'General', value: 'general'},
+  {label: 'Payments', value: 'payments'},
+  {label: 'Job Offers', value: 'job_offers'},
+  {label: 'Technical', value: 'technical'},
 ];
 
 const Support = () => {
   const navigation = useNavigation();
   const [isVisible, setIsVisible] = useState(false);
-  const [postFilter, setPostFilter] = useState('all');
+  const [postFilter, setPostFilter] = useState('general');
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
   const [tickets, setTickets] = useState(defaultTickets);
@@ -83,7 +91,7 @@ const Support = () => {
     setTickets(prev => [newTicket, ...prev]);
     setSubject('');
     setDescription('');
-    setPostFilter('all');
+    setPostFilter('general');
     Alert.alert(
       'Ticket submitted',
       'Thanks! Our support team will get back to you shortly.',
@@ -115,70 +123,126 @@ const Support = () => {
   };
 
   return (
-    <>
-      <AppHeader title="Support" showTopIcons={false} />
-      <Scrollable hasInput>
-        <View style={styles.container}>
-          {/* Support Options */}
-          {supportOptions.map(option => (
-            <View key={option.id} style={styles.card}>
-              <AppText variant={Variant.bodybold} style={styles.sectionTitle}>
-                {option.title}
-              </AppText>
-              <AppText variant={Variant.caption} style={styles.sectionSubtitle}>
-                {option.subtitle}
-              </AppText>
-              <AppButton
-                text={option.buttonText}
-                bgColor={colors.primary}
-                onPress={() => handleSupportAction(option.id)}
-              />
-            </View>
-          ))}
+    <View style={styles.screen}>
+      <PoolHeader title="Support" />
 
-          {/* Create Ticket Section */}
-          <AppText variant={Variant.bodybold} style={styles.sectionTitle}>
+      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+        {/* Header Section */}
+        <View style={styles.headerSection}>
+          <View style={styles.headerIconContainer}>
+            <VectorIcons
+              name={iconLibName.Ionicons}
+              iconName="headset-outline"
+              size={38}
+              color={colors.primary}
+            />
+          </View>
+          <AppText variant={Variant.h6} style={styles.headerTitle}>
+            How can we help you?
+          </AppText>
+          <AppText variant={Variant.caption} style={styles.headerSubtitle}>
+            Choose an option below to get started
+          </AppText>
+        </View>
+
+        {/* Support Options */}
+        <View style={styles.optionsContainer}>
+          {supportOptions.map(option => (
+            <TouchableOpacity
+              key={option.id}
+              style={styles.optionCard}
+              onPress={() => handleSupportAction(option.id)}
+              activeOpacity={0.7}>
+              <View
+                style={[
+                  styles.optionIconContainer,
+                  {backgroundColor: option.bgColor},
+                ]}>
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName={option.icon}
+                  size={24}
+                  color={option.iconColor}
+                />
+              </View>
+              <View style={styles.optionContent}>
+                <AppText variant={Variant.body} style={styles.optionTitle}>
+                  {option.title}
+                </AppText>
+                <AppText variant={Variant.caption} style={styles.optionSubtitle}>
+                  {option.subtitle}
+                </AppText>
+              </View>
+              <VectorIcons
+                name={iconLibName.Ionicons}
+                iconName="chevron-forward"
+                size={20}
+                color={colors.gray}
+              />
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Info Section */}
+        <View style={styles.infoSection}>
+          <VectorIcons
+            name={iconLibName.Ionicons}
+            iconName="information-circle-outline"
+            size={20}
+            color={colors.gray}
+          />
+          <AppText variant={Variant.caption} style={styles.infoText}>
+            If you need help urgently, start a Live Chat. For longer issues, submit a ticket and our team will follow up.
+          </AppText>
+        </View>
+
+        {/* Create Ticket Card */}
+        <View style={styles.ticketCard}>
+          <AppText variant={Variant.bodybold} style={styles.ticketTitle}>
             Create New Ticket
           </AppText>
-          <AppText variant={Variant.caption} style={styles.sectionSubtitle}>
+          <AppText variant={Variant.caption} style={styles.ticketSubtitle}>
             Describe your issue and we'll help you resolve it
           </AppText>
 
-          <AppText variant={Variant.bodybold} style={styles.sectionTitle}>
+          <AppText variant={Variant.body} style={styles.inputLabel}>
             Subject
           </AppText>
           <AppInputField
-            placeholder="Brief Description of your issue"
+            placeholder="Brief description of your issue"
             value={subject}
             onChangeText={setSubject}
-            style={styles.inputField}
+            style={styles.fieldContainer}
+            wrapperStyle={styles.fieldWrapper}
+            inputStyle={styles.fieldInput}
           />
 
-          <AppText variant={Variant.bodybold} style={styles.sectionTitle}>
+          <AppText variant={Variant.body} style={styles.inputLabel}>
             Related To
           </AppText>
           <AppDropDown
-            placeholder="All Post"
-            options={postOptions}
+            placeholder="Select issue type"
+            options={issueTypeOptions}
             isVisible={isVisible}
             setIsVisible={setIsVisible}
             selectedValue={postFilter}
             onSelect={handlePostFilterChange}
-            style={styles.filterDropdown}
+            style={styles.dropdownContainer}
           />
 
-          <AppText variant={Variant.bodybold} style={styles.sectionTitle}>
+          <AppText variant={Variant.body} style={styles.inputLabel}>
             Description
           </AppText>
           <AppInputField
-            placeholder="Provide Detailed Information..."
+            placeholder="Provide detailed information..."
             value={description}
             onChangeText={setDescription}
             multiline
-            style={styles.textArea}
+            style={styles.fieldContainer}
+            wrapperStyle={[styles.fieldWrapper, styles.textAreaWrapper]}
+            inputStyle={[styles.fieldInput, styles.textAreaInput]}
           />
 
-          {/* <Spacer size={hp(5)} /> */}
           <AppButton
             text="Submit Ticket"
             bgColor={colors.primary}
@@ -186,58 +250,205 @@ const Support = () => {
             style={styles.submitBtn}
           />
         </View>
-      </Scrollable>
-    </>
+
+        {/* Contact Section */}
+        <View style={styles.contactSection}>
+          <AppText variant={Variant.body} style={styles.contactTitle}>
+            Need urgent help?
+          </AppText>
+          <View style={styles.contactRow}>
+            <VectorIcons
+              name={iconLibName.Ionicons}
+              iconName="mail-outline"
+              size={18}
+              color={colors.primary}
+            />
+            <AppText variant={Variant.caption} style={styles.contactText}>
+              support@squadgoo.com.au
+            </AppText>
+          </View>
+          <View style={styles.contactRow}>
+            <VectorIcons
+              name={iconLibName.Ionicons}
+              iconName="time-outline"
+              size={18}
+              color={colors.primary}
+            />
+            <AppText variant={Variant.caption} style={styles.contactText}>
+              Support hours: Mon-Fri, 9AM-6PM AEST
+            </AppText>
+          </View>
+        </View>
+
+        <View style={{height: hp(3)}} />
+      </ScrollView>
+    </View>
   );
 };
 
 export default Support;
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-  },
-  card: {
-    width: wp(90),
-    borderWidth: 1,
-    borderRadius: wp(2),
-    padding: 12,
-    marginBottom: 16,
+  screen: {
+    flex: 1,
     backgroundColor: colors.white,
-    borderColor: colors.text,
   },
-  sectionTitle: {
-    marginTop: 8,
-    marginBottom: 4,
+  scroll: {
+    flex: 1,
+    backgroundColor: colors.white,
+  },
+  headerSection: {
+    alignItems: 'center',
+    paddingVertical: hp(4),
+    paddingHorizontal: wp(4),
+    backgroundColor: (colors.grayE8 ? colors.grayE8 : '#E8E8E8') + '30',
+  },
+  headerIconContainer: {
+    width: wp(18),
+    height: wp(18),
+    borderRadius: wp(9),
+    backgroundColor: colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: hp(2),
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  headerTitle: {
+    color: colors.black,
+    fontSize: getFontSize(18),
+    fontWeight: '700',
+    marginBottom: hp(0.5),
+    textAlign: 'center',
+  },
+  headerSubtitle: {
+    color: colors.gray,
+    textAlign: 'center',
+  },
+  optionsContainer: {
+    padding: wp(4),
+  },
+  optionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    padding: wp(4),
+    borderRadius: 12,
+    marginBottom: hp(1.5),
+    borderWidth: 1,
+    borderColor: colors.grayE8 ? colors.grayE8 : '#E8E8E8',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  optionIconContainer: {
+    width: wp(12),
+    height: wp(12),
+    borderRadius: wp(6),
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: wp(3),
+  },
+  optionContent: {
+    flex: 1,
+  },
+  optionTitle: {
+    color: colors.black,
+    fontWeight: '600',
+    marginBottom: hp(0.3),
+  },
+  optionSubtitle: {
+    color: colors.gray,
+  },
+  infoSection: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: (colors.grayE8 ? colors.grayE8 : '#E8E8E8') + '40',
+    marginHorizontal: wp(4),
+    padding: wp(4),
+    borderRadius: 12,
+    marginBottom: hp(2),
+  },
+  infoText: {
+    flex: 1,
+    marginLeft: wp(2),
+    color: colors.gray,
+    lineHeight: 20,
+  },
+  ticketCard: {
+    marginHorizontal: wp(4),
+    padding: wp(4),
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.grayE8 ? colors.grayE8 : '#E8E8E8',
+    marginBottom: hp(2),
+  },
+  ticketTitle: {
+    color: colors.black,
+    marginBottom: hp(0.5),
+  },
+  ticketSubtitle: {
+    color: colors.gray,
+    marginBottom: hp(2),
+  },
+  inputLabel: {
+    color: colors.black,
+    fontWeight: '600',
+    marginBottom: hp(1),
+  },
+  fieldContainer: {
+    marginBottom: hp(1.4),
+  },
+  fieldWrapper: {
+    backgroundColor: (colors.lightGray || '#F6F7FB'),
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.grayE8 ? colors.grayE8 : '#E8E8E8',
+  },
+  fieldInput: {
+    fontSize: getFontSize(14),
     color: colors.black,
   },
-  sectionSubtitle: {
-    marginBottom: 12,
-    color: colors.text,
+  textAreaWrapper: {
+    // keep the default multiline height from AppInputField, just adjust padding feel
+    paddingTop: hp(0.5),
   },
-  inputField: {
-    borderWidth: 0.5,
-    borderColor: colors.text,
-    borderRadius: wp(1),
-    marginBottom: 12,
-    backgroundColor: colors.white,
+  textAreaInput: {
+    paddingTop: hp(0.6),
   },
-  filterDropdown: {
-    marginBottom: 12,
-    borderRadius: 5,
-    borderColor: colors.text,
-  },
-  textArea: {
-    borderWidth: 0.5,
-    borderColor: colors.text,
-    borderRadius: wp(1),
-    height: hp(12),
-    backgroundColor: colors.white,
-    marginBottom: 16,
+  dropdownContainer: {
+    marginBottom: hp(1.4),
   },
   submitBtn: {
-    // marginTop: 8,
-    marginVertical: hp(5),
-
+    marginTop: hp(1),
+  },
+  contactSection: {
+    marginHorizontal: wp(4),
+    padding: wp(4),
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.grayE8 ? colors.grayE8 : '#E8E8E8',
+    marginBottom: hp(4),
+  },
+  contactTitle: {
+    color: colors.black,
+    fontWeight: '600',
+    marginBottom: hp(1.5),
+  },
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp(1),
+  },
+  contactText: {
+    marginLeft: wp(2),
+    color: colors.gray,
   },
 });

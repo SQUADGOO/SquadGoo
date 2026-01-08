@@ -1,28 +1,69 @@
 import React, {useState} from 'react';
 import {StyleSheet, View, Switch} from 'react-native';
-import AppHeader from '@/core/AppHeader';
+import PoolHeader from '@/core/PoolHeader';
 import AppText, {Variant} from '@/core/AppText';
 import AppDropDown from '@/core/AppDropDown';
 import CustomCalendar from '@/core/CustomCalendar';
-import {colors, hp} from '@/theme';
+import {colors, hp, wp, getFontSize} from '@/theme';
 import { ScrollView } from 'react-native-gesture-handler';
 
 const JobSettings = () => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [isVisible1, setIsVisible1] = useState(false);
-  const [postFilter, setPostFilter] = useState('all');
-  const [postFilter1, setPostFilter1] = useState('all');
+  // Dropdown states
+  const [isJobTypeVisible, setIsJobTypeVisible] = useState(false);
+  const [isUserTypeVisible, setIsUserTypeVisible] = useState(false);
+  const [jobTypeFilter, setJobTypeFilter] = useState('both');
+  const [userTypeFilter, setUserTypeFilter] = useState('all');
 
-  const postOptions = [
-    {label: 'All Post', value: 'all'},
-    {label: 'Last week', value: 'last_week'},
-    {label: 'Last 2 weeks', value: 'last_2_weeks'},
-    {label: 'Last month', value: 'last_month'},
+  // Switch states
+  const [platformPayments, setPlatformPayments] = useState(false);
+  const [sufficientBalance, setSufficientBalance] = useState(false);
+  const [proBadgeOnly, setProBadgeOnly] = useState(false);
+  const [aiMatching, setAiMatching] = useState(false);
+  const [onlyProSeekers, setOnlyProSeekers] = useState(false);
+  const [inAppPayments, setInAppPayments] = useState(false);
+  const [squadMatching, setSquadMatching] = useState(false);
+
+  // Dropdown options
+  const jobTypeOptions = [
+    {label: 'Both Manual & Quick', value: 'both'},
+    {label: 'Manual Only', value: 'manual'},
+    {label: 'Quick Only', value: 'quick'},
   ];
 
-  const handlePostFilterChange = (value, option) => {
-    setPostFilter(value);
-    console.log('Post filter changed to:', option.label);
+  const userTypeOptions = [
+    {label: 'All Users', value: 'all'},
+    {label: 'Recruiters Only', value: 'recruiters'},
+    {label: 'Individuals Only', value: 'individuals'},
+  ];
+
+  // Toggle row helper function
+  const renderToggleRow = (label, description, value, onChange) => (
+    <View style={styles.toggleRow}>
+      <View style={{ flex: 1 }}>
+        <AppText variant={Variant.body} style={styles.toggleLabel}>
+          {label}
+        </AppText>
+        <AppText variant={Variant.caption} style={styles.toggleDesc}>
+          {description}
+        </AppText>
+      </View>
+      <Switch
+        value={value}
+        onValueChange={onChange}
+        trackColor={{ false: '#e0e0e0', true: colors.primary }}
+        thumbColor={value ? colors.white : '#f4f3f4'}
+      />
+    </View>
+  );
+
+  const handleJobTypeChange = (value) => {
+    setJobTypeFilter(value);
+    console.log('Job type filter changed to:', value);
+  };
+
+  const handleUserTypeChange = (value) => {
+    setUserTypeFilter(value);
+    console.log('User type filter changed to:', value);
   };
 
   const handleDateSelect = date => {
@@ -30,109 +71,121 @@ const JobSettings = () => {
   };
 
   return (
-    <>
-      <AppHeader title="Job Settings" showTopIcons={false} />
-      <ScrollView>
+    <View style={styles.container}>
+      {/* Header */}
+      <PoolHeader title='Job Settings' />
 
-      <View style={styles.container}>
-        <AppText variant={Variant.bodybold} style={styles.sectionTitle}>
+      {/* Content */}
+      <ScrollView contentContainerStyle={styles.scroll}>
+        {/* Job Offer Preferences */}
+        <AppText variant={Variant.h6} style={styles.sectionTitle}>
           Job Offer Preferences
         </AppText>
-        <AppText variant={Variant.caption} style={styles.sectionSubtitle}>
+        <AppText variant={Variant.caption} style={styles.sectionDesc}>
           Configure how you receive job offers
         </AppText>
 
-        {/* Dropdown: Type of Job Offers */}
-        <AppText variant={Variant.caption} style={styles.label}>
+        <AppText variant={Variant.body} style={styles.inputLabel}>
           Type of Job Offers
         </AppText>
         <AppDropDown
-          placeholder="All Post"
-          options={postOptions}
-          isVisible={isVisible}
-          setIsVisible={setIsVisible}
-          selectedValue={postFilter}
-          onSelect={handlePostFilterChange}
-          style={[styles.filterDropdown,{zindex: 1}]}
+          placeholder="Select Job Type"
+          options={jobTypeOptions}
+          isVisible={isJobTypeVisible}
+          setIsVisible={setIsJobTypeVisible}
+          selectedValue={jobTypeFilter}
+          onSelect={handleJobTypeChange}
+          style={[styles.filterDropdown, { zIndex: 2 }]}
         />
 
-        {/* Dropdown: Offers from User Type */}
-        <AppText variant={Variant.caption} style={styles.label}>
+        <AppText variant={Variant.body} style={styles.inputLabel}>
           Offers from User Type
         </AppText>
         <AppDropDown
-          placeholder="All Post"
-          options={postOptions}
-          isVisible={isVisible1}
-          setIsVisible={setIsVisible1}
-          selectedValue={postFilter1}
-          onSelect={handlePostFilterChange}
-          style={styles.filterDropdown}
+          placeholder="Select User Type"
+          options={userTypeOptions}
+          isVisible={isUserTypeVisible}
+          setIsVisible={setIsUserTypeVisible}
+          selectedValue={userTypeFilter}
+          onSelect={handleUserTypeChange}
+          style={[styles.filterDropdown, { zIndex: 1 }]}
         />
 
-        {/* Switches */}
-        <AppText variant={Variant.caption} style={styles.label}>
+        {/* Quick Offer Settings */}
+        <AppText variant={Variant.h6} style={[styles.sectionTitle, { marginTop: hp(3) }]}>
           Quick Offer Settings
         </AppText>
-        <View style={styles.switchRow}>
-          <Switch />
-          <AppText variant={Variant.caption} style={styles.switchLabel}>
-            Only receive offers with platform-handled payments
-          </AppText>
-        </View>
+        <AppText variant={Variant.caption} style={styles.sectionDesc}>
+          Configure preferences for receiving quick job offers
+        </AppText>
 
-        <View style={styles.switchRow}>
-          <Switch />
-          <AppText variant={Variant.caption} style={styles.switchLabel}>
-            Only from recruiters with sufficient balance
-          </AppText>
-        </View>
+        {renderToggleRow(
+          'Platform-handled payments only',
+          'Only receive offers with in-app payment handling',
+          platformPayments,
+          setPlatformPayments
+        )}
 
-        <View style={styles.switchRow}>
-          <Switch />
-          <AppText variant={Variant.caption} style={styles.switchLabel}>
-            Only from PRO badge or above recruiters
-          </AppText>
-        </View>
+        {renderToggleRow(
+          'Sufficient balance required',
+          'Only from recruiters with enough balance for full job',
+          sufficientBalance,
+          setSufficientBalance
+        )}
 
-        <AppText variant={Variant.caption} style={styles.label}>
+        {renderToggleRow(
+          'PRO badge recruiters only',
+          'Only receive offers from verified PRO recruiters',
+          proBadgeOnly,
+          setProBadgeOnly
+        )}
+
+        {/* Quick Search Settings */}
+        <AppText variant={Variant.h6} style={[styles.sectionTitle, { marginTop: hp(3) }]}>
           Quick Search Settings
         </AppText>
-        <View style={styles.switchRow}>
-          <Switch />
-          <AppText variant={Variant.caption} style={styles.switchLabel}>
-            Enable AI auto-matching
-          </AppText>
-        </View>
+        <AppText variant={Variant.caption} style={styles.sectionDesc}>
+          Configure automatic matching preferences
+        </AppText>
 
-        <View style={styles.switchRow}>
-          <Switch />
-          <AppText variant={Variant.caption} style={styles.switchLabel}>
-            Only PRO job seekers
-          </AppText>
-        </View>
+        {renderToggleRow(
+          'Enable AI auto-matching',
+          'Let AI automatically match candidates',
+          aiMatching,
+          setAiMatching
+        )}
 
-        <View style={styles.switchRow}>
-          <Switch />
-          <AppText variant={Variant.caption} style={styles.switchLabel}>
-            Only profiles that accept in-app payments
-          </AppText>
-        </View>
+        {renderToggleRow(
+          'Only PRO job seekers',
+          'Match only with verified pro members',
+          onlyProSeekers,
+          setOnlyProSeekers
+        )}
 
-        <View style={styles.switchRow}>
-          <Switch />
-          <AppText variant={Variant.caption} style={styles.switchLabel}>
-            Enable Squad matching (when multiple staff needed)
-          </AppText>
-        </View>
+        {renderToggleRow(
+          'In-app payment profiles only',
+          'Match only with candidates accepting in-app payments',
+          inAppPayments,
+          setInAppPayments
+        )}
 
-        {/* Calendar */}
+        {renderToggleRow(
+          'Enable squad matching',
+          'Allow squad matching when multiple staff needed',
+          squadMatching,
+          setSquadMatching
+        )}
+
+        {/* Availability Settings */}
+        <AppText variant={Variant.h6} style={[styles.sectionTitle, { marginTop: hp(3) }]}>
+          Availability Settings
+        </AppText>
+        <AppText variant={Variant.caption} style={styles.sectionDesc}>
+          Select dates when you are available for quick offers
+        </AppText>
         <CustomCalendar onDateSelect={handleDateSelect} />
-      </View>
-      <View style={{height: 20}} />
       </ScrollView>
-
-    </>
+    </View>
   );
 };
 
@@ -141,37 +194,42 @@ export default JobSettings;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingTop: 5,
+    backgroundColor: colors.white,
+  },
+  scroll: {
+    padding: wp(4),
+    paddingBottom: hp(10),
   },
   sectionTitle: {
-    marginTop: 10,
-    marginBottom: 2,
     color: colors.black,
+    fontWeight: '700',
+    fontSize: getFontSize(16),
+    marginBottom: hp(0.5),
   },
-  sectionSubtitle: {
-    marginBottom: 2,
-    color: colors.text,
+  sectionDesc: {
+    color: colors.textPrimary,
+    marginBottom: hp(2),
   },
-  label: {
-    marginTop: hp(2.5),
-    marginVertical: 4,
-    color: colors.textSecondary
-  },
-  filterDropdown: {
-    flex: 1,
-    marginBottom: 12,
-    borderRadius: 5,
-    marginVertical: hp(1),
-  },
-  switchRow: {
+  toggleRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: hp(2),
+    marginTop: hp(1),
+  },
+  toggleLabel: {
+    color: colors.secondary,
+    fontWeight: '600',
+  },
+  toggleDesc: {
+    color: colors.textPrimary,
     marginTop: hp(0.5),
   },
-  switchLabel: {
-    marginLeft: 8,
-    flex: 1,
+  inputLabel: {
+    color: colors.secondary,
+    fontWeight: '600',
+    marginBottom: hp(1),
+  },
+  filterDropdown: {
+    marginBottom: hp(2),
   },
 });

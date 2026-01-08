@@ -41,7 +41,7 @@ const HomeTopTabNavigator = () => {
       }}
     >
       <Tab.Screen
-        name={screenNames.ACTIVE_JOB_OFFERS}
+        name={screenNames.ACTIVE_OFFERS}
         component={ActiveJobOffers}
         options={{
           tabBarLabel: ({ focused }) => (
@@ -52,7 +52,7 @@ const HomeTopTabNavigator = () => {
         }}
       />
       <Tab.Screen
-        name="CompletedOffers"
+        name={screenNames.COMPLETED_OFFERS}
         component={CompletedOffers}
         options={{
           tabBarLabel: ({ focused }) => (
@@ -63,7 +63,7 @@ const HomeTopTabNavigator = () => {
         }}
       />
       <Tab.Screen
-        name="ExpiredOffers"
+        name={screenNames.EXPIRED_OFFERS}
         component={ExpiredOffers}
         options={{
           tabBarLabel: ({ focused }) => (

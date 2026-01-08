@@ -15,7 +15,7 @@ const Drawer = createDrawerNavigator();
 const DrawerNavigator = () => {
   return (
     <Drawer.Navigator
-      drawerContent={props => <CustomDrawer {...props}  onNavigate={(route) => props.navigation.navigate(route)}
+      drawerContent={props => <CustomDrawer {...props}  onNavigate={(route, params) => props.navigation.navigate(route, params)}
  />}
       screenOptions={{
         headerShown: false,
@@ -78,10 +78,14 @@ const DrawerNavigator = () => {
         name={screenNames.CONTRACTORS}
         component={ui.Contractors}
       />
+          <Drawer.Screen
+        name={screenNames.EMPLOYEES}
+        component={ui.Employees}
+      />
 
           <Drawer.Screen
         name={screenNames.ACTIVE_OFFERS}  
-        component={ui.ActiveOffers}
+        component={ui.ActiveJobOffers}
       />
 
           <Drawer.Screen
@@ -117,7 +121,7 @@ const DrawerNavigator = () => {
       />
        <Drawer.Screen
         name={screenNames.NOTICATIONS}
-        component={ui.Notifcations}
+        component={ui.Notifications}
       />
 
        
@@ -146,6 +150,10 @@ const DrawerNavigator = () => {
         name={screenNames.JOB_COMPLETE}
         component={ui.JobComplete}
       />
+      <Drawer.Screen
+        name={screenNames.CANDIDATE_HOURS}
+        component={ui.CandidateHours}
+      />
       
       {/* Quick Search Screens - Recruiter */}
       <Drawer.Screen
@@ -171,6 +179,10 @@ const DrawerNavigator = () => {
       <Drawer.Screen
         name={screenNames.QUICK_SEARCH_CANDIDATE_PROFILE}
         component={ui.QuickSearchCandidateProfile}
+      />
+      <Drawer.Screen
+        name={screenNames.SEND_OFFER}
+        component={ui.SendOffer}
       />
       {/* <Drawer.Screen
         name={screenNames.QUICK_SEARCH_MATCH_LIST}
@@ -212,6 +224,7 @@ const DrawerNavigator = () => {
       <Drawer.Screen name={screenNames.SOCIAL_MEDIA} component={ui.SocialMedia} />
       <Drawer.Screen name={screenNames.PASSWORD} component={ui.Password} />
       <Drawer.Screen name={screenNames.PROFILE} component={ui.Profile} />
+      <Drawer.Screen name={'AccountSettings'} component={ui.AccountSettings} />
       <Drawer.Screen name={screenNames.KYC_KYB_DOC} component={ui.KycDocument} />
       <Drawer.Screen name={screenNames.KYC_KYB_SUBMIT} component={ui.KycSubmit} />
 

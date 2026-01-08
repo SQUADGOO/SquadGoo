@@ -6,6 +6,7 @@ const initialState = {
   heldItems: [],
   orders: [],
   products: [],
+  disputes: [],
 };
 
 export const marketplaceSlice = createSlice({
@@ -127,6 +128,83 @@ export const marketplaceSlice = createSlice({
         state.products[index] = {...state.products[index], ...payload};
       }
     },
+
+    // Dispute actions
+    addDispute: (state, {payload}) => {
+      if (!state.disputes) {
+        state.disputes = [];
+      }
+      state.disputes = [payload, ...state.disputes];
+    },
+    updateDisputeStatus: (state, {payload}) => {
+      const {disputeId, status} = payload;
+      if (!state.disputes) {
+        state.disputes = [];
+        return;
+      }
+      const dispute = state.disputes.find(d => d.id === disputeId);
+      if (dispute) {
+        dispute.status = status;
+        dispute.updatedAt = new Date().toISOString();
+      }
+    },
+    addDisputeMessage: (state, {payload}) => {
+      const {disputeId, message} = payload;
+      if (!state.disputes) {
+        state.disputes = [];
+        return;
+      }
+      const dispute = state.disputes.find(d => d.id === disputeId);
+      if (dispute) {
+        if (!dispute.messages) {
+          dispute.messages = [];
+        }
+        dispute.messages.push(message);
+        dispute.updatedAt = new Date().toISOString();
+      }
+    },
+    incrementDisputeAppeal: (state, {payload}) => {
+      const {disputeId} = payload;
+      if (!state.disputes) {
+        state.disputes = [];
+        return;
+      }
+      const dispute = state.disputes.find(d => d.id === disputeId);
+      if (dispute && dispute.appeals < dispute.maxAppeals) {
+        dispute.appeals += 1;
+        dispute.status = 'in_progress';
+        dispute.updatedAt = new Date().toISOString();
+      }
+    },
+    resolveDispute: (state, {payload}) => {
+      const {disputeId, resolution, refundAmount} = payload;
+      if (!state.disputes) {
+        state.disputes = [];
+        return;
+      }
+      const dispute = state.disputes.find(d => d.id === disputeId);
+      if (dispute) {
+        dispute.status = 'resolved';
+        dispute.resolution = resolution;
+        dispute.refundAmount = refundAmount || 0;
+        dispute.resolvedAt = new Date().toISOString();
+        dispute.updatedAt = new Date().toISOString();
+        // Release held coins logic would be handled here or in a saga
+      }
+    },
+    closeDispute: (state, {payload}) => {
+      const {disputeId} = payload;
+      if (!state.disputes) {
+        state.disputes = [];
+        return;
+      }
+      const dispute = state.disputes.find(d => d.id === disputeId);
+      if (dispute) {
+        dispute.status = 'closed';
+        dispute.closedAt = new Date().toISOString();
+        dispute.updatedAt = new Date().toISOString();
+      }
+    },
   },
 });
 
@@ -147,6 +225,13 @@ export const {
   addProduct,
   removeProduct,
   updateProduct,
+  // Dispute actions
+  addDispute,
+  updateDisputeStatus,
+  addDisputeMessage,
+  incrementDisputeAppeal,
+  resolveDispute,
+  closeDispute,
 } = marketplaceSlice.actions;
 
 export default marketplaceSlice.reducer;

@@ -9,12 +9,15 @@ import { useSelector, useDispatch } from 'react-redux'
 import { colors, hp, wp } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import CompletedJobCard from '@/components/Recruiter/CompletedJobCard'
+import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
 import { seedDummyData } from '@/store/jobsSlice'
 
-const CompletedOffersScreen = ({ navigation }) => {
+const CompletedOffersScreen = ({ navigation, route }) => {
   const dispatch = useDispatch()
   const completedJobs = useSelector((state) => state.jobs?.completedJobs || [])
+  const fromDrawer = route?.params?.fromDrawer
+  const headerTitle = route?.params?.headerTitle || 'Completed Offers'
   const [refreshing, setRefreshing] = React.useState(false)
 
   // Seed dummy data on mount if empty
@@ -57,6 +60,9 @@ const CompletedOffersScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      {fromDrawer ? (
+        <AppHeader title={headerTitle} showBackButton={false} />
+      ) : null}
       {completedJobs.length > 0 ? (
         <>
           <View style={styles.headerContainer}>

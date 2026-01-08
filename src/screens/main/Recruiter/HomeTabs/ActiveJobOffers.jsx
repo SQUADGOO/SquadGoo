@@ -11,12 +11,15 @@ import { colors, hp, wp } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import JobCard from '@/components/Recruiter/JobCard'
 import JobFiltersBar from '@/components/Recruiter/JobFilterBar'
+import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
 import { closeJob } from '@/store/jobsSlice'
 
-const ActiveJobOffersScreen = ({ navigation }) => {
+const ActiveJobOffersScreen = ({ navigation, route }) => {
   const dispatch = useDispatch()
   const activeJobs = useSelector((state) => state.jobs?.activeJobs || [])
+  const fromDrawer = route?.params?.fromDrawer
+  const headerTitle = route?.params?.headerTitle || 'Active Offers'
   
   const [refreshing, setRefreshing] = useState(false)
   const [filteredJobs, setFilteredJobs] = useState([])
@@ -113,6 +116,21 @@ const ActiveJobOffersScreen = ({ navigation }) => {
     navigation.navigate(screenNames.MANUAL_MATCH_LIST, { jobId: job.id })
   }
 
+  const handleTrackHours = (job) => {
+    const candidate =
+      job?.acceptedCandidates?.[0] ||
+      job?.candidates?.find(c => c.status === 'accepted') ||
+      job?.candidates?.[0] ||
+      {
+        id: 'candidate-demo',
+        name: 'Candidate',
+      }
+    navigation.navigate(screenNames.CANDIDATE_HOURS, {
+      job,
+      candidate,
+    })
+  }
+
   const handleCloseJob = (job) => {
     Alert.alert(
       'Close Job',
@@ -150,6 +168,7 @@ const ActiveJobOffersScreen = ({ navigation }) => {
       onViewCandidates={handleViewCandidates}
       onCloseJob={handleCloseJob}
       onViewMatches={handleViewMatches}
+      onTrackHours={handleTrackHours}
     />
   )
 
@@ -157,6 +176,9 @@ const ActiveJobOffersScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      {fromDrawer ? (
+        <AppHeader title={headerTitle} showBackButton={false} />
+      ) : null}
       {/* Filter Bar */}
       <View style={{paddingVertical: 10, backgroundColor: colors.white, height: hp(8)}}>
         <JobFiltersBar

@@ -37,6 +37,8 @@ import MainDashboard from './main/Recruiter/DashBoard/MainDashboard';
 import LaborPoolScreen from './main/Recruiter/LaborPool/LaborPool';
 import SquadPoolScreen from './main/Recruiter/LaborPool/SquadPool';
 import Contractors from './main/Recruiter/LaborPool/Contractors';
+import Employees from './main/Recruiter/LaborPool/Employees';
+import SendOffer from './main/Recruiter/Offers/SendOffer';
 import ActiveOffers from './main/Recruiter/CurrentOffers/ActiveOffers';
 import DraftedOffers from './main/Recruiter/CurrentOffers/DraftedOffers';
 import CompletedOffers from './main/Recruiter/HomeTabs/CompletedOffers';
@@ -45,7 +47,6 @@ import StaffPreferences from './main/Recruiter/Settings/StaffPreferences';
 import UpdateMain from './main/Recruiter/Update/UpdateMain';
 import UpdateSecond from './main/Recruiter/Update/UpdateSecond';
 import UpdateThird from './main/Recruiter/Update/UpdateThird';
-import Notifcations from './main/Recruiter/Notifications';
 import Notifications from './main/Notifications';
 import StepOne from './main/Recruiter/QuickSearch/StepOne';
 import StepTwoQuickSearch from './main/Recruiter/QuickSearch/StepTwo';
@@ -72,6 +73,7 @@ import SocialMedia from './main/Recruiter/profile/SocialMedia';
 import Password from './main/Recruiter/profile/Password';
 import KycDocument from './main/Recruiter/profile/kyc/KycDocument';
 import KycSubmit from './main/Recruiter/profile/kyc/KycSubmit';
+import AccountSettings from './main/Recruiter/profile/AccountSettings';
 import JobSeekerTabNavigator from '@/navigation/JobSeekerTab';
 import WorkExperienceScreen from './main/JobSeeker/DashBoard/TabScreens/WorkExperience';
 import JobSeekerDashboard from './main/JobSeeker/DashBoard/Dashboard';
@@ -85,6 +87,18 @@ import Payment from './main/JobSeeker/DashBoard/MarketPlace/Payment';
 import Orders from './main/JobSeeker/DashBoard/MarketPlace/Orders';
 import OrderDetails from './main/JobSeeker/DashBoard/MarketPlace/OrderDetails';
 import MarketplaceStack from '@/navigation/MarketplaceStack';
+
+// Marketplace Support Screens
+import { 
+  MarketplaceSupport, 
+  DisputeResolution, 
+  CreateDispute, 
+  DisputeDetails, 
+  MarketplaceFAQ,
+  MarketplaceRequestCallback,
+  MarketplaceSupportTickets,
+  MarketplaceLiveChat,
+} from './main/JobSeeker/DashBoard/MarketPlace/Support';
 import KycBusiness from './main/Recruiter/profile/kyc/KycBusiness';
 import AddExperience from './main/JobSeeker/DashBoard/TabScreens/AddExperince/AddExpericnce';
 import AddJobStep1 from './main/JobSeeker/DashBoard/TabScreens/AddExperince/AddJobStep1';
@@ -118,6 +132,7 @@ import QuickSearchActiveOffersRecruiter from './main/Recruiter/QuickSearch/Activ
 import QuickSearchActiveJobsRecruiter from './main/Recruiter/QuickSearch/ActiveJobs';
 import LiveTracking from './main/Recruiter/QuickSearch/LiveTracking';
 import TimerManagement from './main/Recruiter/QuickSearch/TimerManagement';
+import CandidateHours from './main/Recruiter/QuickSearch/CandidateHours';
 
 // Tab Screens
 
@@ -161,6 +176,8 @@ export {
   LaborPoolScreen,
   SquadPoolScreen,
   Contractors,
+  Employees,
+  SendOffer,
   ActiveOffers,
   DraftedOffers,
   CompletedOffers,
@@ -169,7 +186,6 @@ export {
   UpdateMain,
   UpdateSecond,
   UpdateThird,
-  Notifcations,
   Notifications,
   StepOne,
   StepTwoQuickSearch,
@@ -193,6 +209,7 @@ export {
   Biography,
   SocialMedia,
   Password,
+  AccountSettings,
   KycDocument,
   KycSubmit,
   JobSeekerTabNavigator,
@@ -207,6 +224,16 @@ Payment,
 Orders,
 OrderDetails,
 MarketplaceStack,
+
+// Marketplace Support
+MarketplaceSupport,
+DisputeResolution,
+CreateDispute,
+DisputeDetails,
+MarketplaceFAQ,
+MarketplaceRequestCallback,
+MarketplaceSupportTickets,
+MarketplaceLiveChat,
 KycBusiness,
 AddExperience,
 AddJobStep1,
@@ -234,6 +261,7 @@ CompletedOffersJobSeeker,
   QuickSearchActiveJobsRecruiter,
   LiveTracking,
   TimerManagement,
+  CandidateHours,
   
   // Manual Search Screens (Job Seeker)
   ManualOffersJS,

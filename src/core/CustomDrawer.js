@@ -65,10 +65,10 @@ const CustomDrawer = ({
           iconLib: iconLibName.Ionicons,
           expandable: true,
           subItems: [
-            { key: 'labor-pool', title: 'Labor Pool', icon: 'briefcase-outline', route: screenNames.LABOR_POOL },
+            { key: 'labor-pool', title: 'Your Pool', icon: 'briefcase-outline', route: screenNames.LABOR_POOL },
             { key: 'squad-pool', title: 'Squad Pool', icon: 'people-circle-outline', route: screenNames.SQUAD_POOL },
             { key: 'contractors', title: 'Contractors', icon: 'hammer-outline', route: screenNames.CONTRACTORS },
-            { key: 'employees', title: 'Employees', icon: 'person-outline', route: 'Employees' },
+            { key: 'employees', title: 'Employees', icon: 'person-outline', route: screenNames.EMPLOYEES },
           ],
         },
         {
@@ -78,10 +78,34 @@ const CustomDrawer = ({
           iconLib: iconLibName.Ionicons,
           expandable: true,
           subItems: [
-            { key: 'active-offers', title: 'Active', icon: 'checkmark-circle-outline', route: screenNames.ACTIVE_OFFERS },
-            { key: 'completed-offers', title: 'Completed', icon: 'checkmark-done-outline', route: screenNames.COMPLETED_OFFERS },
-            { key: 'expired-offers', title: 'Expired', icon: 'time-outline', route: screenNames.EXPIRED_OFFERS },
-            { key: 'drafted-offers', title: 'Drafted', icon: 'document-outline', route: screenNames.DRAFTED_OFFERS },
+            {
+              key: 'active-offers',
+              title: 'Active',
+              icon: 'checkmark-circle-outline',
+              route: screenNames.ACTIVE_OFFERS,
+              params: { fromDrawer: true, headerTitle: 'Active Offers' },
+            },
+            {
+              key: 'completed-offers',
+              title: 'Completed',
+              icon: 'checkmark-done-outline',
+              route: screenNames.COMPLETED_OFFERS,
+              params: { fromDrawer: true, headerTitle: 'Completed Offers' },
+            },
+            {
+              key: 'expired-offers',
+              title: 'Expired',
+              icon: 'time-outline',
+              route: screenNames.EXPIRED_OFFERS,
+              params: { fromDrawer: true, headerTitle: 'Expired Offers' },
+            },
+            {
+              key: 'drafted-offers',
+              title: 'Drafted',
+              icon: 'document-outline',
+              route: screenNames.DRAFTED_OFFERS,
+              params: { fromDrawer: true, headerTitle: 'Drafted Offers' },
+            },
           ],
         },
         {
@@ -95,7 +119,7 @@ const CustomDrawer = ({
             { key: 'staff-preferences', title: 'Staff Preferences', icon: 'options-outline', route: screenNames.STAFF_PREFERENCES },
             { key: 'app-settings', title: 'App Settings', icon: 'phone-portrait-outline', route: screenNames.APP_SETTINGS },
             { key: 'squad-settings', title: 'Squad Settings', icon: 'people-outline', route: screenNames.SQUAD_SETTINGS },
-            { key: 'account-settings', title: 'Account Settings', icon: 'person-circle-outline', route: 'AccountSettings' },
+            // { key: 'account-settings', title: 'Account Settings', icon: 'person-circle-outline', route: 'AccountSettings' },
           ],
         },
         {
@@ -151,20 +175,20 @@ const CustomDrawer = ({
           iconLib: iconLibName.Ionicons,
           route: screenNames.MARKETPLACE_STACK,
         },
-        {
-          key: 'orders',
-          title: 'My Orders',
-          icon: 'receipt-outline',
-          iconLib: iconLibName.Ionicons,
-          route: screenNames.MARKETPLACE_ORDERS,
-        },
-        {
-          key: 'logout',
-          title: 'Log out',
-          icon: 'log-out-outline',
-          iconLib: iconLibName.Ionicons,
-          route: 'Logout',
-        },
+        // {
+        //   key: 'orders',
+        //   title: 'My Orders',
+        //   icon: 'receipt-outline',
+        //   iconLib: iconLibName.Ionicons,
+        //   route: screenNames.MARKETPLACE_ORDERS,
+        // },
+        // {
+        //   key: 'logout',
+        //   title: 'Log out',
+        //   icon: 'log-out-outline',
+        //   iconLib: iconLibName.Ionicons,
+        //   route: 'Logout',
+        // },
       ]
     }
 
@@ -255,13 +279,13 @@ const CustomDrawer = ({
           iconLib: iconLibName.Ionicons,
           route: screenNames.MARKETPLACE_STACK,
         },
-        {
-          key: 'orders',
-          title: 'My Orders',
-          icon: 'receipt-outline',
-          iconLib: iconLibName.Ionicons,
-          route: screenNames.MARKETPLACE_ORDERS,
-        },
+        // {
+        //   key: 'orders',
+        //   title: 'My Orders',
+        //   icon: 'receipt-outline',
+        //   iconLib: iconLibName.Ionicons,
+        //   route: screenNames.MARKETPLACE_ORDERS,
+        // },
       ]
     }
 
@@ -334,7 +358,7 @@ const CustomDrawer = ({
                   })
                 )
               } else {
-                onNavigate(item.route)
+                onNavigate(item.route, item.params)
               }
             }
           }}
@@ -381,7 +405,7 @@ const CustomDrawer = ({
                 style={styles.subMenuItem}
                 onPress={() => {
                   if (subItem.route) {
-                    onNavigate(subItem.route)
+                    onNavigate(subItem.route, subItem.params)
                   } else {
                     onNavigate(subItem.key) // fallback
                   }

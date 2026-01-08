@@ -77,6 +77,9 @@ const JobOfferDetails = () => {
     );
   }
 
+  const isQuickJob = job?.searchType?.toLowerCase?.() === 'quick' || job?.source === 'quick';
+  const primaryActionLabel = isQuickJob ? 'Accept' : 'Apply';
+
   const formatAvailability = (availability) => {
     if (!availability) return 'Not specified';
     if (typeof availability === 'string') return availability;
@@ -137,8 +140,10 @@ const JobOfferDetails = () => {
     dispatch(applyToOffer(job));
     
     Alert.alert(
-      'Application Submitted!',
-      `You have successfully applied for "${job.title}". The recruiter will review your application.`,
+      isQuickJob ? 'Offer Accepted!' : 'Application Submitted!',
+      isQuickJob
+        ? `You have accepted the quick offer for "${job.title}".`
+        : `You have successfully applied for "${job.title}". The recruiter will review your application.`,
       [
         {
           text: 'OK',
@@ -370,7 +375,7 @@ const JobOfferDetails = () => {
         {!(isCompleted || job.status === 'completed') && !alreadyApplied && (
           <View style={styles.buttonContainer}>
             <AppButton
-              text="Apply for this Job"
+              text={`${primaryActionLabel} this Job`}
               onPress={handleApply}
               bgColor={colors.primary}
               textColor="#FFFFFF"
@@ -383,7 +388,11 @@ const JobOfferDetails = () => {
           <View style={styles.buttonContainer}>
             <View style={styles.appliedStatusContainer}>
               <AppText variant={Variant.bodyMedium} style={styles.appliedStatusText}>
-                {hasDeclined ? 'You have declined this job offer' : 'You have already applied for this job'}
+                    {hasDeclined
+                      ? 'You have declined this job offer'
+                      : isQuickJob
+                        ? 'You have already accepted this job offer'
+                        : 'You have already applied for this job'}
               </AppText>
             </View>
           </View>
