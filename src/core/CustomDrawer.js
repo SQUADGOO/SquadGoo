@@ -159,12 +159,12 @@ const CustomDrawer = ({
         },
         {
           key: 'reports',
-          title: 'Reports & Statics',
+          title: 'Rating & Reports',
           icon: 'bar-chart-outline',
           iconLib: iconLibName.Ionicons,
           expandable: true,
           subItems: [
-            { key: 'rating-reports', title: 'Rating Reports', icon: 'star-outline', route: 'RatingReports' },
+            { key: 'billing-spend-summary', title: 'Billing & Spend Summary', icon: 'receipt-outline', route: screenNames.RECRUITER_BILLING_REPORTS },
           ],
         },
         {

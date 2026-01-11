@@ -258,6 +258,11 @@ const DrawerNavigator = () => {
         component={ui.AcceptedOffers}
       />
 
+      <Drawer.Screen
+        name={screenNames.RECRUITER_BILLING_REPORTS}
+        component={ui.RecruiterBillingReports}
+      />
+
     </Drawer.Navigator>
   );
 };

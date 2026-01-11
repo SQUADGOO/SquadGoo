@@ -134,6 +134,7 @@ import LiveTracking from './main/Recruiter/QuickSearch/LiveTracking';
 import TimerManagement from './main/Recruiter/QuickSearch/TimerManagement';
 import CandidateHours from './main/Recruiter/QuickSearch/CandidateHours';
 import JobSeekerEarningReports from './main/JobSeeker/Reports/JobSeekerEarningReports';
+import RecruiterBillingReports from './main/Recruiter/Reports/RecruiterBillingReports';
 
 // Tab Screens
 
@@ -264,6 +265,7 @@ CompletedOffersJobSeeker,
   TimerManagement,
   CandidateHours,
   JobSeekerEarningReports,
+  RecruiterBillingReports,
   
   // Manual Search Screens (Job Seeker)
   ManualOffersJS,

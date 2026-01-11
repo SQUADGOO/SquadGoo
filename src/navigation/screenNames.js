@@ -142,6 +142,9 @@ ACCEPTED_OFFERS: 'accepted_offers',
   // Jobseeker Reports
   JOBSEEKER_EARNING_REPORTS: 'jobseeker-earning-reports',
 
+  // Recruiter Reports
+  RECRUITER_BILLING_REPORTS: 'recruiter-billing-reports',
+
   // FORGOT_PASSWORD: 'forgot_password',
   // CHECK_EMAIL: 'check_email',
   // CREATE_PASSWORD: 'create_password',
