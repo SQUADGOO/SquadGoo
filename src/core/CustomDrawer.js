@@ -164,7 +164,6 @@ const CustomDrawer = ({
           iconLib: iconLibName.Ionicons,
           expandable: true,
           subItems: [
-            { key: 'earning-reports', title: 'Earning Reports', icon: 'cash-outline', route: 'EarningReports' },
             { key: 'rating-reports', title: 'Rating Reports', icon: 'star-outline', route: 'RatingReports' },
           ],
         },
@@ -268,7 +267,7 @@ const CustomDrawer = ({
           expandable: true,
           subItems: [
             { key: 'job-reports', title: 'Job Reports', icon: 'document-text-outline', route: 'JobReports' },
-            { key: 'earnings-report', title: 'Earnings Report', icon: 'cash-outline', route: 'EarningsReport' },
+            { key: 'earnings-report', title: 'Earnings Report', icon: 'cash-outline', route: screenNames.JOBSEEKER_EARNING_REPORTS },
             { key: 'performance', title: 'Performance Analytics', icon: 'analytics-outline', route: 'PerformanceAnalytics' },
           ],
         },

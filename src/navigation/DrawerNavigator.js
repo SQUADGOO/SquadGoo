@@ -257,7 +257,7 @@ const DrawerNavigator = () => {
         name={screenNames.ACCEPTED_OFFERS}
         component={ui.AcceptedOffers}
       />
-       
+
     </Drawer.Navigator>
   );
 };

@@ -139,6 +139,8 @@ ACCEPTED_OFFERS: 'accepted_offers',
   CANDIDATE_HOURS: 'candidate_hours',
   JOB_COMPLETE: 'job_complete',
 
+  // Jobseeker Reports
+  JOBSEEKER_EARNING_REPORTS: 'jobseeker-earning-reports',
 
   // FORGOT_PASSWORD: 'forgot_password',
   // CHECK_EMAIL: 'check_email',
