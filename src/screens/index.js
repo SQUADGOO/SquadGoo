@@ -135,6 +135,7 @@ import TimerManagement from './main/Recruiter/QuickSearch/TimerManagement';
 import CandidateHours from './main/Recruiter/QuickSearch/CandidateHours';
 import JobSeekerEarningReports from './main/JobSeeker/Reports/JobSeekerEarningReports';
 import RecruiterBillingReports from './main/Recruiter/Reports/RecruiterBillingReports';
+import JobSeekerJobReports from './main/JobSeeker/Reports/JobSeekerJobReports';
 
 // Tab Screens
 
@@ -265,6 +266,7 @@ CompletedOffersJobSeeker,
   TimerManagement,
   CandidateHours,
   JobSeekerEarningReports,
+  JobSeekerJobReports,
   RecruiterBillingReports,
   
   // Manual Search Screens (Job Seeker)
