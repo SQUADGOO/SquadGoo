@@ -268,7 +268,7 @@ const CustomDrawer = ({
           subItems: [
             { key: 'job-reports', title: 'Job Reports', icon: 'document-text-outline', route: screenNames.JOBSEEKER_JOB_REPORTS },
             { key: 'earnings-report', title: 'Earnings Report', icon: 'cash-outline', route: screenNames.JOBSEEKER_EARNING_REPORTS },
-            { key: 'performance', title: 'Performance Analytics', icon: 'analytics-outline', route: 'PerformanceAnalytics' },
+            { key: 'performance', title: 'Performance Analytics', icon: 'analytics-outline', route: screenNames.JOBSEEKER_PERFORMANCE_ANALYTICS },
           ],
         },
         {

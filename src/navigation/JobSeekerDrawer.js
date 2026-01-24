@@ -246,6 +246,11 @@ const JobSeekerDrawerNavigator = () => {
         name={screenNames.JOBSEEKER_JOB_REPORTS}
         component={ui.JobSeekerJobReports}
       />
+
+      <Drawer.Screen
+        name={screenNames.JOBSEEKER_PERFORMANCE_ANALYTICS}
+        component={ui.JobSeekerPerformanceAnalytics}
+      />
       
     </Drawer.Navigator>
   );

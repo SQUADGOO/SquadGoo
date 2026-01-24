@@ -142,6 +142,7 @@ ACCEPTED_OFFERS: 'accepted_offers',
   // Jobseeker Reports
   JOBSEEKER_EARNING_REPORTS: 'jobseeker-earning-reports',
   JOBSEEKER_JOB_REPORTS: 'jobseeker-job-reports',
+  JOBSEEKER_PERFORMANCE_ANALYTICS: 'jobseeker-performance-analytics',
 
   // Recruiter Reports
   RECRUITER_BILLING_REPORTS: 'recruiter-billing-reports',
