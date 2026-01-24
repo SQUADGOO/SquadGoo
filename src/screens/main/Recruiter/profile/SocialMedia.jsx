@@ -8,19 +8,16 @@ import AppButton from '@/core/AppButton';
 import FormField from '@/core/FormField';
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
 import { colors, hp, wp } from '@/theme';
-import { useUpdateJobSeekerProfile } from '@/api/auth/auth.query';
 import { showToast, toastTypes } from '@/utilities/toastConfig';
 import { useAddSocialLinks } from '@/api/jobSeeker/jobSeeker.query';
 
 const defaultSocials = [
-  { key: 'linkedinProfile', label: 'LinkedIn', iconLib: iconLibName.AntDesign, icon: 'linkedin-square' },
-  { key: 'facebookProfile', label: 'Facebook', iconLib: iconLibName.FontAwesome, icon: 'facebook-square' },
-  { key: 'instagramProfile', label: 'Instagram', iconLib: iconLibName.AntDesign, icon: 'instagram' },
-  { key: 'twitterProfile', label: 'X (Twitter)', iconLib: iconLibName.FontAwesome6, icon: 'x-twitter' },
-  // { key: 'tiktokProfile', label: 'TikTok', iconLib: iconLibName.FontAwesome6, icon: 'tiktok' },
-  // { key: 'youtubeProfile', label: 'YouTube', iconLib: iconLibName.AntDesign, icon: 'youtube' },
-  // { key: 'websiteProfile', label: 'Website', iconLib: iconLibName.Feather, icon: 'globe' },
-  { key: 'githubProfile', label: 'GitHub', iconLib: iconLibName.FontAwesome, icon: 'github' },
+  { key: 'linkedinProfile', label: 'LinkedIn Company Page', iconLib: iconLibName.AntDesign, icon: 'linkedin-square' },
+  { key: 'facebookProfile', label: 'Facebook Business Page', iconLib: iconLibName.FontAwesome, icon: 'facebook-square' },
+  { key: 'instagramProfile', label: 'Instagram Business Account', iconLib: iconLibName.AntDesign, icon: 'instagram' },
+  { key: 'twitterProfile', label: 'X (Twitter) Business Account', iconLib: iconLibName.FontAwesome6, icon: 'x-twitter' },
+  { key: 'websiteProfile', label: 'Company Website (optional)', iconLib: iconLibName.Feather, icon: 'globe' },
+  { key: 'otherSocial', label: 'Other (please specify)', iconLib: iconLibName.Ionicons, icon: 'link-outline', isOther: true },
 ];
 
 const SocialMedia = () => {
@@ -44,7 +41,9 @@ const SocialMedia = () => {
       facebookProfile: userInfo?.facebookProfile || '',
       instagramProfile: userInfo?.instagramProfile || '',
       twitterProfile: userInfo?.twitterProfile || '',
-      githubProfile: userInfo?.githubProfile || '',
+      websiteProfile: userInfo?.websiteProfile || '',
+      otherSocialName: userInfo?.otherSocialName || '',
+      otherSocialUrl: userInfo?.otherSocialUrl || '',
     },
   });
 
@@ -73,7 +72,7 @@ const SocialMedia = () => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <FormProvider {...methods}>
           <AppText style={styles.subTitle}>
-            Add your social media profiles to showcase your online presence.
+            Add your company’s official social media links to build trust with jobseekers and showcase your business online. Only enter business/company pages, not personal profiles.
           </AppText>
 
           <View style={styles.socialContainer}>
@@ -101,18 +100,42 @@ const SocialMedia = () => {
                 </TouchableOpacity>
 
                 {activeFields[item.key] && (
-                  <FormField
-                    name={item.key}
-                    label={`${item.label} URL`}
-                    placeholder={`Enter your ${item.label} profile link`}
-                    keyboardType="url"
-                    rules={{
-                      pattern: {
-                        value: /^https?:\/\/.+/,
-                        message: 'Please enter a valid URL',
-                      },
-                    }}
-                  />
+                  item.isOther ? (
+                    <>
+                      <FormField
+                        name="otherSocialName"
+                        label="Other (please specify)*"
+                        placeholder="e.g., YouTube Business, TikTok Business"
+                        rules={{ required: 'Please specify the platform' }}
+                      />
+                      <FormField
+                        name="otherSocialUrl"
+                        label="Other link (URL)*"
+                        placeholder="Enter business/company page URL"
+                        keyboardType="url"
+                        rules={{
+                          required: 'Other link is required',
+                          pattern: {
+                            value: /^https?:\/\/.+/,
+                            message: 'Please enter a valid URL',
+                          },
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <FormField
+                      name={item.key}
+                      label={item.label}
+                      placeholder={`Enter ${item.label} link`}
+                      keyboardType="url"
+                      rules={{
+                        pattern: {
+                          value: /^https?:\/\/.+/,
+                          message: 'Please enter a valid URL',
+                        },
+                      }}
+                    />
+                  )
                 )}
               </View>
             ))}

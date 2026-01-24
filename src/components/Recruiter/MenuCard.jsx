@@ -27,7 +27,7 @@ const MenuCard = () => {
     const normalizedRole = (role || '').toString().toLowerCase();
     const isRecruiter = normalizedRole === 'recruiter';
 
-    return [
+    const items = [
       { label: 'Basic details', key: 'basic', route: screenNames.BASIC_DETAILS },
       { label: 'Address', key: 'address', route: screenNames.ADDRESS },
       { label: 'Contact details', key: 'contact', route: screenNames.CONTACT_DETAILS },
@@ -39,11 +39,17 @@ const MenuCard = () => {
         // Recruiters must complete BOTH: start from Personal KYC screen.
         route: screenNames.KYC_KYB,
       },
-      { label: 'Extra job qualifications', key: 'extra', route: screenNames.EXTRA_QUALIFICATIONS },
       // { label: 'Biograph/Bio', key: 'bio', route: screenNames.BIO },
       { label: 'Social media', key: 'social', route: screenNames.SOCIAL_MEDIA },
       { label: 'Password', key: 'password', route: screenNames.PASSWORD },
     ];
+
+    // Recruiters should not see "Extra job qualifications"
+    if (!isRecruiter) {
+      items.splice(6, 0, { label: 'Extra job qualifications', key: 'extra', route: screenNames.EXTRA_QUALIFICATIONS });
+    }
+
+    return items;
   }, [role]);
   
   const handleItemPress = (item) => {
@@ -61,6 +67,8 @@ const MenuCard = () => {
       navigation.navigate(screenNames.VISA_DETAILS)
     } else if(item.key === 'tax') {
       navigation.navigate(screenNames.TAX_INFO)
+    } else if(item.key === 'extra') {
+      navigation.navigate(screenNames.EXTRA_QUALIFICATIONS)
     } else if(item.key === 'social') {
       navigation.navigate(screenNames.SOCIAL_MEDIA)
     } else if(item.key === 'password') {
