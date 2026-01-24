@@ -1,127 +1,242 @@
 // screens/KycVerification.tsx
-import React from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
   ScrollView,
-  ImageBackground,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import VectorIcons, {iconLibName} from '@/theme/vectorIcon';
+import { useNavigation } from '@react-navigation/native';
 import {colors, getFontSize, hp, wp} from '@/theme';
 import AppText, {Variant} from '@/core/AppText';
 import AppHeader from '@/core/AppHeader';
 import { screenNames } from '@/navigation/screenNames';
+import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
+import { FormProvider, useForm } from 'react-hook-form';
+import { useDispatch, useSelector } from 'react-redux';
+import FormField from '@/core/FormField';
+import AppButton from '@/core/AppButton';
+import AppInputField from '@/core/AppInputField';
+import ImagePickerSheet from '@/components/ImagePickerSheet';
+import { showToast, toastTypes } from '@/utilities/toastConfig';
+import { updateUserFields } from '@/store/authSlice';
 
 const KycVerification = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const role = useSelector((state) => state.auth.role);
+  const userInfo = useSelector((state) => state.auth.userInfo);
+  const saved = userInfo?.kycKyb || {};
+
+  const isRecruiter = ((role || '').toString().toLowerCase() === 'recruiter');
+  const sheetRef = useRef(null);
+  const [activeUploadKey, setActiveUploadKey] = useState(null);
+
+  const fullName = useMemo(() => {
+    if (userInfo?.name) return userInfo.name;
+    const first = userInfo?.firstName || '';
+    const last = userInfo?.lastName || '';
+    return `${first} ${last}`.trim();
+  }, [userInfo]);
+
+  const methods = useForm({
+    defaultValues: {
+      passport_or_driver_licence: saved?.personal?.passport_or_driver_licence || '',
+      position_in_business: saved?.personal?.position_in_business || '',
+    },
+    mode: 'onChange',
+  });
+
+  const openUpload = (key) => {
+    setActiveUploadKey(key);
+    sheetRef.current?.open();
+  };
+
+  const getAssetName = (asset) => {
+    if (!asset) return '';
+    if (asset.fileName) return asset.fileName;
+    if (asset.uri) return asset.uri.split('/').pop() || '';
+    return '';
+  };
+
+  const handleUploadSelect = (asset) => {
+    if (!activeUploadKey) return;
+    const next = {
+      ...(saved?.uploads || {}),
+      [activeUploadKey]: asset || null,
+    };
+    dispatch(updateUserFields({ kycKyb: { ...saved, uploads: next } }));
+  };
+
+  const handleNext = methods.handleSubmit((formValues) => {
+    const uploads = saved?.uploads || {};
+    if (!uploads.govt_photo_id) {
+      showToast('Please upload a government-issued Photo ID', 'Missing document', toastTypes.error);
+      return;
+    }
+    if (!uploads.selfie_with_id) {
+      showToast('Please upload a selfie with your ID', 'Missing document', toastTypes.error);
+      return;
+    }
+
+    const merged = {
+      ...saved,
+      personal: {
+        passport_or_driver_licence: formValues.passport_or_driver_licence,
+        position_in_business: formValues.position_in_business,
+      },
+    };
+    dispatch(updateUserFields({ kycKyb: merged }));
+
+    if (isRecruiter) navigation.navigate(screenNames.KYC_BUSINESS);
+    else navigation.navigate(screenNames.KYC_KYB_SUBMIT);
+  });
 
   return (
     <>
- 
-    {/* Header */}
-   <AppHeader showTopIcons={false} title="KYC/KYB Verification" />
-    <ScrollView style={{flex: 1, backgroundColor: colors.white}}>
+      <AppHeader showTopIcons={false} title={isRecruiter ? 'KYB Verification' : 'KYC Verification'} />
+      <ScrollView style={{flex: 1, backgroundColor: colors.white}}>
+        <View style={styles.container}>
+          <AppText variant={Variant.h2} style={styles.title}>
+            {isRecruiter ? 'KYC & KYB Verification' : 'KYC Verification'}
+          </AppText>
+          <AppText variant={Variant.body} style={styles.subtitle}>
+            {isRecruiter
+              ? 'Complete your identity and business verification'
+              : 'Complete your identity verification'}
+          </AppText>
 
-      <View style={styles.container}>
-        {/* Title */}
-        <AppText variant={Variant.h2} style={styles.title}>
-          KYC & KYB Verification
-        </AppText>
-        <AppText variant={Variant.body} style={styles.subtitle}>
-          Complete your identity and business verification
-        </AppText>
+          {isRecruiter && (
+            <>
+              <View style={styles.progressRow}>
+                <AppText style={styles.progressText}>Overall Progress</AppText>
+                <AppText style={styles.progressText}>0% Complete</AppText>
+              </View>
+              <View style={styles.progressBar} />
+            </>
+          )}
 
-        {/* Progress bar */}
-        <View style={styles.progressRow}>
-          <AppText style={styles.progressText}>Overall Progress</AppText>
-          <AppText style={styles.progressText}>0% Complete</AppText>
-        </View>
-        <View style={styles.progressBar} />
+          <AppText variant={Variant.h3} style={styles.sectionTitle}>
+            Personal Verification (KYC)
+          </AppText>
+          <AppText variant={Variant.body} style={styles.sectionSubtitle}>
+            Review your profile details and complete the required verification fields.
+          </AppText>
 
-        {/* Tabs */}
-     <View style={styles.stepperContainer}>
-  {/* ===== Row 1: Labels ===== */}
-  <View style={styles.labelsRow}>
-    {['Personal KYC', 'Business KYC', 'Documents', 'Review'].map((tab, index) => (
-      <AppText
-        key={tab}
-        style={[
-          styles.stepLabel,
-          index === 0 ? styles.activeLabel : styles.inactiveLabel,
-        ]}>
-        {tab}
-      </AppText>
-    ))}
-  </View>
-
-  {/* ===== Row 2: Dots + Lines ===== */}
-  <View style={styles.dotsRow}>
-    {['Personal KYC', 'Business KYC', 'Documents', 'Review'].map((_, index, arr) => (
-      <React.Fragment key={index}>
-        {/* Dot */}
-        <View
-          style={[
-            styles.dot,
-            { backgroundColor: index === 0 ? colors.primary : '#D9D9D9' },
-          ]}
-        />
-        {/* Line (not after last dot) */}
-        {index < arr.length - 1 && (
-          <View
-            style={[
-              styles.line,
-              { backgroundColor: index === 0 ? colors.primary : '#D9D9D9' },
-            ]}
+          {/* Read-only profile fields */}
+          <AppInputField
+            label="Full Name (as per ID)"
+            value={fullName || '—'}
+            editable={false}
           />
-        )}
-      </React.Fragment>
-    ))}
-  </View>
-</View>
+          <AppInputField
+            label="Date of Birth"
+            value={userInfo?.dateOfBirth || '—'}
+            editable={false}
+          />
+          <AppInputField
+            label="Contact Email"
+            value={userInfo?.email || '—'}
+            editable={false}
+          />
+          <AppInputField
+            label="Phone Number"
+            value={userInfo?.contactNumber || userInfo?.phone || '—'}
+            editable={false}
+          />
 
+          <FormProvider {...methods}>
+            <FormField
+              name="passport_or_driver_licence"
+              label="Passport Number / Driver Licence Number*"
+              placeholder="Enter passport or driver licence number"
+              rules={{ required: 'This field is required' }}
+            />
+            <FormField
+              name="position_in_business"
+              label="Position in Business*"
+              placeholder="e.g., Director, Representative"
+              rules={{ required: 'This field is required' }}
+            />
+          </FormProvider>
 
-        {/* Section Title */}
-        <AppText variant={Variant.h3} style={styles.sectionTitle}>
-          Personal Information
-        </AppText>
-        <AppText variant={Variant.body} style={styles.sectionSubtitle}>
-          Provide your personal details for identity verification
-        </AppText>
+          <AppText variant={Variant.h3} style={styles.sectionTitle}>
+            Mandatory uploads
+          </AppText>
+          <AppText variant={Variant.body} style={styles.sectionSubtitle}>
+            Upload clear photos. All uploads are required.
+          </AppText>
 
-        {/* Input Fields */}
-        {[
-          {label: 'Full Name (as per ID)', placeholder: 'John Doe'},
-          {label: 'NRIC/Passport Number', placeholder: 'JG12345678'},
-          {label: 'Nationality', placeholder: 'USA'},
-          {label: 'Occupation', placeholder: 'Software Engineer'},
-          {label: 'Monthly Income (SGD)', placeholder: '5000'},
-          {label: 'Source of Funds', placeholder: 'Employment'},
-        ].map((field, index) => (
-          <View key={index} style={{marginTop: hp(2)}}>
-            <AppText style={styles.inputLabel}>{field.label}</AppText>
-            <TextInput
-              style={styles.input}
-              placeholder={field.placeholder}
-              placeholderTextColor="#666"
+          <TouchableOpacity
+            style={styles.uploadBox}
+            activeOpacity={0.8}
+            onPress={() => openUpload('govt_photo_id')}
+          >
+            <AppText style={styles.uploadLabel}>Government-issued Photo ID*</AppText>
+            {getAssetName(saved?.uploads?.govt_photo_id) ? (
+              <View style={styles.selectedRow}>
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="checkmark-circle"
+                  size={18}
+                  color={colors.green}
+                />
+                <AppText style={styles.selectedFileName} numberOfLines={1}>
+                  {getAssetName(saved?.uploads?.govt_photo_id)}
+                </AppText>
+              </View>
+            ) : (
+              <AppText style={styles.uploadHint}>
+                Tap to upload (Australian Driver Licence or Passport)
+              </AppText>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.uploadBox}
+            activeOpacity={0.8}
+            onPress={() => openUpload('selfie_with_id')}
+          >
+            <AppText style={styles.uploadLabel}>Selfie with ID*</AppText>
+            {getAssetName(saved?.uploads?.selfie_with_id) ? (
+              <View style={styles.selectedRow}>
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="checkmark-circle"
+                  size={18}
+                  color={colors.green}
+                />
+                <AppText style={styles.selectedFileName} numberOfLines={1}>
+                  {getAssetName(saved?.uploads?.selfie_with_id)}
+                </AppText>
+              </View>
+            ) : (
+              <AppText style={styles.uploadHint}>Tap to upload</AppText>
+            )}
+          </TouchableOpacity>
+
+          <View style={styles.buttonRow}>
+            <AppButton
+              text="Previous"
+              secondary
+              bgColor={colors.white}
+              textStyle={{ color: colors.primary }}
+              style={styles.prevButton}
+              onPress={() => navigation.goBack()}
+            />
+            <AppButton
+              text="Next"
+              bgColor={colors.primary}
+              textColor="#FFFFFF"
+              style={styles.nextButton}
+              onPress={handleNext}
             />
           </View>
-        ))}
-
-        {/* Buttons */}
-        <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.prevButton}>
-            <AppText style={styles.prevText}>Previous</AppText>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={()=>navigation.navigate(screenNames.KYC_BUSINESS)} style={styles.nextButton}>
-            <AppText style={styles.nextText}>Next</AppText>
-          </TouchableOpacity>
         </View>
-      </View>
-    </ScrollView>
-       </>
+      </ScrollView>
+
+      <ImagePickerSheet ref={sheetRef} onSelect={handleUploadSelect} />
+    </>
   );
 };
 
@@ -207,51 +322,47 @@ marginTop: hp(2), },
     fontSize: getFontSize(12),
 
   },
-  inputLabel: {
-    fontSize: getFontSize(13),
-    fontWeight: '600',
-    marginBottom: hp(0.5),
-    color: '#3B2E57',
-  },
-  input: {
+  uploadBox: {
     borderWidth: 1,
     borderColor: '#D9D9D9',
-    borderRadius: 8,
-    padding: wp(3),
-    fontSize: getFontSize(14),
-    color: '#000',
+    borderRadius: 10,
+    padding: hp(2),
+    marginBottom: hp(2),
+  },
+  uploadLabel: {
+    fontSize: getFontSize(13),
+    fontWeight: '700',
+    color: '#3B2E57',
+  },
+  uploadHint: {
+    marginTop: hp(0.8),
+    fontSize: getFontSize(12),
+    color: '#6C7A92',
+  },
+  selectedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+    marginTop: hp(0.8),
+  },
+  selectedFileName: {
+    color: colors.green,
+    fontSize: getFontSize(12),
+    maxWidth: wp(70),
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginVertical: hp(4),
+    gap: wp(3),
   },
   prevButton: {
+    flex: 1,
     borderWidth: 1,
     borderColor: colors.primary,
-    borderRadius: 8,
-    width:'48%',
-    alignItems:'center',
-    justifyContent:'center'
-  },
-  prevText: {
-    color: colors.primary,
-    fontSize: getFontSize(14),
-    fontWeight: '600',
   },
   nextButton: {
-    backgroundColor: colors.primary,
-    paddingVertical: hp(1.5),
-    paddingHorizontal: wp(10),
-    borderRadius: 8,
-       width:'48%',
-    alignItems:'center',
-    justifyContent:'center'
-  },
-  nextText: {
-    color: '#fff',
-    fontSize: getFontSize(14),
-    fontWeight: '600',
+    flex: 1,
   },
 
    stepperContainer: {

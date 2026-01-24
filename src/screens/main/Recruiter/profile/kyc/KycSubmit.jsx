@@ -1,78 +1,96 @@
 // screens/KycReview.tsx
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import {colors, getFontSize, hp, wp} from '@/theme';
 import AppText, {Variant} from '@/core/AppText';
 import AppHeader from '@/core/AppHeader';
+import { useDispatch, useSelector } from 'react-redux';
+import { showToast, toastTypes } from '@/utilities/toastConfig';
+import { updateUserFields } from '@/store/authSlice';
+import AppButton from '@/core/AppButton';
+import { screenNames } from '@/navigation/screenNames';
 
 const KycSubmit = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const role = useSelector((state) => state.auth.role);
+  const userInfo = useSelector((state) => state.auth.userInfo);
+  const saved = userInfo?.kycKyb || {};
+  const uploads = saved?.uploads || {};
+
+  const isRecruiter = ((role || '').toString().toLowerCase() === 'recruiter');
+
+  const fullName = useMemo(() => {
+    if (userInfo?.name) return userInfo.name;
+    const first = userInfo?.firstName || '';
+    const last = userInfo?.lastName || '';
+    return `${first} ${last}`.trim();
+  }, [userInfo]);
+
+  const docStatus = (val) => (val ? 'uploaded' : 'missing');
+
+  const handleSubmit = () => {
+    // This repo currently has no backend submit endpoint wired here.
+    // Store a simple flag and notify user.
+    dispatch(updateUserFields({ kycKyb: { ...saved, submittedAt: new Date().toISOString() } }));
+    showToast('Verification submitted successfully', 'Success', toastTypes.success);
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: screenNames.PROFILE }],
+      })
+    );
+  };
 
   return (
     <ScrollView style={{flex: 1, backgroundColor: colors.white}}>
       {/* Header */}
-      <AppHeader showTopIcons={false} title="KYC/KYB Verification" />
+      <AppHeader showTopIcons={false} title={isRecruiter ? 'KYC & KYB Review' : 'KYC Review'} />
 
       <View style={styles.container}>
         {/* Title */}
         <AppText variant={Variant.h2} style={styles.title}>
-          KYC & KYB Verification
+          {isRecruiter ? 'KYC & KYB Verification' : 'KYC Verification'}
         </AppText>
         <AppText variant={Variant.body} style={styles.subtitle}>
-          Complete your identity and business verification
+          Review your information and submit for verification
         </AppText>
 
-        {/* Progress */}
-        <View style={styles.progressRow}>
-          <AppText style={styles.progressText}>Overall Progress</AppText>
-          <AppText style={styles.progressText}>0% Complete</AppText>
-        </View>
-        <View style={styles.progressBar} />
+        {isRecruiter && (
+          <>
+            <View style={styles.progressRow}>
+              <AppText style={styles.progressText}>Overall Progress</AppText>
+              <AppText style={styles.progressText}>0% Complete</AppText>
+            </View>
+            <View style={styles.progressBar} />
 
-        {/* Stepper */}
-        <View style={styles.stepperContainer}>
-          <View style={styles.labelsRow}>
-            {['Personal KYC', 'Business KYC', 'Documents', 'Review'].map(
-              (tab, index) => (
-                <AppText
-                  key={tab}
-                  style={[
-                    styles.stepLabel,
-                    index <= 3 ? styles.activeLabel : styles.inactiveLabel,
-                  ]}>
-                  {tab}
-                </AppText>
-              ),
-            )}
-          </View>
-
-          <View style={styles.dotsRow}>
-            {['1', '2', '3', '4'].map((_, index, arr) => (
-              <React.Fragment key={index}>
-                <View
-                  style={[
-                    styles.dot,
-                    {backgroundColor: index <= 3 ? colors.primary : '#D9D9D9'},
-                  ]}
-                />
-                {index < arr.length - 1 && (
-                  <View
-                    style={[
-                      styles.line,
-                      {backgroundColor: index <= 2 ? colors.primary : '#D9D9D9'},
-                    ]}
-                  />
-                )}
-              </React.Fragment>
-            ))}
-          </View>
-        </View>
+            <View style={styles.stepperContainer}>
+              <View style={styles.labelsRow}>
+                {['Personal KYC', 'Business KYB', 'Documents', 'Review'].map((tab) => (
+                  <AppText key={tab} style={[styles.stepLabel, styles.activeLabel]}>
+                    {tab}
+                  </AppText>
+                ))}
+              </View>
+              <View style={styles.dotsRow}>
+                {['1', '2', '3', '4'].map((_, index, arr) => (
+                  <React.Fragment key={index}>
+                    <View style={[styles.dot, { backgroundColor: colors.primary }]} />
+                    {index < arr.length - 1 && (
+                      <View style={[styles.line, { backgroundColor: colors.primary }]} />
+                    )}
+                  </React.Fragment>
+                ))}
+              </View>
+            </View>
+          </>
+        )}
 
         {/* Section Title */}
         <AppText variant={Variant.h3} style={styles.sectionTitle}>
@@ -87,53 +105,114 @@ const KycSubmit = () => {
           <AppText style={styles.cardTitle}>Personal Information</AppText>
           <View style={styles.row}>
             <AppText style={styles.label}>Full Name:</AppText>
-            <AppText style={styles.value}>John Doe</AppText>
+            <AppText style={styles.value}>{fullName || '—'}</AppText>
           </View>
           <View style={styles.row}>
-            <AppText style={styles.label}>NRIC:</AppText>
+            <AppText style={styles.label}>Date of Birth:</AppText>
+            <AppText style={styles.value}>{userInfo?.dateOfBirth || '—'}</AppText>
           </View>
           <View style={styles.row}>
-            <AppText style={styles.label}>Nationality:</AppText>
+            <AppText style={styles.label}>Email:</AppText>
+            <AppText style={styles.value}>{userInfo?.email || '—'}</AppText>
           </View>
           <View style={styles.row}>
-            <AppText style={styles.label}>Occupation:</AppText>
+            <AppText style={styles.label}>Phone:</AppText>
+            <AppText style={styles.value}>{userInfo?.contactNumber || userInfo?.phone || '—'}</AppText>
+          </View>
+          <View style={styles.row}>
+            <AppText style={styles.label}>Passport/Driver Licence:</AppText>
+            <AppText style={styles.value}>{saved?.personal?.passport_or_driver_licence || '—'}</AppText>
+          </View>
+          <View style={styles.row}>
+            <AppText style={styles.label}>Position in Business:</AppText>
+            <AppText style={styles.value}>{saved?.personal?.position_in_business || '—'}</AppText>
           </View>
         </View>
 
-        {/* Business Info */}
-        <View style={styles.infoCard}>
-          <AppText style={styles.cardTitle}>Business Information</AppText>
-          <View style={styles.row}>
-            <AppText style={styles.label}>Business Name:</AppText>
+        {isRecruiter && (
+          <View style={styles.infoCard}>
+            <AppText style={styles.cardTitle}>Business Information</AppText>
+            <View style={styles.row}>
+              <AppText style={styles.label}>Business Name:</AppText>
+              <AppText style={styles.value}>{saved?.business?.business_name || '—'}</AppText>
+            </View>
+            <View style={styles.row}>
+              <AppText style={styles.label}>ABN/ACN:</AppText>
+              <AppText style={styles.value}>{saved?.business?.abn_or_acn || '—'}</AppText>
+            </View>
+            <View style={styles.row}>
+              <AppText style={styles.label}>Business Type:</AppText>
+              <AppText style={styles.value}>{saved?.business?.business_type || '—'}</AppText>
+            </View>
+            <View style={styles.row}>
+              <AppText style={styles.label}>Years of Operation:</AppText>
+              <AppText style={styles.value}>{saved?.business?.years_of_operation || '—'}</AppText>
+            </View>
+            <View style={styles.row}>
+              <AppText style={styles.label}>Business Address:</AppText>
+              <AppText style={styles.value}>{saved?.business?.business_address || '—'}</AppText>
+            </View>
+            <View style={styles.row}>
+              <AppText style={styles.label}>Annual Revenue (AUD):</AppText>
+              <AppText style={styles.value}>{saved?.business?.annual_revenue_aud || '—'}</AppText>
+            </View>
+            <View style={styles.row}>
+              <AppText style={styles.label}>Website:</AppText>
+              <AppText style={styles.value}>{saved?.business?.website || '—'}</AppText>
+            </View>
           </View>
-          <View style={styles.row}>
-            <AppText style={styles.label}>Registration:</AppText>
-          </View>
-          <View style={styles.row}>
-            <AppText style={styles.label}>Type:</AppText>
-          </View>
-          <View style={styles.row}>
-            <AppText style={styles.label}>Years Operating:</AppText>
-          </View>
-        </View>
+        )}
 
         {/* Document Status */}
         <View style={styles.infoCard}>
           <AppText style={styles.cardTitle}>Document Status</AppText>
-          {[
-            'NRIC/Passport',
-            'Selfie with ID',
-            'Proof of Address',
-            'Business Registration',
-            'Tax Certificate',
-          ].map((doc, index) => (
-            <View key={index} style={styles.row}>
-              <AppText style={styles.label}>{doc}</AppText>
-              <View style={styles.statusBox}>
-                <AppText style={styles.statusText}>pending</AppText>
-              </View>
+          <View style={styles.row}>
+            <AppText style={styles.label}>Government-issued Photo ID</AppText>
+            <View style={styles.statusBox}>
+              <AppText style={styles.statusText}>{docStatus(uploads.govt_photo_id)}</AppText>
             </View>
-          ))}
+          </View>
+          <View style={styles.row}>
+            <AppText style={styles.label}>Selfie with ID</AppText>
+            <View style={styles.statusBox}>
+              <AppText style={styles.statusText}>{docStatus(uploads.selfie_with_id)}</AppText>
+            </View>
+          </View>
+
+          {isRecruiter && (
+            <>
+              <View style={styles.row}>
+                <AppText style={styles.label}>ABN/ACN Certificate</AppText>
+                <View style={styles.statusBox}>
+                  <AppText style={styles.statusText}>{docStatus(uploads.abn_acn_certificate)}</AppText>
+                </View>
+              </View>
+              {!uploads.govt_photo_id && (
+                <View style={styles.row}>
+                  <AppText style={styles.label}>Director/Rep Photo ID</AppText>
+                  <View style={styles.statusBox}>
+                    <AppText style={styles.statusText}>{docStatus(uploads.director_photo_id)}</AppText>
+                  </View>
+                </View>
+              )}
+              <View style={styles.row}>
+                <AppText style={styles.label}>Proof of Business Address</AppText>
+                <View style={styles.statusBox}>
+                  <AppText style={styles.statusText}>{docStatus(uploads.proof_of_business_address)}</AppText>
+                </View>
+              </View>
+              <View style={styles.row}>
+                <AppText style={styles.label}>Proof type</AppText>
+                <AppText style={styles.value}>{saved?.documents?.proof_of_business_address_type || '—'}</AppText>
+              </View>
+              {saved?.documents?.proof_of_business_address_type === 'Other government or financial document (please specify)' ? (
+                <View style={styles.row}>
+                  <AppText style={styles.label}>Other specify</AppText>
+                  <AppText style={styles.value}>{saved?.documents?.proof_of_business_address_other || '—'}</AppText>
+                </View>
+              ) : null}
+            </>
+          )}
         </View>
 
         {/* Notice */}
@@ -147,9 +226,13 @@ const KycSubmit = () => {
         </View>
 
         {/* Submit Button */}
-        <TouchableOpacity style={styles.submitButton}>
-          <AppText style={styles.submitText}>Submit for Verification</AppText>
-        </TouchableOpacity>
+        <AppButton
+          text="Submit for Verification"
+          bgColor={colors.primary}
+          textColor="#FFFFFF"
+          onPress={handleSubmit}
+          style={{ marginBottom: hp(5) }}
+        />
       </View>
     </ScrollView>
   );

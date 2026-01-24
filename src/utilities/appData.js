@@ -547,6 +547,35 @@ export const ADDRESS_PROOF_RECRUITER = [
   'Telephone bill',
 ];
 
+// KYB Business Types
+export const BUSINESS_TYPES = [
+  'Company',
+  'Sole Trader',
+  'Partnership',
+  'Trust',
+  'Other',
+];
+
+// Proof of Business Address options (KYB)
+export const BUSINESS_ADDRESS_PROOF_OPTIONS = [
+  'Utility bill (electricity, gas, water, landline phone – last 3 months)',
+  'Bank statement (business account, last 3 months)',
+  'Lease or rental agreement (current)',
+  'Council rates notice (current)',
+  'Land tax valuation notice (current)',
+  'Australian Taxation Office (ATO) assessment or correspondence (last 12 months)',
+  'GST registration certificate',
+  'Company vehicle registration certificate (current, showing address)',
+  'Insurance policy document (business, current, showing address)',
+  'ASIC business name extract (showing address)',
+  'Property purchase contract (if recently acquired)',
+  'Commercial tenancy agreement (current)',
+  'Business registration certificate (if address shown)',
+  'Letter from landlord or managing agent (on letterhead, signed, current)',
+  'Government-issued correspondence (to business, showing address, last 12 months)',
+  'Other government or financial document (please specify)',
+];
+
 // Education Levels with conditional questions
 export const EDUCATION_LEVELS = {
   '<_10th': {

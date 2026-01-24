@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { StyleSheet, View, TouchableOpacity, FlatList } from 'react-native';
 import AppText from '@/core/AppText';
 import { colors, getFontSize, hp, wp } from '@/theme';
@@ -12,28 +12,39 @@ import { screenNames } from '@/navigation/screenNames';
 import ContactDetailsSheet from '../profile/ContactDetailsSheet';
 import { useNavigation } from '@react-navigation/native';
 
-const menuItems = [
-  { label: 'Basic details', key: 'basic', route: screenNames.BASIC_DETAILS },
-  { label: 'Address', key: 'address', route: screenNames.ADDRESS },
-  { label: 'Contact details', key: 'contact', route: screenNames.CONTACT_DETAILS },
-  { label: 'Tax information', key: 'tax', route: screenNames.TAX_INFO },
-  { label: 'Visa details', key: 'visa', route: screenNames.VISA_DETAILS },
-  { label: 'KYC & KYB verifications', key: 'kyc', route: screenNames.KYC_KYB },
-  { label: 'Extra job qualifications', key: 'extra', route: screenNames.EXTRA_QUALIFICATIONS },
-  // { label: 'Biograph/Bio', key: 'bio', route: screenNames.BIO },
-  { label: 'Social media', key: 'social', route: screenNames.SOCIAL_MEDIA },
-  { label: 'Password', key: 'password', route: screenNames.PASSWORD },
-];
-
 const MenuCard = () => {
   const navigation = useNavigation();
   const userInfo = useSelector((state) => state.auth.userInfo);
+  const role = useSelector((state) => state.auth.role);
   const [activeSheet, setActiveSheet] = useState(null);
   const [sheetHeight, setSheetHeight] = useState(hp(30));
   const [selectedItem, setSelectedItem] = useState(null);
   const basicSheetRef = useRef();
   const addressSheetRef = useRef();
   const contactSheetRef = useRef();
+
+  const menuItems = useMemo(() => {
+    const normalizedRole = (role || '').toString().toLowerCase();
+    const isRecruiter = normalizedRole === 'recruiter';
+
+    return [
+      { label: 'Basic details', key: 'basic', route: screenNames.BASIC_DETAILS },
+      { label: 'Address', key: 'address', route: screenNames.ADDRESS },
+      { label: 'Contact details', key: 'contact', route: screenNames.CONTACT_DETAILS },
+      { label: 'Tax information', key: 'tax', route: screenNames.TAX_INFO },
+      { label: 'Visa details', key: 'visa', route: screenNames.VISA_DETAILS },
+      {
+        label: isRecruiter ? 'KYB verification' : 'KYC verification',
+        key: 'kyc',
+        // Recruiters must complete BOTH: start from Personal KYC screen.
+        route: screenNames.KYC_KYB,
+      },
+      { label: 'Extra job qualifications', key: 'extra', route: screenNames.EXTRA_QUALIFICATIONS },
+      // { label: 'Biograph/Bio', key: 'bio', route: screenNames.BIO },
+      { label: 'Social media', key: 'social', route: screenNames.SOCIAL_MEDIA },
+      { label: 'Password', key: 'password', route: screenNames.PASSWORD },
+    ];
+  }, [role]);
   
   const handleItemPress = (item) => {
     setActiveSheet(item.key);
@@ -45,7 +56,7 @@ const MenuCard = () => {
     } else if(item.key === 'contact') {
       contactSheetRef.current.open();
     } else if(item.key === 'kyc') {
-      navigation.navigate(screenNames.KYC_KYB)
+      navigation.navigate(item.route)
     } else if(item.key === 'visa') {
       navigation.navigate(screenNames.VISA_DETAILS)
     } else if(item.key === 'tax') {

@@ -1,27 +1,81 @@
-// screens/KycVerification.tsx
+// screens/KycBusiness.tsx
 import React from 'react';
 import {
   View,
   StyleSheet,
-  TouchableOpacity,
-  TextInput,
   ScrollView,
-  ImageBackground,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import VectorIcons, {iconLibName} from '@/theme/vectorIcon';
+import { useNavigation } from '@react-navigation/native';
 import {colors, getFontSize, hp, wp} from '@/theme';
 import AppText, {Variant} from '@/core/AppText';
 import AppHeader from '@/core/AppHeader';
 import { screenNames } from '@/navigation/screenNames';
+import { FormProvider, useForm } from 'react-hook-form';
+import { useDispatch, useSelector } from 'react-redux';
+import FormField from '@/core/FormField';
+import AppButton from '@/core/AppButton';
+import OptionSelector from '@/components/OptionSelector';
+import { BUSINESS_TYPES } from '@/utilities/appData';
+import { showToast, toastTypes } from '@/utilities/toastConfig';
+import { updateUserFields } from '@/store/authSlice';
 
 const KycBusiness = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const role = useSelector((state) => state.auth.role);
+  const userInfo = useSelector((state) => state.auth.userInfo);
+  const saved = userInfo?.kycKyb || {};
+
+  const isRecruiter = ((role || '').toString().toLowerCase() === 'recruiter');
+
+  const methods = useForm({
+    defaultValues: {
+      business_name: saved?.business?.business_name || '',
+      abn_or_acn: saved?.business?.abn_or_acn || '',
+      business_type: saved?.business?.business_type || '',
+      years_of_operation: saved?.business?.years_of_operation || '',
+      business_address: saved?.business?.business_address || '',
+      annual_revenue_aud: saved?.business?.annual_revenue_aud || '',
+      website: saved?.business?.website || '',
+    },
+    mode: 'onChange',
+  });
+
+  const businessTypeValue = methods.watch('business_type');
+
+  const handleNext = methods.handleSubmit((formValues) => {
+    if (!isRecruiter) {
+      showToast('Business verification is only required for recruiter accounts.', 'Info', toastTypes.info);
+      navigation.navigate(screenNames.KYC_KYB_SUBMIT);
+      return;
+    }
+
+    if (!formValues.business_type) {
+      showToast('Please select Business Type', 'Missing field', toastTypes.error);
+      return;
+    }
+
+    const merged = {
+      ...saved,
+      business: {
+        business_name: formValues.business_name,
+        abn_or_acn: formValues.abn_or_acn,
+        business_type: formValues.business_type,
+        years_of_operation: formValues.years_of_operation,
+        business_address: formValues.business_address,
+        annual_revenue_aud: formValues.annual_revenue_aud,
+        website: formValues.website,
+      },
+    };
+
+    dispatch(updateUserFields({ kycKyb: merged }));
+    navigation.navigate(screenNames.KYC_KYB_DOC);
+  });
 
   return (
     <ScrollView style={{flex: 1, backgroundColor: colors.white}}>
       {/* Header */}
-   <AppHeader showTopIcons={false} title="KYC/KYB Verification" />
+      <AppHeader showTopIcons={false} title="KYB Verification" />
 
       <View style={styles.container}>
         {/* Title */}
@@ -84,39 +138,92 @@ const KycBusiness = () => {
 
         {/* Section Title */}
         <AppText variant={Variant.h3} style={styles.sectionTitle}>
-  Business Information
+          Business/Company Verification (KYB)
         </AppText>
         <AppText variant={Variant.body} style={styles.sectionSubtitle}>
-    Provide your business details for company verification
+          Provide your business details for company verification
         </AppText>
 
-        {/* Input Fields */}
-        {[
-          {label: 'Business Name', placeholder: 'John Doe'},
-          {label: 'Registration No.', placeholder: 'JG12345678'},
-          {label: 'Business Type', placeholder: 'USA'},
-          {label: 'Years of Operation', placeholder: 'Software Engineer'},
-          {label: 'Business Address', placeholder: '5000'},
-          {label: 'Annual Revenue (SGD)', placeholder: 'Employment'},
-        ].map((field, index) => (
-          <View key={index} style={{marginTop: hp(2)}}>
-            <AppText style={styles.inputLabel}>{field.label}</AppText>
-            <TextInput
-              style={styles.input}
-              placeholder={field.placeholder}
-              placeholderTextColor="#666"
-            />
-          </View>
-        ))}
+        <FormProvider {...methods}>
+          <FormField
+            name="business_name"
+            label="Business Name (must match ABN/ACN)*"
+            placeholder="Enter business name"
+            rules={{ required: 'Business name is required' }}
+          />
+
+          <FormField
+            name="abn_or_acn"
+            label="ABN or ACN*"
+            placeholder="Enter ABN or ACN"
+            rules={{ required: 'ABN/ACN is required' }}
+            keyboardType="default"
+          />
+
+          <AppText variant={Variant.boldCaption} style={styles.dropdownLabel}>
+            Business Type*
+          </AppText>
+          <OptionSelector
+            options={BUSINESS_TYPES}
+            selectedValue={businessTypeValue}
+            onSelect={(val) => methods.setValue('business_type', val, { shouldValidate: true })}
+            placeholder="Select business type"
+            sheetTitle="Select Business Type"
+          />
+          {methods.formState.errors?.business_type?.message ? (
+            <AppText style={styles.errorText}>{methods.formState.errors.business_type.message}</AppText>
+          ) : null}
+
+          <FormField
+            name="years_of_operation"
+            label="Years of Operation*"
+            placeholder="Enter years of operation"
+            keyboardType="numeric"
+            rules={{
+              required: 'Years of operation is required',
+              pattern: { value: /^\d+$/, message: 'Numbers only' },
+            }}
+          />
+
+          <FormField
+            name="business_address"
+            label="Business Address*"
+            placeholder="Enter business address"
+            rules={{ required: 'Business address is required' }}
+          />
+
+          <FormField
+            name="annual_revenue_aud"
+            label="Annual Revenue (AUD) (optional)"
+            placeholder="Enter annual revenue"
+            keyboardType="numeric"
+          />
+
+          <FormField
+            name="website"
+            label="Website (optional)"
+            placeholder="https://"
+            keyboardType="url"
+          />
+        </FormProvider>
 
         {/* Buttons */}
         <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.prevButton}>
-            <AppText style={styles.prevText}>Previous</AppText>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={()=>navigation.navigate(screenNames.KYC_KYB_DOC)} style={styles.nextButton}>
-            <AppText style={styles.nextText}>Next</AppText>
-          </TouchableOpacity>
+          <AppButton
+            text="Previous"
+            secondary
+            bgColor={colors.white}
+            textStyle={{ color: colors.primary }}
+            style={styles.prevButton}
+            onPress={() => navigation.navigate(screenNames.KYC_KYB)}
+          />
+          <AppButton
+            text="Next"
+            bgColor={colors.primary}
+            textColor="#FFFFFF"
+            style={styles.nextButton}
+            onPress={handleNext}
+          />
         </View>
       </View>
     </ScrollView>
@@ -204,51 +311,27 @@ marginTop: hp(2), },
     marginBottom: hp(2),
     fontSize: getFontSize(12),
   },
-  inputLabel: {
-    fontSize: getFontSize(13),
-    fontWeight: '600',
-    marginBottom: hp(0.5),
+  dropdownLabel: {
+    marginBottom: hp(1),
     color: '#3B2E57',
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#D9D9D9',
-    borderRadius: 8,
-    padding: wp(3),
-    fontSize: getFontSize(14),
-    color: '#000',
+  errorText: {
+    color: colors.red,
+    marginBottom: hp(1),
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginVertical: hp(4),
+    gap: wp(3),
   },
   prevButton: {
+    flex: 1,
     borderWidth: 1,
     borderColor: colors.primary,
-    borderRadius: 8,
-    width:'48%',
-    alignItems:'center',
-    justifyContent:'center'
-  },
-  prevText: {
-    color: colors.primary,
-    fontSize: getFontSize(14),
-    fontWeight: '600',
   },
   nextButton: {
-    backgroundColor: colors.primary,
-    paddingVertical: hp(1.5),
-    paddingHorizontal: wp(10),
-    borderRadius: 8,
-       width:'48%',
-    alignItems:'center',
-    justifyContent:'center'
-  },
-  nextText: {
-    color: '#fff',
-    fontSize: getFontSize(14),
-    fontWeight: '600',
+    flex: 1,
   },
 
    stepperContainer: {
