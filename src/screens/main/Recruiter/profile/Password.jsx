@@ -1,13 +1,12 @@
 import React from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
-import { useForm, FormProvider, set } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { useSelector } from 'react-redux';
 import AppHeader from '@/core/AppHeader';
 import AppText from '@/core/AppText';
 import AppButton from '@/core/AppButton';
 import FormField from '@/core/FormField';
 import { colors, hp, wp } from '@/theme';
-import { useChangePassword } from '@/api/auth/auth.query';
 import { showToast, toastTypes } from '@/utilities/toastConfig';
 
 const ChangePassword = () => {
@@ -16,7 +15,8 @@ const ChangePassword = () => {
   const userId =
     userData?.role === 'recruiter' ? userData?.recruiter?.id : userData?.job_seeker?.id;
 
-  // const { mutate: changePassword, isPending } = useChangePassword();
+  // UI-only flow: simulate current password check
+  const DEMO_CURRENT_PASSWORD = 'Password@123';
 
   const methods = useForm({
     defaultValues: {
@@ -26,12 +26,13 @@ const ChangePassword = () => {
     },
   });
 
-  const { handleSubmit, watch, setError } = methods;
+  const { handleSubmit, reset, watch, setError } = methods;
   const newPassword = watch('new_password');
 
   const handleSave = async (data) => {
-    if (data.new_password !== data.confirm_password) {
-      setError('confirm_password', { message: 'Passwords do not match' });
+    // UI-only: simulate server "current password incorrect"
+    if (data.current_password !== DEMO_CURRENT_PASSWORD) {
+      setError('current_password', { message: 'Current password is incorrect.' });
       return;
     }
 
@@ -44,8 +45,9 @@ const ChangePassword = () => {
     setIsLoading(true);
 
     setTimeout(() => {
-      showToast('Password updated successfully', 'Success', toastTypes.success);
+      showToast('Your password has been changed successfully.', 'Success', toastTypes.success);
       setIsLoading(false);
+      reset();
     }, 2000);
 
     console.log('🔐 Changing password:', payload);
@@ -64,7 +66,7 @@ const ChangePassword = () => {
             name="current_password"
             label="Current Password"
             placeholder="Enter your current password"
-            secureTextEntry
+            type="passwordInput"
             rules={{ required: 'Current password is required' }}
           />
 
@@ -72,21 +74,26 @@ const ChangePassword = () => {
             name="new_password"
             label="New Password"
             placeholder="Enter your new password"
-            secureTextEntry
+            type="passwordInput"
             rules={{
               required: 'New password is required',
-              minLength: {
-                value: 8,
-                message: 'Password must be at least 8 characters',
+              pattern: {
+                value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/,
+                message:
+                  'Password must be at least 8 characters and include uppercase, lowercase, numbers, and symbols.',
               },
             }}
           />
+
+          <AppText style={styles.passwordHint}>
+            Password must be at least 8 characters and include a mix of uppercase, lowercase, numbers, and symbols.
+          </AppText>
 
           <FormField
             name="confirm_password"
             label="Confirm New Password"
             placeholder="Re-enter your new password"
-            secureTextEntry
+            type="passwordInput"
             rules={{
               required: 'Please confirm your new password',
               validate: (value) =>
@@ -122,6 +129,12 @@ const styles = StyleSheet.create({
   subtitle: {
     color: colors.textSecondary,
     marginBottom: hp(3),
+  },
+  passwordHint: {
+    color: colors.textSecondary,
+    marginTop: -hp(1.2),
+    marginBottom: hp(2),
+    fontSize: 12,
   },
   button: {
     marginTop: hp(3),

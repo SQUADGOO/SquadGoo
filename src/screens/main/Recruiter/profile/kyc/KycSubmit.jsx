@@ -40,10 +40,19 @@ const KycSubmit = () => {
     // Store a simple flag and notify user.
     dispatch(updateUserFields({ kycKyb: { ...saved, submittedAt: new Date().toISOString() } }));
     showToast('Verification submitted successfully', 'Success', toastTypes.success);
+
+    const normalizedRole = (role || '').toString().toLowerCase();
+    const baseRoute =
+      normalizedRole === 'recruiter'
+        ? screenNames.DRAWER_NAVIGATION
+        : normalizedRole === 'jobseeker'
+        ? screenNames.JOBSEEKER_DRAWER
+        : screenNames.MAIN_NAVIGATION;
+
     navigation.dispatch(
       CommonActions.reset({
-        index: 0,
-        routes: [{ name: screenNames.PROFILE }],
+        index: 1,
+        routes: [{ name: baseRoute }, { name: screenNames.PROFILE }],
       })
     );
   };

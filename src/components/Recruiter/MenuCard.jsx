@@ -40,7 +40,7 @@ const MenuCard = () => {
         route: screenNames.KYC_KYB,
       },
       // { label: 'Biograph/Bio', key: 'bio', route: screenNames.BIO },
-      { label: 'Social media', key: 'social', route: screenNames.SOCIAL_MEDIA },
+      { label: isRecruiter ? 'Company Social Media' : 'Social media', key: 'social', route: screenNames.SOCIAL_MEDIA },
       { label: 'Password', key: 'password', route: screenNames.PASSWORD },
     ];
 
