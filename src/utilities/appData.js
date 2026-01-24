@@ -456,12 +456,17 @@ export const LANGUAGES = [...COUNTRIES];
 
 // Visa Types
 export const VISA_TYPES = [
-  { id: 1, title: 'Visitor visas', requiresSubclass: true },
-  { id: 2, title: 'Studying and training visas', requiresSubclass: true },
-  { id: 3, title: 'Family and partner visas', requiresSubclass: true },
-  { id: 4, title: 'Working and skilled visas', requiresSubclass: true },
-  { id: 5, title: 'Repealed visas', requiresSubclass: true },
-  { id: 6, title: 'Other Visa type', requiresSubclass: false },
+  { id: 1, title: 'Australian Citizen (no visa required)', requiresSubclass: false },
+  { id: 2, title: 'Permanent Resident', requiresSubclass: false },
+  { id: 3, title: 'New Zealand Citizen (Special Category Visa 444)', requiresSubclass: false },
+  { id: 4, title: 'Temporary Skill Shortage (subclass 482)', requiresSubclass: true },
+  { id: 5, title: 'Student Visa', requiresSubclass: true },
+  { id: 6, title: 'Working Holiday Visa', requiresSubclass: true },
+  { id: 7, title: 'Graduate Visa', requiresSubclass: true },
+  { id: 8, title: 'Partner/Family Visa', requiresSubclass: true },
+  { id: 9, title: 'Bridging Visa', requiresSubclass: true },
+  { id: 10, title: 'Refugee/Humanitarian Visa', requiresSubclass: true },
+  { id: 11, title: 'Other (please specify)', requiresSubclass: true, isOther: true },
 ];
 
 // Driving License Types

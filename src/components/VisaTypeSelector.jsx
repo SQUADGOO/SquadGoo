@@ -7,58 +7,53 @@ import AppInputField from '@/core/AppInputField';
 import RbSheetComponent from '@/core/RbSheetComponent';
 import { VISA_TYPES } from '@/utilities/appData';
 
-const VisaTypeSelector = ({ onSelect, selectedVisaType, selectedSubclass, placeholder = 'Select visa type' }) => {
+const VisaTypeSelector = ({ onSelect, selectedValue, placeholder = 'Select visa type' }) => {
   const sheetRef = useRef(null);
   const [tempSelected, setTempSelected] = useState(null);
-  const [subclassValue, setSubclassValue] = useState('');
   const [otherValue, setOtherValue] = useState('');
 
   const handleOpen = () => {
     setTempSelected(null);
-    setSubclassValue('');
     setOtherValue('');
     sheetRef.current?.open();
   };
 
   const handleVisaSelect = (visa) => {
-    if (visa.title === 'Other Visa type') {
-      setTempSelected(visa);
-    } else if (visa.requiresSubclass) {
+    if (visa.isOther) {
       setTempSelected(visa);
     } else {
-      handleConfirm(visa);
-    }
-  };
-
-  const handleConfirm = (visa) => {
-    if (visa.title === 'Other Visa type') {
-      if (otherValue.trim()) {
-        onSelect && onSelect({
+      onSelect &&
+        onSelect({
           visaType: visa.title,
-          subclass: null,
-          customValue: otherValue.trim(),
+          requiresSubclass: !!visa.requiresSubclass,
+          displayValue: visa.title,
+          customValue: null,
         });
-        sheetRef.current?.close();
-      }
-    } else if (visa.requiresSubclass) {
-      if (subclassValue.trim() && /^\d+$/.test(subclassValue.trim())) {
-        onSelect && onSelect({
-          visaType: visa.title,
-          subclass: subclassValue.trim(),
-        });
-        sheetRef.current?.close();
-      }
-    } else {
-      onSelect && onSelect({
-        visaType: visa.title,
-        subclass: null,
-      });
       sheetRef.current?.close();
     }
   };
 
+  const handleConfirm = (visa) => {
+    if (!visa?.isOther) return;
+    if (!otherValue.trim()) return;
+
+    const specified = otherValue.trim();
+    const displayValue = `${visa.title}: ${specified}`;
+    onSelect &&
+      onSelect({
+        visaType: visa.title,
+        requiresSubclass: !!visa.requiresSubclass,
+        displayValue,
+        customValue: specified,
+      });
+    sheetRef.current?.close();
+  };
+
   const renderItem = ({ item }) => {
-    const isSelected = tempSelected?.id === item.id || selectedVisaType === item.title;
+    const isSelected =
+      tempSelected?.id === item.id ||
+      selectedValue === item.title ||
+      (typeof selectedValue === 'string' && selectedValue.startsWith(`${item.title}:`));
     
     return (
       <TouchableOpacity
@@ -85,25 +80,11 @@ const VisaTypeSelector = ({ onSelect, selectedVisaType, selectedSubclass, placeh
   };
 
   const displayValue = () => {
-    if (selectedVisaType === 'Other Visa type' && selectedSubclass) {
-      return `${selectedVisaType}: ${selectedSubclass}`;
-    }
-    if (selectedVisaType && selectedSubclass) {
-      return `${selectedVisaType} - Subclass ${selectedSubclass}`;
-    }
-    if (selectedVisaType) {
-      return selectedVisaType;
-    }
-    return placeholder;
+    return selectedValue || placeholder;
   };
 
-  const showSubclassInput = tempSelected?.requiresSubclass && tempSelected?.title !== 'Other Visa type';
-  const showOtherInput = tempSelected?.title === 'Other Visa type';
-  const canConfirm = showSubclassInput 
-    ? subclassValue.trim() && /^\d+$/.test(subclassValue.trim())
-    : showOtherInput
-    ? otherValue.trim()
-    : false;
+  const showOtherInput = !!tempSelected?.isOther;
+  const canConfirm = showOtherInput ? otherValue.trim() : false;
 
   return (
     <>
@@ -144,43 +125,16 @@ const VisaTypeSelector = ({ onSelect, selectedVisaType, selectedSubclass, placeh
             </TouchableOpacity>
           </View>
 
-          <FlatList
-            data={VISA_TYPES}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id.toString()}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
-          />
-
-          {showSubclassInput && (
-            <View style={styles.inputContainer}>
-              <AppInputField
-                label={`${tempSelected.title} Subclass`}
-                placeholder="Enter subclass (numbers only)"
-                value={subclassValue}
-                onChangeText={setSubclassValue}
-                keyboardType="numeric"
-                style={styles.subclassInput}
-              />
-              {subclassValue.trim() && !/^\d+$/.test(subclassValue.trim()) && (
-                <AppText variant={Variant.caption} style={styles.errorText}>
-                  Subclass must contain only numbers
-                </AppText>
-              )}
-              <TouchableOpacity
-                style={[
-                  styles.confirmButton,
-                  !canConfirm && styles.confirmButtonDisabled,
-                ]}
-                onPress={() => handleConfirm(tempSelected)}
-                disabled={!canConfirm}
-              >
-                <AppText variant={Variant.bodySemiBold} style={styles.confirmButtonText}>
-                  Confirm
-                </AppText>
-              </TouchableOpacity>
-            </View>
-          )}
+          <View style={styles.listWrapper}>
+            <FlatList
+              data={VISA_TYPES}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.id.toString()}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.listContent}
+              style={styles.list}
+            />
+          </View>
 
           {showOtherInput && (
             <View style={styles.inputContainer}>
@@ -219,6 +173,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     paddingHorizontal: wp(4),
     paddingTop: hp(2),
+    minHeight: hp(70),
   },
   header: {
     flexDirection: 'row',
@@ -236,8 +191,16 @@ const styles = StyleSheet.create({
   closeButton: {
     padding: wp(1),
   },
+  listWrapper: {
+    flex: 1,
+    minHeight: hp(40),
+  },
+  list: {
+    flex: 1,
+  },
   listContent: {
     paddingBottom: hp(2),
+    flexGrow: 1,
   },
   optionItem: {
     flexDirection: 'row',
@@ -261,16 +224,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.grayE8 || '#E5E7EB',
   },
-  subclassInput: {
-    marginBottom: hp(1),
-  },
   otherInput: {
     marginBottom: hp(2),
-  },
-  errorText: {
-    color: colors.red,
-    marginBottom: hp(1),
-    marginLeft: wp(1),
   },
   confirmButton: {
     backgroundColor: colors.primary,
