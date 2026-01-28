@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   View,
   StyleSheet,
@@ -18,6 +18,12 @@ import QualificationSelector from '@/components/QualificationSelector'
 import LanguageSelector from '@/components/LanguageSelector'
 import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
+
+const dateFromMaybeIso = (value) => {
+  if (!value) return null
+  const d = value instanceof Date ? value : new Date(value)
+  return Number.isNaN(d.getTime()) ? null : d
+}
 
 // Small badge for selected languages
 const LanguageTag = ({ language, onRemove }) => (
@@ -70,7 +76,7 @@ const TaxTypeSelector = ({ selectedType, onSelect }) => {
 const StepThree = ({ navigation, route }) => {
   const [selectedLanguages, setSelectedLanguages] = useState([])
   const [selectedTaxType, setSelectedTaxType] = useState('ABN')
-  const [selectedEducation, setSelectedEducation] = useState(null)
+  const [selectedEducations, setSelectedEducations] = useState([])
   const [selectedQualifications, setSelectedQualifications] = useState([])
 
   const editMode = route?.params?.editMode
@@ -82,7 +88,10 @@ const StepThree = ({ navigation, route }) => {
     defaultValues: {
       educationalQualification: '',
       extraQualification: '',
-      jobEndDate: '',
+      jobStartDate: null,
+      jobStartTime: null,
+      jobEndDate: null,
+      jobEndTime: null,
       jobDescription: '',
     },
   })
@@ -92,20 +101,23 @@ const StepThree = ({ navigation, route }) => {
       const langs = Array.isArray(draftJob.preferredLanguages) ? draftJob.preferredLanguages : []
       if (langs.length) setSelectedLanguages(langs)
       if (draftJob.taxType) setSelectedTaxType(draftJob.taxType)
+      if (draftJob.educationalQualifications && Array.isArray(draftJob.educationalQualifications)) {
+        setSelectedEducations(draftJob.educationalQualifications)
+      } else if (draftJob.educationalQualification && draftJob.educationalQualification !== 'Not specified') {
+        // fallback to a single string entry
+        setSelectedEducations([{ id: `edu-${Date.now()}`, label: draftJob.educationalQualification }])
+      }
 
       methods.reset({
-        educationalQualification:
-          draftJob.educationalQualification && draftJob.educationalQualification !== 'Not specified'
-            ? draftJob.educationalQualification
-            : '',
+        educationalQualification: '', // derived from selectedEducations
         extraQualification:
           draftJob.extraQualification && draftJob.extraQualification !== 'Not specified'
             ? draftJob.extraQualification
             : '',
-        jobEndDate:
-          draftJob.jobEndDate && draftJob.jobEndDate !== 'Not specified'
-            ? draftJob.jobEndDate
-            : '',
+        jobStartDate: dateFromMaybeIso(draftJob.jobStartDate),
+        jobStartTime: dateFromMaybeIso(draftJob.jobStartTime),
+        jobEndDate: dateFromMaybeIso(draftJob.jobEndDate),
+        jobEndTime: dateFromMaybeIso(draftJob.jobEndTime),
         jobDescription:
           draftJob.jobDescription && draftJob.jobDescription !== 'No description provided'
             ? draftJob.jobDescription
@@ -116,10 +128,27 @@ const StepThree = ({ navigation, route }) => {
   }, [editMode, draftJob])
 
   const handleEducationSelect = (education) => {
-    setSelectedEducation(education)
-    const educationValue = education?.customValue || 
-      (education?.course ? `${education.level} - ${education.course}` : education?.level)
-    methods.setValue('educationalQualification', educationValue || '')
+    const label =
+      education?.customValue ||
+      (education?.course ? `${education.level} - ${education.course}` : education?.level) ||
+      ''
+
+    if (!label) return
+
+    setSelectedEducations((prev) => {
+      const exists = prev.some((e) => e.label === label)
+      const next = exists ? prev : [...prev, { ...education, label }]
+      methods.setValue('educationalQualification', next.map(e => e.label).join(', '))
+      return next
+    })
+  }
+
+  const handleEducationRemove = (label) => {
+    setSelectedEducations((prev) => {
+      const next = prev.filter((e) => e.label !== label)
+      methods.setValue('educationalQualification', next.map(e => e.label).join(', '))
+      return next
+    })
   }
 
   const handleQualificationSelect = (qualifications) => {
@@ -141,13 +170,17 @@ const StepThree = ({ navigation, route }) => {
   }
 
   const handleNext = methods.handleSubmit((formValues) => {
+    // require job description
+    if (!formValues.jobDescription || !String(formValues.jobDescription).trim()) return
+
     const formData = {
       ...formValues,
+      educationalQualifications: selectedEducations,
       preferredLanguages: selectedLanguages,
       taxType: selectedTaxType,
     }
 
-    navigation.navigate(screenNames.JOB_PREVIEW, {
+    navigation.navigate(screenNames.MANUAL_SEARCH_STEPFOUR, {
       step1Data: route?.params?.step1Data,
       step2Data: route?.params?.step2Data,
       step3Data: formData,
@@ -185,9 +218,21 @@ const StepThree = ({ navigation, route }) => {
           </AppText>
           <EducationSelector
             onSelect={handleEducationSelect}
-            selectedEducation={selectedEducation}
+            selectedEducation={selectedEducations[selectedEducations.length - 1] || null}
             placeholder="Select education level"
           />
+
+          {selectedEducations.length > 0 && (
+            <View style={styles.languageTagsContainer}>
+              {selectedEducations.map((edu) => (
+                <LanguageTag
+                  key={edu.label}
+                  language={edu.label}
+                  onRemove={() => handleEducationRemove(edu.label)}
+                />
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Extra Qualification */}
@@ -227,7 +272,27 @@ const StepThree = ({ navigation, route }) => {
           )}
         </View>
 
-        {/* Job End Date */}
+        {/* Job Start Date/Time */}
+        <View style={styles.section}>
+          <FormField
+            label="Job start date"
+            name="jobStartDate"
+            type="datePicker"
+            placeholder="Select date"
+            minimumDate={new Date()}
+          />
+        </View>
+
+        <View style={styles.section}>
+          <FormField
+            label="Job start time"
+            name="jobStartTime"
+            type="timePicker"
+            placeholder="Select time"
+          />
+        </View>
+
+        {/* Job End Date/Time */}
         <View style={styles.section}>
           <FormField
             label="Job end date"
@@ -238,6 +303,15 @@ const StepThree = ({ navigation, route }) => {
           />
         </View>
 
+        <View style={styles.section}>
+          <FormField
+            label="Job end time"
+            name="jobEndTime"
+            type="timePicker"
+            placeholder="Select time"
+          />
+        </View>
+
         {/* Job Description */}
         <View style={styles.section}>
           <FormField
@@ -245,6 +319,7 @@ const StepThree = ({ navigation, route }) => {
             name="jobDescription"
             multiline
             placeholder="Enter job description"
+            rules={{ required: 'Job description is required' }}
           />
         </View>
 

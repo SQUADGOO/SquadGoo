@@ -35,10 +35,60 @@ const QuickSearchPreview = ({ navigation, route }) => {
     jobId: existingJobId,
   } = route.params || {}
 
+  const isEmptyValue = (value) => {
+    if (value === null || value === undefined) return true
+    if (typeof value === 'string' && value.trim() === '') return true
+    if (Array.isArray(value) && value.length === 0) return true
+    return false
+  }
+
+  const parseNumberFromText = (value) => {
+    if (value === null || value === undefined) return 0
+    const m = String(value).match(/(\d+)/)
+    return m ? Number(m[1]) : 0
+  }
+
+  const getSalarySuffix = (salaryType) => {
+    const t = String(salaryType || '').trim().toLowerCase()
+    if (t === 'hourly') return '/hr'
+    if (t === 'daily') return '/day'
+    if (t === 'weekly') return '/week'
+    if (t === 'annually' || t === 'annual' || t === 'yearly') return '/year'
+    return ''
+  }
+
+  const experienceYears = parseNumberFromText(quickSearchStep1Data?.experienceYear)
+  const experienceMonths = parseNumberFromText(quickSearchStep1Data?.experienceMonth)
+
+  const getMissingRequiredFields = () => {
+    const missing = []
+    if (isEmptyValue(quickSearchStep1Data?.jobTitle)) missing.push('Job title')
+    if (isEmptyValue(quickSearchStep1Data?.industry)) missing.push('Industry')
+    if (isEmptyValue(quickSearchStep1Data?.staffCount)) missing.push('Positions')
+    if (isEmptyValue(quickSearchStep2Data?.workLocation)) missing.push('Work location')
+    if (quickSearchStep2Data?.rangeKm === null || quickSearchStep2Data?.rangeKm === undefined) missing.push('Range from location')
+    if (isEmptyValue(quickSearchStep2Data?.jobStartDate)) missing.push('Job start date')
+    if (isEmptyValue(quickSearchStep2Data?.jobEndDate)) missing.push('Job end date')
+    if (isEmptyValue(quickSearchStep3Data?.salaryMin)) missing.push('Salary min')
+    if (isEmptyValue(quickSearchStep3Data?.salaryMax)) missing.push('Salary max')
+    if (isEmptyValue(quickSearchStep4Data?.taxType)) missing.push('Required tax type')
+
+    // Availability should have at least one enabled day with times
+    const availabilityEntries = quickSearchStep4Data?.availability ? Object.entries(quickSearchStep4Data.availability) : []
+    const hasAvailability =
+      availabilityEntries.some(([, v]) => v?.enabled && v?.from && v?.to)
+    if (!hasAvailability) missing.push('Availability')
+
+    return missing
+  }
+
+  const missingRequiredFields = getMissingRequiredFields()
+  const canSave = missingRequiredFields.length === 0
+
   const formatDate = (value) => {
-    if (!value) return 'Not specified'
+    if (!value) return ''
     const date = value instanceof Date ? value : new Date(value)
-    if (Number.isNaN(date.getTime())) return 'Not specified'
+    if (Number.isNaN(date.getTime())) return ''
     return date.toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'short',
@@ -46,16 +96,19 @@ const QuickSearchPreview = ({ navigation, route }) => {
     })
   }
 
-  const DetailRow = ({ label, value, valueStyle }) => (
+  const DetailRow = ({ label, value, valueStyle, hideIfEmpty = true }) => {
+    if (hideIfEmpty && isEmptyValue(value)) return null
+    return (
     <View style={styles.detailRow}>
       <AppText variant={Variant.body} style={styles.detailLabel}>
         {label}
       </AppText>
       <AppText variant={Variant.bodyMedium} style={[styles.detailValue, valueStyle]}>
-        {value || 'Not specified'}
+        {value}
       </AppText>
     </View>
-  )
+    )
+  }
 
   const SectionTitle = ({ title }) => (
     <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
@@ -65,7 +118,7 @@ const QuickSearchPreview = ({ navigation, route }) => {
 
   // Format time string (HH:MM) to readable format (e.g., "09:00" -> "9:00 AM")
   const formatTimeString = (timeString) => {
-    if (!timeString || typeof timeString !== 'string') return 'Not specified'
+    if (!timeString || typeof timeString !== 'string') return ''
     
     // Check if it's already in HH:MM format
     const timeMatch = timeString.match(/^(\d{1,2}):(\d{2})$/)
@@ -78,7 +131,7 @@ const QuickSearchPreview = ({ navigation, route }) => {
     }
     
     // If it's not a simple time string, try formatTime (for Date objects)
-    return formatTime(timeString) || 'Not specified'
+    return formatTime(timeString) || ''
   }
 
   const AvailabilityRow = ({ day, timeData }) => {
@@ -102,6 +155,13 @@ const QuickSearchPreview = ({ navigation, route }) => {
   }
 
   const handleSubmit = () => {
+    // Required-field check for Save
+    const missing = getMissingRequiredFields()
+    if (missing.length > 0) {
+      Alert.alert('Missing required fields', `Please complete: ${missing.join(', ')}`)
+      return
+    }
+
     const isEdit = !!editMode && !!existingJobId
     // Build a stable job ID so quickSearch slice, matches and offers all align
     const jobId = isEdit ? existingJobId : `quick-job-${Date.now()}`
@@ -119,11 +179,12 @@ const QuickSearchPreview = ({ navigation, route }) => {
     const existingExpireDate = draftJob?.expireDate
     
     // Format job data for both old jobsSlice (backward compatibility) and new quickSearchSlice
+    const salarySuffix = getSalarySuffix(quickSearchStep3Data?.salaryType || 'Hourly')
     const jobData = {
       id: jobId, // keep same ID across slices for easier tracking
-      title: quickSearchStep1Data?.jobTitle || 'Untitled Job',
+      title: quickSearchStep1Data?.jobTitle,
       type: 'Contract', // Default for quick search jobs
-      industry: quickSearchStep1Data?.industry || 'General Services',
+      industry: quickSearchStep1Data?.industry,
       experience: (() => {
         // Extract numbers from strings like "2 Years" or "2 Months"
         const extractNumber = (str) => {
@@ -136,15 +197,15 @@ const QuickSearchPreview = ({ navigation, route }) => {
         const months = extractNumber(quickSearchStep1Data?.experienceMonth);
         return `${years} Year${years !== 1 ? 's' : ''} ${months} Month${months !== 1 ? 's' : ''}`;
       })(),
-      staffNumber: quickSearchStep1Data?.staffCount || '1',
-      location: quickSearchStep2Data?.workLocation || 'Location not specified',
-      rangeKm: quickSearchStep2Data?.rangeKm || 0,
+      staffNumber: quickSearchStep1Data?.staffCount,
+      location: quickSearchStep2Data?.workLocation,
+      rangeKm: quickSearchStep2Data?.rangeKm ?? 0,
       salaryRange: quickSearchStep3Data 
-        ? `$${quickSearchStep3Data.salaryMin || '0'}/hr to $${quickSearchStep3Data.salaryMax || '0'}/hr`
-        : 'Not specified',
-      salaryMin: quickSearchStep3Data?.salaryMin || 0,
-      salaryMax: quickSearchStep3Data?.salaryMax || 0,
-      salaryType: 'Hourly',
+        ? `$${quickSearchStep3Data.salaryMin} to $${quickSearchStep3Data.salaryMax}${salarySuffix}`
+        : '',
+      salaryMin: quickSearchStep3Data?.salaryMin,
+      salaryMax: quickSearchStep3Data?.salaryMax,
+      salaryType: quickSearchStep3Data?.salaryType || 'Hourly',
       jobStartDate: formatDate(quickSearchStep2Data?.jobStartDate),
       jobEndDate: formatDate(quickSearchStep2Data?.jobEndDate),
       expireDate: existingExpireDate || expiryDate.toLocaleDateString('en-GB', {
@@ -156,7 +217,7 @@ const QuickSearchPreview = ({ navigation, route }) => {
       availability: quickSearchStep4Data?.availability || {},
       jobDescription: quickSearchStep4Data?.jobDescription || '',
       description: quickSearchStep4Data?.jobDescription || '',
-      taxType: quickSearchStep4Data?.taxType || 'ABN',
+      taxType: quickSearchStep4Data?.taxType,
       searchType: 'quick',
       rawData: allData, // Store complete data for future reference
     }
@@ -271,11 +332,13 @@ const QuickSearchPreview = ({ navigation, route }) => {
         />
         <DetailRow 
           label="Experience:" 
-          value={`${quickSearchStep1Data?.experienceYear} ${quickSearchStep1Data?.experienceMonth}`}
+          value={`${experienceYears} Years ${experienceMonths} Months`}
+          hideIfEmpty={false}
         />
         <DetailRow 
-          label="Staff needed:" 
+          label="Positions:" 
           value={quickSearchStep1Data?.staffCount}
+          hideIfEmpty={false}
         />
 
         {/* Step 2 Data - Work Location */}
@@ -286,7 +349,8 @@ const QuickSearchPreview = ({ navigation, route }) => {
         />
         <DetailRow 
           label="Range from location:" 
-          value={quickSearchStep2Data?.rangeKm ? `${quickSearchStep2Data.rangeKm} km` : 'Not specified'}
+          value={typeof quickSearchStep2Data?.rangeKm === 'number' ? `${quickSearchStep2Data.rangeKm} km` : ''}
+          hideIfEmpty={false}
         />
         <DetailRow 
           label="Job start date:" 
@@ -300,11 +364,12 @@ const QuickSearchPreview = ({ navigation, route }) => {
         {/* Step 3 Data - Salary & Benefits */}
         <SectionTitle title="Salary & Benefits" />
         <DetailRow 
-          label="Salary range:" 
+          label="Salary range ($/hr or $/day):" 
           value={quickSearchStep3Data ? 
-            `$${quickSearchStep3Data.salaryMin || '0'} - $${quickSearchStep3Data.salaryMax || '0'}` : 
-            'Not specified'}
+            `$${quickSearchStep3Data.salaryMin}–$${quickSearchStep3Data.salaryMax}${getSalarySuffix(quickSearchStep3Data?.salaryType)}` : 
+            ''}
           valueStyle={styles.salaryValue}
+          hideIfEmpty={false}
         />
 
         <SectionTitle title="Extra Pay Offered:" />
@@ -350,13 +415,21 @@ const QuickSearchPreview = ({ navigation, route }) => {
           valueStyle={styles.highlightValue}
         />
 
-        {/* Submit Button */}
-        <View style={styles.buttonContainer}>
+        {/* Save / Cancel */}
+        <View style={styles.buttonRow}>
           <AppButton
-            text="Post Job"
+            text="Cancel / Back"
+            onPress={() => navigation.goBack()}
+            secondary
+            bgColor={colors.white}
+            style={styles.buttonHalf}
+          />
+          <AppButton
+            text="Save"
             onPress={handleSubmit}
             bgColor={colors.primary}
-            textColor="#FFFFFF"
+            disabled={!canSave}
+            style={styles.buttonHalf}
           />
         </View>
 
@@ -427,5 +500,14 @@ const styles = StyleSheet.create({
   buttonContainer: {
     marginTop: hp(3),
     marginBottom: hp(2),
+  },
+  buttonRow: {
+    marginTop: hp(3),
+    marginBottom: hp(2),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  buttonHalf: {
+    width: '48%',
   },
 })

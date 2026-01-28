@@ -31,6 +31,12 @@ const ManualSearchStack = () => {
         name={screenNames.STEP_THREE}
         component={ui.StepThree}
       />
+
+      {/* Step 4: Map / Location */}
+      <Stack.Screen
+        name={screenNames.MANUAL_SEARCH_STEPFOUR}
+        component={ui.ManualSearchStepFour}
+      />
       
       {/* Job Preview */}
       <Stack.Screen

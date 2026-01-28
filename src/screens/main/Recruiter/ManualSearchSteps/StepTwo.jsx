@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { 
   View, 
   StyleSheet, 
@@ -17,11 +17,17 @@ import globalStyles from '@/styles/globalStyles'
 import CustomToggle from '@/core/CustomToggle'
 import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
+import {
+  EXPERIENCE_MONTH_OPTIONS,
+  EXPERIENCE_YEAR_OPTIONS,
+  SALARY_TYPE_OPTIONS,
+} from '@/constants/recruiterOptions'
 
 const StepTwo = ({ navigation, route }) => {
   const editMode = route?.params?.editMode
   const draftJob = route?.params?.draftJob
   const existingJobId = route?.params?.jobId || draftJob?.id
+  const detailedAvailabilityFromRoute = route?.params?.detailedAvailability
 
   const parseExperienceToForm = (experience) => {
     if (!experience || typeof experience !== 'string') return null
@@ -40,22 +46,93 @@ const StepTwo = ({ navigation, route }) => {
     overtime: true
   })
 
-  const [freshersCanApply, setFreshersCanApply] = useState(true)
+  const [freshersCanApply, setFreshersCanApply] = useState(false)
+  const [detailedAvailability, setDetailedAvailability] = useState(null)
   const yearsSheetRef = useRef(null)
   const monthsSheetRef = useRef(null)
+  const salaryTypeSheetRef = useRef(null)
 
   const methods = useForm({
     mode: 'onChange',
     defaultValues: {
       experienceYears: '0 Year',
       experienceMonths: '0 Month',
-      availability: '',
+      salaryType: 'Hourly',
       salaryMin: '',
-      salaryMax: ''
+      salaryMax: '',
+      // Grouped availability (Mon–Thu / Fri–Sun)
+      weekdaysStartTime: null,
+      weekdaysEndTime: null,
+      weekendsStartTime: null,
+      weekendsEndTime: null,
     }
   })
 
+  const salaryType = methods.watch('salaryType')
+  const salarySuffix = useMemo(() => {
+    switch (salaryType) {
+      case 'Daily':
+        return '/day'
+      case 'Weekly':
+        return '/week'
+      case 'Annually':
+        return '/year'
+      case 'Hourly':
+      default:
+        return '/hr'
+    }
+  }, [salaryType])
+
+  const dateFromTimeString = (timeString) => {
+    if (!timeString || typeof timeString !== 'string') return null
+    const [h, m] = timeString.split(':').map(Number)
+    if (Number.isNaN(h) || Number.isNaN(m)) return null
+    const d = new Date()
+    d.setHours(h, m, 0, 0)
+    return d
+  }
+
+  const timeToHHMM = (value) => {
+    if (!value) return ''
+    const d = value instanceof Date ? value : new Date(value)
+    if (Number.isNaN(d.getTime())) return ''
+    const hh = d.getHours().toString().padStart(2, '0')
+    const mm = d.getMinutes().toString().padStart(2, '0')
+    return `${hh}:${mm}`
+  }
+
+  const buildGroupedAvailability = (formValues) => {
+    const weekdaysFrom = timeToHHMM(formValues.weekdaysStartTime)
+    const weekdaysTo = timeToHHMM(formValues.weekdaysEndTime)
+    const weekendsFrom = timeToHHMM(formValues.weekendsStartTime)
+    const weekendsTo = timeToHHMM(formValues.weekendsEndTime)
+
+    const out = {}
+    const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday']
+    const weekends = ['Friday', 'Saturday', 'Sunday']
+
+    weekdays.forEach((day) => {
+      out[day] = {
+        enabled: !!(weekdaysFrom && weekdaysTo),
+        from: weekdaysFrom,
+        to: weekdaysTo,
+      }
+    })
+    weekends.forEach((day) => {
+      out[day] = {
+        enabled: !!(weekendsFrom && weekendsTo),
+        from: weekendsFrom,
+        to: weekendsTo,
+      }
+    })
+    return out
+  }
+
   useEffect(() => {
+    if (detailedAvailabilityFromRoute) {
+      setDetailedAvailability(detailedAvailabilityFromRoute)
+    }
+
     if (editMode && draftJob) {
       const parsedExp = parseExperienceToForm(draftJob.experience)
       const expYears = parsedExp?.years || '0 Year'
@@ -64,48 +141,51 @@ const StepTwo = ({ navigation, route }) => {
       methods.reset({
         experienceYears: expYears,
         experienceMonths: expMonths,
-        availability: typeof draftJob.availability === 'string' ? draftJob.availability : '',
+        salaryType: draftJob.salaryType || 'Hourly',
         salaryMin: draftJob.salaryMin ? String(draftJob.salaryMin) : '',
         salaryMax: draftJob.salaryMax ? String(draftJob.salaryMax) : '',
+        weekdaysStartTime: dateFromTimeString(draftJob?.rawData?.step2Data?.weekdaysFrom) || null,
+        weekdaysEndTime: dateFromTimeString(draftJob?.rawData?.step2Data?.weekdaysTo) || null,
+        weekendsStartTime: dateFromTimeString(draftJob?.rawData?.step2Data?.weekendsFrom) || null,
+        weekendsEndTime: dateFromTimeString(draftJob?.rawData?.step2Data?.weekendsTo) || null,
       })
 
       if (draftJob.extraPay) setToggleStates(draftJob.extraPay)
       if (typeof draftJob.freshersCanApply === 'boolean') setFreshersCanApply(draftJob.freshersCanApply)
+      if (draftJob.availability && typeof draftJob.availability === 'object') {
+        setDetailedAvailability(draftJob.availability)
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editMode, draftJob])
+  }, [editMode, draftJob, detailedAvailabilityFromRoute])
 
-  const experienceYearOptions = [
-    { id: 1, title: '0 Year' },
-    { id: 2, title: '1 Year' },
-    { id: 3, title: '2 Years' },
-    { id: 4, title: '3 Years' },
-    { id: 5, title: '4 Years' },
-    { id: 6, title: '5+ Years' }
-  ]
+  const experienceYearOptions = EXPERIENCE_YEAR_OPTIONS
+  const experienceMonthOptions = EXPERIENCE_MONTH_OPTIONS
 
-  const experienceMonthOptions = [
-    { id: 1, title: '0 Month' },
-    { id: 2, title: '1 Month' },
-    { id: 3, title: '2 Months' },
-    { id: 4, title: '3 Months' },
-    { id: 5, title: '6 Months' },
-    { id: 6, title: '9 Months' },
-    { id: 7, title: '11 Months' }
-  ]
+  const salaryTypeOptions = SALARY_TYPE_OPTIONS
 
-  const handleToggle = (key) => {
-    setToggleStates(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }))
+  const handleSalaryTypeSelect = (item) => {
+    if (item?.title) {
+      methods.setValue('salaryType', item.title, { shouldValidate: true, shouldDirty: true })
+    }
+    salaryTypeSheetRef.current?.close()
   }
 
  const onSubmit = (data) => {
+  const availabilityGrouped = buildGroupedAvailability(data)
+  const availabilityFinal = detailedAvailability || availabilityGrouped
+
   const formData = {
     ...data,
     freshersCanApply,
-    extraPay: toggleStates
+    extraPay: toggleStates,
+    availability: availabilityFinal,
+    availabilitySource: detailedAvailability ? 'detailed' : 'grouped',
+    // keep grouped times in rawData for edit prefill
+    weekdaysFrom: timeToHHMM(data.weekdaysStartTime),
+    weekdaysTo: timeToHHMM(data.weekdaysEndTime),
+    weekendsFrom: timeToHHMM(data.weekendsStartTime),
+    weekendsTo: timeToHHMM(data.weekendsEndTime),
   }
 
   console.log('✅ Step 2 Data:', formData)
@@ -150,7 +230,31 @@ const StepTwo = ({ navigation, route }) => {
       />
 
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Freshers Checkbox (when checked, experience dropdowns are hidden) */}
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={styles.checkboxContainer}
+            onPress={() => setFreshersCanApply(!freshersCanApply)}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.checkbox, freshersCanApply && styles.checkboxActive]}>
+              {freshersCanApply && (
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="checkmark"
+                  size={16}
+                  color="#FFFFFF"
+                />
+              )}
+            </View>
+            <AppText variant={Variant.body} style={styles.checkboxText}>
+              Freshers can also apply
+            </AppText>
+          </TouchableOpacity>
+        </View>
+
         {/* Total Experience */}
+        {!freshersCanApply ? (
         <View style={styles.section}>
           <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
             Total experience needed*
@@ -174,66 +278,94 @@ const StepTwo = ({ navigation, route }) => {
               />
             </View>
           </View>
-
-          {/* Freshers Checkbox */}
-          <TouchableOpacity
-            style={styles.checkboxContainer}
-            onPress={() => setFreshersCanApply(!freshersCanApply)}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.checkbox, freshersCanApply && styles.checkboxActive]}>
-              {freshersCanApply && (
-                <VectorIcons
-                  name={iconLibName.Ionicons}
-                  iconName="checkmark"
-                  size={16}
-                  color="#FFFFFF"
-                />
-              )}
-            </View>
-            <AppText variant={Variant.body} style={styles.checkboxText}>
-              Freshers can also apply
-            </AppText>
-          </TouchableOpacity>
         </View>
+        ) : null}
 
         {/* Availability */}
         <View style={styles.section}>
-          <TouchableOpacity
-            style={styles.availabilitySection}
-            onPress={handleAvailabilityPress}
-            activeOpacity={0.7}
-          >
-            <View style={{...globalStyles.rowJustify, marginBottom: hp(1)}}>
-              <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
-                Availability to work
-              </AppText>
-              <VectorIcons
-                name={iconLibName.Ionicons}
-                iconName="chevron-forward"
-                size={20}
-                color="#F59E0B"
-              />
-            </View>
-            <AppText variant={Variant.body} style={styles.availabilityDescription}>
-              Choose days and time you want seeker to be available
+          <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
+            Availability to work
+          </AppText>
+
+          <AppText variant={Variant.body} style={styles.availabilityDescription}>
+            Days: Monday–Thursday and Friday–Sunday
+          </AppText>
+
+          {/* Grouped availability time pickers */}
+          <View style={styles.availabilityGroupCard}>
+            <AppText variant={Variant.bodyMedium} style={styles.groupTitle}>
+              Monday–Thursday
             </AppText>
+            <View style={styles.timeRow}>
+              <View style={{ width: '48%' }}>
+                <FormField
+                  name="weekdaysStartTime"
+                  type="timePicker"
+                  label="Start time"
+                  placeholder="Select time"
+                />
+              </View>
+              <View style={{ width: '48%' }}>
+                <FormField
+                  name="weekdaysEndTime"
+                  type="timePicker"
+                  label="End time"
+                  placeholder="Select time"
+                />
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.availabilityGroupCard}>
+            <AppText variant={Variant.bodyMedium} style={styles.groupTitle}>
+              Friday–Sunday
+            </AppText>
+            <View style={styles.timeRow}>
+              <View style={{ width: '48%' }}>
+                <FormField
+                  name="weekendsStartTime"
+                  type="timePicker"
+                  label="Start time"
+                  placeholder="Select time"
+                />
+              </View>
+              <View style={{ width: '48%' }}>
+                <FormField
+                  name="weekendsEndTime"
+                  type="timePicker"
+                  label="End time"
+                  placeholder="Select time"
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Detailed selector */}
+          <TouchableOpacity
+            style={styles.detailedAvailabilityButton}
+            onPress={handleAvailabilityPress}
+            activeOpacity={0.8}
+          >
+            <AppText variant={Variant.bodyMedium} style={styles.detailedAvailabilityText}>
+              Select Detailed Availability
+            </AppText>
+            <VectorIcons
+              name={iconLibName.Ionicons}
+              iconName="calendar-outline"
+              size={18}
+              color={colors.primary}
+            />
           </TouchableOpacity>
 
-          <View style={styles.searchContainer}>
-            <FormField
-              name="availability"
-              placeholder="Search"
-              endIcon={
-                <VectorIcons
-                  name={iconLibName.Ionicons}
-                  iconName="search"
-                  size={20}
-                  color={colors.gray}
-                />
-              }
-            />
-          </View>
+          {detailedAvailability ? (
+            <AppText variant={Variant.caption} style={styles.detailedAvailabilityHint}>
+              Detailed availability selected.
+            </AppText>
+          ) : (
+            <AppText variant={Variant.caption} style={styles.detailedAvailabilityHint}>
+              Using grouped availability times.
+            </AppText>
+          )}
         </View>
 
         {/* Salary */}
@@ -241,6 +373,17 @@ const StepTwo = ({ navigation, route }) => {
           <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
             Salary you are offering*
           </AppText>
+
+          {/* Salary Type */}
+          <View style={{ marginBottom: hp(1.5) }}>
+            <FormField
+              name="salaryType"
+              label="Salary type"
+              value={salaryType}
+              placeholder="Select salary type"
+              onPressField={() => salaryTypeSheetRef.current?.open()}
+            />
+          </View>
           
           <View style={styles.salaryRow}>
             <View style={{width: '42%'}}>
@@ -259,7 +402,9 @@ const StepTwo = ({ navigation, route }) => {
                   }
                 }}
                 startIcon={
-                  <AppText variant={Variant.body} style={styles.currencySymbol}>$</AppText>
+                  <AppText variant={Variant.body} style={styles.currencySymbol}>
+                    ${salarySuffix}
+                  </AppText>
                 }
               />
             </View>
@@ -286,7 +431,9 @@ const StepTwo = ({ navigation, route }) => {
                   }
                 }}
                 startIcon={
-                  <AppText variant={Variant.body} style={styles.currencySymbol}>$</AppText>
+                  <AppText variant={Variant.body} style={styles.currencySymbol}>
+                    ${salarySuffix}
+                  </AppText>
                 }
               />
             </View>
@@ -304,13 +451,15 @@ const StepTwo = ({ navigation, route }) => {
               <View style={{width: '48%'}}>
                 <CustomToggle
                   label='Public holidays'
-                  onChange={() => handleToggle('publicHolidays')}
+                defaultValue={toggleStates.publicHolidays ? 'Yes' : 'No'}
+                onChange={(val) => setToggleStates(s => ({ ...s, publicHolidays: val === 'Yes' }))}
                 />
               </View>
               <View style={{width: '48%'}}>
                 <CustomToggle
                   label="Weekend"
-                  onChange={() => handleToggle('weekend')}
+                defaultValue={toggleStates.weekend ? 'Yes' : 'No'}
+                onChange={(val) => setToggleStates(s => ({ ...s, weekend: val === 'Yes' }))}
                 />
               </View>
             </View>
@@ -319,13 +468,15 @@ const StepTwo = ({ navigation, route }) => {
               <View style={{width: '48%'}}>
                 <CustomToggle
                   label='Shift loading'
-                  onChange={() => handleToggle('shiftLoading')}
+                defaultValue={toggleStates.shiftLoading ? 'Yes' : 'No'}
+                onChange={(val) => setToggleStates(s => ({ ...s, shiftLoading: val === 'Yes' }))}
                 />
               </View>
               <View style={{width: '48%'}}>
                 <CustomToggle
                   label="Bonuses"
-                  onChange={() => handleToggle('bonuses')}
+                defaultValue={toggleStates.bonuses ? 'Yes' : 'No'}
+                onChange={(val) => setToggleStates(s => ({ ...s, bonuses: val === 'Yes' }))}
                 />
               </View>
             </View>
@@ -334,7 +485,8 @@ const StepTwo = ({ navigation, route }) => {
               <View style={{width: '48%'}}>
                 <CustomToggle
                   label='Overtime'
-                  onChange={() => handleToggle('overtime')}
+                defaultValue={toggleStates.overtime ? 'Yes' : 'No'}
+                onChange={(val) => setToggleStates(s => ({ ...s, overtime: val === 'Yes' }))}
                 />
               </View>
             </View>
@@ -372,6 +524,14 @@ const StepTwo = ({ navigation, route }) => {
           }}
         />
       </RbSheetComponent>
+
+      <RbSheetComponent ref={salaryTypeSheetRef} height={hp(50)}>
+        <BottomDataSheet
+          optionsData={salaryTypeOptions}
+          onClose={() => salaryTypeSheetRef.current.close()}
+          onSelect={handleSalaryTypeSelect}
+        />
+      </RbSheetComponent>
     </FormProvider>
   )
 }
@@ -406,12 +566,47 @@ const styles = StyleSheet.create({
   },
   checkboxActive: { backgroundColor: '#F59E0B', borderColor: '#F59E0B' },
   checkboxText: { color: colors.secondary, ...typography.label },
+  availabilityGroupCard: {
+    borderWidth: 1,
+    borderColor: colors.grayE8 || '#E5E7EB',
+    borderRadius: hp(1.5),
+    padding: wp(3),
+    marginTop: hp(1.2),
+    backgroundColor: colors.white,
+  },
+  groupTitle: {
+    color: colors.secondary,
+    marginBottom: hp(1),
+  },
+  timeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  detailedAvailabilityButton: {
+    marginTop: hp(1.5),
+    paddingVertical: hp(1.2),
+    paddingHorizontal: wp(3),
+    borderRadius: hp(1.5),
+    borderWidth: 1,
+    borderColor: colors.primary,
+    backgroundColor: colors.white,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  detailedAvailabilityText: {
+    color: colors.primary,
+  },
+  detailedAvailabilityHint: {
+    color: colors.gray,
+    marginTop: hp(0.8),
+  },
   salaryRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  currencySymbol: { color: colors.gray, fontSize: getFontSize(16), marginLeft: wp(2) },
+  currencySymbol: { color: colors.gray, fontSize: getFontSize(14), marginLeft: wp(2) },
   toText: { color: colors.gray, fontSize: getFontSize(16), bottom: 10 },
   toggleGrid: { gap: hp(2) },
   buttonContainer: { marginTop: hp(2), marginBottom: hp(6) },

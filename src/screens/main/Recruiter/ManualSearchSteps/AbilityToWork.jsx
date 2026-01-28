@@ -9,6 +9,7 @@ import AppButton from '@/core/AppButton'
 import AppHeader from '@/core/AppHeader'
 import { showToast, toastTypes } from '@/utilities/toastConfig'
 import AvailabilitySelector, { DAYS_OF_WEEK } from '@/components/AvailabilitySelector'
+import { screenNames } from '@/navigation/screenNames'
 
 const AbilityToWork = ({ navigation }) => {
   // Initialize availability state in the format expected by AvailabilitySelector
@@ -78,18 +79,24 @@ const AbilityToWork = ({ navigation }) => {
       return
     }
 
-    // Prepare availability data
-    const availabilityData = {
-      selectedDays: selectedDaysList,
-      schedule: selectedDaysList.reduce((acc, day) => {
-        const dayData = availability[day]
-        acc[day] = { start: dayData.from, end: dayData.to }
-        return acc
-      }, {})
-    }
+    // Prepare availability data in the same shape used by Quick Search:
+    // { Monday: { enabled, from, to }, ... }
+    const availabilityData = DAYS_OF_WEEK.reduce((acc, day) => {
+      const dayData = availability[day]
+      acc[day] = {
+        enabled: dayData?.enabled === true,
+        from: dayData?.from || '',
+        to: dayData?.to || '',
+      }
+      return acc
+    }, {})
     
     console.log('Availability data:', availabilityData)
-    navigation.goBack()
+    navigation.navigate({
+      name: screenNames.STEP_TWO,
+      params: { detailedAvailability: availabilityData },
+      merge: true,
+    })
   }
 
   return (

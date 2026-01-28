@@ -48,6 +48,19 @@ const computeMatchScore = (job, candidate) => {
   return clamp(score, 40, 100);
 };
 
+const buildOriginalTermsFromJob = (job) => {
+  const salaryMin = job?.salaryMin;
+  const salaryMax = job?.salaryMax;
+  const salaryType = job?.salaryType;
+  const suffix = salaryType === 'Hourly' ? '/hr' : '';
+  const payRate =
+    typeof salaryMin === 'number' && typeof salaryMax === 'number'
+      ? `$${salaryMin}–$${salaryMax}${suffix}`
+      : (job?.salaryRange || '');
+
+  return { payRate };
+};
+
 const buildCandidateSnapshot = (candidate, matchPercentage, currentRating) => ({
   id: candidate.id,
   name: candidate.name,
@@ -90,10 +103,15 @@ const generateDummyModificationOffers = () => {
       message: 'We are pleased to offer you this position. Please review the terms and let us know if you have any questions.',
       createdAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
       updatedAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+      originalTerms: {
+        payRate: '$28–$32/hr',
+      },
       response: {
         type: 'modification',
         modification: {
-          payRate: '$35/hr',
+          requestedTerms: {
+            payRate: '$35/hr',
+          },
           message: 'I would like to request a higher rate of $35/hr instead of the offered $30/hr, as I have extensive experience in commercial painting projects.',
         },
       },
@@ -111,10 +129,15 @@ const generateDummyModificationOffers = () => {
       message: 'We believe you would be a great fit for this role. Looking forward to your response.',
       createdAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
       updatedAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+      originalTerms: {
+        payRate: '$35–$40/hr',
+      },
       response: {
         type: 'modification',
         modification: {
-          payRate: '$42/hr',
+          requestedTerms: {
+            payRate: '$42/hr',
+          },
           message: 'Could we discuss the pay rate? I was hoping for $42/hr considering my 6 years of warehouse management experience and the responsibilities involved.',
         },
       },
@@ -132,10 +155,15 @@ const generateDummyModificationOffers = () => {
       message: 'We are excited to offer you this position. Please review the details.',
       createdAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
       updatedAt: new Date(now.getTime() - 12 * 60 * 60 * 1000).toISOString(), // 12 hours ago
+      originalTerms: {
+        payRate: '$25–$27/hr',
+      },
       response: {
         type: 'modification',
         modification: {
-          payRate: '$28/hr',
+          requestedTerms: {
+            payRate: '$28/hr',
+          },
           message: 'I would appreciate if we could adjust the rate to $28/hr. I have excellent references and can start immediately.',
         },
       },
@@ -342,7 +370,9 @@ const manualOffersSlice = createSlice({
         expiresAt,
         message,
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         response: null,
+        originalTerms: buildOriginalTermsFromJob(job),
       });
     },
     updateManualOfferStatus: (state, { payload }) => {

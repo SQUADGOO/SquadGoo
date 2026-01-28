@@ -17,18 +17,65 @@ import {
   selectQuickOffers,
   cancelOffer,
   expireQuickOffers,
+  acceptOfferModification,
+  declineOfferModification,
 } from '@/store/quickSearchSlice';
 import { screenNames } from '@/navigation/screenNames';
 import { resendOfferToNextMatch } from '@/services/autoOfferService';
 import { sendQuickOffer } from '@/store/quickSearchSlice';
+import { DUMMY_JOB_SEEKERS } from '@/utilities/dummyJobSeekers';
+import { DUMMY_CONTRACTORS } from '@/utilities/dummyContractors';
+import { DUMMY_EMPLOYEES } from '@/utilities/dummyEmployees';
 
 const tabs = [
   { id: 'pending', label: 'Pending' },
-  { id: 'matches', label: 'Matches' },
   { id: 'accepted', label: 'Accepted' },
   { id: 'declined', label: 'Declined' },
+  { id: 'modification_requested', label: 'Modifications' },
   { id: 'expired', label: 'Expired' },
 ];
+
+const findCandidateById = (candidateId) =>
+  [...DUMMY_JOB_SEEKERS, ...DUMMY_CONTRACTORS, ...DUMMY_EMPLOYEES].find(c => c.id === candidateId) || null;
+
+const formatOfferSentAt = (value) => {
+  if (!value) return '';
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+const getSalarySuffix = (salaryType) => {
+  const t = String(salaryType || '').trim().toLowerCase();
+  if (t === 'hourly') return '/hr';
+  if (t === 'daily') return '/day';
+  if (t === 'weekly') return '/week';
+  if (t === 'annually' || t === 'annual' || t === 'yearly') return '/year';
+  return '';
+};
+
+const pickFirstAvailabilitySlot = (availability) => {
+  if (!availability || typeof availability !== 'object') return null;
+  const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  for (const day of days) {
+    const v = availability?.[day];
+    if (v?.enabled && v?.from && v?.to) return { day, from: v.from, to: v.to };
+  }
+  return null;
+};
+
+const formatAuDate = (value) => {
+  if (!value) return '';
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+};
 
 const ActiveOffers = ({ navigation, route }) => {
   const dispatch = useDispatch();
@@ -46,13 +93,13 @@ const ActiveOffers = ({ navigation, route }) => {
   }, [dispatch]);
 
 
-  const filteredOffers = useMemo(
-    () => {
-      // console.log('testng', allOffers)
-      return  allOffers.filter(offer => offer.status === currentTab)
-    },
-    [currentTab],
-  );
+  const filteredOffers = useMemo(() => {
+    return allOffers.filter(offer => {
+      if (offer.status !== currentTab) return false;
+      if (jobIdFromRoute && offer.jobId !== jobIdFromRoute) return false;
+      return true;
+    });
+  }, [allOffers, currentTab, jobIdFromRoute]);
 
   // Debug logging
   useEffect(() => {
@@ -76,6 +123,35 @@ const ActiveOffers = ({ navigation, route }) => {
           },
         },
       ]
+    );
+  };
+
+  const handleAcceptModification = (offerId) => {
+    Alert.alert(
+      'Accept modification',
+      'Approve the requested changes and accept this offer?',
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Yes, Accept',
+          onPress: () => dispatch(acceptOfferModification({ offerId })),
+        },
+      ],
+    );
+  };
+
+  const handleDeclineModification = (offerId) => {
+    Alert.alert(
+      'Decline modification',
+      'Decline the requested changes? This will move the offer to Declined.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Decline',
+          style: 'destructive',
+          onPress: () => dispatch(declineOfferModification({ offerId })),
+        },
+      ],
     );
   };
 
@@ -180,20 +256,7 @@ const ActiveOffers = ({ navigation, route }) => {
             key={tab.id}
             style={[styles.tab, currentTab === tab.id && styles.tabActive]}
             onPress={() => {
-              if (tab.id === 'matches') {
-                if (!jobIdFromRoute) {
-                  Alert.alert(
-                    'No job selected',
-                    'Matches are only available when viewing offers for a specific quick search job.',
-                  );
-                  return;
-                }
-                navigation.navigate(screenNames.QUICK_SEARCH_MATCH_LIST, {
-                  jobId: jobIdFromRoute,
-                });
-              } else {
-                setCurrentTab(tab.id);
-              }
+              setCurrentTab(tab.id);
             }}
             activeOpacity={0.7}
           >
@@ -206,7 +269,7 @@ const ActiveOffers = ({ navigation, route }) => {
             >
               {tab.label}
             </AppText>
-            {currentTab === tab.id && tab.id !== 'matches' && (
+            {currentTab === tab.id && (
               <View style={styles.tabIndicator} />
             )}
           </TouchableOpacity>
@@ -218,6 +281,44 @@ const ActiveOffers = ({ navigation, route }) => {
           data={filteredOffers}
           keyExtractor={item => item.id}
           renderItem={({ item }) => (
+            (() => {
+              const job = quickJobs.find(j => j.id === item.jobId);
+              const matchList = matchesByJobId?.[item.jobId] || [];
+              const matchCandidate = matchList.find(m => m.id === item.candidateId);
+              const baseCandidate = matchCandidate || findCandidateById(item.candidateId);
+
+              const salaryMin = job?.salaryMin;
+              const salaryMax = job?.salaryMax;
+              const salaryType = job?.salaryType || 'Hourly';
+              const salarySuffix = getSalarySuffix(salaryType);
+              const salaryOffered =
+                typeof salaryMin === 'number' && typeof salaryMax === 'number'
+                  ? `$${salaryMin}–$${salaryMax}${salarySuffix}`
+                  : '';
+
+              const slot = pickFirstAvailabilitySlot(job?.availability);
+              const startTime = slot?.from || '';
+              const endTime = slot?.to || '';
+              const workHours = slot ? `${slot.day}: ${slot.from}–${slot.to}` : (job?.availability?.summary || '');
+              const startDate = formatAuDate(job?.jobStartDate);
+
+              const isVerified = ['Gold', 'Platinum'].includes(String(baseCandidate?.badge || '').trim());
+              const experienceSummary =
+                typeof baseCandidate?.experienceYears === 'number'
+                  ? `${baseCandidate.experienceYears} years`
+                  : '';
+              const qualificationsSummary = Array.isArray(baseCandidate?.qualifications)
+                ? baseCandidate.qualifications.slice(0, 2).join(', ')
+                : '';
+
+              const otherTerms = [
+                job?.taxType ? `Tax: ${job.taxType}` : '',
+                job?.extraPay
+                  ? `Extra pay: ${Object.entries(job.extraPay).filter(([, v]) => !!v).map(([k]) => k).join(', ')}`
+                  : '',
+              ].filter(Boolean);
+
+              return (
             <OfferCard
               mode="quick"
               candidateName={item.candidateName}
@@ -230,7 +331,31 @@ const ActiveOffers = ({ navigation, route }) => {
               autoSent={item.autoSent}
               candidateId={item.candidateId}
               jobId={item.jobId}
+              response={item.response}
+              originalTerms={item.originalTerms}
+              avatarUri={baseCandidate?.avatar}
+              isVerified={isVerified}
+              offerSentAt={formatOfferSentAt(item.createdAt)}
+              modificationRequestedAt={formatOfferSentAt(item.updatedAt)}
+              salaryOffered={salaryOffered}
+              workHours={workHours}
+              startDate={startDate}
+              startTime={startTime}
+              endTime={endTime}
+              otherTerms={otherTerms}
+              experienceSummary={experienceSummary}
+              qualificationsSummary={qualificationsSummary}
               onViewProfile={handleViewProfile}
+              onAcceptModification={
+                item.status === 'modification_requested'
+                  ? () => handleAcceptModification(item.id)
+                  : undefined
+              }
+              onDeclineModification={
+                item.status === 'modification_requested'
+                  ? () => handleDeclineModification(item.id)
+                  : undefined
+              }
               onMessage={
                 item.status === 'accepted'
                   ? () => handleMessage(item)
@@ -252,6 +377,8 @@ const ActiveOffers = ({ navigation, route }) => {
                   : undefined
               }
             />
+              );
+            })()
           )}
           contentContainerStyle={[
             styles.list,

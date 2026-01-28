@@ -207,6 +207,73 @@ const generateDummyAcceptedOffers = () => {
   ];
 };
 
+// Generate dummy modification requests (Scenario 2)
+const generateDummyModificationOffers = () => {
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+  return [
+    {
+      id: 'quick-offer-mod-001',
+      jobId: 'quick-job-dummy-001',
+      candidateId: 'js-001',
+      candidateName: 'Jane Jobseeker',
+      jobTitle: 'Commercial Painting Project',
+      matchPercentage: 92,
+      acceptanceRating: 92,
+      status: 'modification_requested',
+      expiresAt: expiresAt.toISOString(),
+      message: 'Offer sent. Candidate requested a change.',
+      createdAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(now.getTime() - 6 * 60 * 60 * 1000).toISOString(),
+      originalTerms: {
+        payRate: '$30/hr',
+        startDate: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        startTime: '09:00',
+        endTime: '17:00',
+      },
+      response: {
+        type: 'modification',
+        modification: {
+          requestedTerms: {
+            payRate: '$32/hr',
+          },
+          message: 'Based on my experience, I’m requesting $32/hr.',
+        },
+      },
+    },
+    {
+      id: 'quick-offer-mod-002',
+      jobId: 'quick-job-dummy-002',
+      candidateId: 'js-002',
+      candidateName: 'Michael Torres',
+      jobTitle: 'Warehouse Inventory Management',
+      matchPercentage: 88,
+      acceptanceRating: 88,
+      status: 'modification_requested',
+      expiresAt: expiresAt.toISOString(),
+      message: 'Offer sent. Candidate requested a change.',
+      createdAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(now.getTime() - 10 * 60 * 60 * 1000).toISOString(),
+      originalTerms: {
+        payRate: '$35/hr',
+        startDate: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+        startTime: '08:00',
+        endTime: '16:00',
+      },
+      response: {
+        type: 'modification',
+        modification: {
+          requestedTerms: {
+            payRate: '$42/hr',
+          },
+          message: 'Requesting $42/hr considering responsibilities and experience.',
+        },
+      },
+    },
+  ];
+};
+
 // Generate dummy quick jobs for accepted offers
 const generateDummyQuickJobs = () => {
   const now = new Date();
@@ -314,9 +381,28 @@ const generateDummyQuickJobs = () => {
   ];
 };
 
+const buildOriginalTermsFromJob = (job) => {
+  const salaryMin = job?.salaryMin;
+  const salaryMax = job?.salaryMax;
+  const salaryType = job?.salaryType;
+  const suffix = salaryType === 'Hourly' ? '/hr' : '';
+  const payRate =
+    typeof salaryMin === 'number' && typeof salaryMax === 'number'
+      ? `$${salaryMin}–$${salaryMax}${suffix}`
+      : '';
+
+  return {
+    payRate,
+    startDate: job?.jobStartDate || null,
+    // If we have detailed availability, store the first enabled slot.
+    startTime: null,
+    endTime: null,
+  };
+};
+
 const initialState = {
   quickJobs: generateDummyQuickJobs(), // Posted quick search jobs (includes dummy jobs for accepted offers)
-  activeOffers: generateDummyAcceptedOffers(), // Offers sent to job seekers (includes dummy accepted offers)
+  activeOffers: [...generateDummyAcceptedOffers(), ...generateDummyModificationOffers()], // Offers sent to job seekers
   activeJobs: [], // Jobs with accepted offers (in progress)
   locationTracking: {}, // Real-time location data: { jobId: { stage, location, distance, etc } }
   timerStates: {}, // Timer states: { jobId: { isRunning, startTime, elapsedTime, etc } }
@@ -443,9 +529,75 @@ const quickSearchSlice = createSlice({
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         response: null,
+        originalTerms: buildOriginalTermsFromJob(job),
       };
 
       state.activeOffers.unshift(offer);
+    },
+
+    // Candidate or recruiter requests modification to an existing offer
+    requestOfferModification: (state, { payload }) => {
+      const { offerId, requestedTerms, message } = payload || {};
+      const offer = state.activeOffers.find(o => o.id === offerId);
+      if (!offer) return;
+
+      offer.status = 'modification_requested';
+      offer.response = {
+        type: 'modification',
+        modification: {
+          requestedTerms: requestedTerms || {},
+          message: message || '',
+        },
+      };
+      offer.updatedAt = new Date().toISOString();
+    },
+
+    // Recruiter accepts the modification request
+    acceptOfferModification: (state, { payload }) => {
+      const { offerId } = payload || {};
+      const offer = state.activeOffers.find(o => o.id === offerId);
+      if (!offer) return;
+
+      const requestedTerms = offer?.response?.modification?.requestedTerms || {};
+      offer.originalTerms = {
+        ...(offer.originalTerms || {}),
+        ...requestedTerms,
+      };
+      offer.status = 'accepted';
+      offer.response = {
+        type: 'modification_accepted',
+        acceptedAt: new Date().toISOString(),
+        modification: offer?.response?.modification || null,
+      };
+      offer.updatedAt = new Date().toISOString();
+
+      // slight rating increase (align with acceptQuickOffer behavior)
+      if (offer.candidateId) {
+        const current = state.acceptanceRatings[offer.candidateId] ?? 80;
+        state.acceptanceRatings[offer.candidateId] = clamp(current + 2, 0, 100);
+      }
+    },
+
+    // Recruiter declines the modification request
+    declineOfferModification: (state, { payload }) => {
+      const { offerId, reason } = payload || {};
+      const offer = state.activeOffers.find(o => o.id === offerId);
+      if (!offer) return;
+
+      offer.status = 'declined';
+      offer.response = {
+        type: 'modification_declined',
+        declinedAt: new Date().toISOString(),
+        reason: reason || '',
+        modification: offer?.response?.modification || null,
+      };
+      offer.updatedAt = new Date().toISOString();
+
+      // slight rating decrease when high match and no valid reason (simplified)
+      if (offer.candidateId) {
+        const current = state.acceptanceRatings[offer.candidateId] ?? 80;
+        state.acceptanceRatings[offer.candidateId] = clamp(current - 2, 40, 100);
+      }
     },
 
     // Job seeker accepts quick offer
@@ -778,7 +930,7 @@ const quickSearchSlice = createSlice({
         
         if (persistedState) {
           // Get dummy data
-          const dummyOffers = generateDummyAcceptedOffers();
+          const dummyOffers = [...generateDummyAcceptedOffers(), ...generateDummyModificationOffers()];
           const dummyJobs = generateDummyQuickJobs();
           
           // Merge dummy offers with persisted offers (avoid duplicates by ID)
@@ -818,6 +970,9 @@ export const {
   sendQuickOffer,
   acceptQuickOffer,
   declineQuickOffer,
+  requestOfferModification,
+  acceptOfferModification,
+  declineOfferModification,
   updateLocationTracking,
   requestPlatformPayment,
   verifyPaymentCode,

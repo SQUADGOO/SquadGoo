@@ -25,9 +25,94 @@ const JobPreview = ({ navigation, route }) => {
   const dispatch = useDispatch()
   
   // Get data from all three steps
-  const { step1Data, step2Data, step3Data, editMode, draftJob, jobId: existingJobId } = route.params || {}
+  const { step1Data, step2Data, step3Data, step4Data, editMode, draftJob, jobId: existingJobId } = route.params || {}
   console.log('step3Data', step3Data)
+
+  const isEmptyValue = (value) => {
+    if (value === null || value === undefined) return true
+    if (typeof value === 'string' && value.trim() === '') return true
+    if (Array.isArray(value) && value.length === 0) return true
+    return false
+  }
+
+  const parseNumberFromText = (value) => {
+    if (value === null || value === undefined) return 0
+    const m = String(value).match(/(\d+)/)
+    return m ? Number(m[1]) : 0
+  }
+
+  const getSalarySuffix = (salaryType) => {
+    const t = String(salaryType || '').trim().toLowerCase()
+    if (t === 'hourly') return '/hr'
+    if (t === 'daily') return '/day'
+    if (t === 'weekly') return '/week'
+    if (t === 'annually' || t === 'annual' || t === 'yearly') return '/year'
+    return ''
+  }
+
+  const formatAvailability = (availability) => {
+    if (!availability) return ''
+    if (typeof availability === 'string') return availability.trim()
+    if (typeof availability !== 'object') return ''
+
+    const lines = Object.entries(availability)
+      .filter(([, v]) => v?.enabled && v?.from && v?.to)
+      .map(([day, v]) => `${day}: ${v.from}–${v.to}`)
+
+    return lines.length ? lines.join('\n') : ''
+  }
+
+  const getMissingRequiredFields = () => {
+    const missing = []
+
+    const jobTitle = step1Data?.jobTitle
+    const jobType = step1Data?.jobType
+    const industry = step1Data?.industry
+    const workLocation = step4Data?.workLocation || step1Data?.workLocation
+    const rangeKm = step4Data?.rangeKm ?? step1Data?.rangeKm
+    const staffNumber = step1Data?.staffNumber
+
+    if (isEmptyValue(jobTitle)) missing.push('Job title')
+    if (isEmptyValue(jobType)) missing.push('Job type')
+    if (isEmptyValue(industry)) missing.push('Industry')
+    if (isEmptyValue(workLocation)) missing.push('Work location')
+    if (rangeKm === null || rangeKm === undefined) missing.push('Range from location')
+    if (isEmptyValue(staffNumber)) missing.push('Positions')
+
+    const salaryType = step2Data?.salaryType
+    const salaryMin = step2Data?.salaryMin
+    const salaryMax = step2Data?.salaryMax
+    if (isEmptyValue(salaryType)) missing.push('Salary type')
+    if (isEmptyValue(salaryMin)) missing.push('Salary min')
+    if (isEmptyValue(salaryMax)) missing.push('Salary max')
+
+    const availabilityText = formatAvailability(step2Data?.availability)
+    if (isEmptyValue(availabilityText)) missing.push('Availability')
+
+    const educational = step3Data?.educationalQualification || (Array.isArray(step3Data?.educationalQualifications) ? step3Data.educationalQualifications.join(', ') : '')
+    if (isEmptyValue(educational)) missing.push('Required education')
+
+    const taxType = step3Data?.taxType
+    if (isEmptyValue(taxType)) missing.push('Required tax type')
+
+    const jobDescription = step3Data?.jobDescription
+    if (isEmptyValue(jobDescription)) missing.push('Job description')
+
+    return missing
+  }
+
+  const missingRequiredFields = getMissingRequiredFields()
+  const canSave = missingRequiredFields.length === 0
+
   const handlePostJob = () => {
+    if (!canSave) {
+      Alert.alert(
+        'Missing required fields',
+        `Please complete: ${missingRequiredFields.join(', ')}`
+      )
+      return
+    }
+
     const isEdit = !!editMode && !!existingJobId
     // Calculate expiry date (30 days from now)
     const expiryDate = new Date()
@@ -35,14 +120,15 @@ const JobPreview = ({ navigation, route }) => {
     
     // Format job data
     const jobId = isEdit ? existingJobId : `manual-job-${Date.now()}`
+    const salarySuffix = getSalarySuffix(step2Data?.salaryType)
     const jobData = {
       id: jobId,
-      title: step1Data?.jobTitle || 'Untitled Job',
-      type: step1Data?.jobType || 'Full-time',
-      location: step1Data?.workLocation || 'Location not specified',
-      rangeKm: step1Data?.rangeKm || 0,
-      staffNumber: step1Data?.staffNumber || '1',
-      industry: step1Data?.industry || 'General Services',
+      title: step1Data?.jobTitle,
+      type: step1Data?.jobType,
+      location: step4Data?.workLocation || step1Data?.workLocation,
+      rangeKm: step4Data?.rangeKm ?? (step1Data?.rangeKm || 0),
+      staffNumber: step1Data?.staffNumber,
+      industry: step1Data?.industry,
       jobReferenceId: step1Data?.jobReferenceId,
       experience: step2Data ? (() => {
         // Extract numbers from strings like "2 Years" or "2 Months"
@@ -54,28 +140,30 @@ const JobPreview = ({ navigation, route }) => {
         const years = extractNumber(step2Data.experienceYears);
         const months = extractNumber(step2Data.experienceMonths);
         return `${years} Year${years !== 1 ? 's' : ''} ${months} Month${months !== 1 ? 's' : ''}`;
-      })() : 'Not specified',
-      salaryRange: step2Data 
-        ? `$${step2Data.salaryMin || '0'}/hr to $${step2Data.salaryMax || '0'}/hr`
-        : 'Not specified',
-      salaryMin: step2Data?.salaryMin || 0,
-      salaryMax: step2Data?.salaryMax || 0,
-      salaryType: 'Hourly',
+      })() : '',
+      salaryRange: step2Data ? `$${step2Data.salaryMin} to $${step2Data.salaryMax}${salarySuffix}` : '',
+      salaryMin: step2Data?.salaryMin,
+      salaryMax: step2Data?.salaryMax,
+      salaryType: step2Data?.salaryType,
       expireDate: (isEdit && draftJob?.expireDate) ? draftJob.expireDate : expiryDate.toLocaleDateString('en-GB', {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
       }),
       extraPay: step2Data?.extraPay || {},
-      availability: step2Data?.availability || 'Not specified',
+      availability: step2Data?.availability,
       freshersCanApply: step2Data?.freshersCanApply || false,
-      educationalQualification: step3Data?.educationalQualification || 'Not specified',
-      extraQualification: step3Data?.extraQualification || 'Not specified',
+      educationalQualification: step3Data?.educationalQualification,
+      educationalQualifications: step3Data?.educationalQualifications || [],
+      extraQualification: step3Data?.extraQualification,
       preferredLanguages: step3Data?.preferredLanguages || [],
-      jobEndDate: step3Data?.jobEndDate || 'Not specified',
-      jobDescription: step3Data?.jobDescription || 'No description provided',
-      description: step3Data?.jobDescription || 'No description provided',
-      taxType: step3Data?.taxType || 'ABN',
+      jobEndDate: step3Data?.jobEndDate,
+      jobStartDate: step3Data?.jobStartDate,
+      jobStartTime: step3Data?.jobStartTime || null,
+      jobEndTime: step3Data?.jobEndTime || null,
+      jobDescription: step3Data?.jobDescription,
+      description: step3Data?.jobDescription,
+      taxType: step3Data?.taxType,
       searchType: 'manual',
       rawData: { step1Data, step2Data, step3Data }, // Store complete data for future reference
     }
@@ -134,7 +222,9 @@ const JobPreview = ({ navigation, route }) => {
     )
   }
 
-  const DetailRow = ({ label, value, valueStyle }) => (
+  const DetailRow = ({ label, value, valueStyle, hideIfEmpty = true }) => {
+    if (hideIfEmpty && isEmptyValue(value)) return null
+    return (
     <View style={styles.detailRow}>
       <AppText variant={Variant.body} style={styles.detailLabel}>
         {label}
@@ -143,15 +233,17 @@ const JobPreview = ({ navigation, route }) => {
         {value}
       </AppText>
     </View>
-  )
+    )
+  }
 
   const AvailabilityRow = ({ day, hours }) => (
+    !hours ? null :
     <View style={styles.availabilityRow}>
       <AppText variant={Variant.body} style={styles.dayLabel}>
         {day}:
       </AppText>
       <AppText variant={Variant.bodyMedium} style={styles.hoursText}>
-        {hours || 'Not specified'}
+        {hours}
       </AppText>
     </View>
   )
@@ -178,42 +270,72 @@ const JobPreview = ({ navigation, route }) => {
         {/* Basic Job Info - Step 1 Data */}
         <DetailRow 
           label="Job title:" 
-          value={step1Data?.jobTitle || 'N/A'}
+          value={step1Data?.jobTitle}
           valueStyle={styles.jobTitle}
+          hideIfEmpty={false}
         />
         
         <DetailRow 
           label="Job type:" 
-          value={step1Data?.jobType || 'N/A'}
+          value={step1Data?.jobType}
+          hideIfEmpty={false}
+        />
+
+        <DetailRow 
+          label="Industry:" 
+          value={step1Data?.industry}
+          hideIfEmpty={false}
         />
         
         <DetailRow 
           label="Work location:" 
-          value={step1Data?.workLocation || 'N/A'}
+          value={step4Data?.workLocation || step1Data?.workLocation}
+          hideIfEmpty={false}
         />
         
         <DetailRow 
           label="Range from location:" 
-          value={step1Data?.rangeKm ? `${step1Data.rangeKm} km` : 'N/A'}
+          value={(step4Data?.rangeKm ?? step1Data?.rangeKm) !== undefined ? `${step4Data?.rangeKm ?? step1Data?.rangeKm} km` : ''}
+          hideIfEmpty={false}
         />
         
         <DetailRow 
-          label="How many staff looking for:" 
-          value={step1Data?.staffNumber || 'N/A'}
+          label="Positions:" 
+          value={step1Data?.staffNumber}
+          hideIfEmpty={false}
         />
         
         {/* Experience - Step 2 Data */}
+        {(() => {
+          const years = parseNumberFromText(step2Data?.experienceYears)
+          const months = parseNumberFromText(step2Data?.experienceMonths)
+          const isExperienceZero = years === 0 && months === 0
+          return (
+            <>
         <DetailRow 
           label="Experience:" 
-          value={step2Data ? `${step2Data.experienceYears} ${step2Data.experienceMonths}${step2Data.freshersCanApply ? ' (Fresher can also apply)' : ''}` : 'N/A'}
-        />
-        
-        <DetailRow 
-          label="Salary you are offering:" 
-          value={step2Data ? `Min $${step2Data.salaryMin || '0'} - Max $${step2Data.salaryMax || '0'}` : 'N/A'}
-          valueStyle={styles.salaryValue}
+          value={step2Data ? `${years} Years ${months} Months` : ''}
+          hideIfEmpty={false}
         />
 
+        {isExperienceZero && (
+          <DetailRow
+            label="Freshers can also apply:"
+            value={step2Data?.freshersCanApply ? 'Yes' : 'No'}
+            hideIfEmpty={false}
+          />
+        )}
+
+        <DetailRow
+          label="Salary range ($/hr or $/day):"
+          value={step2Data ? `$${step2Data.salaryMin}–$${step2Data.salaryMax}${getSalarySuffix(step2Data?.salaryType)}` : ''}
+          valueStyle={styles.salaryValue}
+          hideIfEmpty={false}
+        />
+            </>
+          )
+        })()}
+        
         {/* Leave Section - Step 2 Data */}
         <SectionTitle title="Extra pay you are offering:" />
         
@@ -250,11 +372,13 @@ const JobPreview = ({ navigation, route }) => {
         {/* Availability Section - Step 2 Data */}
         <SectionTitle title="Availability to work:" />
         
-        <View style={styles.availabilityContainer}>
-          <AppText variant={Variant.body} style={styles.detailValue}>
-            {step2Data?.availability || 'Not specified'}
-          </AppText>
-        </View>
+        {formatAvailability(step2Data?.availability) ? (
+          <View style={styles.availabilityContainer}>
+            <AppText variant={Variant.body} style={styles.detailValue}>
+              {formatAvailability(step2Data?.availability)}
+            </AppText>
+          </View>
+        ) : null}
 
         {/* Requirements Section - Step 3 Data */}
         <View style={styles.requirementSection}>
@@ -262,43 +386,60 @@ const JobPreview = ({ navigation, route }) => {
             Required education:
           </AppText>
           <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
-            {step3Data?.educationalQualification || 'Not specified'}
+            {step3Data?.educationalQualification || (Array.isArray(step3Data?.educationalQualifications) ? step3Data.educationalQualifications.join(', ') : '')}
           </AppText>
         </View>
 
-        <View style={styles.requirementSection}>
-          <AppText variant={Variant.body} style={styles.requirementLabel}>
-            Required qualification:
-          </AppText>
-          <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
-            {step3Data?.extraQualification || 'Not specified'}
-          </AppText>
-        </View>
+        {!isEmptyValue(step3Data?.extraQualification) ? (
+          <View style={styles.requirementSection}>
+            <AppText variant={Variant.body} style={styles.requirementLabel}>
+              Required extra qualification:
+            </AppText>
+            <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
+              {step3Data?.extraQualification}
+            </AppText>
+          </View>
+        ) : null}
 
-        <View style={styles.requirementSection}>
-          <AppText variant={Variant.body} style={styles.requirementLabel}>
-            Preferred languages:
-          </AppText>
-          <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
-            {step3Data?.preferredLanguages?.join(', ') || 'Not specified'}
-          </AppText>
-        </View>
+        {Array.isArray(step3Data?.preferredLanguages) && step3Data.preferredLanguages.length > 0 ? (
+          <View style={styles.requirementSection}>
+            <AppText variant={Variant.body} style={styles.requirementLabel}>
+              Preferred language:
+            </AppText>
+            <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
+              {step3Data.preferredLanguages.join(', ')}
+            </AppText>
+          </View>
+        ) : null}
 
-        <View style={styles.requirementSection}>
-          <AppText variant={Variant.body} style={styles.requirementLabel}>
-            Job end date:
-          </AppText>
-          <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
-            {step3Data?.jobEndDate ? moment(step3Data?.jobEndDate).format('DD/MM/YYYY') : 'Not specified'}
-          </AppText>
-        </View>
+        {step3Data?.jobStartDate ? (
+          <View style={styles.requirementSection}>
+            <AppText variant={Variant.body} style={styles.requirementLabel}>
+              Job start date:
+            </AppText>
+            <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
+              {moment(step3Data?.jobStartDate).format('DD MMM YYYY')}
+            </AppText>
+          </View>
+        ) : null}
+
+        {step3Data?.jobEndDate ? (
+          <View style={styles.requirementSection}>
+            <AppText variant={Variant.body} style={styles.requirementLabel}>
+              Job end date:
+            </AppText>
+            <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
+              {moment(step3Data?.jobEndDate).format('DD MMM YYYY')}
+            </AppText>
+          </View>
+        ) : null}
 
         <View style={styles.requirementSection}>
           <AppText variant={Variant.body} style={styles.requirementLabel}>
             Required Tax type:
           </AppText>
           <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
-            {step3Data?.taxType || 'Not specified'}
+            {step3Data?.taxType}
           </AppText>
         </View>
 
@@ -308,17 +449,25 @@ const JobPreview = ({ navigation, route }) => {
             Description:
           </AppText>
           <AppText variant={Variant.body} style={styles.descriptionText}>
-            {step3Data?.jobDescription || 'No description provided'}
+            {step3Data?.jobDescription}
           </AppText>
         </View>
 
-        {/* Post Job Button */}
-        <View style={styles.buttonContainer}>
+        {/* Save / Cancel */}
+        <View style={styles.buttonRow}>
           <AppButton
-            text="Post Job"
+            text="Cancel / Back"
+            onPress={() => navigation.goBack()}
+            secondary
+            bgColor={colors.white}
+            style={styles.buttonHalf}
+          />
+          <AppButton
+            text="Save"
             onPress={handlePostJob}
             bgColor={colors.primary}
-            textColor="#FFFFFF"
+            disabled={!canSave}
+            style={styles.buttonHalf}
           />
         </View>
 
@@ -397,5 +546,14 @@ const styles = StyleSheet.create({
   buttonContainer: {
     marginTop: hp(3),
     marginBottom: hp(2),
+  },
+  buttonRow: {
+    marginTop: hp(3),
+    marginBottom: hp(2),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  buttonHalf: {
+    width: '48%',
   },
 })

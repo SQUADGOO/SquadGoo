@@ -43,6 +43,7 @@ export const screenNames = {
   ABILITY_TO_WORK: 'ability_to_work',
   STEP_TWO: 'step_two',
   STEP_THREE: 'step_three',
+  MANUAL_SEARCH_STEPFOUR: 'manual_search_stepfour',
   MAIN_DASHBOARD: 'main_dashboard',
   LABOR_POOL: 'labor_pool',
   SQUAD_POOL: 'squad_pool',

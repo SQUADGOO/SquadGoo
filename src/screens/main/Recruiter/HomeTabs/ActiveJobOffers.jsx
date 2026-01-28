@@ -126,12 +126,20 @@ const ActiveJobOffersScreen = ({ navigation, route }) => {
   }
 
   const handleViewMatches = (job) => {
-    if (job?.searchType !== 'manual') {
-      Alert.alert('Matches unavailable', 'Match list is only available for manual search jobs.')
+    // Manual search: go to manual match list
+    if (job?.searchType === 'manual') {
+      navigation.navigate(screenNames.MANUAL_MATCH_LIST, { jobId: job.id })
       return
     }
-    // Navigate directly to MANUAL_MATCH_LIST
-    navigation.navigate(screenNames.MANUAL_MATCH_LIST, { jobId: job.id })
+
+    // Quick search: go to quick search match list
+    if (job?.searchType === 'quick') {
+      navigation.navigate(screenNames.QUICK_SEARCH_MATCH_LIST, { jobId: job.id })
+      return
+    }
+
+    // Fallback
+    Alert.alert('Matches unavailable', 'Match list is unavailable for this job.')
   }
 
   const handleTrackHours = (job) => {

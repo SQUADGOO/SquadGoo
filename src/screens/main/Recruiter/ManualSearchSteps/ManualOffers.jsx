@@ -103,7 +103,7 @@ const ManualOffers = ({ navigation }) => {
       response: {
         type: 'modification',
         modification: {
-          payRate,
+          requestedTerms: { payRate },
           message,
         },
       },
@@ -194,6 +194,8 @@ const ManualOffers = ({ navigation }) => {
       expiresLabel={formatDate(item.expiresAt)}
       message={item.message}
       response={item.response}
+      originalTerms={item.originalTerms}
+      modificationRequestedAt={formatDate(item.updatedAt)}
       candidateId={item.candidateId}
       jobId={item.jobId}
       onViewProfile={handleViewProfile}

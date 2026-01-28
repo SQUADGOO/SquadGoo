@@ -283,9 +283,9 @@ const JobCard = ({
             </View>
 
             {/* Third Row */}
-            {(job?.searchType === 'manual' && onViewMatches) || onTrackHours ? (
+            {onViewMatches || onTrackHours ? (
               <View style={styles.buttonRow}>
-                {(job?.searchType === 'manual' && onViewMatches) ? (
+                {onViewMatches ? (
                   <TouchableOpacity 
                     style={[styles.actionButton, styles.matchesButton]}
                     onPress={() => onViewMatches?.(job)}

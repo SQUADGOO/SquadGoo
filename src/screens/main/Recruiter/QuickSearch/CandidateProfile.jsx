@@ -67,61 +67,40 @@ const QuickSearchCandidateProfile = ({ route, navigation }) => {
       };
     }
     
-    // First try to find in matches
-    let foundCandidate = matches.find(match => match.id === candidateId);
-    
-    if (foundCandidate) {
-      return foundCandidate;
-    }
-    
-    // If not found in matches, check DUMMY_JOB_SEEKERS first
-    let baseCandidate = DUMMY_JOB_SEEKERS.find(js => js.id === candidateId);
-    
-    // If not found in job seekers, check DUMMY_CONTRACTORS
-    if (!baseCandidate) {
-      baseCandidate = DUMMY_CONTRACTORS.find(c => c.id === candidateId);
-    }
-    
-    // If not found in contractors, check DUMMY_EMPLOYEES
-    if (!baseCandidate) {
-      baseCandidate = DUMMY_EMPLOYEES.find(e => e.id === candidateId);
-    }
-    
-    if (!baseCandidate) {
-      return null;
-    }
-    
+    const getBaseCandidate = (id) => {
+      return (
+        DUMMY_JOB_SEEKERS.find(js => js.id === id) ||
+        DUMMY_CONTRACTORS.find(c => c.id === id) ||
+        DUMMY_EMPLOYEES.find(e => e.id === id) ||
+        null
+      );
+    };
+
+    const baseCandidate = getBaseCandidate(candidateId);
+    const foundCandidate = matches.find(match => match.id === candidateId);
+
+    if (!baseCandidate && !foundCandidate) return null;
+
     // Find offer to get matchPercentage and acceptanceRating
     const offer = allOffers.find(o => o.candidateId === candidateId && o.jobId === jobId);
-    const matchPercentage = offer?.matchPercentage ?? 0;
-    const acceptanceRating = offer?.acceptanceRating ?? acceptanceRatings[candidateId] ?? baseCandidate.acceptanceRating;
-    
-    // Build candidate snapshot similar to buildQuickCandidateSnapshot
-    return {
-      id: baseCandidate.id,
-      name: baseCandidate.name,
-      badge: baseCandidate.badge,
-      avatar: baseCandidate.avatar,
+    const matchPercentage = offer?.matchPercentage ?? foundCandidate?.matchPercentage ?? 0;
+    const acceptanceRating =
+      offer?.acceptanceRating ??
+      acceptanceRatings[candidateId] ??
+      foundCandidate?.acceptanceRating ??
+      baseCandidate?.acceptanceRating ??
+      0;
+
+    // Merge base (resume/docs/reviews/etc) with match snapshot (match %, computed fields)
+    const merged = {
+      ...(baseCandidate || {}),
+      ...(foundCandidate || {}),
       acceptanceRating,
       matchPercentage,
-      location: baseCandidate.location,
-      suburb: baseCandidate.suburb,
-      radiusKm: baseCandidate.radiusKm,
-      taxTypes: baseCandidate.taxTypes,
-      languages: baseCandidate.languages,
-      qualifications: baseCandidate.qualifications,
-      education: baseCandidate.education,
-      availability: baseCandidate.availability,
-      payPreference: baseCandidate.payPreference,
-      industries: baseCandidate.industries,
-      preferredRoles: baseCandidate.preferredRoles,
-      experienceYears: baseCandidate.experienceYears,
-      bio: baseCandidate.bio,
-      skills: baseCandidate.skills,
-      abnNumber: baseCandidate.abnNumber, // Include ABN number if it's a contractor
-      tfnNumber: baseCandidate.tfnNumber, // Include TFN number if it's an employee
       isSquad: false,
     };
+
+    return merged;
   }, [matches, candidateId, jobId, allOffers, acceptanceRatings, isSquad, squad]);
   
   const [offerModal, setOfferModal] = useState(false);
@@ -630,6 +609,192 @@ const QuickSearchCandidateProfile = ({ route, navigation }) => {
           </View>
         ) : null}
 
+        {/* Resume / Work History */}
+        {Array.isArray(candidate.workHistory) && candidate.workHistory.length > 0 ? (
+          <View style={styles.card}>
+            <View style={styles.sectionHeader}>
+              <VectorIcons
+                name={iconLibName.Ionicons}
+                iconName="reader-outline"
+                size={20}
+                color={colors.primary}
+              />
+              <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
+                Work History
+              </AppText>
+            </View>
+            <View style={styles.divider} />
+            {candidate.workHistory.map((item, index) => (
+              <View
+                key={`${item.company || 'company'}-${index}`}
+                style={index > 0 ? styles.historyItemSpacing : null}
+              >
+                <AppText variant={Variant.bodyMedium} style={styles.historyRole}>
+                  {item.role}
+                </AppText>
+                <AppText variant={Variant.caption} style={styles.historyMeta}>
+                  {item.company}
+                  {item.period ? ` • ${item.period}` : ''}
+                </AppText>
+                {item.summary ? (
+                  <AppText variant={Variant.body} style={styles.historySummary}>
+                    {item.summary}
+                  </AppText>
+                ) : null}
+              </View>
+            ))}
+          </View>
+        ) : null}
+
+        {/* Uploaded Documents */}
+        {Array.isArray(candidate.documents) && candidate.documents.length > 0 ? (
+          <View style={styles.card}>
+            <View style={styles.sectionHeader}>
+              <VectorIcons
+                name={iconLibName.Ionicons}
+                iconName="document-text-outline"
+                size={20}
+                color={colors.primary}
+              />
+              <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
+                Documents
+              </AppText>
+            </View>
+            <View style={styles.divider} />
+            {candidate.documents.map((doc, index) => (
+              <View
+                key={`${doc.type || 'doc'}-${index}`}
+                style={[styles.docRow, index > 0 ? styles.infoRowSpacing : null]}
+              >
+                <View style={styles.docLeft}>
+                  <VectorIcons
+                    name={iconLibName.Ionicons}
+                    iconName="attach-outline"
+                    size={16}
+                    color={colors.gray}
+                  />
+                  <View style={styles.infoContent}>
+                    <AppText variant={Variant.bodyMedium} style={styles.docTitle}>
+                      {doc.title}
+                    </AppText>
+                    <AppText variant={Variant.caption} style={styles.docMeta}>
+                      {doc.type}
+                    </AppText>
+                  </View>
+                </View>
+                {doc.verified ? (
+                  <View style={styles.verifiedPill}>
+                    <VectorIcons
+                      name={iconLibName.Ionicons}
+                      iconName="checkmark-circle"
+                      size={14}
+                      color="#3B82F6"
+                    />
+                    <AppText variant={Variant.caption} style={styles.verifiedText}>
+                      Verified
+                    </AppText>
+                  </View>
+                ) : null}
+              </View>
+            ))}
+          </View>
+        ) : null}
+
+        {/* Ratings / Reviews */}
+        {Array.isArray(candidate.reviews) && candidate.reviews.length > 0 ? (
+          <View style={styles.card}>
+            <View style={styles.sectionHeader}>
+              <VectorIcons
+                name={iconLibName.Ionicons}
+                iconName="chatbubbles-outline"
+                size={20}
+                color={colors.primary}
+              />
+              <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
+                Ratings & Reviews
+              </AppText>
+            </View>
+            <View style={styles.divider} />
+            {typeof candidate.reviewSummary?.average === 'number' ? (
+              <View style={styles.reviewSummaryRow}>
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="star"
+                  size={16}
+                  color="#F59E0B"
+                />
+                <AppText variant={Variant.bodyMedium} style={styles.reviewSummaryText}>
+                  {candidate.reviewSummary.average.toFixed(1)} / 5
+                  {typeof candidate.reviewSummary.count === 'number'
+                    ? ` • ${candidate.reviewSummary.count} reviews`
+                    : ''}
+                </AppText>
+              </View>
+            ) : null}
+            {candidate.reviews.slice(0, 5).map((r, index) => (
+              <View key={`${r.reviewer || 'reviewer'}-${index}`} style={index > 0 ? styles.reviewItemSpacing : null}>
+                <View style={styles.reviewHeader}>
+                  <AppText variant={Variant.bodyMedium} style={styles.reviewReviewer}>
+                    {r.reviewer}
+                  </AppText>
+                  {typeof r.rating === 'number' ? (
+                    <View style={styles.reviewRating}>
+                      <VectorIcons
+                        name={iconLibName.Ionicons}
+                        iconName="star"
+                        size={14}
+                        color="#F59E0B"
+                      />
+                      <AppText variant={Variant.caption} style={styles.reviewRatingText}>
+                        {r.rating.toFixed(1)}
+                      </AppText>
+                    </View>
+                  ) : null}
+                </View>
+                {r.comment ? (
+                  <AppText variant={Variant.body} style={styles.reviewComment}>
+                    {r.comment}
+                  </AppText>
+                ) : null}
+                {r.date ? (
+                  <AppText variant={Variant.caption} style={styles.reviewMeta}>
+                    {r.date}
+                  </AppText>
+                ) : null}
+              </View>
+            ))}
+          </View>
+        ) : null}
+
+        {/* References */}
+        {Array.isArray(candidate.references) && candidate.references.length > 0 ? (
+          <View style={styles.card}>
+            <View style={styles.sectionHeader}>
+              <VectorIcons
+                name={iconLibName.Ionicons}
+                iconName="call-outline"
+                size={20}
+                color={colors.primary}
+              />
+              <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
+                References
+              </AppText>
+            </View>
+            <View style={styles.divider} />
+            {candidate.references.map((ref, index) => (
+              <View key={`${ref.name || 'ref'}-${index}`} style={index > 0 ? styles.infoRowSpacing : null}>
+                <AppText variant={Variant.bodyMedium} style={styles.refName}>
+                  {ref.name}
+                </AppText>
+                <AppText variant={Variant.caption} style={styles.refMeta}>
+                  {ref.relationship}
+                  {ref.contact ? ` • ${ref.contact}` : ''}
+                </AppText>
+              </View>
+            ))}
+          </View>
+        ) : null}
+
         <View style={styles.footerActions}>
           <AppButton
             text="Send Offer"
@@ -881,6 +1046,113 @@ const styles = StyleSheet.create({
     color: colors.secondary,
     fontSize: getFontSize(14),
     lineHeight: getFontSize(22),
+  },
+  historyItemSpacing: {
+    marginTop: hp(1.5),
+  },
+  historyRole: {
+    color: colors.secondary,
+    fontWeight: '700',
+    fontSize: getFontSize(14),
+  },
+  historyMeta: {
+    color: colors.gray,
+    marginTop: hp(0.2),
+    marginBottom: hp(0.6),
+  },
+  historySummary: {
+    color: colors.secondary,
+    fontSize: getFontSize(13),
+    lineHeight: getFontSize(19),
+  },
+  docRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  docLeft: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: wp(3),
+    flex: 1,
+    paddingRight: wp(3),
+  },
+  docTitle: {
+    color: colors.secondary,
+    fontWeight: '600',
+  },
+  docMeta: {
+    color: colors.gray,
+    marginTop: hp(0.2),
+  },
+  verifiedPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1),
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: wp(2.5),
+    paddingVertical: hp(0.4),
+    borderRadius: hp(2),
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+  },
+  verifiedText: {
+    color: '#1D4ED8',
+    fontWeight: '600',
+  },
+  reviewSummaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+    marginBottom: hp(1.5),
+  },
+  reviewSummaryText: {
+    color: colors.secondary,
+    fontWeight: '700',
+  },
+  reviewItemSpacing: {
+    marginTop: hp(1.5),
+    paddingTop: hp(1.5),
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+  },
+  reviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: hp(0.6),
+  },
+  reviewReviewer: {
+    color: colors.secondary,
+    fontWeight: '700',
+    flex: 1,
+    paddingRight: wp(2),
+  },
+  reviewRating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1),
+  },
+  reviewRatingText: {
+    color: colors.secondary,
+    fontWeight: '600',
+  },
+  reviewComment: {
+    color: colors.secondary,
+    fontSize: getFontSize(13),
+    lineHeight: getFontSize(19),
+  },
+  reviewMeta: {
+    color: colors.gray,
+    marginTop: hp(0.6),
+  },
+  refName: {
+    color: colors.secondary,
+    fontWeight: '700',
+  },
+  refMeta: {
+    color: colors.gray,
+    marginTop: hp(0.3),
   },
   footerActions: {
     marginTop: hp(1),

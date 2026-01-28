@@ -30,6 +30,7 @@ import Messages from './main/chat/Messages';
 import AbilityToWork from './main/Recruiter/ManualSearchSteps/AbilityToWork';
 import StepThree from './main/Recruiter/ManualSearchSteps/StepThree';
 import StepTwo from './main/Recruiter/ManualSearchSteps/StepTwo';
+import ManualSearchStepFour from './main/Recruiter/ManualSearchSteps/StepFour';
 import ManualMatchList from './main/Recruiter/ManualSearchSteps/ManualMatchList';
 import ManualCandidateProfile from './main/Recruiter/ManualSearchSteps/ManualCandidateProfile';
 import ManualOffers from './main/Recruiter/ManualSearchSteps/ManualOffers';
@@ -173,6 +174,7 @@ export {
   AbilityToWork,
   StepThree,
   StepTwo,
+  ManualSearchStepFour,
   ManualMatchList,
   ManualCandidateProfile,
   ManualOffers,

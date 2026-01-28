@@ -20,6 +20,7 @@ import globalStyles from '@/styles/globalStyles'
 import BottomDataSheet from '@/components/Recruiter/JobBottomSheet'
 import JobCategorySelector from '@/components/JobCategorySelector'
 import { screenNames } from '@/navigation/screenNames'
+import { INDUSTRY_OPTIONS, JOB_TYPE_OPTIONS } from '@/constants/recruiterOptions'
 
 const ManualSearch = ({ navigation, route }) => {
   // Draft edit mode params
@@ -71,23 +72,8 @@ const ManualSearch = ({ navigation, route }) => {
 
   const { watch, setValue } = methods
 
-  const jobTypeOptions = [
-    { id: 1, title: 'Full-Time' },
-    { id: 2, title: 'Part-Time' },
-    { id: 3, title: 'Contract' },
-    { id: 4, title: 'Casual' },
-  ]
-
-  const industryOptions = [
-    { id: 1, title: 'Construction' },
-    { id: 2, title: 'Healthcare' },
-    { id: 3, title: 'Technology' },
-    { id: 4, title: 'Hospitality' },
-    { id: 5, title: 'Retail' },
-    { id: 6, title: 'Education' },
-    { id: 7, title: 'Manufacturing' },
-    { id: 8, title: 'Transportation' }
-  ]
+  const jobTypeOptions = JOB_TYPE_OPTIONS
+  const industryOptions = INDUSTRY_OPTIONS
 
   const handleJobCategorySelect = (data) => {
     setJobCategory(data.category)
