@@ -16,6 +16,7 @@ const Drawer = createDrawerNavigator();
 const DrawerNavigator = () => {
   return (
     <Drawer.Navigator
+    backBehavior='history'
       drawerContent={props => <CustomDrawer {...props}  onNavigate={(route, params) => props.navigation.navigate(route, params)}
  />}
       screenOptions={{

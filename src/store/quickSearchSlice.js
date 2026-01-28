@@ -5,6 +5,25 @@ import { DUMMY_EMPLOYEES } from '@/utilities/dummyEmployees';
 
 const clamp = (value, min = 0, max = 100) => Math.max(min, Math.min(max, value));
 
+const computeIsVerified = (candidate) => {
+  const docs = candidate?.documents;
+  if (!Array.isArray(docs)) return false;
+  // Treat verified ID as "blue tick" verification
+  return docs.some(d => (d?.type === 'ID' || d?.type === 'Photo ID') && d?.verified);
+};
+
+const computeDistanceKm = (jobId, candidateId, maxKm) => {
+  const max = typeof maxKm === 'number' && maxKm > 0 ? Math.floor(maxKm) : 0;
+  if (max <= 0) return null;
+  const seedStr = `${jobId || ''}:${candidateId || ''}`;
+  let sum = 0;
+  for (let i = 0; i < seedStr.length; i += 1) {
+    sum += seedStr.charCodeAt(i);
+  }
+  // deterministic 1..max km
+  return (sum % max) + 1;
+};
+
 // Compute match score for quick search (similar to manual but optimized for quick matching)
 const computeQuickMatchScore = (job, candidate) => {
   let score = 45; // Base score
@@ -55,16 +74,18 @@ const computeQuickMatchScore = (job, candidate) => {
 };
 
 // Build candidate snapshot for quick search
-const buildQuickCandidateSnapshot = (candidate, matchPercentage, currentRating) => ({
+const buildQuickCandidateSnapshot = (candidate, matchPercentage, currentRating, meta = {}) => ({
   id: candidate.id,
   name: candidate.name,
   badge: candidate.badge,
   avatar: candidate.avatar,
+  isVerified: computeIsVerified(candidate),
   acceptanceRating: currentRating ?? candidate.acceptanceRating,
   matchPercentage,
   location: candidate.location,
   suburb: candidate.suburb,
   radiusKm: candidate.radiusKm,
+  distanceKm: meta?.distanceKm ?? null,
   taxTypes: candidate.taxTypes,
   languages: candidate.languages,
   qualifications: candidate.qualifications,
@@ -76,6 +97,12 @@ const buildQuickCandidateSnapshot = (candidate, matchPercentage, currentRating) 
   experienceYears: candidate.experienceYears,
   bio: candidate.bio,
   skills: candidate.skills,
+  // Extra profile details (available on DUMMY_JOB_SEEKERS; optional for contractors/employees)
+  workHistory: candidate.workHistory,
+  documents: candidate.documents,
+  reviewSummary: candidate.reviewSummary,
+  reviews: candidate.reviews,
+  references: candidate.references,
 });
 
 // Build acceptance rating map
@@ -474,12 +501,14 @@ const quickSearchSlice = createSlice({
       const matches = candidates.map(candidate => {
         const score = computeQuickMatchScore(job, candidate);
         const currentRating = state.acceptanceRatings[candidate.id];
+        const maxKm = Math.min(job?.rangeKm || 0, candidate?.radiusKm || 0);
+        const distanceKm = computeDistanceKm(jobId, candidate.id, maxKm);
         
         // Combined score: 70% match + 30% acceptance rating
         const combinedScore = (score * 0.7) + (currentRating * 0.3);
         
         return {
-          ...buildQuickCandidateSnapshot(candidate, score, currentRating),
+          ...buildQuickCandidateSnapshot(candidate, score, currentRating, { distanceKm }),
           combinedScore,
         };
       })
@@ -505,7 +534,9 @@ const quickSearchSlice = createSlice({
 
         const score = computeQuickMatchScore(job, baseCandidate);
         const currentRating = state.acceptanceRatings[candidateId] ?? baseCandidate.acceptanceRating;
-        candidate = buildQuickCandidateSnapshot(baseCandidate, score, currentRating);
+        const maxKm = Math.min(job?.rangeKm || 0, baseCandidate?.radiusKm || 0);
+        const distanceKm = computeDistanceKm(jobId, candidateId, maxKm);
+        candidate = buildQuickCandidateSnapshot(baseCandidate, score, currentRating, { distanceKm });
 
         if (!state.matchesByJobId[jobId]) state.matchesByJobId[jobId] = [];
         // Avoid duplicates

@@ -9,6 +9,25 @@ const buildAcceptanceRatingMap = () =>
 
 const clamp = (value, min = 0, max = 100) => Math.max(min, Math.min(max, value));
 
+const computeIsVerified = (candidate) => {
+  const docs = candidate?.documents;
+  if (!Array.isArray(docs)) return false;
+  // Treat verified ID as "blue tick" verification
+  return docs.some(d => (d?.type === 'ID' || d?.type === 'Photo ID') && d?.verified);
+};
+
+const computeDistanceKm = (jobId, candidateId, maxKm) => {
+  const max = typeof maxKm === 'number' && maxKm > 0 ? Math.floor(maxKm) : 0;
+  if (max <= 0) return null;
+  const seedStr = `${jobId || ''}:${candidateId || ''}`;
+  let sum = 0;
+  for (let i = 0; i < seedStr.length; i += 1) {
+    sum += seedStr.charCodeAt(i);
+  }
+  // deterministic 1..max km
+  return (sum % max) + 1;
+};
+
 const computeMatchScore = (job, candidate) => {
   let score = 45;
 
@@ -61,16 +80,18 @@ const buildOriginalTermsFromJob = (job) => {
   return { payRate };
 };
 
-const buildCandidateSnapshot = (candidate, matchPercentage, currentRating) => ({
+const buildCandidateSnapshot = (candidate, matchPercentage, currentRating, meta = {}) => ({
   id: candidate.id,
   name: candidate.name,
   badge: candidate.badge,
   avatar: candidate.avatar,
+  isVerified: computeIsVerified(candidate),
   acceptanceRating: currentRating ?? candidate.acceptanceRating,
   matchPercentage,
   location: candidate.location,
   suburb: candidate.suburb,
   radiusKm: candidate.radiusKm,
+  distanceKm: meta?.distanceKm ?? null,
   taxTypes: candidate.taxTypes,
   languages: candidate.languages,
   qualifications: candidate.qualifications,
@@ -82,6 +103,12 @@ const buildCandidateSnapshot = (candidate, matchPercentage, currentRating) => ({
   experienceYears: candidate.experienceYears,
   bio: candidate.bio,
   skills: candidate.skills,
+  // Extra profile details (for recruiter review screens)
+  workHistory: candidate.workHistory,
+  documents: candidate.documents,
+  reviewSummary: candidate.reviewSummary,
+  reviews: candidate.reviews,
+  references: candidate.references,
 });
 
 // Generate dummy modification offers
@@ -342,7 +369,9 @@ const manualOffersSlice = createSlice({
       const candidates = DUMMY_JOB_SEEKERS.map(candidate => {
         const score = computeMatchScore(job, candidate);
         const currentRating = state.acceptanceRatings[candidate.id];
-        return buildCandidateSnapshot(candidate, score, currentRating);
+        const maxKm = Math.min(job?.rangeKm || 0, candidate?.radiusKm || 0);
+        const distanceKm = computeDistanceKm(jobId, candidate.id, maxKm);
+        return buildCandidateSnapshot(candidate, score, currentRating, { distanceKm });
       })
         .sort((a, b) => b.matchPercentage - a.matchPercentage)
         .slice(0, 10);
