@@ -17,6 +17,7 @@ const QuickSearchStepOne = ({ navigation, route }) => {
   // Draft edit mode params
   const editMode = route?.params?.editMode
   const draftJob = route?.params?.draftJob
+  const existingJobId = route?.params?.jobId || draftJob?.id
 
   const [jobCategory, setJobCategory] = useState(draftJob?.jobCategory || null)
   const [jobSubCategory, setJobSubCategory] = useState(draftJob?.jobSubCategory || null)
@@ -130,7 +131,12 @@ const QuickSearchStepOne = ({ navigation, route }) => {
       }
 
       console.log('Quick Search Step 1 Data:', quickSearchStep1Data)
-      navigation.navigate(screenNames.QUICK_SEARCH_STEPTWO, { quickSearchStep1Data })
+      navigation.navigate(screenNames.QUICK_SEARCH_STEPTWO, {
+        quickSearchStep1Data,
+        editMode: !!editMode,
+        draftJob,
+        jobId: existingJobId,
+      })
     })()
   }
 

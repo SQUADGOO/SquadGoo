@@ -296,6 +296,16 @@ const manualOffersSlice = createSlice({
       };
       state.jobs.unshift(job);
     },
+    updateManualJob: (state, { payload }) => {
+      const { jobId, updates } = payload || {};
+      const idx = state.jobs.findIndex(j => j.id === jobId);
+      if (idx === -1) return;
+      state.jobs[idx] = {
+        ...state.jobs[idx],
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      };
+    },
     generateManualMatches: (state, { payload }) => {
       const { jobId } = payload;
       const job = state.jobs.find(j => j.id === jobId);
@@ -395,6 +405,7 @@ const manualOffersSlice = createSlice({
 
 export const {
   createManualJob,
+  updateManualJob,
   generateManualMatches,
   sendManualOffer,
   updateManualOfferStatus,

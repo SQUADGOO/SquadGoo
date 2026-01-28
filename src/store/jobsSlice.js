@@ -304,6 +304,7 @@ const generateDummyJobs = () => {
   const expiredJobs = expiredJobsData.map((data, index) => {
     const expiredDate = new Date(Date.now() - data.daysAgo * 24 * 60 * 60 * 1000);
     const jobId = `expired-job-${index}-${Date.now()}`;
+    const postedDate = new Date(expiredDate.getTime() - 30 * 24 * 60 * 60 * 1000);
     
     return {
       id: jobId,
@@ -313,11 +314,12 @@ const generateDummyJobs = () => {
       salaryRange: data.salaryRange,
       experience: data.experience,
       salaryType: 'Hourly',
-      offerDate: new Date(expiredDate.getTime() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', {
+      offerDate: postedDate.toLocaleDateString('en-GB', {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
       }),
+      createdAt: postedDate.toISOString(),
       expireDate: expiredDate.toLocaleDateString('en-GB', {
         day: '2-digit',
         month: 'short',

@@ -343,6 +343,16 @@ const quickSearchSlice = createSlice({
       };
       state.quickJobs.unshift(job);
     },
+    updateQuickJob: (state, { payload }) => {
+      const { jobId, updates } = payload || {};
+      const idx = state.quickJobs.findIndex(j => j.id === jobId);
+      if (idx === -1) return;
+      state.quickJobs[idx] = {
+        ...state.quickJobs[idx],
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      };
+    },
 
     // Auto-match candidates for a quick search job
     autoMatchCandidates: (state, { payload }) => {
@@ -803,6 +813,7 @@ const quickSearchSlice = createSlice({
 
 export const {
   createQuickJob,
+  updateQuickJob,
   autoMatchCandidates,
   sendQuickOffer,
   acceptQuickOffer,

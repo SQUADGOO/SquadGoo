@@ -1,69 +1,108 @@
 import React, { useState } from 'react'
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, TouchableOpacity } from 'react-native'
 import { colors, hp, wp } from '@/theme'
 import AppDropDown from '@/core/AppDropDown'
+import AppText, { Variant } from '@/core/AppText'
 
 const JobFiltersBar = ({
     filters = {},
     onFiltersChange
 }) => {
 
-    const [isVisible, setIsVisible] = useState(false)
-    const [searchDropDown, setSearchDropDown] = useState(false)
+    // keep only one dropdown open at a time (AppDropDown uses a Modal)
+    const [openKey, setOpenKey] = useState(null)
     
     const postOptions = [
-        { label: 'All Post', value: 'all' },
+        { label: 'Date Range', value: 'all' },
         { label: 'Last week', value: 'last_week' },
         { label: 'Last 2 weeks', value: 'last_2_weeks' },
         { label: 'Last month', value: 'last_month' },
     ]
 
     const jobTypeOptions = [
-        { label: 'All Types', value: '' },
-        { label: 'Full-time', value: 'Full-time' },
-        { label: 'Part-time', value: 'Part-time' },
+        { label: 'Job Type', value: '' },
+        { label: 'Full-Time', value: 'Full-time' },
+        { label: 'Part-Time', value: 'Part-time' },
         { label: 'Contract', value: 'Contract' },
         { label: 'Casual', value: 'Casual' },
+    ]
+
+    const searchTypeOptions = [
+        { label: 'All', value: '' },
+        { label: 'Manual Search', value: 'manual' },
+        { label: 'Quick Search', value: 'quick' },
     ]
 
     const handlePostFilterChange = (value) => {
         if (onFiltersChange) {
             onFiltersChange({ ...filters, timeFilter: value })
         }
-        console.log('Post filter changed to:', value)
     }
 
     const handleJobTypeChange = (value) => {
         if (onFiltersChange) {
             onFiltersChange({ ...filters, jobType: value })
         }
-        console.log('Job type changed to:', value)
+    }
+
+    const handleSearchTypeChange = (value) => {
+        if (onFiltersChange) {
+            onFiltersChange({ ...filters, searchMode: value })
+        }
+    }
+
+    const handleClearFilters = () => {
+        setOpenKey(null)
+        if (onFiltersChange) {
+            onFiltersChange({ timeFilter: 'all', jobType: '', searchMode: '' })
+        }
     }
 
     return (
-        <View style={styles.filtersContainer}>
-            <View style={{ width: '48%' }}>
-                <AppDropDown
-                    placeholder="All Post"
-                    options={postOptions}
-                    isVisible={isVisible}
-                    setIsVisible={setIsVisible}
-                    selectedValue={filters?.timeFilter || 'all'}
-                    onSelect={handlePostFilterChange}
-                    style={styles.filterDropdown}
-                />
+        <View style={styles.container}>
+            {/* Row 1: Date Range + Job Type */}
+            <View style={[styles.row, { zIndex: 2 }]}>
+                <View style={styles.col}>
+                    <AppDropDown
+                        placeholder="Date Range"
+                        options={postOptions}
+                        isVisible={openKey === 'dateRange'}
+                        setIsVisible={(visible) => setOpenKey(visible ? 'dateRange' : null)}
+                        selectedValue={filters?.timeFilter || 'all'}
+                        onSelect={handlePostFilterChange}
+                    />
+                </View>
+                <View style={styles.col}>
+                    <AppDropDown
+                        placeholder="Job Type"
+                        options={jobTypeOptions}
+                        isVisible={openKey === 'jobType'}
+                        setIsVisible={(visible) => setOpenKey(visible ? 'jobType' : null)}
+                        selectedValue={filters?.jobType || ''}
+                        onSelect={handleJobTypeChange}
+                    />
+                </View>
             </View>
 
-            <View style={{ width: '48%' }}>
-                <AppDropDown
-                    placeholder="All Types"
-                    options={jobTypeOptions}
-                    isVisible={searchDropDown}
-                    setIsVisible={setSearchDropDown}
-                    selectedValue={filters?.jobType || ''}
-                    onSelect={handleJobTypeChange}
-                    style={styles.filterDropdown}
-                />
+            {/* Row 2: Manual/Quick + Clear */}
+            <View style={[styles.row, { zIndex: 1 }]}>
+                <View style={styles.col}>
+                    <AppDropDown
+                        placeholder="Manual / Quick"
+                        options={searchTypeOptions}
+                        isVisible={openKey === 'searchMode'}
+                        setIsVisible={(visible) => setOpenKey(visible ? 'searchMode' : null)}
+                        selectedValue={filters?.searchMode || ''}
+                        onSelect={handleSearchTypeChange}
+                    />
+                </View>
+                <View style={styles.col}>
+                    <TouchableOpacity onPress={handleClearFilters} activeOpacity={0.8} style={styles.clearBtn}>
+                        <AppText variant={Variant.bodyMedium} style={styles.clearBtnText}>
+                            Clear Filters
+                        </AppText>
+                    </TouchableOpacity>
+                </View>
             </View>
         </View>
     )
@@ -72,17 +111,30 @@ const JobFiltersBar = ({
 export default JobFiltersBar
 
 const styles = StyleSheet.create({
-    filtersContainer: {
-        flexDirection: 'row',
-        paddingHorizontal: wp(6),
-        // paddingVertical: hp(1.5),
+    container: {
         backgroundColor: colors.white || '#FFFFFF',
-        gap: wp(3),
+        paddingHorizontal: wp(6),
+        paddingVertical: hp(1),
     },
-    filterDropdown: {
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: hp(0.6),
+    },
+    col: {
         flex: 1,
+        marginHorizontal: wp(1.5),
     },
-    searchTypeDropdown: {
-        flex: 1.5, // Make search type dropdown slightly wider
+    clearBtn: {
+        height: hp(5),
+        borderRadius: hp(1),
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#F3F4F6',
+        borderWidth: 1,
+        borderColor: colors.grayE8 || '#E5E7EB',
+    },
+    clearBtnText: {
+        color: '#111827',
     },
 })

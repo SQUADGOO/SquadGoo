@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import {
   View,
   StyleSheet,
@@ -73,6 +73,10 @@ const StepThree = ({ navigation, route }) => {
   const [selectedEducation, setSelectedEducation] = useState(null)
   const [selectedQualifications, setSelectedQualifications] = useState([])
 
+  const editMode = route?.params?.editMode
+  const draftJob = route?.params?.draftJob
+  const existingJobId = route?.params?.jobId || draftJob?.id
+
   const methods = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -82,6 +86,34 @@ const StepThree = ({ navigation, route }) => {
       jobDescription: '',
     },
   })
+
+  useEffect(() => {
+    if (editMode && draftJob) {
+      const langs = Array.isArray(draftJob.preferredLanguages) ? draftJob.preferredLanguages : []
+      if (langs.length) setSelectedLanguages(langs)
+      if (draftJob.taxType) setSelectedTaxType(draftJob.taxType)
+
+      methods.reset({
+        educationalQualification:
+          draftJob.educationalQualification && draftJob.educationalQualification !== 'Not specified'
+            ? draftJob.educationalQualification
+            : '',
+        extraQualification:
+          draftJob.extraQualification && draftJob.extraQualification !== 'Not specified'
+            ? draftJob.extraQualification
+            : '',
+        jobEndDate:
+          draftJob.jobEndDate && draftJob.jobEndDate !== 'Not specified'
+            ? draftJob.jobEndDate
+            : '',
+        jobDescription:
+          draftJob.jobDescription && draftJob.jobDescription !== 'No description provided'
+            ? draftJob.jobDescription
+            : '',
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editMode, draftJob])
 
   const handleEducationSelect = (education) => {
     setSelectedEducation(education)
@@ -119,6 +151,9 @@ const StepThree = ({ navigation, route }) => {
       step1Data: route?.params?.step1Data,
       step2Data: route?.params?.step2Data,
       step3Data: formData,
+      editMode: !!editMode,
+      draftJob,
+      jobId: existingJobId,
     })
   })
 

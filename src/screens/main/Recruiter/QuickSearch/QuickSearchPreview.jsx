@@ -12,8 +12,8 @@ import { colors, hp, wp, getFontSize } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import AppHeader from '@/core/AppHeader'
 import AppButton from '@/core/AppButton'
-import { addJob } from '@/store/jobsSlice'
-import { createQuickJob, autoMatchCandidates, sendQuickOffer } from '@/store/quickSearchSlice'
+import { addJob, updateJob } from '@/store/jobsSlice'
+import { createQuickJob, updateQuickJob, autoMatchCandidates, sendQuickOffer } from '@/store/quickSearchSlice'
 import { autoSendOffers } from '@/services/autoOfferService'
 import { screenNames } from '@/navigation/screenNames'
 import { formatTime } from '@/utilities/helperFunctions'
@@ -29,7 +29,10 @@ const QuickSearchPreview = ({ navigation, route }) => {
     quickSearchStep1Data, 
     quickSearchStep2Data, 
     quickSearchStep3Data,
-    quickSearchStep4Data 
+    quickSearchStep4Data,
+    editMode,
+    draftJob,
+    jobId: existingJobId,
   } = route.params || {}
 
   const formatDate = (value) => {
@@ -99,8 +102,9 @@ const QuickSearchPreview = ({ navigation, route }) => {
   }
 
   const handleSubmit = () => {
+    const isEdit = !!editMode && !!existingJobId
     // Build a stable job ID so quickSearch slice, matches and offers all align
-    const jobId = `quick-job-${Date.now()}`
+    const jobId = isEdit ? existingJobId : `quick-job-${Date.now()}`
 
     const allData = {
       step1: quickSearchStep1Data,
@@ -109,9 +113,10 @@ const QuickSearchPreview = ({ navigation, route }) => {
       step4: quickSearchStep4Data
     }
     
-    // Calculate expiry date (30 days from now)
+    // Calculate expiry date (30 days from now) - preserve existing when editing if available
     const expiryDate = new Date()
     expiryDate.setDate(expiryDate.getDate() + 30)
+    const existingExpireDate = draftJob?.expireDate
     
     // Format job data for both old jobsSlice (backward compatibility) and new quickSearchSlice
     const jobData = {
@@ -142,7 +147,7 @@ const QuickSearchPreview = ({ navigation, route }) => {
       salaryType: 'Hourly',
       jobStartDate: formatDate(quickSearchStep2Data?.jobStartDate),
       jobEndDate: formatDate(quickSearchStep2Data?.jobEndDate),
-      expireDate: expiryDate.toLocaleDateString('en-GB', {
+      expireDate: existingExpireDate || expiryDate.toLocaleDateString('en-GB', {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
@@ -180,6 +185,33 @@ const QuickSearchPreview = ({ navigation, route }) => {
     
     console.log('Posting Quick Search Job:', jobData)
     
+    if (isEdit) {
+      // Update existing job(s)
+      const jobUpdates = { ...jobData }
+      delete jobUpdates.id
+      const quickJobUpdates = { ...quickJobData }
+      delete quickJobUpdates.id
+
+      dispatch(updateJob({ jobId, updates: jobUpdates }))
+      dispatch(updateQuickJob({ jobId, updates: quickJobUpdates }))
+
+      Alert.alert(
+        'Job Updated Successfully!',
+        'Your job offer has been updated.',
+        [
+          {
+            text: 'Back to Active Offers',
+            onPress: () => {
+              navigation.navigate(screenNames.Tab_NAVIGATION, {
+                screen: screenNames.HOME,
+              })
+            },
+          },
+        ]
+      )
+      return
+    }
+
     // 1) Dispatch to both slices for backward compatibility
     dispatch(addJob(jobData))
     dispatch(createQuickJob(quickJobData))

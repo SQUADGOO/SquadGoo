@@ -15,8 +15,8 @@ import AppText, { Variant } from '@/core/AppText'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import AppHeader from '@/core/AppHeader'
 import AppButton from '@/core/AppButton'
-import { addJob } from '@/store/jobsSlice'
-import { createManualJob, generateManualMatches } from '@/store/manualOffersSlice'
+import { addJob, updateJob } from '@/store/jobsSlice'
+import { createManualJob, updateManualJob, generateManualMatches } from '@/store/manualOffersSlice'
 import { screenNames } from '@/navigation/screenNames'
 import moment from 'moment'
 
@@ -25,15 +25,16 @@ const JobPreview = ({ navigation, route }) => {
   const dispatch = useDispatch()
   
   // Get data from all three steps
-  const { step1Data, step2Data, step3Data } = route.params || {}
+  const { step1Data, step2Data, step3Data, editMode, draftJob, jobId: existingJobId } = route.params || {}
   console.log('step3Data', step3Data)
   const handlePostJob = () => {
+    const isEdit = !!editMode && !!existingJobId
     // Calculate expiry date (30 days from now)
     const expiryDate = new Date()
     expiryDate.setDate(expiryDate.getDate() + 30)
     
     // Format job data
-    const jobId = `manual-job-${Date.now()}`
+    const jobId = isEdit ? existingJobId : `manual-job-${Date.now()}`
     const jobData = {
       id: jobId,
       title: step1Data?.jobTitle || 'Untitled Job',
@@ -42,6 +43,7 @@ const JobPreview = ({ navigation, route }) => {
       rangeKm: step1Data?.rangeKm || 0,
       staffNumber: step1Data?.staffNumber || '1',
       industry: step1Data?.industry || 'General Services',
+      jobReferenceId: step1Data?.jobReferenceId,
       experience: step2Data ? (() => {
         // Extract numbers from strings like "2 Years" or "2 Months"
         const extractNumber = (str) => {
@@ -59,7 +61,7 @@ const JobPreview = ({ navigation, route }) => {
       salaryMin: step2Data?.salaryMin || 0,
       salaryMax: step2Data?.salaryMax || 0,
       salaryType: 'Hourly',
-      expireDate: expiryDate.toLocaleDateString('en-GB', {
+      expireDate: (isEdit && draftJob?.expireDate) ? draftJob.expireDate : expiryDate.toLocaleDateString('en-GB', {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
@@ -81,6 +83,32 @@ const JobPreview = ({ navigation, route }) => {
    
     console.log('Posting Manual Search Job:', jobData)
     
+    if (isEdit) {
+      const jobUpdates = { ...jobData }
+      delete jobUpdates.id
+
+      dispatch(updateJob({ jobId, updates: jobUpdates }))
+      dispatch(updateManualJob({ jobId, updates: jobUpdates }))
+      dispatch(generateManualMatches({ jobId }))
+
+      Alert.alert(
+        'Job Updated Successfully!',
+        'Your job offer has been updated.',
+        [
+          {
+            text: 'View Matches',
+            onPress: () => {
+              navigation.navigate(screenNames.MANUAL_MATCH_LIST, {
+                jobId,
+                fromJobPost: true,
+              })
+            },
+          },
+        ]
+      )
+      return
+    }
+
     // Dispatch to Redux
     dispatch(addJob(jobData))
     dispatch(createManualJob(jobData))

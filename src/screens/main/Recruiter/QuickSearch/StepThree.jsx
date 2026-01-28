@@ -1,5 +1,5 @@
 // QuickSearchStepThree.js - Salary & Benefits (Add your Step 3 content)
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native'
 import { useForm, FormProvider } from 'react-hook-form'
 import { colors, hp, wp, getFontSize } from '@/theme'
@@ -13,9 +13,17 @@ import { screenNames } from '@/navigation/screenNames'
 
 const QuickSearchStepThree = ({ navigation, route }) => {
   // Get data from Step 1 and Step 2
-  const { quickSearchStep1Data, quickSearchStep2Data } = route.params || {}
+  const { quickSearchStep1Data, quickSearchStep2Data, editMode, draftJob, jobId } = route.params || {}
 
-  const [toggleStates, setToggleStates] = useState({
+  const step3Draft = draftJob?.rawData?.step3 || {}
+
+  const [toggleStates, setToggleStates] = useState(editMode ? (step3Draft?.extraPay ?? draftJob?.extraPay ?? {
+    publicHolidays: true,
+    weekend: true,
+    shiftLoading: true,
+    bonuses: true,
+    overtime: true
+  }) : {
     publicHolidays: true,
     weekend: true,
     shiftLoading: true,
@@ -26,10 +34,23 @@ const QuickSearchStepThree = ({ navigation, route }) => {
   const methods = useForm({
     mode: 'onChange',
     defaultValues: {
-      salaryMin: '',
-      salaryMax: '',
+      salaryMin: editMode ? String(step3Draft?.salaryMin ?? draftJob?.salaryMin ?? '') : '',
+      salaryMax: editMode ? String(step3Draft?.salaryMax ?? draftJob?.salaryMax ?? '') : '',
     },
   })
+
+  useEffect(() => {
+    if (editMode) {
+      const nextExtraPay = step3Draft?.extraPay ?? draftJob?.extraPay
+      if (nextExtraPay) setToggleStates(nextExtraPay)
+
+      methods.reset({
+        salaryMin: String(step3Draft?.salaryMin ?? draftJob?.salaryMin ?? ''),
+        salaryMax: String(step3Draft?.salaryMax ?? draftJob?.salaryMax ?? ''),
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editMode, draftJob])
 
   const handleToggle = (key) => {
     setToggleStates(prev => ({
@@ -71,6 +92,9 @@ const QuickSearchStepThree = ({ navigation, route }) => {
       quickSearchStep1Data,
       quickSearchStep2Data,
       quickSearchStep3Data,
+      editMode: !!editMode,
+      draftJob,
+      jobId,
     })
   }
 

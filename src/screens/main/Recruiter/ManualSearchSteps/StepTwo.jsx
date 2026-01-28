@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { 
   View, 
   StyleSheet, 
@@ -19,6 +19,19 @@ import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
 
 const StepTwo = ({ navigation, route }) => {
+  const editMode = route?.params?.editMode
+  const draftJob = route?.params?.draftJob
+  const existingJobId = route?.params?.jobId || draftJob?.id
+
+  const parseExperienceToForm = (experience) => {
+    if (!experience || typeof experience !== 'string') return null
+    const yearsMatch = experience.match(/(\d+)\s*Year/i)
+    const monthsMatch = experience.match(/(\d+)\s*Month/i)
+    const years = yearsMatch ? `${yearsMatch[1]} Year${yearsMatch[1] === '1' ? '' : 's'}` : null
+    const months = monthsMatch ? `${monthsMatch[1]} Month${monthsMatch[1] === '1' ? '' : 's'}` : null
+    return { years, months }
+  }
+
   const [toggleStates, setToggleStates] = useState({
     publicHolidays: true,
     weekend: true,
@@ -41,6 +54,26 @@ const StepTwo = ({ navigation, route }) => {
       salaryMax: ''
     }
   })
+
+  useEffect(() => {
+    if (editMode && draftJob) {
+      const parsedExp = parseExperienceToForm(draftJob.experience)
+      const expYears = parsedExp?.years || '0 Year'
+      const expMonths = parsedExp?.months || '0 Month'
+
+      methods.reset({
+        experienceYears: expYears,
+        experienceMonths: expMonths,
+        availability: typeof draftJob.availability === 'string' ? draftJob.availability : '',
+        salaryMin: draftJob.salaryMin ? String(draftJob.salaryMin) : '',
+        salaryMax: draftJob.salaryMax ? String(draftJob.salaryMax) : '',
+      })
+
+      if (draftJob.extraPay) setToggleStates(draftJob.extraPay)
+      if (typeof draftJob.freshersCanApply === 'boolean') setFreshersCanApply(draftJob.freshersCanApply)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editMode, draftJob])
 
   const experienceYearOptions = [
     { id: 1, title: '0 Year' },
@@ -80,7 +113,10 @@ const StepTwo = ({ navigation, route }) => {
   // Pass both step1Data and step2Data to next screen
   navigation.navigate(screenNames.STEP_THREE, { 
     step1Data: route.params?.step1Data, // Pass step1Data forward
-    step2Data: formData 
+    step2Data: formData,
+    editMode: !!editMode,
+    draftJob,
+    jobId: existingJobId,
   })
 }
 

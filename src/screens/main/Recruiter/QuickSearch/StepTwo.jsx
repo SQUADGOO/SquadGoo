@@ -1,5 +1,5 @@
 // QuickSearchStepTwo.js - Work Location
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   View,
   StyleSheet,
@@ -20,18 +20,35 @@ import { screenNames } from '@/navigation/screenNames'
 
 const QuickSearchStepTwo = ({ navigation, route }) => {
   // Get data from Step 1
-  const { quickSearchStep1Data } = route.params || {}
+  const { quickSearchStep1Data, editMode, draftJob, jobId } = route.params || {}
 
-  const [rangeKm, setRangeKm] = useState(119)
+  const step2Draft = draftJob?.rawData?.step2 || {}
+  const [rangeKm, setRangeKm] = useState(
+    (editMode ? (step2Draft?.rangeKm ?? draftJob?.rangeKm) : null) ?? 119
+  )
 
   const methods = useForm({
     mode: 'onChange',
     defaultValues: {
-      workLocation: '',
-      jobStartDate: '',
-      jobEndDate: '',
+      workLocation: editMode ? (step2Draft?.workLocation ?? draftJob?.location ?? '') : '',
+      jobStartDate: editMode ? (step2Draft?.jobStartDate ?? draftJob?.jobStartDate ?? '') : '',
+      jobEndDate: editMode ? (step2Draft?.jobEndDate ?? draftJob?.jobEndDate ?? '') : '',
     },
   })
+
+  useEffect(() => {
+    if (editMode) {
+      methods.reset({
+        workLocation: step2Draft?.workLocation ?? draftJob?.location ?? '',
+        jobStartDate: step2Draft?.jobStartDate ?? draftJob?.jobStartDate ?? '',
+        jobEndDate: step2Draft?.jobEndDate ?? draftJob?.jobEndDate ?? '',
+      })
+      if (typeof (step2Draft?.rangeKm ?? draftJob?.rangeKm) === 'number') {
+        setRangeKm(step2Draft?.rangeKm ?? draftJob?.rangeKm)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editMode, draftJob])
 
   const onSubmit = (data) => {
     const quickSearchStep2Data = {
@@ -59,6 +76,9 @@ const QuickSearchStepTwo = ({ navigation, route }) => {
     navigation.navigate(screenNames.QUICK_SEARCH_STEPTHREE, { 
       quickSearchStep1Data,
       quickSearchStep2Data,
+      editMode: !!editMode,
+      draftJob,
+      jobId,
     })
   }
 

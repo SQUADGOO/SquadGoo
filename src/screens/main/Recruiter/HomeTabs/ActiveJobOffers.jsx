@@ -26,6 +26,7 @@ const ActiveJobOffersScreen = ({ navigation, route }) => {
   const [filters, setFilters] = useState({
     timeFilter: 'all',
     jobType: '',
+    searchMode: '',
   })
 
   const applyFilters = React.useCallback(() => {
@@ -57,6 +58,11 @@ const ActiveJobOffersScreen = ({ navigation, route }) => {
     if (filters.jobType && filters.jobType !== '') {
       filtered = filtered.filter(job => job.type === filters.jobType)
     }
+
+    // Apply search mode filter (manual vs quick)
+    if (filters.searchMode && filters.searchMode !== '') {
+      filtered = filtered.filter(job => job?.searchType === filters.searchMode)
+    }
     
     setFilteredJobs(filtered)
   }, [activeJobs, filters])
@@ -83,8 +89,20 @@ const ActiveJobOffersScreen = ({ navigation, route }) => {
 
   const handleUpdate = (job) => {
     console.log('Update job:', job.title)
-    // Navigate to job update screen
-    navigation.navigate(screenNames.UPDATE_MAIN, { jobId: job.id })
+    // Option A: Update should reopen the original workflow (Manual vs Quick)
+    if (job?.searchType === 'quick') {
+      navigation.navigate(screenNames.QUICK_SEARCH_STACK, {
+        screen: screenNames.QUICK_SEARCH_STEPONE,
+        params: { editMode: true, draftJob: job, jobId: job.id },
+      })
+      return
+    }
+
+    // Default to manual search update
+    navigation.navigate(screenNames.MANUAL_SEARCH_STACK, {
+      screen: screenNames.MANUAL_SEARCH,
+      params: { editMode: true, draftJob: job, jobId: job.id },
+    })
   }
 
   const handleViewCandidates = (job) => {
@@ -180,7 +198,7 @@ const ActiveJobOffersScreen = ({ navigation, route }) => {
         <AppHeader title={headerTitle} showBackButton={false} />
       ) : null}
       {/* Filter Bar */}
-      <View style={{paddingVertical: 10, backgroundColor: colors.white, height: hp(8)}}>
+      <View style={{backgroundColor: colors.white }}>
         <JobFiltersBar
           filters={filters}
           onFiltersChange={setFilters}
@@ -192,7 +210,7 @@ const ActiveJobOffersScreen = ({ navigation, route }) => {
         <>
           <View style={styles.headerContainer}>
             <AppText variant={Variant.subTitle} style={styles.jobCount}>
-              {filteredJobs.length} Active job offer{filteredJobs.length !== 1 ? 's' : ''}
+              {filteredJobs.length} Active offer{filteredJobs.length !== 1 ? 's' : ''}
             </AppText>
           </View>
           <FlatList

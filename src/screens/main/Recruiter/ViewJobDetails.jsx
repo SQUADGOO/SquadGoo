@@ -4,6 +4,7 @@ import {
   StyleSheet,
   ScrollView,
   StatusBar,
+  TouchableOpacity,
 } from 'react-native'
 import { useSelector } from 'react-redux'
 import { colors, hp, wp, getFontSize } from '@/theme'
@@ -11,6 +12,46 @@ import AppText, { Variant } from '@/core/AppText'
 import AppHeader from '@/core/AppHeader'
 import moment from 'moment'
 import { formatTime } from '@/utilities/helperFunctions'
+import { screenNames } from '@/navigation/screenNames'
+
+const normalizeJobTypeLabel = (type) => {
+  if (!type) return ''
+  const t = String(type).trim()
+  if (t.toLowerCase() === 'full-time' || t.toLowerCase() === 'full time' || t === 'Full-time') return 'Full-Time'
+  if (t.toLowerCase() === 'part-time' || t.toLowerCase() === 'part time' || t === 'Part-time') return 'Part-Time'
+  if (t.toLowerCase() === 'contract') return 'Contract'
+  if (t.toLowerCase() === 'casual') return 'Casual'
+  return t
+}
+
+const formatAuDate = (value) => {
+  if (!value) return ''
+  const m = moment(value, [moment.ISO_8601, 'YYYY-MM-DD', 'DD/MM/YYYY', 'DD MMM YYYY', 'DD MMMM YYYY'], true)
+  return m.isValid() ? m.format('DD MMM YYYY') : String(value)
+}
+
+const formatPayRange = (job) => {
+  const salaryMin = job?.salaryMin
+  const salaryMax = job?.salaryMax
+  const salaryType = job?.salaryType
+
+  if (typeof salaryMin === 'number' && typeof salaryMax === 'number' && (salaryMin > 0 || salaryMax > 0)) {
+    const suffix = salaryType === 'Hourly' ? '/hr' : ''
+    return `$${salaryMin}–$${salaryMax}${suffix}`
+  }
+
+  const range = job?.salaryRange
+  if (typeof range === 'string' && range.trim() !== '') {
+    const m = range.match(/\$?\s*(\d+(?:\.\d+)?)\s*(?:\/hr)?\s*to\s*\$?\s*(\d+(?:\.\d+)?)\s*(?:\/hr)?/i)
+    if (m) {
+      const suffix = /\/hr/i.test(range) || salaryType === 'Hourly' ? '/hr' : ''
+      return `$${m[1]}–$${m[2]}${suffix}`
+    }
+    return range
+  }
+
+  return ''
+}
 
 const ViewJobDetails = ({ navigation, route }) => {
   const { jobId, isCompleted, isExpired } = route.params || {}
@@ -47,16 +88,25 @@ const ViewJobDetails = ({ navigation, route }) => {
     )
   }
 
-  const DetailRow = ({ label, value, valueStyle }) => (
+  const isEmptyValue = (value) => {
+    if (value === null || value === undefined) return true
+    if (typeof value === 'string' && value.trim() === '') return true
+    return false
+  }
+
+  const DetailRow = ({ label, value, valueStyle, hideIfEmpty = true }) => {
+    if (hideIfEmpty && isEmptyValue(value)) return null
+    return (
     <View style={styles.detailRow}>
       <AppText variant={Variant.body} style={styles.detailLabel}>
         {label}
       </AppText>
       <AppText variant={Variant.bodyMedium} style={[styles.detailValue, valueStyle]}>
-        {value || 'Not specified'}
+        {isEmptyValue(value) ? 'Not specified' : value}
       </AppText>
     </View>
   )
+  }
 
   const SectionTitle = ({ title }) => (
     <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
@@ -79,6 +129,18 @@ const ViewJobDetails = ({ navigation, route }) => {
       </View>
     )
   }
+
+  const displayJobType = normalizeJobTypeLabel(job?.type)
+  const payRange = formatPayRange(job)
+  const searchType = job?.searchType === 'quick' ? 'quick' : 'manual' // default manual
+  const experienceValue = job?.experience
+  const positionsValue = job?.staffNumber || job?.staffCount
+
+  // Timeline fields (AU format)
+  const postedDateValue = job?.offerDate || formatAuDate(job?.createdAt)
+  const startDateValue = formatAuDate(job?.jobStartDate)
+  const endDateValue = formatAuDate(job?.jobEndDate)
+  const expiryValue = job?.expireDate || formatAuDate(job?.expiresAt)
 
   return (
     <View style={styles.container}>
@@ -111,36 +173,37 @@ const ViewJobDetails = ({ navigation, route }) => {
           )}
           
           {/* Search Type Badge */}
-          {job.searchType && (
-            <View style={[
-              styles.searchTypeBadge,
-              job.searchType === 'quick' ? styles.quickSearchBadge : styles.manualSearchBadge
-            ]}>
-              <AppText variant={Variant.bodySmall} style={styles.searchTypeBadgeText}>
-                {job.searchType === 'quick' ? '⚡ Quick Search' : '📝 Manual Search'}
-              </AppText>
-            </View>
-          )}
+          <View style={[
+            styles.searchTypeBadge,
+            searchType === 'quick' ? styles.quickSearchBadge : styles.manualSearchBadge
+          ]}>
+            <AppText variant={Variant.bodySmall} style={styles.searchTypeBadgeText}>
+              {searchType === 'quick' ? '⚡ Quick Search' : '📝 Manual Search'}
+            </AppText>
+          </View>
         </View>
 
-        {/* Basic Job Info */}
+        {/* Group 1: Job title, Job type, Industry */}
         <SectionTitle title="Job Information" />
         <DetailRow 
           label="Job title:" 
           value={job.title}
           valueStyle={styles.jobTitle}
+          hideIfEmpty={false}
         />
         
         <DetailRow 
           label="Job type:" 
-          value={job.type}
+          value={displayJobType}
         />
         
         <DetailRow 
           label="Industry:" 
           value={job.industry}
         />
-        
+
+        {/* Group 2: Location, Range */}
+        <SectionTitle title="Location" />
         <DetailRow 
           label="Work location:" 
           value={job.location}
@@ -148,24 +211,26 @@ const ViewJobDetails = ({ navigation, route }) => {
         
         <DetailRow 
           label="Range from location:" 
-          value={job.rangeKm ? `${job.rangeKm} km` : 'Not specified'}
+          value={job.rangeKm ? `${job.rangeKm} km` : ''}
         />
         
+        {/* Group 3: Positions, Experience */}
+        <SectionTitle title="Positions & Experience" />
         <DetailRow 
-          label="Staff needed:" 
-          value={job.staffNumber}
+          label="Positions required:" 
+          value={positionsValue}
         />
 
-        {/* Experience & Salary */}
-        <SectionTitle title="Experience & Compensation" />
         <DetailRow 
-          label="Experience required:" 
-          value={job.experience}
+          label="Experience level / years required:" 
+          value={experienceValue}
         />
         
+        {/* Group 4: Salary type and range */}
+        <SectionTitle title="Compensation" />
         <DetailRow 
           label="Salary range:" 
-          value={job.salaryRange}
+          value={payRange}
           valueStyle={styles.salaryValue}
         />
 
@@ -174,26 +239,26 @@ const ViewJobDetails = ({ navigation, route }) => {
           value={job.salaryType}
         />
 
-        {/* Dates */}
+        {/* Group 5: Timeline (Posted, Start, End, Expiry) */}
         <SectionTitle title="Job Timeline" />
         <DetailRow 
           label="Posted date:" 
-          value={job.offerDate}
+          value={postedDateValue ? formatAuDate(postedDateValue) : ''}
         />
 
         <DetailRow 
           label="Start date:" 
-          value={job.jobStartDate}
+          value={startDateValue}
         />
         
         <DetailRow 
-          label="End date:" 
-          value={moment(job.jobEndDate).format('DD/MM/YYYY')}
+          label="End date / duration:" 
+          value={endDateValue || job?.duration}
         />
         
         <DetailRow 
           label="Offer expires:" 
-          value={job.expireDate}
+          value={expiryValue ? formatAuDate(expiryValue) : ''}
         />
 
         {/* Extra Pay Section */}
@@ -298,6 +363,19 @@ const ViewJobDetails = ({ navigation, route }) => {
             </AppText>
           </View>
         )}
+
+        {/* Contact / Support */}
+        <View style={styles.supportContainer}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate(screenNames.SUPPORT)}
+            style={styles.supportBtn}
+          >
+            <AppText variant={Variant.bodyMedium} style={styles.supportText}>
+              Need help? Contact support
+            </AppText>
+          </TouchableOpacity>
+        </View>
 
         {/* Completed By Section (only for completed jobs) */}
         {isCompleted && allCandidates.length > 0 && (
@@ -464,6 +542,22 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: colors.gray,
+  },
+  supportContainer: {
+    marginTop: hp(3),
+    marginBottom: hp(1),
+  },
+  supportBtn: {
+    paddingVertical: hp(1.2),
+    paddingHorizontal: wp(4),
+    borderRadius: hp(1.5),
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: colors.grayE8 || '#E5E7EB',
+    alignItems: 'center',
+  },
+  supportText: {
+    color: colors.primary || '#FF6B35',
   },
   completedByContainer: {
     marginBottom: hp(2),
