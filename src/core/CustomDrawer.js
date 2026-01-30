@@ -22,7 +22,7 @@ const CustomDrawer = ({
   const navigation = useNavigation()
   // 🔹 Get current user info from Redux
   const { userInfo, role } = useSelector((state) => state.auth)
-  console.log('User Info from Redux:', userInfo, 'Role:', role)
+  // console.log('User Info from Redux:', userInfo, 'Role:', role)
 
   const toggleSection = (sectionKey) => {
     setExpandedSections(prev => ({

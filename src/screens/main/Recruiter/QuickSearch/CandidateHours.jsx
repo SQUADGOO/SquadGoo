@@ -1,61 +1,139 @@
 import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useSelector } from 'react-redux';
 import { colors, hp, wp, getFontSize } from '@/theme';
 import AppHeader from '@/core/AppHeader';
 import AppText, { Variant } from '@/core/AppText';
+import { screenNames } from '@/navigation/screenNames';
+import { selectWorkSessionsForJobCandidate } from '@/store/quickSearchSlice';
 
 const TABS = {
   SUMMARY: 'summary',
   HISTORY: 'history',
 };
 
-const CandidateHours = ({ route }) => {
+const CandidateHours = ({ route, navigation }) => {
   const { job, candidate } = route.params || {};
   const [activeTab, setActiveTab] = useState(TABS.SUMMARY);
 
-  const summaryStats = useMemo(() => {
-    const hourlyRate =
-      job?.salaryMin ||
-      job?.salaryRange?.match(/\d+/)?.[0] ||
-      35;
-    return {
-      totalHours: 42.5,
-      weekHours: 18,
-      lastSession: 'Today • 02:45 PM',
-      hourlyRate: Number(hourlyRate),
-      pendingApproval: 6.5,
-    };
-  }, [job]);
+  const jobId = job?.id || job?.jobId || null;
+  const candidateId = candidate?.id || candidate?.candidateId || null;
 
-  const historyEntries = useMemo(
-    () => [
-      {
-        id: `${job?.id || 'job'}-hist-1`,
-        date: 'Mon, 25 Nov 2024',
-        shift: '08:00 AM – 04:30 PM',
-        hours: 8.5,
-        break: '30 min',
-        notes: 'Completed level 12 repaint ahead of schedule.',
-      },
-      {
-        id: `${job?.id || 'job'}-hist-2`,
-        date: 'Tue, 26 Nov 2024',
-        shift: '09:00 AM – 05:00 PM',
-        hours: 8,
-        break: '45 min',
-        notes: 'QA walkthrough + minor touch ups.',
-      },
-      {
-        id: `${job?.id || 'job'}-hist-3`,
-        date: 'Wed, 27 Nov 2024',
-        shift: '07:15 AM – 03:30 PM',
-        hours: 8.25,
-        break: '30 min',
-        notes: 'Exterior facade coating. Weather delay +15 min.',
-      },
-    ],
-    [job?.id],
+  const sessions = useSelector(state =>
+    jobId && candidateId
+      ? selectWorkSessionsForJobCandidate(state, jobId, candidateId)
+      : [],
   );
+
+  const getSalarySuffix = (salaryType) => {
+    const t = String(salaryType || '').trim().toLowerCase();
+    if (t === 'hourly') return '/hr';
+    if (t === 'daily') return '/day';
+    if (t === 'weekly') return '/week';
+    if (t === 'annually' || t === 'annual' || t === 'yearly') return '/year';
+    return '';
+  };
+
+  const getRateLabel = () => {
+    const salaryType = job?.salaryType || 'Hourly';
+    const suffix = getSalarySuffix(salaryType);
+    const min = job?.salaryMin;
+    const max = job?.salaryMax;
+    if (typeof min === 'number' && typeof max === 'number' && max !== min) {
+      return `$${min}–$${max}${suffix}`;
+    }
+    if (typeof min === 'number') {
+      return `$${min}${suffix}`;
+    }
+    const lastRate = sessions?.[0]?.hourlyRate;
+    if (typeof lastRate === 'number') {
+      return `$${lastRate}${suffix || '/hr'}`;
+    }
+    return `N/A`;
+  };
+
+  const getWeekStart = (d) => {
+    const date = new Date(d);
+    date.setHours(0, 0, 0, 0);
+    const day = date.getDay(); // 0..6 (Sun..Sat)
+    const diff = (day + 6) % 7; // days since Monday
+    date.setDate(date.getDate() - diff);
+    return date;
+  };
+
+  const formatDateLabel = (value) => {
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('en-GB', {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
+  const formatTimeLabel = (value) => {
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '—';
+    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const summaryStats = useMemo(() => {
+    const totalHours = (sessions || []).reduce((sum, s) => sum + (Number(s?.hours) || 0), 0);
+    const pendingApproval = (sessions || []).reduce(
+      (sum, s) => sum + (s?.status === 'pending_approval' ? (Number(s?.hours) || 0) : 0),
+      0,
+    );
+
+    const now = new Date();
+    const weekStart = getWeekStart(now);
+    const weekHours = (sessions || []).reduce((sum, s) => {
+      const end = s?.endTime ? new Date(s.endTime) : null;
+      if (!end || Number.isNaN(end.getTime())) return sum;
+      return end >= weekStart ? sum + (Number(s?.hours) || 0) : sum;
+    }, 0);
+
+    const last = sessions?.[0] || null;
+    const lastSession =
+      last?.endTime
+        ? `${formatDateLabel(last.endTime)} • ${formatTimeLabel(last.endTime)}`
+        : '—';
+
+    return {
+      totalHours,
+      weekHours,
+      pendingApproval,
+      rateLabel: getRateLabel(),
+      lastSession,
+    };
+  }, [sessions, job]);
+
+  const historyEntries = useMemo(() => {
+    return (sessions || []).map((s) => {
+      const breakMinutes = Number(s?.breakMinutes) || 0;
+      const notes = String(s?.notes || '').trim();
+      return {
+        id: s.id,
+        date: s?.endTime ? formatDateLabel(s.endTime) : '—',
+        shift:
+          s?.startTime && s?.endTime
+            ? `${formatTimeLabel(s.startTime)} – ${formatTimeLabel(s.endTime)}`
+            : '—',
+        hours: Number(s?.hours) || 0,
+        breakLabel: `${breakMinutes} min`,
+        notes: notes || '—',
+      };
+    });
+  }, [sessions]);
+
+  const handleViewProfile = () => {
+    if (!jobId || !candidateId) return;
+    navigation.navigate(screenNames.QUICK_SEARCH_CANDIDATE_PROFILE, {
+      jobId,
+      candidateId,
+      mode: 'work_coordination',
+    });
+  };
 
   const renderSummary = () => (
     <>
@@ -103,7 +181,7 @@ const CandidateHours = ({ route }) => {
               Hourly Rate
             </AppText>
             <AppText variant={Variant.title} style={styles.statValue}>
-              ${summaryStats.hourlyRate}/hr
+              {summaryStats.rateLabel}
             </AppText>
           </View>
         </View>
@@ -146,7 +224,7 @@ const CandidateHours = ({ route }) => {
                 Break
               </AppText>
               <AppText variant={Variant.bodyMedium} style={styles.statValue}>
-                {entry.break}
+                {entry.breakLabel}
               </AppText>
             </View>
           </View>
@@ -169,6 +247,16 @@ const CandidateHours = ({ route }) => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        <TouchableOpacity
+          style={styles.viewProfileLink}
+          onPress={handleViewProfile}
+          activeOpacity={0.85}
+        >
+          <AppText variant={Variant.bodyMedium} style={styles.viewProfileText}>
+            View Full Profile
+          </AppText>
+        </TouchableOpacity>
+
         <View style={styles.tabSwitcher}>
           {Object.values(TABS).map(tab => (
             <TouchableOpacity
@@ -219,6 +307,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.grayE8 || '#E5E7EB',
     borderRadius: hp(5),
     padding: 4,
+  },
+  viewProfileLink: {
+    alignSelf: 'flex-start',
+    paddingVertical: hp(1),
+    paddingHorizontal: wp(3),
+    borderRadius: hp(2),
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: colors.grayE8 || '#E5E7EB',
+  },
+  viewProfileText: {
+    color: colors.primary,
+    fontWeight: '700',
   },
   tabButton: {
     flex: 1,

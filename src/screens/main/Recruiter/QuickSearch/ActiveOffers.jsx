@@ -182,10 +182,12 @@ const ActiveOffers = ({ navigation, route }) => {
     }
   };
 
-  const handleViewProfile = (candidateId, jobId) => {
+  const handleViewProfile = (candidateId, jobId, meta) => {
     navigation.navigate(screenNames.QUICK_SEARCH_CANDIDATE_PROFILE, {
       jobId,
       candidateId,
+      mode: meta?.mode,
+      offerMeta: meta || null,
     });
   };
 
@@ -326,6 +328,7 @@ const ActiveOffers = ({ navigation, route }) => {
               status={item.status}
               matchPercentage={item.matchPercentage}
               acceptanceRating={item.acceptanceRating}
+              expiresAt={item.expiresAt}
               expiresLabel={formatExpiryLabel(item.expiresAt)}
               message={item.message}
               autoSent={item.autoSent}

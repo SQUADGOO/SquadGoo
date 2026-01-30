@@ -22,12 +22,15 @@ const computeIsVerified = (candidate) => {
 };
 
 const ManualCandidateProfile = ({ route, navigation }) => {
-  const { jobId, candidateId } = route.params || {};
+  const { jobId, candidateId, mode } = route.params || {};
   const dispatch = useDispatch();
   const job = useSelector(state => selectManualJobById(state, jobId));
   const matches = useSelector(state => selectManualMatchesByJobId(state, jobId));
   const allOffers = useSelector(selectManualOffers);
   const acceptanceRatings = useSelector(state => state.manualOffers.acceptanceRatings);
+
+  const isDeclinedReview = mode === 'declined_review';
+  const isExpiredReview = mode === 'expired_review';
   
   const acceptedOffer = useMemo(() => {
     if (!jobId || !candidateId) return null;
@@ -665,46 +668,60 @@ const ManualCandidateProfile = ({ route, navigation }) => {
         ) : null}
 
         <View style={styles.footerActions}>
-          <AppButton
-            text="Send Offer"
-            onPress={() => setOfferModal(true)}
-            bgColor={colors.primary}
-            textColor="#FFF"
-            style={styles.primaryButton}
-          />
-          {acceptedOffer ? (
-            <TouchableOpacity
-              style={styles.contactButton}
-              onPress={handleContact}
-              activeOpacity={0.85}
-            >
-              <VectorIcons
-                name={iconLibName.Ionicons}
-                iconName="chatbubble-ellipses-outline"
-                size={18}
-                color={colors.primary}
+          {isDeclinedReview || isExpiredReview ? (
+            <AppButton
+              text="Back"
+              onPress={() => navigation.goBack()}
+              bgColor="#FFFFFF"
+              textStyle={{ color: colors.primary }}
+              style={styles.secondaryButton}
+            />
+          ) : (
+            <>
+              <AppButton
+                text="Send Offer"
+                onPress={() => setOfferModal(true)}
+                bgColor={colors.primary}
+                textColor="#FFF"
+                style={styles.primaryButton}
               />
-              <AppText variant={Variant.bodyMedium} style={styles.contactButtonText}>
-                Contact / Chat
-              </AppText>
-            </TouchableOpacity>
-          ) : null}
-          <AppButton
-            text="Back to Matches"
-            onPress={() => navigation.navigate(screenNames.MANUAL_MATCH_LIST, { jobId })}
-            bgColor="#FFFFFF"
-            textStyle={{ color: colors.primary }}
-            style={styles.secondaryButton}
-          />
+              {acceptedOffer ? (
+                <TouchableOpacity
+                  style={styles.contactButton}
+                  onPress={handleContact}
+                  activeOpacity={0.85}
+                >
+                  <VectorIcons
+                    name={iconLibName.Ionicons}
+                    iconName="chatbubble-ellipses-outline"
+                    size={18}
+                    color={colors.primary}
+                  />
+                  <AppText variant={Variant.bodyMedium} style={styles.contactButtonText}>
+                    Contact / Chat
+                  </AppText>
+                </TouchableOpacity>
+              ) : null}
+              <AppButton
+                text="Back to Matches"
+                onPress={() => navigation.navigate(screenNames.MANUAL_MATCH_LIST, { jobId })}
+                bgColor="#FFFFFF"
+                textStyle={{ color: colors.primary }}
+                style={styles.secondaryButton}
+              />
+            </>
+          )}
         </View>
       </ScrollView>
 
-      <SendManualOfferModal
-        visible={offerModal}
-        candidate={candidate}
-        onClose={() => setOfferModal(false)}
-        onSubmit={handleSendOffer}
-      />
+      {!isDeclinedReview && !isExpiredReview ? (
+        <SendManualOfferModal
+          visible={offerModal}
+          candidate={candidate}
+          onClose={() => setOfferModal(false)}
+          onSubmit={handleSendOffer}
+        />
+      ) : null}
     </View>
   );
 };

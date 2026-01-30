@@ -14,6 +14,7 @@ import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
  * - status
  * - matchPercentage
  * - acceptanceRating
+ * - expiresAt (raw ISO string, optional)
  * - expiresLabel (formatted expiry string)
  * - message
  * - autoSent (quick)
@@ -48,6 +49,7 @@ const OfferCard = ({
   status,
   matchPercentage,
   acceptanceRating,
+  expiresAt,
   expiresLabel,
   message,
   autoSent,
@@ -118,10 +120,36 @@ const OfferCard = ({
     ? { activeOpacity: 0.7, onPress }
     : {};
 
+  const getProfileNavMeta = () => {
+    const base = {
+      status,
+      candidateName,
+      jobTitle,
+      matchPercentage,
+      acceptanceRating,
+      expiresLabel,
+      message,
+    };
+    if (mode === 'quick' && status === 'accepted') {
+      return { ...base, mode: 'work_coordination' };
+    }
+    if (status === 'declined') {
+      const declinedAt = response?.declinedAt || response?.declined_at || response?.declineAt || null;
+      const reason = response?.reason || response?.declineReason || null;
+      return { ...base, mode: 'declined_review', declinedAt, declineReason: reason };
+    }
+    if (status === 'expired') {
+      const expiresAtValue = expiresAt || response?.expiresAt || response?.expiredAt || response?.expired_at || null;
+      const expiryReason = response?.message || response?.reason || null;
+      return { ...base, mode: 'expired_review', expiresAt: expiresAtValue, expiryReason };
+    }
+    return base;
+  };
+
   const handleViewProfile = (e) => {
     e?.stopPropagation?.();
     if (onViewProfile && candidateId && jobId) {
-      onViewProfile(candidateId, jobId);
+      onViewProfile(candidateId, jobId, getProfileNavMeta());
     }
   };
 
@@ -143,6 +171,51 @@ const OfferCard = ({
 
   const showScenario1 = mode === 'quick' && status === 'pending';
   const showScenario2 = status === 'modification_requested';
+  const showAccepted = status === 'accepted';
+  const showDeclined = status === 'declined';
+  const showExpired = status === 'expired';
+
+  const formatDeclinedAt = (value) => {
+    if (!value) return '';
+    const d = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const formatDeclineReason = (value) => {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    const label = value?.label ? String(value.label) : '';
+    const note = value?.note ? String(value.note) : '';
+    return [label, note].filter(Boolean).join(' - ');
+  };
+
+  const formatExpiredAt = (value) => {
+    if (!value) return '';
+    const d = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const formatExpiryReason = (value) => {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    const label = value?.label ? String(value.label) : '';
+    const note = value?.note ? String(value.note) : '';
+    return [label, note].filter(Boolean).join(' - ');
+  };
 
   const requestedTerms =
     response?.modification?.requestedTerms ||
@@ -294,6 +367,63 @@ const OfferCard = ({
           Expires: {expiresLabel || 'N/A'}
         </AppText>
       </View>
+
+      {/* Accepted summary (Scenario 3) */}
+      {showAccepted && (experienceSummary || qualificationsSummary) ? (
+        <View style={styles.scenarioBox}>
+          <AppText variant={Variant.caption} style={styles.scenarioTitle}>
+            Candidate summary
+          </AppText>
+          {experienceSummary ? (
+            <AppText variant={Variant.caption} style={styles.scenarioValue}>
+              Experience: {experienceSummary}
+            </AppText>
+          ) : null}
+          {qualificationsSummary ? (
+            <AppText variant={Variant.caption} style={styles.scenarioValue}>
+              Qualifications: {qualificationsSummary}
+            </AppText>
+          ) : null}
+        </View>
+      ) : null}
+
+      {/* Declined details */}
+      {showDeclined ? (
+        <View style={styles.scenarioBox}>
+          <AppText variant={Variant.caption} style={styles.scenarioTitle}>
+            Declined details
+          </AppText>
+          {formatDeclinedAt(response?.declinedAt) ? (
+            <AppText variant={Variant.caption} style={styles.scenarioValue}>
+              Date declined: {formatDeclinedAt(response?.declinedAt)}
+            </AppText>
+          ) : null}
+          {formatDeclineReason(response?.reason) ? (
+            <AppText variant={Variant.caption} style={styles.scenarioValue}>
+              Reason: {formatDeclineReason(response?.reason)}
+            </AppText>
+          ) : null}
+        </View>
+      ) : null}
+
+      {/* Expired details */}
+      {showExpired ? (
+        <View style={styles.scenarioBox}>
+          <AppText variant={Variant.caption} style={styles.scenarioTitle}>
+            Expired details
+          </AppText>
+          {formatExpiredAt(expiresAt) ? (
+            <AppText variant={Variant.caption} style={styles.scenarioValue}>
+              Expired: {formatExpiredAt(expiresAt)}
+            </AppText>
+          ) : null}
+          {formatExpiryReason(response?.message || response?.reason) ? (
+            <AppText variant={Variant.caption} style={styles.scenarioValue}>
+              Reason: {formatExpiryReason(response?.message || response?.reason)}
+            </AppText>
+          ) : null}
+        </View>
+      ) : null}
 
       {/* Scenario 1: Offer Sent, Awaiting Decision */}
       {showScenario1 ? (
@@ -545,7 +675,7 @@ const OfferCard = ({
             {onViewProfile && candidateId && jobId ? (
               <TouchableOpacity
                 style={styles.viewProfileButton}
-                onPress={() => onViewProfile(candidateId, jobId)}
+                onPress={() => onViewProfile(candidateId, jobId, getProfileNavMeta())}
                 activeOpacity={0.8}
               >
                 <VectorIcons
@@ -588,7 +718,7 @@ const OfferCard = ({
             {onViewProfile && candidateId && jobId ? (
               <TouchableOpacity
                 style={styles.viewProfileButton}
-                onPress={() => onViewProfile(candidateId, jobId)}
+                onPress={() => onViewProfile(candidateId, jobId, getProfileNavMeta())}
                 activeOpacity={0.8}
               >
                 <VectorIcons
@@ -647,34 +777,76 @@ const OfferCard = ({
           </View>
         ) : null}
 
-        {mode === 'quick' &&
-          (status === 'declined' || status === 'expired') &&
-          onResend && (
-            <TouchableOpacity
-              style={styles.modifyButton}
-              onPress={onResend}
-              activeOpacity={0.8}
-            >
-              <VectorIcons
-                name={iconLibName.Ionicons}
-                iconName="refresh-outline"
-                size={18}
-                color={colors.primary}
-              />
-              <AppText
-                variant={Variant.bodyMedium}
-                style={styles.modifyButtonText}
+        {mode === 'quick' && status === 'declined' ? (
+          <View style={styles.declinedActions}>
+            {onViewProfile && candidateId && jobId ? (
+              <TouchableOpacity
+                style={styles.viewProfileButton}
+                onPress={() => onViewProfile(candidateId, jobId, getProfileNavMeta())}
+                activeOpacity={0.8}
               >
-                Resend to Next Match
-              </AppText>
-            </TouchableOpacity>
-          )}
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="person-outline"
+                  size={18}
+                  color={colors.primary}
+                />
+                <AppText variant={Variant.bodyMedium} style={styles.viewProfileText}>
+                  View Full Profile
+                </AppText>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        ) : null}
+
+        {status === 'expired' ? (
+          <View style={styles.declinedActions}>
+            {onViewProfile && candidateId && jobId ? (
+              <TouchableOpacity
+                style={styles.viewProfileButton}
+                onPress={() => onViewProfile(candidateId, jobId, getProfileNavMeta())}
+                activeOpacity={0.8}
+              >
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="person-outline"
+                  size={18}
+                  color={colors.primary}
+                />
+                <AppText variant={Variant.bodyMedium} style={styles.viewProfileText}>
+                  View Full Profile
+                </AppText>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        ) : null}
 
         {mode === 'quick' && status === 'accepted' && (
           <View style={styles.acceptedActions}>
+            {onViewProfile && candidateId && jobId ? (
+              <TouchableOpacity
+                style={[styles.candidateButton, styles.acceptedActionButton]}
+                onPress={() => onViewProfile(candidateId, jobId, getProfileNavMeta())}
+                activeOpacity={0.8}
+              >
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="person-outline"
+                  size={18}
+                  color={colors.secondary}
+                />
+                <AppText
+                  variant={Variant.bodyMedium}
+                  style={styles.candidateButtonText}
+                >
+                  Candidate
+                </AppText>
+              </TouchableOpacity>
+            ) : null}
+
             {onMessage ? (
               <TouchableOpacity
-                style={styles.messageButton}
+                style={[styles.messageButton, styles.acceptedActionButton]}
                 onPress={onMessage}
                 activeOpacity={0.8}
               >
@@ -710,7 +882,7 @@ const OfferCard = ({
 
             {onTrackHours ? (
               <TouchableOpacity
-                style={styles.trackButton}
+                style={[styles.trackButton, styles.acceptedActionButton]}
                 onPress={onTrackHours}
                 activeOpacity={0.8}
               >
@@ -1006,6 +1178,12 @@ const styles = StyleSheet.create({
     marginTop: hp(2),
     flexWrap: 'wrap',
   },
+  declinedActions: {
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: wp(2),
+  },
   modActions: {
     width: '100%',
     flexDirection: 'row',
@@ -1136,7 +1314,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: hp(1.5),
-    paddingHorizontal: wp(4),
+    paddingHorizontal: wp(3),
     borderRadius: hp(2),
     backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
@@ -1150,15 +1328,37 @@ const styles = StyleSheet.create({
   },
   acceptedActions: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
+    width: '100%',
     gap: wp(2),
+  },
+  acceptedActionButton: {
+    flex: 1,
+    minWidth: 0,
+  },
+  candidateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(1.5),
+    paddingHorizontal: wp(3),
+    borderRadius: hp(2),
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    gap: wp(1.5),
+  },
+  candidateButtonText: {
+    color: colors.secondary,
+    fontSize: getFontSize(14),
+    fontWeight: '600',
   },
   trackButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: hp(1.5),
-    paddingHorizontal: wp(4),
+    paddingHorizontal: wp(3),
     borderRadius: hp(2),
     backgroundColor: '#FFFFFF',
     borderWidth: 1.5,

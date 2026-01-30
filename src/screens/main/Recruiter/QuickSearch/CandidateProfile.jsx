@@ -10,6 +10,7 @@ import { Images } from '@/assets';
 import { colors, getFontSize, hp, wp } from '@/theme';
 import {
   selectQuickMatchesByJobId,
+  selectQuickJobById,
   selectQuickOffers,
   sendQuickOffer,
 } from '@/store/quickSearchSlice';
@@ -22,11 +23,63 @@ import { showToast, toastTypes } from '@/utilities/toastConfig';
 import { screenNames } from '@/navigation/screenNames';
 
 const QuickSearchCandidateProfile = ({ route, navigation }) => {
-  const { jobId, candidateId, squadId } = route.params || {};
+  const { jobId, candidateId, squadId, mode } = route.params || {};
   const dispatch = useDispatch();
   const matches = useSelector(state => selectQuickMatchesByJobId(state, jobId));
   const allOffers = useSelector(selectQuickOffers);
   const acceptanceRatings = useSelector(state => state.quickSearch.acceptanceRatings);
+  const job = useSelector(state => (jobId ? selectQuickJobById(state, jobId) : null));
+
+  const isWorkCoordination = mode === 'work_coordination';
+  const isDeclinedReview = mode === 'declined_review';
+  const isExpiredReview = mode === 'expired_review';
+  const offerForContext = useMemo(
+    () => allOffers.find(o => o.candidateId === candidateId && o.jobId === jobId) || null,
+    [allOffers, candidateId, jobId],
+  );
+  const offerMeta = route?.params?.offerMeta || null;
+
+  const formatDeclinedAt = (value) => {
+    if (!value) return '';
+    const d = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const formatDeclineReason = (value) => {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    const label = value?.label ? String(value.label) : '';
+    const note = value?.note ? String(value.note) : '';
+    return [label, note].filter(Boolean).join(' - ');
+  };
+
+  const formatExpiredAt = (value) => {
+    if (!value) return '';
+    const d = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const formatExpiryReason = (value) => {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    const label = value?.label ? String(value.label) : '';
+    const note = value?.note ? String(value.note) : '';
+    return [label, note].filter(Boolean).join(' - ');
+  };
   
   // Check if this is a squad profile
   const isSquad = !!squadId;
@@ -105,6 +158,34 @@ const QuickSearchCandidateProfile = ({ route, navigation }) => {
   
   const [offerModal, setOfferModal] = useState(false);
 
+  const handleMessage = () => {
+    if (!candidateId) return;
+    navigation.navigate(screenNames.MESSAGES, {
+      chatData: {
+        jobId,
+        name: candidate?.name || offerForContext?.candidateName || 'Candidate',
+        jobTitle: offerForContext?.jobTitle || job?.jobTitle || job?.title || 'Quick search job',
+        jobType: 'quick',
+        otherUserId: candidateId,
+      },
+    });
+  };
+
+  const handleTrackHours = () => {
+    navigation.navigate(screenNames.CANDIDATE_HOURS, {
+      job: job || {
+        id: jobId,
+        title: offerForContext?.jobTitle,
+        jobTitle: offerForContext?.jobTitle,
+      },
+      candidate: {
+        id: candidateId,
+        name: candidate?.name || offerForContext?.candidateName,
+      },
+      mode: 'work_coordination',
+    });
+  };
+
   const handleSendOffer = ({ expiresAt, message }) => {
     dispatch(
       sendQuickOffer({
@@ -149,6 +230,116 @@ const QuickSearchCandidateProfile = ({ route, navigation }) => {
         onBackPress={() => navigation.goBack()}
       />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Expired summary (read-only) */}
+        {isExpiredReview ? (
+          <View style={styles.card}>
+            <View style={styles.sectionHeader}>
+              <VectorIcons
+                name={iconLibName.Ionicons}
+                iconName="hourglass-outline"
+                size={20}
+                color="#6B7280"
+              />
+              <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
+                Expired
+              </AppText>
+            </View>
+            <View style={styles.divider} />
+            {formatExpiredAt(offerMeta?.expiresAt || offerForContext?.expiresAt) ? (
+              <View style={styles.infoRow}>
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="calendar-outline"
+                  size={16}
+                  color={colors.gray}
+                />
+                <View style={styles.infoContent}>
+                  <AppText variant={Variant.caption} style={styles.infoLabel}>
+                    Expired date
+                  </AppText>
+                  <AppText variant={Variant.body} style={styles.infoValue}>
+                    {formatExpiredAt(offerMeta?.expiresAt || offerForContext?.expiresAt)}
+                  </AppText>
+                </View>
+              </View>
+            ) : null}
+
+            {formatExpiryReason(offerMeta?.expiryReason || offerForContext?.response?.message) ? (
+              <View style={[styles.infoRow, styles.infoRowSpacing]}>
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="chatbox-ellipses-outline"
+                  size={16}
+                  color={colors.gray}
+                />
+                <View style={styles.infoContent}>
+                  <AppText variant={Variant.caption} style={styles.infoLabel}>
+                    Expiry reason
+                  </AppText>
+                  <AppText variant={Variant.body} style={styles.infoValue}>
+                    {formatExpiryReason(offerMeta?.expiryReason || offerForContext?.response?.message)}
+                  </AppText>
+                </View>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+
+        {/* Declined summary (read-only) */}
+        {isDeclinedReview ? (
+          <View style={styles.card}>
+            <View style={styles.sectionHeader}>
+              <VectorIcons
+                name={iconLibName.Ionicons}
+                iconName="close-circle"
+                size={20}
+                color="#EF4444"
+              />
+              <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
+                Declined
+              </AppText>
+            </View>
+            <View style={styles.divider} />
+            {formatDeclinedAt(offerMeta?.declinedAt || offerForContext?.response?.declinedAt) ? (
+              <View style={styles.infoRow}>
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="calendar-outline"
+                  size={16}
+                  color={colors.gray}
+                />
+                <View style={styles.infoContent}>
+                  <AppText variant={Variant.caption} style={styles.infoLabel}>
+                    Date declined
+                  </AppText>
+                  <AppText variant={Variant.body} style={styles.infoValue}>
+                    {formatDeclinedAt(offerMeta?.declinedAt || offerForContext?.response?.declinedAt)}
+                  </AppText>
+                </View>
+              </View>
+            ) : null}
+
+            {formatDeclineReason(offerMeta?.declineReason || offerForContext?.response?.reason) ? (
+              <View style={[styles.infoRow, styles.infoRowSpacing]}>
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="chatbox-ellipses-outline"
+                  size={16}
+                  color={colors.gray}
+                />
+                <View style={styles.infoContent}>
+                  <AppText variant={Variant.caption} style={styles.infoLabel}>
+                    Decline reason
+                  </AppText>
+                  <AppText variant={Variant.body} style={styles.infoValue}>
+                    {formatDeclineReason(offerMeta?.declineReason || offerForContext?.response?.reason)}
+                  </AppText>
+                </View>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+
         {/* Profile Header Card */}
         <View style={styles.profileCard}>
           <View style={styles.profileHeader}>
@@ -796,31 +987,62 @@ const QuickSearchCandidateProfile = ({ route, navigation }) => {
         ) : null}
 
         <View style={styles.footerActions}>
-          <AppButton
-            text="Send Offer"
-            onPress={() => setOfferModal(true)}
-            bgColor={colors.primary}
-            textColor="#FFF"
-            style={styles.primaryButton}
-          />
-          <AppButton
-            text="Back to Matches"
-            onPress={() =>
-              navigation.goBack()
-            }
-            bgColor="#FFFFFF"
-            textStyle={{color: colors.primary}}
-            style={styles.secondaryButton}
-          />
+          {isDeclinedReview || isExpiredReview ? (
+            <AppButton
+              text="Back"
+              onPress={() => navigation.goBack()}
+              bgColor="#FFFFFF"
+              textStyle={{color: colors.primary}}
+              style={styles.secondaryButton}
+            />
+          ) : isWorkCoordination ? (
+            <>
+              <AppButton
+                text="Message"
+                onPress={handleMessage}
+                bgColor={colors.primary}
+                textColor="#FFF"
+                style={styles.primaryButton}
+              />
+              <AppButton
+                text="Track Hours"
+                onPress={handleTrackHours}
+                bgColor="#FFFFFF"
+                textStyle={{color: colors.primary}}
+                style={styles.secondaryButton}
+              />
+            </>
+          ) : (
+            <>
+              <AppButton
+                text="Send Offer"
+                onPress={() => setOfferModal(true)}
+                bgColor={colors.primary}
+                textColor="#FFF"
+                style={styles.primaryButton}
+              />
+              <AppButton
+                text="Back to Matches"
+                onPress={() =>
+                  navigation.goBack()
+                }
+                bgColor="#FFFFFF"
+                textStyle={{color: colors.primary}}
+                style={styles.secondaryButton}
+              />
+            </>
+          )}
         </View>
       </ScrollView>
 
-      <SendManualOfferModal
-        visible={offerModal}
-        candidate={candidate}
-        onClose={() => setOfferModal(false)}
-        onSubmit={handleSendOffer}
-      />
+      {!isWorkCoordination && !isDeclinedReview && !isExpiredReview ? (
+        <SendManualOfferModal
+          visible={offerModal}
+          candidate={candidate}
+          onClose={() => setOfferModal(false)}
+          onSubmit={handleSendOffer}
+        />
+      ) : null}
     </View>
   );
 };

@@ -160,10 +160,12 @@ const ManualOffers = ({ navigation }) => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  const handleViewProfile = (candidateId, jobId) => {
+  const handleViewProfile = (candidateId, jobId, meta) => {
     navigation.navigate(screenNames.MANUAL_CANDIDATE_PROFILE, {
       jobId,
       candidateId,
+      mode: meta?.mode,
+      offerMeta: meta || null,
     });
   };
 
@@ -191,6 +193,7 @@ const ManualOffers = ({ navigation }) => {
       status={item.status}
       matchPercentage={item.matchPercentage}
       acceptanceRating={item.acceptanceRating || 'Pending'}
+      expiresAt={item.expiresAt}
       expiresLabel={formatDate(item.expiresAt)}
       message={item.message}
       response={item.response}
