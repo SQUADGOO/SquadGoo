@@ -79,6 +79,15 @@ const OfferCard = ({
   experienceSummary,
   qualificationsSummary,
 }) => {
+  const safeText = (value) => {
+    if (value == null) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number') return String(value);
+    if (Array.isArray(value)) return value.map(v => (typeof v === 'string' ? v : '')).filter(Boolean).join(' • ');
+    if (typeof value === 'object' && typeof value.summary === 'string') return value.summary;
+    return '';
+  };
+
   const getStatusColor = (value) => {
     switch (value) {
       case 'pending':
@@ -130,7 +139,7 @@ const OfferCard = ({
       expiresLabel,
       message,
     };
-    if (mode === 'quick' && status === 'accepted') {
+    if (status === 'accepted') {
       return { ...base, mode: 'work_coordination' };
     }
     if (status === 'declined') {
@@ -163,13 +172,13 @@ const OfferCard = ({
     : {};
 
   const statusLabel =
-    mode === 'quick' && status === 'pending'
+    status === 'pending'
       ? 'AWAITING RESPONSE'
       : status === 'modification_requested'
       ? 'MODIFICATION REQUESTED'
       : status?.replace('_', ' ')?.toUpperCase?.() || '';
 
-  const showScenario1 = mode === 'quick' && status === 'pending';
+  const showScenario1 = status === 'pending';
   const showScenario2 = status === 'modification_requested';
   const showAccepted = status === 'accepted';
   const showDeclined = status === 'declined';
@@ -450,7 +459,7 @@ const OfferCard = ({
                   Work hours:
                 </AppText>
                 <AppText variant={Variant.caption} style={styles.scenarioValue}>
-                  {workHours}
+                  {safeText(workHours)}
                 </AppText>
               </View>
             ) : null}
@@ -670,7 +679,7 @@ const OfferCard = ({
 
       {/* Actions */}
       <View style={styles.cardActions}>
-        {mode === 'quick' && status === 'pending' ? (
+        {status === 'pending' ? (
           <View style={styles.pendingActions}>
             {onViewProfile && candidateId && jobId ? (
               <TouchableOpacity
@@ -777,7 +786,7 @@ const OfferCard = ({
           </View>
         ) : null}
 
-        {mode === 'quick' && status === 'declined' ? (
+        {status === 'declined' ? (
           <View style={styles.declinedActions}>
             {onViewProfile && candidateId && jobId ? (
               <TouchableOpacity
@@ -821,7 +830,7 @@ const OfferCard = ({
           </View>
         ) : null}
 
-        {mode === 'quick' && status === 'accepted' && (
+        {status === 'accepted' && (
           <View style={styles.acceptedActions}>
             {onViewProfile && candidateId && jobId ? (
               <TouchableOpacity
@@ -901,27 +910,6 @@ const OfferCard = ({
               </TouchableOpacity>
             ) : null}
           </View>
-        )}
-
-        {mode === 'manual' && status === 'accepted' && onMessage && (
-          <TouchableOpacity
-            style={styles.messageButton}
-            onPress={onMessage}
-            activeOpacity={0.8}
-          >
-            <VectorIcons
-              name={iconLibName.Ionicons}
-              iconName="chatbubble-outline"
-              size={18}
-              color={colors.primary}
-            />
-            <AppText
-              variant={Variant.bodyMedium}
-              style={styles.messageButtonText}
-            >
-              Message
-            </AppText>
-          </TouchableOpacity>
         )}
 
         {mode === 'quick' && onViewMatches && (

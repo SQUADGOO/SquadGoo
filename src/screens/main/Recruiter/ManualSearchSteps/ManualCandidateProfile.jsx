@@ -31,6 +31,55 @@ const ManualCandidateProfile = ({ route, navigation }) => {
 
   const isDeclinedReview = mode === 'declined_review';
   const isExpiredReview = mode === 'expired_review';
+  const isWorkCoordination = mode === 'work_coordination';
+  const offerMeta = route?.params?.offerMeta || null;
+
+  const offerForContext = useMemo(
+    () => allOffers.find(o => o.candidateId === candidateId && o.jobId === jobId) || null,
+    [allOffers, candidateId, jobId],
+  );
+
+  const formatDeclinedAt = (value) => {
+    if (!value) return '';
+    const d = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const formatDeclineReason = (value) => {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    const label = value?.label ? String(value.label) : '';
+    const note = value?.note ? String(value.note) : '';
+    return [label, note].filter(Boolean).join(' - ');
+  };
+
+  const formatExpiredAt = (value) => {
+    if (!value) return '';
+    const d = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const formatExpiryReason = (value) => {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    const label = value?.label ? String(value.label) : '';
+    const note = value?.note ? String(value.note) : '';
+    return [label, note].filter(Boolean).join(' - ');
+  };
   
   const acceptedOffer = useMemo(() => {
     if (!jobId || !candidateId) return null;
@@ -78,7 +127,7 @@ const ManualCandidateProfile = ({ route, navigation }) => {
       }),
     );
     showToast('Offer sent successfully', 'Success', toastTypes.success);
-    navigation.navigate(screenNames.MANUAL_OFFERS);
+    navigation.navigate(screenNames.MANUAL_OFFERS, { jobId });
   };
 
   const handleContact = () => {
@@ -91,6 +140,16 @@ const ManualCandidateProfile = ({ route, navigation }) => {
         jobType: 'manual',
         otherUserId: candidate.id,
       },
+    });
+  };
+
+  const handleTrackHours = () => {
+    if (!candidate || !jobId) return;
+    navigation.navigate(screenNames.CANDIDATE_HOURS, {
+      job: job || { id: jobId, title: 'Manual Job', jobTitle: 'Manual Job' },
+      candidate: { id: candidate.id, name: candidate.name },
+      source: 'manual',
+      mode: 'work_coordination',
     });
   };
 
@@ -115,6 +174,116 @@ const ManualCandidateProfile = ({ route, navigation }) => {
         onBackPress={() => navigation.goBack()}
       />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Expired summary (read-only) */}
+        {isExpiredReview ? (
+          <View style={styles.card}>
+            <View style={styles.sectionHeader}>
+              <VectorIcons
+                name={iconLibName.Ionicons}
+                iconName="hourglass-outline"
+                size={20}
+                color="#6B7280"
+              />
+              <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
+                Expired
+              </AppText>
+            </View>
+            <View style={styles.divider} />
+            {formatExpiredAt(offerMeta?.expiresAt || offerForContext?.expiresAt) ? (
+              <View style={styles.infoRow}>
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="calendar-outline"
+                  size={16}
+                  color={colors.gray}
+                />
+                <View style={styles.infoContent}>
+                  <AppText variant={Variant.caption} style={styles.infoLabel}>
+                    Expired date
+                  </AppText>
+                  <AppText variant={Variant.body} style={styles.infoValue}>
+                    {formatExpiredAt(offerMeta?.expiresAt || offerForContext?.expiresAt)}
+                  </AppText>
+                </View>
+              </View>
+            ) : null}
+
+            {formatExpiryReason(offerMeta?.expiryReason || offerForContext?.response?.message) ? (
+              <View style={[styles.infoRow, styles.infoRowSpacing]}>
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="chatbox-ellipses-outline"
+                  size={16}
+                  color={colors.gray}
+                />
+                <View style={styles.infoContent}>
+                  <AppText variant={Variant.caption} style={styles.infoLabel}>
+                    Expiry reason
+                  </AppText>
+                  <AppText variant={Variant.body} style={styles.infoValue}>
+                    {formatExpiryReason(offerMeta?.expiryReason || offerForContext?.response?.message)}
+                  </AppText>
+                </View>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+
+        {/* Declined summary (read-only) */}
+        {isDeclinedReview ? (
+          <View style={styles.card}>
+            <View style={styles.sectionHeader}>
+              <VectorIcons
+                name={iconLibName.Ionicons}
+                iconName="close-circle"
+                size={20}
+                color="#EF4444"
+              />
+              <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
+                Declined
+              </AppText>
+            </View>
+            <View style={styles.divider} />
+            {formatDeclinedAt(offerMeta?.declinedAt || offerForContext?.response?.declinedAt) ? (
+              <View style={styles.infoRow}>
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="calendar-outline"
+                  size={16}
+                  color={colors.gray}
+                />
+                <View style={styles.infoContent}>
+                  <AppText variant={Variant.caption} style={styles.infoLabel}>
+                    Date declined
+                  </AppText>
+                  <AppText variant={Variant.body} style={styles.infoValue}>
+                    {formatDeclinedAt(offerMeta?.declinedAt || offerForContext?.response?.declinedAt)}
+                  </AppText>
+                </View>
+              </View>
+            ) : null}
+
+            {formatDeclineReason(offerMeta?.declineReason || offerForContext?.response?.reason) ? (
+              <View style={[styles.infoRow, styles.infoRowSpacing]}>
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="chatbox-ellipses-outline"
+                  size={16}
+                  color={colors.gray}
+                />
+                <View style={styles.infoContent}>
+                  <AppText variant={Variant.caption} style={styles.infoLabel}>
+                    Decline reason
+                  </AppText>
+                  <AppText variant={Variant.body} style={styles.infoValue}>
+                    {formatDeclineReason(offerMeta?.declineReason || offerForContext?.response?.reason)}
+                  </AppText>
+                </View>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+
         {/* Profile Header */}
         <View style={styles.profileCard}>
           <View style={styles.profileHeader}>
@@ -676,6 +845,31 @@ const ManualCandidateProfile = ({ route, navigation }) => {
               textStyle={{ color: colors.primary }}
               style={styles.secondaryButton}
             />
+          ) : isWorkCoordination ? (
+            <>
+              <TouchableOpacity
+                style={styles.contactButton}
+                onPress={handleContact}
+                activeOpacity={0.85}
+              >
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="chatbubble-ellipses-outline"
+                  size={18}
+                  color={colors.primary}
+                />
+                <AppText variant={Variant.bodyMedium} style={styles.contactButtonText}>
+                  Contact / Chat
+                </AppText>
+              </TouchableOpacity>
+              <AppButton
+                text="Track Hours"
+                onPress={handleTrackHours}
+                bgColor="#FFFFFF"
+                textStyle={{ color: colors.primary }}
+                style={styles.secondaryButton}
+              />
+            </>
           ) : (
             <>
               <AppButton
@@ -714,7 +908,7 @@ const ManualCandidateProfile = ({ route, navigation }) => {
         </View>
       </ScrollView>
 
-      {!isDeclinedReview && !isExpiredReview ? (
+      {!isDeclinedReview && !isExpiredReview && !isWorkCoordination ? (
         <SendManualOfferModal
           visible={offerModal}
           candidate={candidate}

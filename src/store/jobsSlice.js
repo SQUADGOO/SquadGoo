@@ -265,6 +265,8 @@ const generateDummyJobs = () => {
     const completedDate = new Date(Date.now() - data.daysAgo * 24 * 60 * 60 * 1000);
     const jobId = `completed-job-${index}-${Date.now()}`;
     const postedDate = new Date(completedDate.getTime() - 15 * 24 * 60 * 60 * 1000);
+    const startDate = new Date(postedDate.getTime() + 2 * 24 * 60 * 60 * 1000);
+    const expiryDate = new Date(postedDate.getTime() + 10 * 24 * 60 * 60 * 1000);
     
     return {
       id: jobId,
@@ -288,6 +290,14 @@ const generateDummyJobs = () => {
         month: 'short',
         year: 'numeric',
       }),
+      jobStartDate: startDate.toISOString().slice(0, 10), // YYYY-MM-DD
+      jobEndDate: completedDate.toISOString().slice(0, 10), // YYYY-MM-DD
+      expiresAt: expiryDate.toISOString(),
+      expireDate: expiryDate.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      }),
       status: 'completed',
       searchType: data.searchType,
       staffNumber: data.staffNumber,
@@ -305,6 +315,12 @@ const generateDummyJobs = () => {
     const expiredDate = new Date(Date.now() - data.daysAgo * 24 * 60 * 60 * 1000);
     const jobId = `expired-job-${index}-${Date.now()}`;
     const postedDate = new Date(expiredDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const expiryReasonOptions = [
+      'No suitable candidates',
+      'Time expired',
+      'Budget changed',
+      'Role no longer required',
+    ];
     
     return {
       id: jobId,
@@ -314,6 +330,10 @@ const generateDummyJobs = () => {
       salaryRange: data.salaryRange,
       experience: data.experience,
       salaryType: 'Hourly',
+      positionsFilled: 0,
+      expiryReason:
+        expiryReasonOptions[index % expiryReasonOptions.length],
+      expiryNotes: '',
       offerDate: postedDate.toLocaleDateString('en-GB', {
         day: '2-digit',
         month: 'short',
@@ -325,6 +345,7 @@ const generateDummyJobs = () => {
         month: 'short',
         year: 'numeric',
       }),
+      expiredAt: expiredDate.toISOString(),
       status: 'expired',
       searchType: data.searchType,
       staffNumber: data.staffNumber,
@@ -1112,10 +1133,25 @@ const jobsSlice = createSlice({
           ...state.activeJobs[jobIndex],
           status: 'expired',
           expiredAt: new Date().toISOString(),
+          expiryReason: state.activeJobs[jobIndex]?.expiryReason || '',
+          expiryNotes: state.activeJobs[jobIndex]?.expiryNotes || '',
+          positionsFilled: state.activeJobs[jobIndex]?.positionsFilled ?? 0,
         };
         state.expiredJobs.unshift(expiredJob);
         state.activeJobs.splice(jobIndex, 1);
       }
+    },
+
+    // Update expiry reason/notes for an expired job (analytics + recruiter notes)
+    updateExpiredJobFeedback: (state, action) => {
+      const { jobId, expiryReason, expiryNotes, positionsFilled } = action.payload || {};
+      const idx = state.expiredJobs.findIndex(j => j.id === jobId);
+      if (idx === -1) return;
+      const job = state.expiredJobs[idx];
+      if (typeof expiryReason === 'string') job.expiryReason = expiryReason;
+      if (typeof expiryNotes === 'string') job.expiryNotes = expiryNotes;
+      if (typeof positionsFilled === 'number') job.positionsFilled = positionsFilled;
+      job.updatedAt = new Date().toISOString();
     },
 
     // Seed dummy data (only if empty)
@@ -1224,6 +1260,7 @@ export const {
   closeJob,
   completeJob,
   expireJob,
+  updateExpiredJobFeedback,
   addCandidateToJob,
   updateCandidateStatus,
   updateJobStatus,

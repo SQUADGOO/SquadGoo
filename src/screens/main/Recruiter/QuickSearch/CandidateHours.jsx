@@ -6,6 +6,7 @@ import AppHeader from '@/core/AppHeader';
 import AppText, { Variant } from '@/core/AppText';
 import { screenNames } from '@/navigation/screenNames';
 import { selectWorkSessionsForJobCandidate } from '@/store/quickSearchSlice';
+import { selectManualWorkSessionsForJobCandidate } from '@/store/manualOffersSlice';
 
 const TABS = {
   SUMMARY: 'summary',
@@ -13,17 +14,19 @@ const TABS = {
 };
 
 const CandidateHours = ({ route, navigation }) => {
-  const { job, candidate } = route.params || {};
+  const { job, candidate, source } = route.params || {};
   const [activeTab, setActiveTab] = useState(TABS.SUMMARY);
 
   const jobId = job?.id || job?.jobId || null;
   const candidateId = candidate?.id || candidate?.candidateId || null;
 
-  const sessions = useSelector(state =>
-    jobId && candidateId
-      ? selectWorkSessionsForJobCandidate(state, jobId, candidateId)
-      : [],
-  );
+  const sessions = useSelector(state => {
+    if (!jobId || !candidateId) return [];
+    if (source === 'manual') {
+      return selectManualWorkSessionsForJobCandidate(state, jobId, candidateId);
+    }
+    return selectWorkSessionsForJobCandidate(state, jobId, candidateId);
+  });
 
   const getSalarySuffix = (salaryType) => {
     const t = String(salaryType || '').trim().toLowerCase();
@@ -128,6 +131,14 @@ const CandidateHours = ({ route, navigation }) => {
 
   const handleViewProfile = () => {
     if (!jobId || !candidateId) return;
+    if (source === 'manual') {
+      navigation.navigate(screenNames.MANUAL_CANDIDATE_PROFILE, {
+        jobId,
+        candidateId,
+        mode: 'work_coordination',
+      });
+      return;
+    }
     navigation.navigate(screenNames.QUICK_SEARCH_CANDIDATE_PROFILE, {
       jobId,
       candidateId,

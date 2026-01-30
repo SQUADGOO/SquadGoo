@@ -17,6 +17,9 @@ import { seedDummyData } from '@/store/jobsSlice'
 const CompletedOffersScreen = ({ navigation, route }) => {
   const dispatch = useDispatch()
   const completedJobs = useSelector((state) => state.jobs?.completedJobs || [])
+  const completedByCandidatesMap = useSelector(
+    (state) => state.jobs?.completedByCandidates || {},
+  )
   const fromDrawer = route?.params?.fromDrawer
   const headerTitle = route?.params?.headerTitle || 'Completed Offers'
   const [refreshing, setRefreshing] = React.useState(false)
@@ -92,6 +95,7 @@ const CompletedOffersScreen = ({ navigation, route }) => {
   const renderJobCard = ({ item }) => (
     <CompletedJobCard
       job={item}
+      positionsFilled={completedByCandidatesMap?.[item?.id]?.length}
       onViewDetails={handleViewDetails}
     />
   )

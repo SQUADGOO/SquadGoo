@@ -22,8 +22,35 @@ const JobDetailRow = ({ iconName, label, value }) => (
 
 const CompletedJobCard = ({ 
   job, 
+  positionsFilled,
   onViewDetails
 }) => {
+  const toNumber = (v) => {
+    const n = typeof v === 'number' ? v : Number(v)
+    return Number.isFinite(n) ? n : null
+  }
+
+  const formatPayRange = () => {
+    const min = toNumber(job?.salaryMin)
+    const max = toNumber(job?.salaryMax)
+    const type = String(job?.salaryType || '').toLowerCase()
+    const suffix = type.includes('hour') ? '/hr' : type.includes('day') ? '/day' : ''
+
+    if (min != null && max != null && (min > 0 || max > 0)) {
+      return `$${min}${suffix} – $${max}${suffix}`
+    }
+
+    if (typeof job?.salaryRange === 'string' && job.salaryRange.trim() !== '') {
+      return job.salaryRange
+    }
+    return '—'
+  }
+
+  const positionsValue =
+    typeof positionsFilled === 'number'
+      ? positionsFilled
+      : toNumber(job?.staffNumber) ?? toNumber(job?.staffCount) ?? '—'
+
   return (
     <View style={styles.cardContainer}>
       
@@ -58,9 +85,18 @@ const CompletedJobCard = ({
       </View>
 
       {/* Salary Range */}
-      <AppText variant={Variant.bodyMedium} style={styles.salaryText}>
-        {job.salaryRange}
-      </AppText>
+      <View style={styles.payRow}>
+        <AppText variant={Variant.bodyMedium} style={styles.salaryText}>
+          {formatPayRange()}
+        </AppText>
+        {job?.salaryType ? (
+          <View style={styles.salaryTypePill}>
+            <AppText variant={Variant.caption} style={styles.salaryTypeText}>
+              {String(job.salaryType)}
+            </AppText>
+          </View>
+        ) : null}
+      </View>
 
       {/* Job Details */}
       <View style={styles.detailsContainer}>
@@ -84,8 +120,8 @@ const CompletedJobCard = ({
         
         <JobDetailRow 
           iconName="people-outline"
-          label="Staff"
-          value={job.staffNumber || '1'}
+          label="Positions"
+          value={positionsValue}
         />
       </View>
 
@@ -180,7 +216,24 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontSize: getFontSize(14),
     fontWeight: '600',
+  },
+  payRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: wp(2),
     marginBottom: hp(2),
+  },
+  salaryTypePill: {
+    backgroundColor: colors.grayE8 || '#F3F4F6',
+    paddingHorizontal: wp(2.5),
+    paddingVertical: hp(0.4),
+    borderRadius: hp(2),
+  },
+  salaryTypeText: {
+    color: colors.gray,
+    fontSize: getFontSize(10),
+    fontWeight: '700',
   },
   detailsContainer: {
     marginBottom: hp(2),

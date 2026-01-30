@@ -315,11 +315,28 @@ const generateDummyJobs = () => {
   ];
 };
 
+const buildManualOfferBase = ({ jobId, candidate, jobTitle, matchPercentage, acceptanceRating }) => ({
+  id: nanoid(),
+  jobId,
+  candidateId: candidate.id,
+  candidateName: candidate.name,
+  jobTitle,
+  matchPercentage,
+  acceptanceRating,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  message: 'Offer sent.',
+  originalTerms: { payRate: '$30/hr' },
+});
+
+const buildWorkSessionKey = (jobId, candidateId) => `${jobId || ''}:${candidateId || ''}`;
+
 const initialState = {
   jobs: generateDummyJobs(),
   matchesByJobId: {},
   offers: generateDummyModificationOffers(),
   acceptanceRatings: buildAcceptanceRatingMap(),
+  workSessions: {}, // { `${jobId}:${candidateId}`: [ { startTime, endTime, breakMinutes, notes, status, hours, ... } ] }
 };
 
 const manualOffersSlice = createSlice({
@@ -340,6 +357,232 @@ const manualOffersSlice = createSlice({
         const existingIds = new Set(state.offers.map(o => o.id));
         const newOffers = dummyOffers.filter(o => !existingIds.has(o.id));
         state.offers = [...state.offers, ...newOffers];
+      }
+    },
+    ensureDummyOffersForJob: (state, { payload }) => {
+      const { jobId } = payload || {};
+      if (!jobId) return;
+
+      // Ensure a job exists so profile/contact screens can resolve job info.
+      const jobExists = state.jobs.some(j => j.id === jobId);
+      if (!jobExists) {
+        state.jobs.unshift({
+          id: jobId,
+          title: `Manual Job (${String(jobId).slice(-4)})`,
+          type: 'Manual',
+          industry: 'General',
+          location: 'N/A',
+          rangeKm: 20,
+          staffNumber: '1',
+          experience: '1 Year 0 Month',
+          salaryRange: '$30/hr',
+          salaryMin: 30,
+          salaryMax: 30,
+          salaryType: 'Hourly',
+          taxType: 'ABN',
+          expireDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          }),
+          availability: 'Mon - Fri',
+          searchType: 'manual',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+      }
+
+      const job = state.jobs.find(j => j.id === jobId);
+      const jobTitle = job?.title || 'Manual Job';
+
+      const existingForJob = state.offers.filter(o => o.jobId === jobId);
+      const hasStatus = (s) => existingForJob.some(o => o.status === s);
+
+      const candidates = DUMMY_JOB_SEEKERS.slice(0, 6);
+      if (candidates.length < 3) return;
+
+      const now = Date.now();
+      const expiresSoon = new Date(now + 2 * 24 * 60 * 60 * 1000).toISOString();
+      const expiredAt = new Date(now - 3 * 24 * 60 * 60 * 1000).toISOString();
+
+      const newOffers = [];
+
+      if (!hasStatus('pending')) {
+        newOffers.push({
+          ...buildManualOfferBase({
+            jobId,
+            candidate: candidates[0],
+            jobTitle,
+            matchPercentage: 82,
+            acceptanceRating: state.acceptanceRatings[candidates[0].id] ?? 80,
+          }),
+          status: 'pending',
+          expiresAt: expiresSoon,
+          message: 'Please review and respond when available.',
+          response: null,
+        });
+        newOffers.push({
+          ...buildManualOfferBase({
+            jobId,
+            candidate: candidates[1],
+            jobTitle,
+            matchPercentage: 76,
+            acceptanceRating: state.acceptanceRatings[candidates[1].id] ?? 80,
+          }),
+          status: 'pending',
+          expiresAt: expiresSoon,
+          message: 'We think you’re a strong match for this role.',
+          response: null,
+        });
+      }
+
+      if (!hasStatus('accepted')) {
+        newOffers.push({
+          ...buildManualOfferBase({
+            jobId,
+            candidate: candidates[2],
+            jobTitle,
+            matchPercentage: 90,
+            acceptanceRating: state.acceptanceRatings[candidates[2].id] ?? 80,
+          }),
+          status: 'accepted',
+          expiresAt: new Date(now + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          message: 'Accepted. Ready to start.',
+          response: { type: 'accepted', acceptedAt: new Date(now - 1 * 24 * 60 * 60 * 1000).toISOString() },
+        });
+
+        // Seed work sessions for Track Hours demo
+        const key = buildWorkSessionKey(jobId, candidates[2].id);
+        if (!Array.isArray(state.workSessions[key])) state.workSessions[key] = [];
+
+        const base = new Date();
+        base.setHours(0, 0, 0, 0);
+        const d1 = new Date(base.getTime() - 3 * 24 * 60 * 60 * 1000);
+        const d2 = new Date(base.getTime() - 2 * 24 * 60 * 60 * 1000);
+        const d3 = new Date(base.getTime() - 1 * 24 * 60 * 60 * 1000);
+
+        const addSession = ({ start, end, breakMinutes, notes, status }) => {
+          const startTime = new Date(start);
+          const endTime = new Date(end);
+          const seconds = Math.max(
+            0,
+            Math.floor((endTime.getTime() - startTime.getTime()) / 1000) - breakMinutes * 60,
+          );
+          state.workSessions[key].unshift({
+            id: nanoid(),
+            jobId,
+            candidateId: candidates[2].id,
+            candidateName: candidates[2].name,
+            jobTitle,
+            startTime: startTime.toISOString(),
+            endTime: endTime.toISOString(),
+            breakMinutes,
+            notes,
+            seconds,
+            hours: seconds / 3600,
+            hourlyRate: job?.salaryMin || 30,
+            status,
+            createdAt: endTime.toISOString(),
+            updatedAt: endTime.toISOString(),
+          });
+        };
+
+        addSession({
+          start: new Date(d1.getTime() + 8 * 60 * 60 * 1000),
+          end: new Date(d1.getTime() + 16.5 * 60 * 60 * 1000),
+          breakMinutes: 30,
+          notes: 'Completed assigned tasks and site cleanup.',
+          status: 'approved',
+        });
+        addSession({
+          start: new Date(d2.getTime() + 9 * 60 * 60 * 1000),
+          end: new Date(d2.getTime() + 17 * 60 * 60 * 1000),
+          breakMinutes: 45,
+          notes: 'Progress update provided, minor fixes completed.',
+          status: 'approved',
+        });
+        addSession({
+          start: new Date(d3.getTime() + 7.25 * 60 * 60 * 1000),
+          end: new Date(d3.getTime() + 15.5 * 60 * 60 * 1000),
+          breakMinutes: 30,
+          notes: 'Final checks and handover notes shared.',
+          status: 'pending_approval',
+        });
+      }
+
+      if (!hasStatus('declined')) {
+        newOffers.push({
+          ...buildManualOfferBase({
+            jobId,
+            candidate: candidates[3],
+            jobTitle,
+            matchPercentage: 84,
+            acceptanceRating: state.acceptanceRatings[candidates[3].id] ?? 80,
+          }),
+          status: 'declined',
+          expiresAt: new Date(now + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          message: 'Offer declined.',
+          response: {
+            type: 'declined',
+            declinedAt: new Date(now - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            reason: {
+              id: 'schedule',
+              label: 'Schedule conflict',
+              isValid: true,
+              note: 'Unavailable for the listed shift times.',
+            },
+          },
+        });
+      }
+
+      if (!hasStatus('expired')) {
+        newOffers.push({
+          ...buildManualOfferBase({
+            jobId,
+            candidate: candidates[4],
+            jobTitle,
+            matchPercentage: 73,
+            acceptanceRating: state.acceptanceRatings[candidates[4].id] ?? 80,
+          }),
+          status: 'expired',
+          expiresAt: expiredAt,
+          message: 'Offer expired.',
+          response: {
+            type: 'expired',
+            message: 'No response in time.',
+          },
+          updatedAt: new Date(now - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+      }
+
+      if (!hasStatus('modification_requested')) {
+        newOffers.push({
+          ...buildManualOfferBase({
+            jobId,
+            candidate: candidates[5],
+            jobTitle,
+            matchPercentage: 88,
+            acceptanceRating: state.acceptanceRatings[candidates[5].id] ?? 80,
+          }),
+          status: 'modification_requested',
+          expiresAt: expiresSoon,
+          message: 'Candidate requested a change.',
+          originalTerms: buildOriginalTermsFromJob(job),
+          response: {
+            type: 'modification',
+            modification: {
+              requestedTerms: { payRate: '$35/hr' },
+              message: 'Requesting $35/hr based on experience.',
+            },
+          },
+        });
+      }
+
+      if (newOffers.length) {
+        // Put seeded offers at the top, avoid duplicates by candidate/status/job
+        const existingIds = new Set(state.offers.map(o => o.id));
+        const add = newOffers.filter(o => !existingIds.has(o.id));
+        state.offers = [...add, ...state.offers];
       }
     },
     createManualJob: (state, { payload }) => {
@@ -470,6 +713,7 @@ export const {
   updateManualOfferStatus,
   expireManualOffers,
   initializeDummyData,
+  ensureDummyOffersForJob,
 } = manualOffersSlice.actions;
 
 export default manualOffersSlice.reducer;
@@ -481,4 +725,7 @@ export const selectManualMatchesByJobId = (state, jobId) =>
   state.manualOffers.matchesByJobId[jobId] || [];
 
 export const selectManualOffers = (state) => state.manualOffers.offers;
+
+export const selectManualWorkSessionsForJobCandidate = (state, jobId, candidateId) =>
+  state.manualOffers.workSessions?.[buildWorkSessionKey(jobId, candidateId)] || [];
 

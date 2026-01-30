@@ -19,12 +19,14 @@ import {
   expireManualOffers,
   selectManualJobById,
   initializeDummyData,
+  ensureDummyOffersForJob,
 } from '@/store/manualOffersSlice';
 import { showToast, toastTypes } from '@/utilities/toastConfig';
 import FormField from '@/core/FormField';
 import OfferCard from '@/components/Recruiter/Offers/OfferCard';
 import { FormProvider, useForm } from 'react-hook-form';
 import { screenNames } from '@/navigation/screenNames';
+import { DUMMY_JOB_SEEKERS } from '@/utilities/dummyJobSeekers';
 
 const tabs = [
   { id: 'pending', label: 'Pending' },
@@ -40,9 +42,21 @@ const DECLINE_REASONS = [
   { id: 'other', label: 'Other / unsatisfactory', isValid: false },
 ];
 
-const ManualOffers = ({ navigation }) => {
+const pickFirstAvailabilitySlot = (availability) => {
+  if (!availability || typeof availability !== 'object') return null;
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  for (const day of days) {
+    const v = availability?.[day];
+    if (v && typeof v === 'object' && v.from && v.to) return { day, ...v };
+  }
+  return null;
+};
+
+const ManualOffers = ({ navigation, route }) => {
   const dispatch = useDispatch();
   const offers = useSelector(selectManualOffers);
+  const jobId = route?.params?.jobId || null;
+  const job = useSelector(state => (jobId ? selectManualJobById(state, jobId) : null));
   const [currentTab, setCurrentTab] = useState('pending');
   const [declineModal, setDeclineModal] = useState(null);
   const [modModal, setModModal] = useState(null);
@@ -50,13 +64,65 @@ const ManualOffers = ({ navigation }) => {
 
   useEffect(() => {
     dispatch(initializeDummyData());
+    if (jobId) dispatch(ensureDummyOffersForJob({ jobId }));
     dispatch(expireManualOffers());
-  }, [dispatch]);
+  }, [dispatch, jobId]);
 
   const filteredOffers = useMemo(
-    () => offers.filter(offer => offer.status === currentTab),
-    [offers, currentTab],
+    () =>
+      offers.filter(offer =>
+        (!jobId || offer.jobId === jobId) && offer.status === currentTab
+      ),
+    [offers, currentTab, jobId],
   );
+
+  const formatOfferSentAt = (value) => {
+    if (!value) return '';
+    const d = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const getSalarySuffix = (salaryType) => {
+    const t = String(salaryType || '').trim().toLowerCase();
+    if (t === 'hourly') return '/hr';
+    if (t === 'daily') return '/day';
+    if (t === 'weekly') return '/week';
+    if (t === 'annually' || t === 'annual' || t === 'yearly') return '/year';
+    return '';
+  };
+
+  const getSalaryOfferedLabel = () => {
+    const salaryType = job?.salaryType || 'Hourly';
+    const suffix = getSalarySuffix(salaryType);
+    const min = job?.salaryMin;
+    const max = job?.salaryMax;
+    if (typeof min === 'number' && typeof max === 'number' && max !== min) {
+      return `$${min}–$${max}${suffix}`;
+    }
+    if (typeof min === 'number') {
+      return `$${min}${suffix}`;
+    }
+    return typeof job?.salaryRange === 'string' ? job.salaryRange : '';
+  };
+
+  const getOtherTerms = () => {
+    const out = [];
+    if (job?.taxType) out.push(`Tax: ${job.taxType}`);
+    if (job?.extraPay && typeof job.extraPay === 'object') {
+      const extras = Object.entries(job.extraPay)
+        .filter(([, v]) => !!v)
+        .map(([k]) => k);
+      if (extras.length) out.push(`Extra pay: ${extras.join(', ')}`);
+    }
+    return out;
+  };
 
   const handleAccept = (offerId) => {
     dispatch(updateManualOfferStatus({
@@ -185,7 +251,44 @@ const ManualOffers = ({ navigation }) => {
     });
   };
 
+  const handleTrackHours = (offer) => {
+    const currentJob = job || { id: offer.jobId, title: offer.jobTitle, jobTitle: offer.jobTitle, salaryMin: 30 };
+    navigation.navigate(screenNames.CANDIDATE_HOURS, {
+      job: currentJob,
+      candidate: { id: offer.candidateId, name: offer.candidateName },
+      source: 'manual',
+      mode: 'work_coordination',
+    });
+  };
+
+  const computeIsVerified = (candidate) => {
+    const docs = candidate?.documents;
+    if (!Array.isArray(docs)) return false;
+    return docs.some(d => (d?.type === 'ID' || d?.type === 'Photo ID') && d?.verified);
+  };
+
+  const findCandidateById = (candidateId) =>
+    DUMMY_JOB_SEEKERS.find(c => c.id === candidateId) || null;
+
   const renderOffer = ({ item }) => (
+    (() => {
+      const baseCandidate = findCandidateById(item.candidateId);
+      const isVerified = computeIsVerified(baseCandidate);
+      const experienceSummary =
+        typeof baseCandidate?.experienceYears === 'number'
+          ? `${baseCandidate.experienceYears} years`
+          : '';
+      const qualificationsSummary = Array.isArray(baseCandidate?.qualifications)
+        ? baseCandidate.qualifications.slice(0, 2).join(', ')
+        : '';
+
+      const slot = pickFirstAvailabilitySlot(job?.availability);
+      const workHours =
+        slot
+          ? `${slot.day}: ${slot.from}–${slot.to}`
+          : (typeof job?.availability?.summary === 'string' ? job.availability.summary : '');
+
+      return (
     <OfferCard
       mode="manual"
       candidateName={item.candidateName}
@@ -201,10 +304,35 @@ const ManualOffers = ({ navigation }) => {
       modificationRequestedAt={formatDate(item.updatedAt)}
       candidateId={item.candidateId}
       jobId={item.jobId}
+      avatarUri={baseCandidate?.avatar}
+      isVerified={isVerified}
+      offerSentAt={formatOfferSentAt(item.createdAt)}
+      salaryOffered={getSalaryOfferedLabel()}
+      workHours={workHours}
+      otherTerms={getOtherTerms()}
+      experienceSummary={experienceSummary}
+      qualificationsSummary={qualificationsSummary}
       onViewProfile={handleViewProfile}
       onMessage={
         item.status === 'accepted'
           ? () => handleMessage(item)
+          : undefined
+      }
+      onTrackHours={
+        item.status === 'accepted'
+          ? () => handleTrackHours(item)
+          : undefined
+      }
+      onCancel={
+        item.status === 'pending'
+          ? () => {
+              dispatch(updateManualOfferStatus({
+                offerId: item.id,
+                status: 'cancelled',
+                response: { type: 'cancelled', cancelledAt: new Date().toISOString() },
+              }));
+              showToast('Offer withdrawn', 'Success', toastTypes.success);
+            }
           : undefined
       }
       onPress={item.status === 'accepted' ? () => setDetailModal(item) : undefined}
@@ -219,6 +347,8 @@ const ManualOffers = ({ navigation }) => {
           : undefined
       }
     />
+      );
+    })()
   );
 
   return (
