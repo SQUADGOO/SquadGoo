@@ -25,6 +25,17 @@ const CompletedJobCard = ({
   positionsFilled,
   onViewDetails
 }) => {
+  const formatAuDate = (value) => {
+    if (!value) return '—'
+    if (typeof value === 'string') {
+      const s = value.trim()
+      if (/^\d{1,2}\s+[A-Za-z]{3,}\s+\d{4}$/.test(s)) return s
+    }
+    const d = value instanceof Date ? value : new Date(value)
+    if (Number.isNaN(d.getTime())) return typeof value === 'string' ? value : '—'
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+  }
+
   const toNumber = (v) => {
     const n = typeof v === 'number' ? v : Number(v)
     return Number.isFinite(n) ? n : null
@@ -45,6 +56,9 @@ const CompletedJobCard = ({
     }
     return '—'
   }
+
+  const paySummary = job?.salaryType ? `${job.salaryType}: ${formatPayRange()}` : formatPayRange()
+  const searchType = job?.searchType === 'quick' ? 'quick' : 'manual'
 
   const positionsValue =
     typeof positionsFilled === 'number'
@@ -71,45 +85,36 @@ const CompletedJobCard = ({
               Completed
             </AppText>
           </View>
-          {job.searchType && (
-            <View style={[
+          <View
+            style={[
               styles.searchTypeBadge,
-              job.searchType === 'quick' ? styles.quickSearchBadge : styles.manualSearchBadge
-            ]}>
-              <AppText variant={Variant.caption} style={styles.searchTypeText}>
-                {job.searchType === 'quick' ? 'Quick' : 'Manual'}
-              </AppText>
-            </View>
-          )}
+              searchType === 'quick' ? styles.quickSearchBadge : styles.manualSearchBadge,
+            ]}
+          >
+            <AppText variant={Variant.caption} style={styles.searchTypeText}>
+              {searchType === 'quick' ? 'Quick' : 'Manual'}
+            </AppText>
+          </View>
         </View>
       </View>
 
       {/* Salary Range */}
-      <View style={styles.payRow}>
-        <AppText variant={Variant.bodyMedium} style={styles.salaryText}>
-          {formatPayRange()}
-        </AppText>
-        {job?.salaryType ? (
-          <View style={styles.salaryTypePill}>
-            <AppText variant={Variant.caption} style={styles.salaryTypeText}>
-              {String(job.salaryType)}
-            </AppText>
-          </View>
-        ) : null}
-      </View>
+      <AppText variant={Variant.bodyMedium} style={styles.salaryText}>
+        {paySummary}
+      </AppText>
 
       {/* Job Details */}
       <View style={styles.detailsContainer}>
         <JobDetailRow 
           iconName="calendar-outline"
           label="Posted"
-          value={job.offerDate}
+          value={formatAuDate(job.offerDate || job.createdAt)}
         />
         
         <JobDetailRow 
           iconName="checkmark-done-outline"
           label="Completed"
-          value={job.completedDate}
+          value={formatAuDate(job.completedDate || job.completedAt)}
         />
         
         <JobDetailRow 
@@ -216,24 +221,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontSize: getFontSize(14),
     fontWeight: '600',
-  },
-  payRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: wp(2),
     marginBottom: hp(2),
-  },
-  salaryTypePill: {
-    backgroundColor: colors.grayE8 || '#F3F4F6',
-    paddingHorizontal: wp(2.5),
-    paddingVertical: hp(0.4),
-    borderRadius: hp(2),
-  },
-  salaryTypeText: {
-    color: colors.gray,
-    fontSize: getFontSize(10),
-    fontWeight: '700',
   },
   detailsContainer: {
     marginBottom: hp(2),

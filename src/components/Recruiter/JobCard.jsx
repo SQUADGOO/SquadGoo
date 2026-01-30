@@ -33,8 +33,13 @@ const formatTimeString = (timeString) => {
 
 const formatDateToGb = (value) => {
   if (!value) return ''
+  if (typeof value === 'string') {
+    const s = value.trim()
+    // If already in AU-like display format, keep as-is
+    if (/^\d{1,2}\s+[A-Za-z]{3,}\s+\d{4}$/.test(s)) return s
+  }
   const d = value instanceof Date ? value : new Date(value)
-  if (Number.isNaN(d.getTime())) return ''
+  if (Number.isNaN(d.getTime())) return typeof value === 'string' ? value : ''
   return d.toLocaleDateString('en-GB', {
     day: '2-digit',
     month: 'short',
@@ -63,7 +68,8 @@ const formatPayRange = (job) => {
   const salaryType = job?.salaryType
 
   if (typeof salaryMin === 'number' && typeof salaryMax === 'number' && (salaryMin > 0 || salaryMax > 0)) {
-    const suffix = salaryType === 'Hourly' ? '/hr' : ''
+    const st = String(salaryType || '').toLowerCase()
+    const suffix = st.includes('hour') ? '/hr' : st.includes('day') ? '/day' : ''
     return `$${salaryMin}–$${salaryMax}${suffix}`
   }
 
@@ -72,7 +78,13 @@ const formatPayRange = (job) => {
     // Convert "$28/hr to $38/hr" -> "$28–$38/hr"
     const m = range.match(/\$?\s*(\d+(?:\.\d+)?)\s*(?:\/hr)?\s*to\s*\$?\s*(\d+(?:\.\d+)?)\s*(?:\/hr)?/i)
     if (m) {
-      const suffix = /\/hr/i.test(range) || salaryType === 'Hourly' ? '/hr' : ''
+      const st = String(salaryType || '').toLowerCase()
+      const suffix =
+        /\/hr/i.test(range) || st.includes('hour')
+          ? '/hr'
+          : /\/day/i.test(range) || st.includes('day')
+          ? '/day'
+          : ''
       return `$${m[1]}–$${m[2]}${suffix}`
     }
     return range
@@ -112,6 +124,7 @@ const JobCard = ({
   const displayJobType = normalizeJobTypeLabel(job?.type)
   const searchType = job?.searchType === 'quick' ? 'quick' : 'manual' // default to manual
   const payRange = formatPayRange(job)
+  const paySummary = job?.salaryType ? `${job.salaryType}: ${payRange}` : payRange
   const positions = job?.staffNumber ?? job?.staffCount ?? job?.positions ?? job?.staffNeeded
   const quickTime = searchType === 'quick' ? getQuickSearchStartEndTime(job?.availability) : null
   const expireDateDisplay =
@@ -119,6 +132,7 @@ const JobCard = ({
     formatDateToGb(job?.expiresAt) ||
     'Not specified'
   const experienceDisplay = job?.experience || 'Not specified'
+  const offerDateDisplay = formatDateToGb(job?.offerDate || job?.createdAt) || 'Not specified'
 
   return (
     <View style={styles.cardContainer}>
@@ -147,7 +161,7 @@ const JobCard = ({
 
       {/* Salary Range */}
       <AppText variant={Variant.bodyMedium} style={styles.salaryText}>
-        {payRange}
+        {paySummary}
       </AppText>
 
       {/* Job Details */}
@@ -155,7 +169,7 @@ const JobCard = ({
         <JobDetailRow 
           iconName="calendar-outline"
           label="Offer date"
-          value={job.offerDate}
+          value={offerDateDisplay}
         />
         
         <JobDetailRow 
