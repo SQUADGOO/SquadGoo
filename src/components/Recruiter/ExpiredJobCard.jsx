@@ -24,6 +24,49 @@ const ExpiredJobCard = ({
   job, 
   onViewDetails
 }) => {
+  const formatAuDate = (value) => {
+    if (!value) return '—'
+    if (typeof value === 'string') {
+      const s = value.trim()
+      if (/^\d{1,2}\s+[A-Za-z]{3,}\s+\d{4}$/.test(s)) return s
+    }
+    const d = value instanceof Date ? value : new Date(value)
+    if (Number.isNaN(d.getTime())) return typeof value === 'string' ? value : '—'
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+  }
+
+  const toNumber = (v) => {
+    const n = typeof v === 'number' ? v : Number(v)
+    return Number.isFinite(n) ? n : null
+  }
+
+  const formatPayRange = () => {
+    const min = toNumber(job?.salaryMin)
+    const max = toNumber(job?.salaryMax)
+    const type = String(job?.salaryType || '').toLowerCase()
+    const suffix = type.includes('hour') ? '/hr' : type.includes('day') ? '/day' : ''
+
+    if (min != null && max != null && (min > 0 || max > 0)) {
+      return `$${min}${suffix}–$${max}${suffix}`
+    }
+    if (typeof job?.salaryRange === 'string' && job.salaryRange.trim() !== '') {
+      // normalize "$28/hr to $38/hr" -> "$28–$38/hr"
+      const m = job.salaryRange.match(/\$?\s*(\d+(?:\.\d+)?)\s*(?:\/hr)?\s*to\s*\$?\s*(\d+(?:\.\d+)?)\s*(?:\/hr)?/i)
+      if (m) {
+        const suffix2 = /\/hr/i.test(job.salaryRange) || type.includes('hour') ? '/hr' : /\/day/i.test(job.salaryRange) || type.includes('day') ? '/day' : ''
+        return `$${m[1]}–$${m[2]}${suffix2}`
+      }
+      return job.salaryRange
+    }
+    return '—'
+  }
+
+  const paySummary = job?.salaryType ? `${job.salaryType}: ${formatPayRange()}` : formatPayRange()
+  const searchType = job?.searchType === 'quick' ? 'quick' : 'manual'
+  const positionsRequired = job?.staffNumber ?? job?.staffCount ?? job?.positions ?? '—'
+  const positionsFilled = typeof job?.positionsFilled === 'number' ? job.positionsFilled : 0
+  const hasNotes = typeof job?.expiryNotes === 'string' && job.expiryNotes.trim() !== ''
+
   return (
     <View style={styles.cardContainer}>
       
@@ -44,36 +87,49 @@ const ExpiredJobCard = ({
               Expired
             </AppText>
           </View>
-          {job.searchType && (
-            <View style={[
+          <View
+            style={[
               styles.searchTypeBadge,
-              job.searchType === 'quick' ? styles.quickSearchBadge : styles.manualSearchBadge
-            ]}>
-              <AppText variant={Variant.caption} style={styles.searchTypeText}>
-                {job.searchType === 'quick' ? 'Quick' : 'Manual'}
+              searchType === 'quick' ? styles.quickSearchBadge : styles.manualSearchBadge,
+            ]}
+          >
+            <AppText variant={Variant.caption} style={styles.searchTypeText}>
+              {searchType === 'quick' ? 'Quick' : 'Manual'}
+            </AppText>
+          </View>
+          {hasNotes ? (
+            <View style={styles.notesBadge}>
+              <AppText variant={Variant.caption} style={styles.notesText}>
+                Has notes
               </AppText>
             </View>
-          )}
+          ) : null}
         </View>
       </View>
 
       {/* Salary Range */}
       <AppText variant={Variant.bodyMedium} style={styles.salaryText}>
-        {job.salaryRange}
+        {paySummary}
       </AppText>
 
       {/* Job Details */}
       <View style={styles.detailsContainer}>
+        <JobDetailRow
+          iconName="briefcase-outline"
+          label="Job type"
+          value={job.type || '—'}
+        />
+
         <JobDetailRow 
           iconName="calendar-outline"
           label="Posted"
-          value={job.offerDate}
+          value={formatAuDate(job.offerDate || job.createdAt)}
         />
         
         <JobDetailRow 
           iconName="close-circle-outline"
           label="Expired"
-          value={job.expireDate}
+          value={formatAuDate(job.expireDate || job.expiredAt)}
         />
         
         <JobDetailRow 
@@ -84,10 +140,31 @@ const ExpiredJobCard = ({
         
         <JobDetailRow 
           iconName="people-outline"
-          label="Staff needed"
-          value={job.staffNumber || '1'}
+          label="Positions"
+          value={String(positionsRequired)}
+        />
+
+        <JobDetailRow
+          iconName="checkmark-done-outline"
+          label="Positions filled"
+          value={String(positionsFilled)}
         />
       </View>
+
+      {job?.expiryReason ? (
+        <View style={styles.reasonRow}>
+          <VectorIcons
+            name={iconLibName.Ionicons}
+            iconName="chatbox-ellipses-outline"
+            size={18}
+            color={colors.gray}
+            style={styles.detailIcon}
+          />
+          <AppText variant={Variant.body} style={styles.reasonText} numberOfLines={1} ellipsizeMode="tail">
+            Reason: <AppText variant={Variant.bodyMedium} style={styles.detailValue}>{job.expiryReason}</AppText>
+          </AppText>
+        </View>
+      ) : null}
 
       {/* Action Buttons */}
       <View style={styles.buttonContainer}>
@@ -115,7 +192,7 @@ export default ExpiredJobCard
 
 const styles = StyleSheet.create({
   cardContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: '#F9FAFB',
     borderRadius: hp(2),
     padding: wp(5),
     marginBottom: hp(2),
@@ -129,7 +206,9 @@ const styles = StyleSheet.create({
     elevation: 3,
     borderLeftWidth: 4,
     borderLeftColor: '#EF4444',
-    opacity: 0.85,
+    opacity: 0.78,
+    borderWidth: 1,
+    borderColor: colors.grayE8 || '#E5E7EB',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -139,7 +218,7 @@ const styles = StyleSheet.create({
   },
   jobTitle: {
     flex: 1,
-    color: '#65799B',
+    color: '#6B7280',
     fontWeight: 'bold',
     marginRight: wp(3),
   },
@@ -183,6 +262,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: hp(2),
   },
+  notesBadge: {
+    backgroundColor: '#E5E7EB',
+    paddingHorizontal: wp(2),
+    paddingVertical: hp(0.4),
+    borderRadius: hp(2),
+  },
+  notesText: {
+    color: '#374151',
+    fontSize: getFontSize(9),
+    fontWeight: 'bold',
+  },
   detailsContainer: {
     marginBottom: hp(2),
   },
@@ -201,6 +291,16 @@ const styles = StyleSheet.create({
   },
   detailValue: {
     fontWeight: 'bold',
+  },
+  reasonRow: {
+    flexDirection: 'row',
+    gap: 5,
+    alignItems: 'center',
+    marginBottom: hp(2),
+  },
+  reasonText: {
+    flex: 1,
+    color: colors.gray,
   },
   buttonContainer: {
     marginTop: hp(1),

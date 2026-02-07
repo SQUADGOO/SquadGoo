@@ -9,12 +9,14 @@ import * as ui from '@/screens';
 import SupportStack from './SupportStack';
 import ManualSearchStack from './ManualSearchStack';
 import QuickSearchStack from './QuickSearchStack';
+import QuickSearchOffersStack from './QuickSearchOffersStack';
 
 const Drawer = createDrawerNavigator();
 
 const DrawerNavigator = () => {
   return (
     <Drawer.Navigator
+    backBehavior='history'
       drawerContent={props => <CustomDrawer {...props}  onNavigate={(route, params) => props.navigation.navigate(route, params)}
  />}
       screenOptions={{
@@ -158,7 +160,7 @@ const DrawerNavigator = () => {
       {/* Quick Search Screens - Recruiter */}
       <Drawer.Screen
         name={screenNames.QUICK_SEARCH_ACTIVE_OFFERS_RECRUITER}
-        component={ui.QuickSearchActiveOffersRecruiter}
+        component={QuickSearchOffersStack}
       />
       <Drawer.Screen
         name={screenNames.QUICK_SEARCH_ACTIVE_JOBS_RECRUITER}
@@ -257,7 +259,12 @@ const DrawerNavigator = () => {
         name={screenNames.ACCEPTED_OFFERS}
         component={ui.AcceptedOffers}
       />
-       
+
+      <Drawer.Screen
+        name={screenNames.RECRUITER_BILLING_REPORTS}
+        component={ui.RecruiterBillingReports}
+      />
+
     </Drawer.Navigator>
   );
 };

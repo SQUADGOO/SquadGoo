@@ -1,10 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useMemo, useState, useRef, useEffect } from 'react'
 import { 
   View, 
   StyleSheet, 
   ScrollView, 
   TouchableOpacity,
-  Image
+  Image,
+  Alert,
 } from 'react-native'
 import { useForm, FormProvider } from 'react-hook-form'
 import { colors, hp, wp, getFontSize } from '@/theme'
@@ -19,17 +20,28 @@ import globalStyles from '@/styles/globalStyles'
 import BottomDataSheet from '@/components/Recruiter/JobBottomSheet'
 import JobCategorySelector from '@/components/JobCategorySelector'
 import { screenNames } from '@/navigation/screenNames'
+import { INDUSTRY_OPTIONS, JOB_TYPE_OPTIONS } from '@/constants/recruiterOptions'
 
 const ManualSearch = ({ navigation, route }) => {
   // Draft edit mode params
   const editMode = route?.params?.editMode
   const draftJob = route?.params?.draftJob
+  const existingJobId = route?.params?.jobId || draftJob?.id
+
+  const jobReferenceId = useMemo(() => {
+    // Keep stable for edits, generate for new jobs
+    if (draftJob?.jobReferenceId) return draftJob.jobReferenceId
+    if (draftJob?.id) return `JOB-${String(draftJob.id).slice(-6).toUpperCase()}`
+    const random = Math.random().toString(36).slice(2, 8).toUpperCase()
+    return `JOB-${random}`
+  }, [draftJob])
 
   const [rangeKm, setRangeKm] = useState(draftJob?.rangeKm || 119)
   const [jobCategory, setJobCategory] = useState(draftJob?.jobCategory || null)
   const [jobSubCategory, setJobSubCategory] = useState(draftJob?.jobSubCategory || null)
   
   const jobTypeSheetRef = useRef(null)
+  const industrySheetRef = useRef(null)
   
   const methods = useForm({
     mode: 'onChange',
@@ -38,6 +50,7 @@ const ManualSearch = ({ navigation, route }) => {
       staffNumber: draftJob?.staffNumber ? String(draftJob.staffNumber) : '5',
       jobTitle: draftJob?.title || draftJob?.jobTitle || '',
       jobType: draftJob?.type || draftJob?.jobType || '',
+      industry: draftJob?.industry || '',
     }
   })
 
@@ -49,6 +62,7 @@ const ManualSearch = ({ navigation, route }) => {
         staffNumber: draftJob.staffNumber ? String(draftJob.staffNumber) : '5',
         jobTitle: draftJob.title || draftJob.jobTitle || '',
         jobType: draftJob.type || draftJob.jobType || '',
+        industry: draftJob.industry || '',
       })
       if (draftJob.rangeKm) setRangeKm(draftJob.rangeKm)
       if (draftJob.jobCategory) setJobCategory(draftJob.jobCategory)
@@ -58,14 +72,8 @@ const ManualSearch = ({ navigation, route }) => {
 
   const { watch, setValue } = methods
 
-  const jobTypeOptions = [
-    { id: 1, title: 'Full time' },
-    { id: 2, title: 'Part time' },
-    { id: 3, title: 'Contract' },
-    { id: 4, title: 'Casual' },
-    { id: 5, title: 'Temporary' },
-    { id: 6, title: 'Freelance' }
-  ]
+  const jobTypeOptions = JOB_TYPE_OPTIONS
+  const industryOptions = INDUSTRY_OPTIONS
 
   const handleJobCategorySelect = (data) => {
     setJobCategory(data.category)
@@ -81,19 +89,45 @@ const ManualSearch = ({ navigation, route }) => {
     jobTypeSheetRef.current?.close()
   }
 
+  const handleIndustrySelect = (item) => {
+    if (item?.title) {
+      setValue('industry', item.title, { shouldValidate: true, shouldDirty: true })
+    }
+    industrySheetRef.current?.close()
+  }
+
   const handleNext = methods.handleSubmit((data) => {
+    // Require either category/subcategory or a typed job title
+    const hasCategoryTitle = !!(jobCategory || jobSubCategory)
+    const hasManualTitle = !!(data.jobTitle && String(data.jobTitle).trim())
+    if (!hasCategoryTitle && !hasManualTitle) {
+      Alert.alert('Job title required', 'Please select a job category or enter a job title.')
+      return
+    }
+
+    if (!data.industry || !String(data.industry).trim()) {
+      Alert.alert('Industry required', 'Please select an industry.')
+      return
+    }
+
     const searchData = {
       jobTitle: data.jobTitle,
       jobType: data.jobType,
       workLocation: data.workLocation,
       rangeKm,
       staffNumber: data.staffNumber,
-      industry: jobCategory,
+      industry: data.industry,
       jobCategory: jobCategory,
       jobSubCategory: jobSubCategory,
+      jobReferenceId: jobReferenceId,
     }
     console.log('Step 1 data:', searchData)
-    navigation.navigate(screenNames.STEP_TWO, { step1Data: searchData })
+    navigation.navigate(screenNames.STEP_TWO, {
+      step1Data: searchData,
+      editMode: !!editMode,
+      draftJob,
+      jobId: existingJobId,
+    })
   })
 
   return (
@@ -131,6 +165,15 @@ const ManualSearch = ({ navigation, route }) => {
           />
         </View>
 
+        {/* Job Title (Manual Entry) */}
+        <View style={styles.formGroup}>
+          <FormField
+            name="jobTitle"
+            label="Job title (manual entry)"
+            placeholder="Enter job title"
+          />
+        </View>
+
         {/* Job Type */}
         <View style={styles.formGroup}>
           <FormField
@@ -139,6 +182,17 @@ const ManualSearch = ({ navigation, route }) => {
             label="Job type"
             value={watch('jobType')} 
             placeholder="Enter job type"
+          />
+        </View>
+
+        {/* Industry */}
+        <View style={styles.formGroup}>
+          <FormField
+            name="industry"
+            onPressField={() => industrySheetRef.current?.open()}
+            label="Industry"
+            value={watch('industry')}
+            placeholder="Select industry"
           />
         </View>
 
@@ -198,7 +252,7 @@ const ManualSearch = ({ navigation, route }) => {
         {/* Staff Number */}
         <FormField
           name="staffNumber"
-          label="How many staff looking for"
+          label="Positions"
           placeholder="Total staff number"
           keyboardType="numeric"
           rules={{
@@ -209,6 +263,16 @@ const ManualSearch = ({ navigation, route }) => {
             }
           }}
         />
+
+        {/* Job Reference ID (Auto-generated) */}
+        <View style={styles.formGroup}>
+          <AppText variant={Variant.boldCaption} style={styles.label}>
+            Job reference ID
+          </AppText>
+          <AppText variant={Variant.bodyMedium} style={styles.referenceIdValue}>
+            {jobReferenceId}
+          </AppText>
+        </View>
 
         {/* Next Button */}
         <View style={styles.buttonContainer}>
@@ -223,7 +287,7 @@ const ManualSearch = ({ navigation, route }) => {
       {/* Bottom Sheets */}
       <RbSheetComponent
         ref={jobTypeSheetRef}
-        height={hp(90)}
+        height={hp(60)}
         bgColor={colors.white}
         containerStyle={styles.sheetContainer}
       >
@@ -231,6 +295,19 @@ const ManualSearch = ({ navigation, route }) => {
           onSelect={handleJobTypeSelect}
           optionsData={jobTypeOptions} 
           onClose={() => jobTypeSheetRef.current?.close()} 
+        />
+      </RbSheetComponent>
+
+      <RbSheetComponent
+        ref={industrySheetRef}
+        height={hp(60)}
+        bgColor={colors.white}
+        containerStyle={styles.sheetContainer}
+      >
+        <BottomDataSheet
+          onSelect={handleIndustrySelect}
+          optionsData={industryOptions}
+          onClose={() => industrySheetRef.current?.close()}
         />
       </RbSheetComponent>
     </FormProvider>
@@ -254,6 +331,17 @@ const styles = StyleSheet.create({
     fontSize: getFontSize(16),
     marginBottom: hp(1),
     fontWeight: '500',
+  },
+  referenceIdValue: {
+    color: colors.black,
+    fontSize: getFontSize(15),
+    fontWeight: 'bold',
+    paddingVertical: hp(1),
+    paddingHorizontal: wp(3),
+    borderWidth: 1,
+    borderColor: colors.grayE8 || '#E5E7EB',
+    borderRadius: hp(1.5),
+    backgroundColor: colors.white,
   },
   dropdownButton: {
     flexDirection: 'row',
@@ -328,7 +416,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   buttonContainer: {
-    // marginTop: hp(2),
+    marginTop: hp(2),
     marginBottom: hp(6),
   },
   nextButton: {

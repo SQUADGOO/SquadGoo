@@ -1,5 +1,5 @@
-// screens/KycVerification.tsx
-import React from 'react';
+// screens/KycDocument.tsx
+import React, { useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -7,30 +7,112 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {colors, getFontSize, hp, wp} from '@/theme';
 import AppText, {Variant} from '@/core/AppText';
 import AppHeader from '@/core/AppHeader';
 import { Icons } from '@/assets';
 import { screenNames } from '@/navigation/screenNames';
+import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
+import ImagePickerSheet from '@/components/ImagePickerSheet';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateUserFields } from '@/store/authSlice';
+import { showToast, toastTypes } from '@/utilities/toastConfig';
+import AddressProofSelector from '@/components/AddressProofSelector';
+import { BUSINESS_ADDRESS_PROOF_OPTIONS } from '@/utilities/appData';
+import AppInputField from '@/core/AppInputField';
+import AppButton from '@/core/AppButton';
 
-const KycVerification = () => {
+const KycDocument = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const role = useSelector((state) => state.auth.role);
+  const userInfo = useSelector((state) => state.auth.userInfo);
+  const saved = userInfo?.kycKyb || {};
+  const uploads = saved?.uploads || {};
 
-  const uploadFields = [
-    {label: 'NRIC/Passport'},
-    {label: 'Selfie with ID'},
-    {label: 'Proof of Address'},
-    {label: 'Business Registration'},
-    {label: 'Tax Certificate'},
-  ];
+  const isRecruiter = ((role || '').toString().toLowerCase() === 'recruiter');
+  const sheetRef = useRef(null);
+  const [activeUploadKey, setActiveUploadKey] = useState(null);
+  const [proofType, setProofType] = useState(saved?.documents?.proof_of_business_address_type || '');
+  const [otherSpecify, setOtherSpecify] = useState(saved?.documents?.proof_of_business_address_other || '');
+
+  const shouldAskDirectorId = !uploads?.govt_photo_id;
+
+  const getAssetName = (asset) => {
+    if (!asset) return '';
+    if (asset.fileName) return asset.fileName;
+    if (asset.uri) return asset.uri.split('/').pop() || '';
+    return '';
+  };
+
+  const openUpload = (key) => {
+    setActiveUploadKey(key);
+    sheetRef.current?.open();
+  };
+
+  const handleUploadSelect = (asset) => {
+    if (!activeUploadKey) return;
+    const next = {
+      ...uploads,
+      [activeUploadKey]: asset || null,
+    };
+    dispatch(updateUserFields({ kycKyb: { ...saved, uploads: next } }));
+  };
+
+  const handleNext = () => {
+    if (!isRecruiter) {
+      navigation.navigate(screenNames.KYC_KYB_SUBMIT);
+      return;
+    }
+
+    if (!uploads.abn_acn_certificate) {
+      showToast('Please upload ABN/ACN Certificate', 'Missing document', toastTypes.error);
+      return;
+    }
+
+    if (shouldAskDirectorId && !uploads.director_photo_id) {
+      showToast('Please upload Director/Representative Photo ID', 'Missing document', toastTypes.error);
+      return;
+    }
+
+    if (!proofType) {
+      showToast('Please select Proof of Business Address type', 'Missing field', toastTypes.error);
+      return;
+    }
+
+    if (proofType === 'Other government or financial document (please specify)' && !otherSpecify.trim()) {
+      showToast('Please specify the “Other” document type', 'Missing field', toastTypes.error);
+      return;
+    }
+
+    if (!uploads.proof_of_business_address) {
+      showToast('Please upload Proof of Business Address', 'Missing document', toastTypes.error);
+      return;
+    }
+
+    dispatch(
+      updateUserFields({
+        kycKyb: {
+          ...saved,
+          documents: {
+            proof_of_business_address_type: proofType,
+            proof_of_business_address_other: otherSpecify.trim(),
+          },
+        },
+      }),
+    );
+
+    navigation.navigate(screenNames.KYC_KYB_SUBMIT);
+  };
 
   return (
-    <ScrollView style={{flex: 1, backgroundColor: colors.white}}>
-      {/* Header */}
-      <AppHeader showTopIcons={false} title="KYC/KYB Verification" />
+    <>
+      <ScrollView style={{flex: 1, backgroundColor: colors.white}}>
+        {/* Header */}
+        <AppHeader showTopIcons={false} title={isRecruiter ? 'KYB Documents' : 'KYC Documents'} />
 
-      <View style={styles.container}>
+        <View style={styles.container}>
         {/* Title */}
         <AppText variant={Variant.h2} style={styles.title}>
           KYC & KYB Verification
@@ -95,45 +177,162 @@ const KycVerification = () => {
 
         {/* Section Title */}
         <AppText variant={Variant.h3} style={styles.sectionTitle}>
-          Document Upload
+          Mandatory Documents
         </AppText>
         <AppText variant={Variant.body} style={styles.sectionSubtitle}>
-          Upload required documents for verification. All documents must be
-          clear and readable.
+          Upload clear and readable documents.
         </AppText>
 
-        {/* Upload Fields */}
-        {uploadFields.map((field, index) => (
-          <View key={index} style={styles.uploadBox}>
-            <AppText style={styles.uploadLabel}>{field.label}</AppText>
-            <View style={styles.uploadArea}>
-            <Image style={styles.save} source={Icons.save}/>
+        {isRecruiter && (
+          <>
+            <TouchableOpacity style={styles.uploadBox} activeOpacity={0.8} onPress={() => openUpload('abn_acn_certificate')}>
+              <AppText style={styles.uploadLabel}>ABN/ACN Certificate*</AppText>
+              <View style={styles.uploadArea}>
+                <Image style={styles.save} source={Icons.save} />
+                {getAssetName(uploads?.abn_acn_certificate) ? (
+                  <View style={styles.selectedRow}>
+                    <VectorIcons
+                      name={iconLibName.Ionicons}
+                      iconName="checkmark-circle"
+                      size={18}
+                      color={colors.green}
+                    />
+                    <AppText
+                      style={styles.selectedFileName}
+                      numberOfLines={1}
+                    >
+                      {getAssetName(uploads?.abn_acn_certificate)}
+                    </AppText>
+                  </View>
+                ) : (
+                  <AppText style={styles.uploadText}>
+                    Tap to upload proof of business registration
+                  </AppText>
+                )}
+              </View>
+            </TouchableOpacity>
 
-              <AppText style={styles.uploadText}>
-                Drag and drop your file here, or click to browse
-              </AppText>
-              <TouchableOpacity style={styles.chooseFileButton}>
-                <AppText style={styles.chooseFileText}>Choose File</AppText>
+            {shouldAskDirectorId && (
+              <TouchableOpacity style={styles.uploadBox} activeOpacity={0.8} onPress={() => openUpload('director_photo_id')}>
+                <AppText style={styles.uploadLabel}>Director/Representative’s Photo ID*</AppText>
+                <View style={styles.uploadArea}>
+                  <Image style={styles.save} source={Icons.save} />
+                  {getAssetName(uploads?.director_photo_id) ? (
+                    <View style={styles.selectedRow}>
+                      <VectorIcons
+                        name={iconLibName.Ionicons}
+                        iconName="checkmark-circle"
+                        size={18}
+                        color={colors.green}
+                      />
+                      <AppText
+                        style={styles.selectedFileName}
+                        numberOfLines={1}
+                      >
+                        {getAssetName(uploads?.director_photo_id)}
+                      </AppText>
+                    </View>
+                  ) : (
+                    <AppText style={styles.uploadText}>
+                      Tap to upload (if not already uploaded in KYC)
+                    </AppText>
+                  )}
+                </View>
               </TouchableOpacity>
+            )}
+
+            <AppText style={styles.inputLabel}>Proof of Business Address (select one)*</AppText>
+            <AddressProofSelector
+              selectedValue={proofType}
+              onSelect={setProofType}
+              options={BUSINESS_ADDRESS_PROOF_OPTIONS}
+              placeholder="Select proof type"
+              sheetTitle="Select Proof of Business Address"
+              userType="recruiter"
+            />
+
+            {proofType === 'Other government or financial document (please specify)' && (
+              <AppInputField
+                label="Other (please specify)"
+                placeholder="Enter document type"
+                value={otherSpecify}
+                onChangeText={setOtherSpecify}
+              />
+            )}
+
+            <View style={styles.warningBox}>
+              <AppText style={styles.warningTitle}>Important</AppText>
+              <AppText style={styles.warningText}>
+                Must show business name and address. Must be dated within the last 3 months
+                (except for annual documents like council rates, tax, registration).
+              </AppText>
             </View>
+
+            <TouchableOpacity style={styles.uploadBox} activeOpacity={0.8} onPress={() => openUpload('proof_of_business_address')}>
+              <AppText style={styles.uploadLabel}>Upload Proof of Business Address*</AppText>
+              <View style={styles.uploadArea}>
+                <Image style={styles.save} source={Icons.save} />
+                {getAssetName(uploads?.proof_of_business_address) ? (
+                  <View style={styles.selectedRow}>
+                    <VectorIcons
+                      name={iconLibName.Ionicons}
+                      iconName="checkmark-circle"
+                      size={18}
+                      color={colors.green}
+                    />
+                    <AppText
+                      style={styles.selectedFileName}
+                      numberOfLines={1}
+                    >
+                      {getAssetName(uploads?.proof_of_business_address)}
+                    </AppText>
+                  </View>
+                ) : (
+                  <AppText style={styles.uploadText}>
+                    Tap to upload the selected proof document
+                  </AppText>
+                )}
+              </View>
+            </TouchableOpacity>
+          </>
+        )}
+
+        {!isRecruiter && (
+          <View style={styles.warningBox}>
+            <AppText style={styles.warningTitle}>Note</AppText>
+            <AppText style={styles.warningText}>
+              Your required uploads are completed in the previous step (Government-issued Photo ID and Selfie with ID).
+            </AppText>
           </View>
-        ))}
+        )}
 
         {/* Buttons */}
         <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.prevButton}>
-            <AppText style={styles.prevText}>Previous</AppText>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={()=>navigation.navigate(screenNames.KYC_KYB_SUBMIT)} style={styles.nextButton}>
-            <AppText style={styles.nextText}>Next</AppText>
-          </TouchableOpacity>
+          <AppButton
+            text="Previous"
+            secondary
+            bgColor={colors.white}
+            textStyle={{ color: colors.primary }}
+            style={styles.prevButton}
+            onPress={() => navigation.goBack()}
+          />
+          <AppButton
+            text="Next"
+            bgColor={colors.primary}
+            textColor="#FFFFFF"
+            style={styles.nextButton}
+            onPress={handleNext}
+          />
         </View>
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+
+      <ImagePickerSheet ref={sheetRef} onSelect={handleUploadSelect} />
+    </>
   );
 };
 
-export default KycVerification;
+export default KycDocument;
 
 const styles = StyleSheet.create({
   container: {
@@ -218,6 +417,12 @@ const styles = StyleSheet.create({
   uploadBox: {
     marginBottom: hp(2),
   },
+  inputLabel: {
+    fontSize: getFontSize(13),
+    fontWeight: '700',
+    marginBottom: hp(1),
+    color: '#3B2E57',
+  },
   uploadLabel: {
     fontSize: getFontSize(13),
     fontWeight: '600',
@@ -231,6 +436,17 @@ const styles = StyleSheet.create({
     padding: hp(3),
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  selectedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+    marginTop: hp(1.5),
+  },
+  selectedFileName: {
+    color: colors.green,
+    fontSize: getFontSize(12),
+    maxWidth: wp(70),
   },
   uploadText: {
     fontSize: getFontSize(12),
@@ -251,41 +467,41 @@ const styles = StyleSheet.create({
     color: '#3B2E57',
     fontWeight: '500',
   },
+  warningBox: {
+    backgroundColor: '#FFF4E8',
+    borderRadius: 8,
+    padding: wp(4),
+    marginBottom: hp(2),
+  },
+  warningTitle: {
+    color: '#FF8C00',
+    fontWeight: '700',
+    marginBottom: hp(0.5),
+    fontSize: getFontSize(13),
+  },
+  warningText: {
+    fontSize: getFontSize(12),
+    color: '#6C7A92',
+    lineHeight: 18,
+  },
 
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginVertical: hp(4),
+    gap: wp(3),
   },
   prevButton: {
+    flex: 1,
     borderWidth: 1,
-    borderColor: '#FF8C00',
-    borderRadius: 8,
-    width: '48%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: hp(1.8),
-  },
-  prevText: {
-    color: '#FF8C00',
-    fontSize: getFontSize(14),
-    fontWeight: '600',
+    borderColor: colors.primary,
   },
   nextButton: {
-    backgroundColor: '#FF8C00',
-    borderRadius: 8,
-    width: '48%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: hp(1.8),
-  },
-  nextText: {
-    color: '#fff',
-    fontSize: getFontSize(14),
-    fontWeight: '600',
+    flex: 1,
   },
   save:{
     height:38,
     width:38,
   }
 });
+

@@ -5,6 +5,25 @@ import { DUMMY_EMPLOYEES } from '@/utilities/dummyEmployees';
 
 const clamp = (value, min = 0, max = 100) => Math.max(min, Math.min(max, value));
 
+const computeIsVerified = (candidate) => {
+  const docs = candidate?.documents;
+  if (!Array.isArray(docs)) return false;
+  // Treat verified ID as "blue tick" verification
+  return docs.some(d => (d?.type === 'ID' || d?.type === 'Photo ID') && d?.verified);
+};
+
+const computeDistanceKm = (jobId, candidateId, maxKm) => {
+  const max = typeof maxKm === 'number' && maxKm > 0 ? Math.floor(maxKm) : 0;
+  if (max <= 0) return null;
+  const seedStr = `${jobId || ''}:${candidateId || ''}`;
+  let sum = 0;
+  for (let i = 0; i < seedStr.length; i += 1) {
+    sum += seedStr.charCodeAt(i);
+  }
+  // deterministic 1..max km
+  return (sum % max) + 1;
+};
+
 // Compute match score for quick search (similar to manual but optimized for quick matching)
 const computeQuickMatchScore = (job, candidate) => {
   let score = 45; // Base score
@@ -55,16 +74,18 @@ const computeQuickMatchScore = (job, candidate) => {
 };
 
 // Build candidate snapshot for quick search
-const buildQuickCandidateSnapshot = (candidate, matchPercentage, currentRating) => ({
+const buildQuickCandidateSnapshot = (candidate, matchPercentage, currentRating, meta = {}) => ({
   id: candidate.id,
   name: candidate.name,
   badge: candidate.badge,
   avatar: candidate.avatar,
+  isVerified: computeIsVerified(candidate),
   acceptanceRating: currentRating ?? candidate.acceptanceRating,
   matchPercentage,
   location: candidate.location,
   suburb: candidate.suburb,
   radiusKm: candidate.radiusKm,
+  distanceKm: meta?.distanceKm ?? null,
   taxTypes: candidate.taxTypes,
   languages: candidate.languages,
   qualifications: candidate.qualifications,
@@ -76,6 +97,12 @@ const buildQuickCandidateSnapshot = (candidate, matchPercentage, currentRating) 
   experienceYears: candidate.experienceYears,
   bio: candidate.bio,
   skills: candidate.skills,
+  // Extra profile details (available on DUMMY_JOB_SEEKERS; optional for contractors/employees)
+  workHistory: candidate.workHistory,
+  documents: candidate.documents,
+  reviewSummary: candidate.reviewSummary,
+  reviews: candidate.reviews,
+  references: candidate.references,
 });
 
 // Build acceptance rating map
@@ -88,6 +115,116 @@ const buildAcceptanceRatingMap = () =>
   }, {});
 
 const findCandidateById = (candidateId) => getAllCandidates().find(c => c.id === candidateId) || null;
+
+const buildWorkSessionKey = (jobId, candidateId) => `${jobId || ''}:${candidateId || ''}`;
+
+// Generate dummy declined offers for quick search
+const generateDummyDeclinedOffers = () => {
+  const now = new Date();
+  const declinedDate1 = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000); // 6 days ago
+  const declinedDate2 = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000); // 2 days ago
+
+  const candidate1 = DUMMY_JOB_SEEKERS.find(js => js.id === 'js-006') || DUMMY_JOB_SEEKERS.find(js => js.id === 'js-001');
+  const candidate2 = DUMMY_JOB_SEEKERS.find(js => js.id === 'js-007') || DUMMY_JOB_SEEKERS.find(js => js.id === 'js-002');
+
+  if (!candidate1 || !candidate2) return [];
+
+  return [
+    {
+      id: 'quick-offer-declined-001',
+      jobId: 'quick-job-dummy-003',
+      candidateId: candidate1.id,
+      candidateName: candidate1.name,
+      jobTitle: 'Event Setup and Management',
+      matchPercentage: 79,
+      acceptanceRating: candidate1.acceptanceRating,
+      status: 'declined',
+      expiresAt: new Date(declinedDate1.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      message: 'Offer sent.',
+      autoSent: false,
+      createdAt: new Date(declinedDate1.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: declinedDate1.toISOString(),
+      response: {
+        type: 'declined',
+        reason: 'Not available on the requested dates.',
+        declinedAt: declinedDate1.toISOString(),
+      },
+    },
+    {
+      id: 'quick-offer-declined-002',
+      jobId: 'quick-job-dummy-004',
+      candidateId: candidate2.id,
+      candidateName: candidate2.name,
+      jobTitle: 'Commercial Deep Cleaning Service',
+      matchPercentage: 84,
+      acceptanceRating: candidate2.acceptanceRating,
+      status: 'declined',
+      expiresAt: new Date(declinedDate2.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      message: 'Offer sent.',
+      autoSent: true,
+      createdAt: new Date(declinedDate2.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: declinedDate2.toISOString(),
+      response: {
+        type: 'declined',
+        reason: 'Pay rate is lower than my current commitments.',
+        declinedAt: declinedDate2.toISOString(),
+      },
+    },
+  ];
+};
+
+// Generate dummy expired offers for quick search
+const generateDummyExpiredOffers = () => {
+  const now = new Date();
+  const expiredAt1 = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
+  const expiredAt2 = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000); // 3 days ago
+
+  const candidate1 = DUMMY_JOB_SEEKERS.find(js => js.id === 'js-008') || DUMMY_JOB_SEEKERS.find(js => js.id === 'js-003');
+  const candidate2 = DUMMY_JOB_SEEKERS.find(js => js.id === 'js-009') || DUMMY_JOB_SEEKERS.find(js => js.id === 'js-004');
+
+  if (!candidate1 || !candidate2) return [];
+
+  return [
+    {
+      id: 'quick-offer-expired-001',
+      jobId: 'quick-job-dummy-001',
+      candidateId: candidate1.id,
+      candidateName: candidate1.name,
+      jobTitle: 'Commercial Painting Project',
+      matchPercentage: 76,
+      acceptanceRating: candidate1.acceptanceRating,
+      status: 'expired',
+      expiresAt: expiredAt1.toISOString(),
+      message: 'Offer sent.',
+      autoSent: false,
+      createdAt: new Date(expiredAt1.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: expiredAt1.toISOString(),
+      response: {
+        type: 'expired',
+        message: 'No response in time.',
+      },
+    },
+    {
+      id: 'quick-offer-expired-002',
+      jobId: 'quick-job-dummy-002',
+      candidateId: candidate2.id,
+      candidateName: candidate2.name,
+      jobTitle: 'Warehouse Inventory Management',
+      matchPercentage: 81,
+      acceptanceRating: candidate2.acceptanceRating,
+      status: 'expired',
+      expiresAt: expiredAt2.toISOString(),
+      message: 'Offer sent.',
+      autoSent: true,
+      createdAt: new Date(expiredAt2.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: expiredAt2.toISOString(),
+      response: {
+        type: 'expired',
+        message: 'No response in time.',
+      },
+    },
+  ];
+};
 
 // Generate dummy accepted offers for quick search
 const generateDummyAcceptedOffers = () => {
@@ -207,6 +344,73 @@ const generateDummyAcceptedOffers = () => {
   ];
 };
 
+// Generate dummy modification requests (Scenario 2)
+const generateDummyModificationOffers = () => {
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+  return [
+    {
+      id: 'quick-offer-mod-001',
+      jobId: 'quick-job-dummy-001',
+      candidateId: 'js-001',
+      candidateName: 'Jane Jobseeker',
+      jobTitle: 'Commercial Painting Project',
+      matchPercentage: 92,
+      acceptanceRating: 92,
+      status: 'modification_requested',
+      expiresAt: expiresAt.toISOString(),
+      message: 'Offer sent. Candidate requested a change.',
+      createdAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(now.getTime() - 6 * 60 * 60 * 1000).toISOString(),
+      originalTerms: {
+        payRate: '$30/hr',
+        startDate: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        startTime: '09:00',
+        endTime: '17:00',
+      },
+      response: {
+        type: 'modification',
+        modification: {
+          requestedTerms: {
+            payRate: '$32/hr',
+          },
+          message: 'Based on my experience, I’m requesting $32/hr.',
+        },
+      },
+    },
+    {
+      id: 'quick-offer-mod-002',
+      jobId: 'quick-job-dummy-002',
+      candidateId: 'js-002',
+      candidateName: 'Michael Torres',
+      jobTitle: 'Warehouse Inventory Management',
+      matchPercentage: 88,
+      acceptanceRating: 88,
+      status: 'modification_requested',
+      expiresAt: expiresAt.toISOString(),
+      message: 'Offer sent. Candidate requested a change.',
+      createdAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(now.getTime() - 10 * 60 * 60 * 1000).toISOString(),
+      originalTerms: {
+        payRate: '$35/hr',
+        startDate: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+        startTime: '08:00',
+        endTime: '16:00',
+      },
+      response: {
+        type: 'modification',
+        modification: {
+          requestedTerms: {
+            payRate: '$42/hr',
+          },
+          message: 'Requesting $42/hr considering responsibilities and experience.',
+        },
+      },
+    },
+  ];
+};
+
 // Generate dummy quick jobs for accepted offers
 const generateDummyQuickJobs = () => {
   const now = new Date();
@@ -314,12 +518,103 @@ const generateDummyQuickJobs = () => {
   ];
 };
 
+const generateDummyWorkSessions = () => {
+  // Seed timesheets so Track Hours UI has realistic content in demo.
+  const offers = generateDummyAcceptedOffers();
+  const sessionsByKey = {};
+
+  const addSession = (offer, { startTime, endTime, breakMinutes = 0, notes = '', status = 'approved' }) => {
+    const key = buildWorkSessionKey(offer.jobId, offer.candidateId);
+    if (!sessionsByKey[key]) sessionsByKey[key] = [];
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    const seconds = Math.max(0, Math.floor((end.getTime() - start.getTime()) / 1000) - breakMinutes * 60);
+    sessionsByKey[key].unshift({
+      id: nanoid(),
+      jobId: offer.jobId,
+      activeJobId: null,
+      candidateId: offer.candidateId,
+      candidateName: offer.candidateName,
+      jobTitle: offer.jobTitle,
+      startTime: start.toISOString(),
+      endTime: end.toISOString(),
+      breakMinutes,
+      notes,
+      seconds,
+      hours: seconds / 3600,
+      hourlyRate: 35,
+      status,
+      createdAt: end.toISOString(),
+      updatedAt: end.toISOString(),
+    });
+  };
+
+  offers.forEach((offer) => {
+    const base = new Date();
+    base.setHours(0, 0, 0, 0);
+
+    // 3 sessions in the last 7 days
+    const d1 = new Date(base.getTime() - 3 * 24 * 60 * 60 * 1000);
+    const d2 = new Date(base.getTime() - 2 * 24 * 60 * 60 * 1000);
+    const d3 = new Date(base.getTime() - 1 * 24 * 60 * 60 * 1000);
+
+    addSession(offer, {
+      startTime: new Date(d1.getTime() + 8 * 60 * 60 * 1000),
+      endTime: new Date(d1.getTime() + 16.5 * 60 * 60 * 1000),
+      breakMinutes: 30,
+      notes: 'Completed assigned tasks and site cleanup.',
+      status: 'approved',
+    });
+    addSession(offer, {
+      startTime: new Date(d2.getTime() + 9 * 60 * 60 * 1000),
+      endTime: new Date(d2.getTime() + 17 * 60 * 60 * 1000),
+      breakMinutes: 45,
+      notes: 'Progress update provided, minor fixes completed.',
+      status: 'approved',
+    });
+    addSession(offer, {
+      startTime: new Date(d3.getTime() + 7.25 * 60 * 60 * 1000),
+      endTime: new Date(d3.getTime() + 15.5 * 60 * 60 * 1000),
+      breakMinutes: 30,
+      notes: 'Final checks and handover notes shared.',
+      status: 'pending_approval',
+    });
+  });
+
+  return sessionsByKey;
+};
+
+const buildOriginalTermsFromJob = (job) => {
+  const salaryMin = job?.salaryMin;
+  const salaryMax = job?.salaryMax;
+  const salaryType = job?.salaryType;
+  const suffix = salaryType === 'Hourly' ? '/hr' : '';
+  const payRate =
+    typeof salaryMin === 'number' && typeof salaryMax === 'number'
+      ? `$${salaryMin}–$${salaryMax}${suffix}`
+      : '';
+
+  return {
+    payRate,
+    startDate: job?.jobStartDate || null,
+    // If we have detailed availability, store the first enabled slot.
+    startTime: null,
+    endTime: null,
+  };
+};
+
 const initialState = {
   quickJobs: generateDummyQuickJobs(), // Posted quick search jobs (includes dummy jobs for accepted offers)
-  activeOffers: generateDummyAcceptedOffers(), // Offers sent to job seekers (includes dummy accepted offers)
+  activeOffers: [
+    ...generateDummyAcceptedOffers(),
+    ...generateDummyDeclinedOffers(),
+    ...generateDummyExpiredOffers(),
+    ...generateDummyModificationOffers(),
+  ], // Offers sent to job seekers
   activeJobs: [], // Jobs with accepted offers (in progress)
   locationTracking: {}, // Real-time location data: { jobId: { stage, location, distance, etc } }
   timerStates: {}, // Timer states: { jobId: { isRunning, startTime, elapsedTime, etc } }
+  workSessions: generateDummyWorkSessions(), // Timesheet sessions: { `${jobId}:${candidateId}`: [ { startTime, endTime, breakMinutes, notes, status, hours, ... } ] }
   paymentRequests: [], // Payment method selection requests
   completedJobs: [], // Completed quick search jobs
   acceptanceRatings: buildAcceptanceRatingMap(),
@@ -342,6 +637,16 @@ const quickSearchSlice = createSlice({
         updatedAt: new Date().toISOString(),
       };
       state.quickJobs.unshift(job);
+    },
+    updateQuickJob: (state, { payload }) => {
+      const { jobId, updates } = payload || {};
+      const idx = state.quickJobs.findIndex(j => j.id === jobId);
+      if (idx === -1) return;
+      state.quickJobs[idx] = {
+        ...state.quickJobs[idx],
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      };
     },
 
     // Auto-match candidates for a quick search job
@@ -378,12 +683,14 @@ const quickSearchSlice = createSlice({
       const matches = candidates.map(candidate => {
         const score = computeQuickMatchScore(job, candidate);
         const currentRating = state.acceptanceRatings[candidate.id];
+        const maxKm = Math.min(job?.rangeKm || 0, candidate?.radiusKm || 0);
+        const distanceKm = computeDistanceKm(jobId, candidate.id, maxKm);
         
         // Combined score: 70% match + 30% acceptance rating
         const combinedScore = (score * 0.7) + (currentRating * 0.3);
         
         return {
-          ...buildQuickCandidateSnapshot(candidate, score, currentRating),
+          ...buildQuickCandidateSnapshot(candidate, score, currentRating, { distanceKm }),
           combinedScore,
         };
       })
@@ -409,7 +716,9 @@ const quickSearchSlice = createSlice({
 
         const score = computeQuickMatchScore(job, baseCandidate);
         const currentRating = state.acceptanceRatings[candidateId] ?? baseCandidate.acceptanceRating;
-        candidate = buildQuickCandidateSnapshot(baseCandidate, score, currentRating);
+        const maxKm = Math.min(job?.rangeKm || 0, baseCandidate?.radiusKm || 0);
+        const distanceKm = computeDistanceKm(jobId, candidateId, maxKm);
+        candidate = buildQuickCandidateSnapshot(baseCandidate, score, currentRating, { distanceKm });
 
         if (!state.matchesByJobId[jobId]) state.matchesByJobId[jobId] = [];
         // Avoid duplicates
@@ -433,9 +742,75 @@ const quickSearchSlice = createSlice({
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         response: null,
+        originalTerms: buildOriginalTermsFromJob(job),
       };
 
       state.activeOffers.unshift(offer);
+    },
+
+    // Candidate or recruiter requests modification to an existing offer
+    requestOfferModification: (state, { payload }) => {
+      const { offerId, requestedTerms, message } = payload || {};
+      const offer = state.activeOffers.find(o => o.id === offerId);
+      if (!offer) return;
+
+      offer.status = 'modification_requested';
+      offer.response = {
+        type: 'modification',
+        modification: {
+          requestedTerms: requestedTerms || {},
+          message: message || '',
+        },
+      };
+      offer.updatedAt = new Date().toISOString();
+    },
+
+    // Recruiter accepts the modification request
+    acceptOfferModification: (state, { payload }) => {
+      const { offerId } = payload || {};
+      const offer = state.activeOffers.find(o => o.id === offerId);
+      if (!offer) return;
+
+      const requestedTerms = offer?.response?.modification?.requestedTerms || {};
+      offer.originalTerms = {
+        ...(offer.originalTerms || {}),
+        ...requestedTerms,
+      };
+      offer.status = 'accepted';
+      offer.response = {
+        type: 'modification_accepted',
+        acceptedAt: new Date().toISOString(),
+        modification: offer?.response?.modification || null,
+      };
+      offer.updatedAt = new Date().toISOString();
+
+      // slight rating increase (align with acceptQuickOffer behavior)
+      if (offer.candidateId) {
+        const current = state.acceptanceRatings[offer.candidateId] ?? 80;
+        state.acceptanceRatings[offer.candidateId] = clamp(current + 2, 0, 100);
+      }
+    },
+
+    // Recruiter declines the modification request
+    declineOfferModification: (state, { payload }) => {
+      const { offerId, reason } = payload || {};
+      const offer = state.activeOffers.find(o => o.id === offerId);
+      if (!offer) return;
+
+      offer.status = 'declined';
+      offer.response = {
+        type: 'modification_declined',
+        declinedAt: new Date().toISOString(),
+        reason: reason || '',
+        modification: offer?.response?.modification || null,
+      };
+      offer.updatedAt = new Date().toISOString();
+
+      // slight rating decrease when high match and no valid reason (simplified)
+      if (offer.candidateId) {
+        const current = state.acceptanceRatings[offer.candidateId] ?? 80;
+        state.acceptanceRatings[offer.candidateId] = clamp(current - 2, 40, 100);
+      }
     },
 
     // Job seeker accepts quick offer
@@ -628,15 +1003,17 @@ const quickSearchSlice = createSlice({
       if (!activeJob || !activeJob.timer.isRunning) return;
 
       const startTime = new Date(activeJob.timer.startTime);
-      const elapsedSeconds = Math.floor((Date.now() - startTime.getTime()) / 1000);
-      const elapsedHours = elapsedSeconds / 3600;
+      const elapsedSecondsThisRun = Math.floor((Date.now() - startTime.getTime()) / 1000);
+      const totalElapsedSeconds = elapsedSecondsThisRun + (activeJob.timer.elapsedTime || 0);
+      const elapsedHours = totalElapsedSeconds / 3600;
       const totalCost = elapsedHours * activeJob.timer.hourlyRate;
+      const stopTimeIso = new Date().toISOString();
 
       activeJob.timer = {
         ...activeJob.timer,
         isRunning: false,
-        stopTime: new Date().toISOString(),
-        elapsedTime: elapsedSeconds,
+        stopTime: stopTimeIso,
+        elapsedTime: totalElapsedSeconds,
         totalCost,
         stoppedBy,
         requiresCode,
@@ -644,6 +1021,36 @@ const quickSearchSlice = createSlice({
 
       state.timerStates[jobId] = activeJob.timer;
       activeJob.updatedAt = new Date().toISOString();
+
+      // Persist a work session for recruiter timesheets (pending approval by default).
+      const baseJobId = activeJob.jobId;
+      const candidateId = activeJob.candidateId;
+      const key = buildWorkSessionKey(baseJobId, candidateId);
+      if (!state.workSessions) state.workSessions = {};
+      if (!Array.isArray(state.workSessions[key])) state.workSessions[key] = [];
+
+      const breakMinutes = 0;
+      const netSeconds = Math.max(0, totalElapsedSeconds - breakMinutes * 60);
+      const sessionHours = netSeconds / 3600;
+
+      state.workSessions[key].unshift({
+        id: nanoid(),
+        jobId: baseJobId,
+        activeJobId: activeJob.id,
+        candidateId,
+        candidateName: activeJob.candidateName,
+        jobTitle: activeJob.jobTitle,
+        startTime: activeJob.timer.startTime,
+        endTime: stopTimeIso,
+        breakMinutes,
+        notes: '',
+        seconds: netSeconds,
+        hours: sessionHours,
+        hourlyRate: activeJob.timer.hourlyRate,
+        status: 'pending_approval',
+        createdAt: stopTimeIso,
+        updatedAt: stopTimeIso,
+      });
     },
 
     // Resume timer
@@ -768,7 +1175,12 @@ const quickSearchSlice = createSlice({
         
         if (persistedState) {
           // Get dummy data
-          const dummyOffers = generateDummyAcceptedOffers();
+          const dummyOffers = [
+            ...generateDummyAcceptedOffers(),
+            ...generateDummyDeclinedOffers(),
+            ...generateDummyExpiredOffers(),
+            ...generateDummyModificationOffers(),
+          ];
           const dummyJobs = generateDummyQuickJobs();
           
           // Merge dummy offers with persisted offers (avoid duplicates by ID)
@@ -789,6 +1201,7 @@ const quickSearchSlice = createSlice({
             activeJobs: persistedState.activeJobs || state.activeJobs,
             locationTracking: persistedState.locationTracking || state.locationTracking,
             timerStates: persistedState.timerStates || state.timerStates,
+            workSessions: persistedState.workSessions || state.workSessions,
             paymentRequests: persistedState.paymentRequests || state.paymentRequests,
             completedJobs: persistedState.completedJobs || state.completedJobs,
             acceptanceRatings: persistedState.acceptanceRatings || state.acceptanceRatings,
@@ -803,10 +1216,14 @@ const quickSearchSlice = createSlice({
 
 export const {
   createQuickJob,
+  updateQuickJob,
   autoMatchCandidates,
   sendQuickOffer,
   acceptQuickOffer,
   declineQuickOffer,
+  requestOfferModification,
+  acceptOfferModification,
+  declineOfferModification,
   updateLocationTracking,
   requestPlatformPayment,
   verifyPaymentCode,
@@ -842,6 +1259,9 @@ export const selectLocationTracking = (state, jobId) =>
 
 export const selectTimerState = (state, jobId) =>
   state.quickSearch.timerStates[jobId];
+
+export const selectWorkSessionsForJobCandidate = (state, jobId, candidateId) =>
+  state.quickSearch.workSessions?.[buildWorkSessionKey(jobId, candidateId)] || [];
 
 export const selectCompletedQuickJobs = (state) => state.quickSearch.completedJobs;
 

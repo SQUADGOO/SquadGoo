@@ -9,6 +9,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { colors, hp, wp } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import ExpiredJobCard from '@/components/Recruiter/ExpiredJobCard'
+import JobFiltersBar from '@/components/Recruiter/JobFilterBar'
 import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
 import { seedDummyData } from '@/store/jobsSlice'
@@ -19,6 +20,12 @@ const ExpiredOffersScreen = ({ navigation, route }) => {
   const fromDrawer = route?.params?.fromDrawer
   const headerTitle = route?.params?.headerTitle || 'Expired Offers'
   const [refreshing, setRefreshing] = React.useState(false)
+  const [filteredJobs, setFilteredJobs] = React.useState([])
+  const [filters, setFilters] = React.useState({
+    timeFilter: 'all',
+    jobType: '',
+    searchMode: '',
+  })
 
   // Seed dummy data on mount if empty
   React.useEffect(() => {
@@ -27,6 +34,48 @@ const ExpiredOffersScreen = ({ navigation, route }) => {
   }, [dispatch])
 
   console.log('ExpiredOffers - Number of jobs:', expiredJobs.length)
+
+  const applyFilters = React.useCallback(() => {
+    let filtered = [...expiredJobs]
+
+    // Apply time filter (based on createdAt)
+    if (filters.timeFilter && filters.timeFilter !== 'all') {
+      const now = new Date()
+      filtered = filtered.filter(job => {
+        if (!job.createdAt) return true
+        const jobDate = new Date(job.createdAt)
+        const diffTime = Math.abs(now - jobDate)
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+        switch (filters.timeFilter) {
+          case 'last_week':
+            return diffDays <= 7
+          case 'last_2_weeks':
+            return diffDays <= 14
+          case 'last_month':
+            return diffDays <= 30
+          default:
+            return true
+        }
+      })
+    }
+
+    // Apply job type filter
+    if (filters.jobType && filters.jobType !== '') {
+      filtered = filtered.filter(job => job.type === filters.jobType)
+    }
+
+    // Apply search mode filter (manual vs quick)
+    if (filters.searchMode && filters.searchMode !== '') {
+      filtered = filtered.filter(job => job?.searchType === filters.searchMode)
+    }
+
+    setFilteredJobs(filtered)
+  }, [expiredJobs, filters])
+
+  React.useEffect(() => {
+    applyFilters()
+  }, [applyFilters])
 
   const handleRefresh = async () => {
     setRefreshing(true)
@@ -50,10 +99,12 @@ const ExpiredOffersScreen = ({ navigation, route }) => {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <AppText variant={Variant.title} style={styles.emptyTitle}>
-        No Expired Jobs
+        {expiredJobs.length > 0 ? 'No matching results' : 'No Expired Jobs'}
       </AppText>
       <AppText variant={Variant.body} style={styles.emptyText}>
-        Expired job offers will appear here.
+        {expiredJobs.length > 0
+          ? 'No jobs match your current filters. Try adjusting the filters.'
+          : 'Expired job offers will appear here.'}
       </AppText>
     </View>
   )
@@ -63,15 +114,24 @@ const ExpiredOffersScreen = ({ navigation, route }) => {
       {fromDrawer ? (
         <AppHeader title={headerTitle} showBackButton={false} />
       ) : null}
-      {expiredJobs.length > 0 ? (
+
+      {/* Filter Bar */}
+      <View style={{ paddingVertical: 10, backgroundColor: colors.white }}>
+        <JobFiltersBar
+          filters={filters}
+          onFiltersChange={setFilters}
+        />
+      </View>
+
+      {filteredJobs.length > 0 ? (
         <>
           <View style={styles.headerContainer}>
             <AppText variant={Variant.subTitle} style={styles.jobCount}>
-              {expiredJobs.length} Expired job{expiredJobs.length !== 1 ? 's' : ''}
+              {filteredJobs.length} Expired job{filteredJobs.length !== 1 ? 's' : ''}
             </AppText>
           </View>
           <FlatList
-            data={expiredJobs}
+            data={filteredJobs}
             renderItem={renderJobCard}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.listContainer}

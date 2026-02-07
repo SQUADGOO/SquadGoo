@@ -22,8 +22,49 @@ const JobDetailRow = ({ iconName, label, value }) => (
 
 const CompletedJobCard = ({ 
   job, 
+  positionsFilled,
   onViewDetails
 }) => {
+  const formatAuDate = (value) => {
+    if (!value) return '—'
+    if (typeof value === 'string') {
+      const s = value.trim()
+      if (/^\d{1,2}\s+[A-Za-z]{3,}\s+\d{4}$/.test(s)) return s
+    }
+    const d = value instanceof Date ? value : new Date(value)
+    if (Number.isNaN(d.getTime())) return typeof value === 'string' ? value : '—'
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+  }
+
+  const toNumber = (v) => {
+    const n = typeof v === 'number' ? v : Number(v)
+    return Number.isFinite(n) ? n : null
+  }
+
+  const formatPayRange = () => {
+    const min = toNumber(job?.salaryMin)
+    const max = toNumber(job?.salaryMax)
+    const type = String(job?.salaryType || '').toLowerCase()
+    const suffix = type.includes('hour') ? '/hr' : type.includes('day') ? '/day' : ''
+
+    if (min != null && max != null && (min > 0 || max > 0)) {
+      return `$${min}${suffix} – $${max}${suffix}`
+    }
+
+    if (typeof job?.salaryRange === 'string' && job.salaryRange.trim() !== '') {
+      return job.salaryRange
+    }
+    return '—'
+  }
+
+  const paySummary = job?.salaryType ? `${job.salaryType}: ${formatPayRange()}` : formatPayRange()
+  const searchType = job?.searchType === 'quick' ? 'quick' : 'manual'
+
+  const positionsValue =
+    typeof positionsFilled === 'number'
+      ? positionsFilled
+      : toNumber(job?.staffNumber) ?? toNumber(job?.staffCount) ?? '—'
+
   return (
     <View style={styles.cardContainer}>
       
@@ -44,22 +85,22 @@ const CompletedJobCard = ({
               Completed
             </AppText>
           </View>
-          {job.searchType && (
-            <View style={[
+          <View
+            style={[
               styles.searchTypeBadge,
-              job.searchType === 'quick' ? styles.quickSearchBadge : styles.manualSearchBadge
-            ]}>
-              <AppText variant={Variant.caption} style={styles.searchTypeText}>
-                {job.searchType === 'quick' ? 'Quick' : 'Manual'}
-              </AppText>
-            </View>
-          )}
+              searchType === 'quick' ? styles.quickSearchBadge : styles.manualSearchBadge,
+            ]}
+          >
+            <AppText variant={Variant.caption} style={styles.searchTypeText}>
+              {searchType === 'quick' ? 'Quick' : 'Manual'}
+            </AppText>
+          </View>
         </View>
       </View>
 
       {/* Salary Range */}
       <AppText variant={Variant.bodyMedium} style={styles.salaryText}>
-        {job.salaryRange}
+        {paySummary}
       </AppText>
 
       {/* Job Details */}
@@ -67,13 +108,13 @@ const CompletedJobCard = ({
         <JobDetailRow 
           iconName="calendar-outline"
           label="Posted"
-          value={job.offerDate}
+          value={formatAuDate(job.offerDate || job.createdAt)}
         />
         
         <JobDetailRow 
           iconName="checkmark-done-outline"
           label="Completed"
-          value={job.completedDate}
+          value={formatAuDate(job.completedDate || job.completedAt)}
         />
         
         <JobDetailRow 
@@ -84,8 +125,8 @@ const CompletedJobCard = ({
         
         <JobDetailRow 
           iconName="people-outline"
-          label="Staff"
-          value={job.staffNumber || '1'}
+          label="Positions"
+          value={positionsValue}
         />
       </View>
 

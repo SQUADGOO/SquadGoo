@@ -38,8 +38,8 @@ const SignIn = ({ navigation }) => {
   // Initialize form methods
   const methods = useForm({
     defaultValues: {
-      email: '',
-      password: ''
+      email: __DEV__ ? 'jobseeker@gmail.com' : '',
+      password: __DEV__ ? 'Jobseeker@123' : ''
     }
   })
 

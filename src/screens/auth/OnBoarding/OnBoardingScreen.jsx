@@ -9,6 +9,7 @@ import Svg, { Circle } from 'react-native-svg'
 import AppText from '@/core/AppText'
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
 import { screenNames } from '@/navigation/screenNames'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -54,7 +55,9 @@ const OnBoardingScreen = ({ navigation }) => {
       // Navigate to next screen (e.g., Login or Home)
       // navigation.navigate('Login');
       console.log('Onboarding completed!');
-      navigation.navigate(screenNames.SIGN_IN)
+      AsyncStorage.setItem('has_seen_onboarding', 'true')
+        .catch(() => {})
+        .finally(() => navigation.replace(screenNames.SIGN_IN))
     }
   };
 
@@ -164,6 +167,9 @@ const OnBoardingScreen = ({ navigation }) => {
                         onPress={() => {
                             // navigation.navigate('Login');
                             console.log('Skip onboarding');
+                            AsyncStorage.setItem('has_seen_onboarding', 'true')
+                              .catch(() => {})
+                              .finally(() => navigation.replace(screenNames.SIGN_IN))
                         }}
                     >
                         {/* <AppText style={styles.skipText}>Skip</AppText> */}

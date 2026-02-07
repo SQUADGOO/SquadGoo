@@ -12,11 +12,13 @@ import RbSheetComponent from '@/core/RbSheetComponent'
 import BottomDataSheet from '@/components/Recruiter/JobBottomSheet'
 import JobCategorySelector from '@/components/JobCategorySelector'
 import { screenNames } from '@/navigation/screenNames'
+import { INDUSTRY_OPTIONS } from '@/constants/recruiterOptions'
 
 const QuickSearchStepOne = ({ navigation, route }) => {
   // Draft edit mode params
   const editMode = route?.params?.editMode
   const draftJob = route?.params?.draftJob
+  const existingJobId = route?.params?.jobId || draftJob?.id
 
   const [jobCategory, setJobCategory] = useState(draftJob?.jobCategory || null)
   const [jobSubCategory, setJobSubCategory] = useState(draftJob?.jobSubCategory || null)
@@ -55,16 +57,7 @@ const QuickSearchStepOne = ({ navigation, route }) => {
   const yearSheetRef = useRef(null)
   const monthSheetRef = useRef(null)
 
-  const industryOptions = [
-    { id: 1, title: 'Construction' },
-    { id: 2, title: 'Healthcare' },
-    { id: 3, title: 'Technology' },
-    { id: 4, title: 'Hospitality' },
-    { id: 5, title: 'Retail' },
-    { id: 6, title: 'Education' },
-    { id: 7, title: 'Manufacturing' },
-    { id: 8, title: 'Transportation' }
-  ]
+  const industryOptions = INDUSTRY_OPTIONS
 
   const handleJobCategorySelect = (data) => {
     setJobCategory(data.category)
@@ -130,7 +123,12 @@ const QuickSearchStepOne = ({ navigation, route }) => {
       }
 
       console.log('Quick Search Step 1 Data:', quickSearchStep1Data)
-      navigation.navigate(screenNames.QUICK_SEARCH_STEPTWO, { quickSearchStep1Data })
+      navigation.navigate(screenNames.QUICK_SEARCH_STEPTWO, {
+        quickSearchStep1Data,
+        editMode: !!editMode,
+        draftJob,
+        jobId: existingJobId,
+      })
     })()
   }
 

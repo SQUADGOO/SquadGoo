@@ -3,19 +3,18 @@ import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import AppHeader from '@/core/AppHeader';
 import AppText, { Variant } from '@/core/AppText';
-import AppButton from '@/core/AppButton';
 import AppDropDown from '@/core/AppDropDown';
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
 import { colors, getFontSize, hp, wp } from '@/theme';
+import FastImageView from '@/core/FastImageView';
+import { Images } from '@/assets';
 import {
   generateManualMatches,
-  sendManualOffer,
   selectManualJobById,
   selectManualMatchesByJobId,
+  selectManualOffers,
 } from '@/store/manualOffersSlice';
 import { screenNames } from '@/navigation/screenNames';
-import SendManualOfferModal from '@/components/Recruiter/ManualSearch/SendManualOfferModal';
-import { showToast, toastTypes } from '@/utilities/toastConfig';
 
 const matchFilterOptions = [
   { label: 'All', value: 0 },
@@ -36,9 +35,9 @@ const ManualMatchList = ({ route, navigation }) => {
   const dispatch = useDispatch();
   const job = useSelector(state => selectManualJobById(state, jobId));
   const matches = useSelector(state => selectManualMatchesByJobId(state, jobId));
+  const offers = useSelector(selectManualOffers);
   const [matchThreshold, setMatchThreshold] = useState(0);
   const [ratingThreshold, setRatingThreshold] = useState(0);
-  const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [matchDropdownVisible, setMatchDropdownVisible] = useState(false);
   const [ratingDropdownVisible, setRatingDropdownVisible] = useState(false);
 
@@ -56,29 +55,46 @@ const ManualMatchList = ({ route, navigation }) => {
     );
   }, [matches, matchThreshold, ratingThreshold]);
 
-  const handleOpenOfferModal = (candidate) => {
-    setSelectedCandidate(candidate);
-  };
-
-  const handleSendOffer = ({ expiresAt, message }) => {
-    if (!jobId || !selectedCandidate) return;
-    dispatch(
-      sendManualOffer({
-        jobId,
-        candidateId: selectedCandidate.id,
-        expiresAt,
-        message,
-      }),
-    );
-    showToast('Offer sent successfully', 'Success', toastTypes.success);
-    navigation.navigate(screenNames.MANUAL_OFFERS);
-  };
-
   const handleViewProfile = (candidate) => {
     navigation.navigate(screenNames.MANUAL_CANDIDATE_PROFILE, {
       jobId,
       candidateId: candidate.id,
     });
+  };
+
+  const canContactCandidate = (candidateId) => {
+    if (!candidateId || !jobId) return false;
+    return offers.some(
+      o => o.jobId === jobId && o.candidateId === candidateId && o.status === 'accepted',
+    );
+  };
+
+  const handleContact = (candidate) => {
+    if (!candidate?.id || !jobId || !job) return;
+    navigation.navigate(screenNames.MESSAGES, {
+      chatData: {
+        jobId,
+        name: candidate.name,
+        jobTitle: job.title,
+        jobType: 'manual',
+        otherUserId: candidate.id,
+      },
+    });
+  };
+
+  const renderChips = (items = [], max = 3, chipStyle = styles.chip, textStyle = styles.chipText) => {
+    if (!Array.isArray(items) || items.length === 0) return null;
+    return (
+      <View style={styles.chipsRow}>
+        {items.slice(0, max).map((label, idx) => (
+          <View key={`${label}-${idx}`} style={chipStyle}>
+            <AppText variant={Variant.caption} style={textStyle}>
+              {label}
+            </AppText>
+          </View>
+        ))}
+      </View>
+    );
   };
 
   const renderCandidate = ({ item }) => (
@@ -87,18 +103,65 @@ const ManualMatchList = ({ route, navigation }) => {
       activeOpacity={0.9}
       onPress={() => handleViewProfile(item)}
     >
-      {/* Card Header with Profile Info */}
+      {/* Header */}
+
+      <View style={styles.rightBadges}>
+          <View style={styles.rightBadgesRow}>
+            <View style={[
+              styles.matchBadge,
+              item.matchPercentage >= 90 && styles.matchBadgeExcellent,
+              item.matchPercentage >= 80 && item.matchPercentage < 90 && styles.matchBadgeGood,
+              item.matchPercentage >= 70 && item.matchPercentage < 80 && styles.matchBadgeFair,
+            ]}>
+              <AppText variant={Variant.caption} style={styles.matchBadgeText}>
+                {item.matchPercentage}% Match
+              </AppText>
+            </View>
+            <View style={styles.ratingBadge}>
+              <VectorIcons
+                name={iconLibName.Ionicons}
+                iconName="star"
+                size={14}
+                color="#F59E0B"
+              />
+              <AppText variant={Variant.caption} style={styles.ratingBadgeText}>
+                {item.acceptanceRating}% Acceptance
+              </AppText>
+            </View>
+          </View>
+        </View>
+
       <View style={styles.cardHeader}>
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
-            <AppText variant={Variant.bodyMedium} style={styles.avatarText}>
-              {item.name?.charAt(0)?.toUpperCase() || 'U'}
-            </AppText>
+            {item.avatar ? (
+              <FastImageView
+                source={{ uri: item.avatar }}
+                style={styles.avatarImage}
+                resizeMode="cover"
+                fallbackImage={Images.avatar}
+              />
+            ) : (
+              <AppText variant={Variant.bodyMedium} style={styles.avatarText}>
+                {item.name?.charAt(0)?.toUpperCase() || 'U'}
+              </AppText>
+            )}
           </View>
           <View style={styles.profileInfo}>
-            <AppText variant={Variant.bodyMedium} style={styles.name}>
-              {item.name}
-            </AppText>
+            <View style={styles.nameRow}>
+              <AppText variant={Variant.bodyMedium} style={styles.name}>
+                {item.name}
+              </AppText>
+              {item.isVerified ? (
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="checkmark-circle"
+                  size={16}
+                  color="#3B82F6"
+                  style={styles.verifiedIcon}
+                />
+              ) : null}
+            </View>
             <View style={styles.metaRow}>
               <VectorIcons
                 name={iconLibName.Ionicons}
@@ -107,69 +170,89 @@ const ManualMatchList = ({ route, navigation }) => {
                 color={colors.gray}
               />
               <AppText variant={Variant.caption} style={styles.meta}>
-                {item.location}
+                {item.suburb ? `${item.suburb}, ` : ''}{item.location}
               </AppText>
-              {item.badge && (
+              {typeof item.distanceKm === 'number' ? (
                 <>
                   <View style={styles.dot} />
-                  <AppText variant={Variant.caption} style={styles.badgeMeta}>
-                    {item.badge}
+                  <AppText variant={Variant.caption} style={styles.distanceMeta}>
+                    {item.distanceKm} km away
                   </AppText>
                 </>
-              )}
+              ) : null}
             </View>
+            {item.badge ? (
+              <View style={styles.badgePill}>
+                <AppText variant={Variant.caption} style={styles.badgePillText}>
+                  {item.badge} Badge
+                </AppText>
+              </View>
+            ) : null}
           </View>
         </View>
         
-        {/* Match Percentage Badge */}
-        <View style={[
-          styles.matchBadge,
-          item.matchPercentage >= 90 && styles.matchBadgeExcellent,
-          item.matchPercentage >= 80 && item.matchPercentage < 90 && styles.matchBadgeGood,
-          item.matchPercentage >= 70 && item.matchPercentage < 80 && styles.matchBadgeFair,
-        ]}>
-          <AppText variant={Variant.caption} style={styles.matchBadgeText}>
-            {item.matchPercentage}%
+       
+      </View>
+
+      {/* Experience + key skills */}
+      <View style={styles.sectionRow}>
+        <VectorIcons
+          name={iconLibName.Ionicons}
+          iconName="briefcase-outline"
+          size={16}
+          color={colors.primary}
+        />
+        <View style={styles.sectionContent}>
+          <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
+            Experience
+          </AppText>
+          <AppText variant={Variant.caption} style={styles.sectionText}>
+            {item.experienceYears}+ years
+            {item.workHistory?.[0]?.role ? ` • Recent: ${item.workHistory[0].role}` : ''}
           </AppText>
         </View>
       </View>
+      {renderChips(item.skills, 4, styles.chip, styles.chipText)}
 
-      {/* Key Stats Row */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
+      {/* Qualifications / licenses (compact) */}
+      {Array.isArray(item.qualifications) && item.qualifications.length > 0 ? (
+        <View style={styles.sectionRow}>
           <VectorIcons
             name={iconLibName.Ionicons}
-            iconName="star"
-            size={16}
-            color="#F59E0B"
-          />
-          <AppText variant={Variant.caption} style={styles.statText}>
-            {item.acceptanceRating}% rating
-          </AppText>
-        </View>
-        <View style={styles.statItem}>
-          <VectorIcons
-            name={iconLibName.Ionicons}
-            iconName="briefcase-outline"
+            iconName="school-outline"
             size={16}
             color={colors.primary}
           />
-          <AppText variant={Variant.caption} style={styles.statText}>
-            {item.experienceYears}+ yrs
-          </AppText>
+          <View style={styles.sectionContent}>
+            <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
+              Qualifications
+            </AppText>
+            {renderChips(item.qualifications, 2, styles.chipSoft, styles.chipSoftText)}
+          </View>
         </View>
-        <View style={styles.statItem}>
+      ) : null}
+
+      {/* Work history (recent) */}
+      {Array.isArray(item.workHistory) && item.workHistory.length > 0 ? (
+        <View style={styles.sectionRow}>
           <VectorIcons
             name={iconLibName.Ionicons}
-            iconName="cash-outline"
+            iconName="reader-outline"
             size={16}
-            color="#10B981"
+            color={colors.primary}
           />
-          <AppText variant={Variant.caption} style={styles.statText}>
-            ${item.payPreference?.min}-{item.payPreference?.max}/hr
-          </AppText>
+          <View style={styles.sectionContent}>
+            <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
+              Work history
+            </AppText>
+            {item.workHistory.slice(0, 2).map((h, idx) => (
+              <AppText key={`${h.company || 'company'}-${idx}`} variant={Variant.caption} style={styles.sectionText}>
+                • {h.role}{h.company ? ` — ${h.company}` : ''}{h.period ? ` (${h.period})` : ''}
+              </AppText>
+            ))}
+          </View>
         </View>
-      </View>
+      ) : null}
 
       {/* Availability */}
       {item.availability?.summary && (
@@ -186,7 +269,38 @@ const ManualMatchList = ({ route, navigation }) => {
         </View>
       )}
 
-      {/* Action Buttons */}
+      {/* Reviews + documents (compact) */}
+      <View style={styles.summaryRow}>
+        {typeof item.reviewSummary?.average === 'number' ? (
+          <View style={styles.summaryPill}>
+            <VectorIcons
+              name={iconLibName.Ionicons}
+              iconName="star"
+              size={14}
+              color="#F59E0B"
+            />
+            <AppText variant={Variant.caption} style={styles.summaryPillText}>
+              {item.reviewSummary.average.toFixed(1)} / 5
+              {typeof item.reviewSummary.count === 'number' ? ` (${item.reviewSummary.count})` : ''}
+            </AppText>
+          </View>
+        ) : null}
+        {Array.isArray(item.documents) && item.documents.length > 0 ? (
+          <View style={styles.summaryPill}>
+            <VectorIcons
+              name={iconLibName.Ionicons}
+              iconName="document-text-outline"
+              size={14}
+              color={colors.primary}
+            />
+            <AppText variant={Variant.caption} style={styles.summaryPillText}>
+              {item.documents.filter(d => d?.verified).length}/{item.documents.length} docs verified
+            </AppText>
+          </View>
+        ) : null}
+      </View>
+
+      {/* Actions */}
       <View style={styles.cardActions}>
         <TouchableOpacity
           style={styles.viewProfileButton}
@@ -194,24 +308,26 @@ const ManualMatchList = ({ route, navigation }) => {
           activeOpacity={0.7}
         >
           <AppText variant={Variant.bodyMedium} style={styles.viewProfileText}>
-            View Profile
+            View Full Profile
           </AppText>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.sendOfferButton}
-          onPress={() => handleOpenOfferModal(item)}
-          activeOpacity={0.8}
-        >
-          <VectorIcons
-            name={iconLibName.Ionicons}
-            iconName="send"
-            size={16}
-            color="#FFFFFF"
-          />
-          <AppText variant={Variant.bodyMedium} style={styles.sendOfferText}>
-            Send Offer
-          </AppText>
-        </TouchableOpacity>
+        {canContactCandidate(item.id) ? (
+          <TouchableOpacity
+            style={styles.contactButton}
+            onPress={() => handleContact(item)}
+            activeOpacity={0.8}
+          >
+            <VectorIcons
+              name={iconLibName.Ionicons}
+              iconName="chatbubble-ellipses-outline"
+              size={18}
+              color={colors.primary}
+            />
+            <AppText variant={Variant.bodyMedium} style={styles.contactText}>
+              Contact
+            </AppText>
+          </TouchableOpacity>
+        ) : null}
       </View>
     </TouchableOpacity>
   );
@@ -382,13 +498,6 @@ const ManualMatchList = ({ route, navigation }) => {
           </View>
         }
       />
-
-      <SendManualOfferModal
-        visible={Boolean(selectedCandidate)}
-        candidate={selectedCandidate}
-        onClose={() => setSelectedCandidate(null)}
-        onSubmit={handleSendOffer}
-      />
     </View>
   );
 };
@@ -540,6 +649,14 @@ const styles = StyleSheet.create({
   profileInfo: {
     flex: 1,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1.5),
+  },
+  verifiedIcon: {
+    marginTop: hp(0.1),
+  },
   name: {
     fontSize: getFontSize(16),
     fontWeight: '700',
@@ -566,6 +683,37 @@ const styles = StyleSheet.create({
     fontSize: getFontSize(12),
     fontWeight: '600',
   },
+  distanceMeta: {
+    color: colors.gray,
+    fontSize: getFontSize(12),
+    fontWeight: '500',
+  },
+  badgePill: {
+    marginTop: hp(0.6),
+    alignSelf: 'flex-start',
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.4),
+    borderRadius: hp(2),
+    backgroundColor: '#F0F7FF',
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+  },
+  badgePillText: {
+    color: colors.primary,
+    fontSize: getFontSize(11),
+    fontWeight: '700',
+  },
+  rightBadges: {
+    alignItems: 'flex-end',
+    marginLeft: wp(2),
+    marginBottom: hp(1),
+  },
+  rightBadgesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: wp(2),
+  },
   matchBadge: {
     paddingHorizontal: wp(3),
     paddingVertical: hp(0.8),
@@ -588,25 +736,67 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.secondary,
   },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: hp(1.5),
-    paddingVertical: hp(1),
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#F3F4F6',
-  },
-  statItem: {
+  ratingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(1.5),
-    flex: 1,
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.6),
+    borderRadius: hp(2),
+    backgroundColor: '#FFF9E6',
   },
-  statText: {
+  ratingBadgeText: {
     fontSize: getFontSize(12),
     color: colors.secondary,
-    fontWeight: '500',
+    fontWeight: '700',
+  },
+  sectionRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: wp(3),
+    marginTop: hp(1.2),
+  },
+  sectionContent: {
+    flex: 1,
+  },
+  sectionTitle: {
+    color: colors.secondary,
+    fontWeight: '700',
+    marginBottom: hp(0.3),
+  },
+  sectionText: {
+    color: colors.gray,
+    lineHeight: getFontSize(18),
+  },
+  chipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: wp(2),
+    marginTop: hp(0.8),
+  },
+  chip: {
+    backgroundColor: '#F0F7FF',
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.5),
+    borderRadius: hp(1.5),
+    borderWidth: 1,
+    borderColor: '#E0EFFF',
+  },
+  chipText: {
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  chipSoft: {
+    backgroundColor: '#F9FAFB',
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.5),
+    borderRadius: hp(1.5),
+    borderWidth: 1,
+    borderColor: '#EEF2F7',
+  },
+  chipSoftText: {
+    color: colors.secondary,
+    fontWeight: '600',
   },
   availabilityContainer: {
     flexDirection: 'row',
@@ -614,11 +804,33 @@ const styles = StyleSheet.create({
     gap: wp(1.5),
     marginBottom: hp(1.5),
     paddingLeft: wp(1),
+    marginTop: hp(1.2),
   },
   availabilityText: {
     fontSize: getFontSize(12),
     color: colors.gray,
     flex: 1,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: wp(2),
+    marginTop: hp(1.2),
+  },
+  summaryPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1.5),
+    backgroundColor: '#F9FAFB',
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.6),
+    borderRadius: hp(2),
+    borderWidth: 1,
+    borderColor: '#EEF2F7',
+  },
+  summaryPillText: {
+    color: colors.secondary,
+    fontWeight: '600',
   },
   cardActions: {
     flexDirection: 'row',
@@ -640,18 +852,20 @@ const styles = StyleSheet.create({
     fontSize: getFontSize(14),
     fontWeight: '600',
   },
-  sendOfferButton: {
+  contactButton: {
     flex: 1,
     paddingVertical: hp(1.5),
     borderRadius: hp(2),
-    backgroundColor: colors.primary,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     gap: wp(2),
   },
-  sendOfferText: {
-    color: '#FFFFFF',
+  contactText: {
+    color: colors.secondary,
     fontSize: getFontSize(14),
     fontWeight: '600',
   },
@@ -659,6 +873,11 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: getFontSize(14),
     fontWeight: '500',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: wp(7),
   },
   emptyState: {
     paddingVertical: hp(8),

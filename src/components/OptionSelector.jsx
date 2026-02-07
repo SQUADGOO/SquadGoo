@@ -1,46 +1,41 @@
-import React, { useState, useRef } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { colors, hp, wp, getFontSize } from '@/theme';
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
 import AppText, { Variant } from '@/core/AppText';
 import AppInputField from '@/core/AppInputField';
 import RbSheetComponent from '@/core/RbSheetComponent';
-import { ADDRESS_PROOF_JOBSEEKER, ADDRESS_PROOF_RECRUITER } from '@/utilities/appData';
 
-const AddressProofSelector = ({
+const OptionSelector = ({
+  options = [],
   onSelect,
   selectedValue,
-  userType = 'jobseeker',
-  placeholder = 'Select address proof',
-  options,
-  sheetTitle = 'Select Address Proof',
+  placeholder = 'Select an option',
+  sheetTitle = 'Select Option',
+  searchable = false,
 }) => {
   const sheetRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const addressProofList = Array.isArray(options)
-    ? options
-    : userType === 'recruiter'
-    ? ADDRESS_PROOF_RECRUITER
-    : ADDRESS_PROOF_JOBSEEKER;
-  
-  const filteredList = addressProofList.filter(item =>
-    item.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filtered = useMemo(() => {
+    if (!searchable) return options;
+    return options.filter((item) =>
+      item.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+  }, [options, searchable, searchQuery]);
 
   const handleOpen = () => {
-    setSearchQuery('');
+    if (searchable) setSearchQuery('');
     sheetRef.current?.open();
   };
 
   const handleSelect = (item) => {
-    onSelect && onSelect(item);
+    onSelect?.(item);
     sheetRef.current?.close();
   };
 
   const renderItem = ({ item }) => {
     const isSelected = selectedValue === item;
-    
     return (
       <TouchableOpacity
         style={styles.optionItem}
@@ -85,7 +80,7 @@ const AddressProofSelector = ({
         </View>
       </TouchableOpacity>
 
-      <RbSheetComponent ref={sheetRef} height={hp(80)}>
+      <RbSheetComponent ref={sheetRef} height={hp(70)}>
         <View style={styles.sheetContainer}>
           <View style={styles.header}>
             <AppText variant={Variant.subTitle} style={styles.headerTitle}>
@@ -104,24 +99,26 @@ const AddressProofSelector = ({
             </TouchableOpacity>
           </View>
 
-          <AppInputField
-            placeholder="Search"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            style={styles.searchInput}
-            endIcon={
-              <VectorIcons
-                name={iconLibName.Ionicons}
-                iconName="search"
-                size={20}
-                color={colors.gray}
-              />
-            }
-          />
+          {searchable && (
+            <AppInputField
+              placeholder="Search"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              style={styles.searchInput}
+              endIcon={
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="search"
+                  size={20}
+                  color={colors.gray}
+                />
+              }
+            />
+          )}
 
           <View style={styles.listWrapper}>
             <FlatList
-              data={filteredList}
+              data={filtered}
               renderItem={renderItem}
               keyExtractor={(item, index) => `${item}-${index}`}
               showsVerticalScrollIndicator={false}
@@ -135,7 +132,7 @@ const AddressProofSelector = ({
   );
 };
 
-export default AddressProofSelector;
+export default OptionSelector;
 
 const styles = StyleSheet.create({
   sheetContainer: {
@@ -143,7 +140,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     paddingHorizontal: wp(4),
     paddingTop: hp(2),
-    minHeight: hp(80),
+    minHeight: hp(70),
   },
   header: {
     flexDirection: 'row',
@@ -157,6 +154,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: colors.black,
     fontWeight: 'bold',
+    flex: 1,
   },
   closeButton: {
     padding: wp(1),

@@ -1,5 +1,5 @@
 // QuickSearchStepFour.js - Availability & Tax Type
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
   View,
   StyleSheet,
@@ -20,8 +20,13 @@ const QuickSearchStepFour = ({ navigation, route }) => {
   const { 
     quickSearchStep1Data, 
     quickSearchStep2Data, 
-    quickSearchStep3Data 
+    quickSearchStep3Data,
+    editMode,
+    draftJob,
+    jobId,
   } = route.params || {}
+
+  const step4Draft = draftJob?.rawData?.step4 || {}
 
   const methods = useForm({
     mode: 'onChange',
@@ -38,6 +43,24 @@ const QuickSearchStepFour = ({ navigation, route }) => {
   const { watch, control, handleSubmit, setValue } = methods
 
   const taxType = watch('taxType')
+
+  useEffect(() => {
+    if (editMode && draftJob) {
+      // Prefill availability / tax type from the original job's rawData when available
+      if (step4Draft?.availability) {
+        setValue('availability', step4Draft.availability)
+      } else if (draftJob?.availability && typeof draftJob.availability === 'object') {
+        setValue('availability', draftJob.availability)
+      }
+
+      if (step4Draft?.taxType) {
+        setValue('taxType', step4Draft.taxType)
+      } else if (draftJob?.taxType) {
+        setValue('taxType', draftJob.taxType)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editMode, draftJob])
 
   const onSubmit = (data) => {
     // Validate that all selected days have times
@@ -82,7 +105,10 @@ const QuickSearchStepFour = ({ navigation, route }) => {
       quickSearchStep1Data,
       quickSearchStep2Data,
       quickSearchStep3Data,
-      quickSearchStep4Data
+      quickSearchStep4Data,
+      editMode: !!editMode,
+      draftJob,
+      jobId,
     })
   }
 

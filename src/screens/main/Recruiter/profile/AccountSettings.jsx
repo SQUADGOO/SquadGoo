@@ -6,8 +6,13 @@ import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import { ScrollView } from 'react-native-gesture-handler'
 import { screenNames } from '@/navigation/screenNames'
+import { useSelector } from 'react-redux'
 
 const AccountSettings = ({ navigation }) => {
+  const role = useSelector((state) => state.auth.role)
+  const normalizedRole = (role || '').toString().toLowerCase()
+  const isRecruiter = normalizedRole === 'recruiter'
+
   const Row = ({ title, subtitle, onPress, iconName }) => (
     <TouchableOpacity style={styles.row} activeOpacity={0.8} onPress={onPress}>
       <View style={styles.rowLeft}>
@@ -86,9 +91,10 @@ const AccountSettings = ({ navigation }) => {
           />
           <View style={styles.divider} />
           <Row
-            title="KYC / KYB"
-            subtitle="Verify your identity / business"
+            title={isRecruiter ? 'KYB' : 'KYC'}
+            subtitle={isRecruiter ? 'Verify your business' : 'Verify your identity'}
             iconName="shield-checkmark-outline"
+            // Recruiters must complete BOTH: start from Personal KYC screen.
             onPress={() => navigation.navigate(screenNames.KYC_KYB)}
           />
         </View>

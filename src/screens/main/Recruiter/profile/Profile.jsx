@@ -26,8 +26,47 @@ import { screenNames } from '@/navigation/screenNames';
 const Profile = () => {
   const navigation = useNavigation();
   const userInfo = useSelector((state) => state.auth.userInfo);
+  const role = useSelector((state) => state.auth.role);
+
+  const isRecruiter = ((role || '').toString().toLowerCase() === 'recruiter');
+  const businessName =
+    userInfo?.businessName ||
+    userInfo?.companyName ||
+    userInfo?.kycKyb?.business?.business_name ||
+    '';
+  const abnOrAcn =
+    userInfo?.abn ||
+    userInfo?.acn ||
+    userInfo?.kycKyb?.business?.abn_or_acn ||
+    '';
+  const phoneValue = userInfo?.contactNumber || userInfo?.phone || '';
+  const idValue = userInfo?._id || userInfo?.id || '';
+
+  const kycVerified = !!userInfo?.kycVerified;
+  const kybVerified = !!userInfo?.kybVerified;
+  const hasSubmitted = !!userInfo?.kycKyb?.submittedAt;
+  const verificationStatus = kycVerified && (isRecruiter ? kybVerified : true)
+    ? 'Verified'
+    : hasSubmitted
+    ? 'Pending'
+    : 'Not started';
+  const verificationColor =
+    verificationStatus === 'Verified'
+      ? colors.green
+      : verificationStatus === 'Pending'
+      ? colors.paleyYellow
+      : colors.gray;
+
   const handleBackPress = () => {
-    navigation.goBack();
+    // Profile sits in a stack above the Drawer; open drawer on back.
+    const parent = navigation.getParent?.();
+    if (parent?.openDrawer) {
+      parent.openDrawer();
+    } else if (navigation.openDrawer) {
+      navigation.openDrawer();
+    } else {
+      if (navigation.canGoBack?.()) navigation.goBack();
+    }
   };
 
   return (
@@ -44,7 +83,7 @@ const Profile = () => {
             <View style={[styles.row, { marginVertical: 15, bottom: 5 }]}>
               <View>
                 <FastImageView
-                  source={{ uri: userInfo?.profile_picture }}
+                  source={{ uri: userInfo?.companyLogo || userInfo?.profile_picture }}
                   style={styles.avatar}
                 // resizeMode={'contain'}
                 />
@@ -57,6 +96,15 @@ const Profile = () => {
               </View>
 
               <View style={{ flex: 1, marginLeft: wp(4) }}>
+                {!!businessName && (
+                  <AppText
+                    variant={Variant.caption}
+                    style={[styles.subtitle, { fontFamily: fonts.poppinsSemiBold }]}
+                    numberOfLines={1}
+                  >
+                    {businessName}
+                  </AppText>
+                )}
                 <View style={{ flexDirection: 'row', width: wp(45) }}>
                   <Text style={styles.name}>
                     {userInfo?.name || 'John Doe'}
@@ -67,7 +115,7 @@ const Profile = () => {
                   />
                 </View>
                 <AppText variant={Variant.caption} style={styles.subtitle}>
-                  #Jobseeker-721543730
+                  #{isRecruiter ? 'Recruiter' : 'Jobseeker'}{idValue ? `-${idValue}` : ''}
                 </AppText>
 
                 <Spacer size={8} />
@@ -103,10 +151,37 @@ const Profile = () => {
             </View>
 
 
-            <View style={styles.infoRow}>
+            <TouchableOpacity
+              style={styles.infoRow}
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate(screenNames.EDIT_PROFILE)}
+            >
               <Image resizeMode='contain' source={icons.call} style={{ height: 18, width: 18 }} />
               <AppText variant={Variant.caption} style={styles.infoText}>
-                Phone: <Text style={{ fontFamily: fonts.poppinsSemiBold }}>{userInfo?.contactNumber || 'N/A'}</Text>
+                Phone:{' '}
+                <Text style={{ fontFamily: fonts.poppinsSemiBold }}>
+                  {phoneValue ? phoneValue : 'Add phone number'}
+                </Text>
+              </AppText>
+            </TouchableOpacity>
+
+            {!!abnOrAcn && (
+              <View style={styles.infoRow}>
+                <Image resizeMode='contain' source={icons.pf} style={{ height: 18, width: 18 }} />
+                <AppText variant={Variant.caption} style={styles.infoText}>
+                  ABN/ACN:{' '}
+                  <Text style={{ fontFamily: fonts.poppinsSemiBold }}>{abnOrAcn}</Text>
+                </AppText>
+              </View>
+            )}
+
+            <View style={styles.infoRow}>
+              <Image resizeMode='contain' source={icons.pf} style={{ height: 18, width: 18 }} />
+              <AppText variant={Variant.caption} style={styles.infoText}>
+                {isRecruiter ? 'KYC/KYB Status:' : 'KYC Status:'}{' '}
+                <Text style={{ fontFamily: fonts.poppinsSemiBold, color: verificationColor }}>
+                  {verificationStatus}
+                </Text>
               </AppText>
             </View>
 

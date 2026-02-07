@@ -22,7 +22,7 @@ const CustomDrawer = ({
   const navigation = useNavigation()
   // 🔹 Get current user info from Redux
   const { userInfo, role } = useSelector((state) => state.auth)
-  console.log('User Info from Redux:', userInfo, 'Role:', role)
+  // console.log('User Info from Redux:', userInfo, 'Role:', role)
 
   const toggleSection = (sectionKey) => {
     setExpandedSections(prev => ({
@@ -159,13 +159,12 @@ const CustomDrawer = ({
         },
         {
           key: 'reports',
-          title: 'Reports & Statics',
+          title: 'Rating & Reports',
           icon: 'bar-chart-outline',
           iconLib: iconLibName.Ionicons,
           expandable: true,
           subItems: [
-            { key: 'earning-reports', title: 'Earning Reports', icon: 'cash-outline', route: 'EarningReports' },
-            { key: 'rating-reports', title: 'Rating Reports', icon: 'star-outline', route: 'RatingReports' },
+            { key: 'billing-spend-summary', title: 'Billing & Spend Summary', icon: 'receipt-outline', route: screenNames.RECRUITER_BILLING_REPORTS },
           ],
         },
         {
@@ -267,9 +266,9 @@ const CustomDrawer = ({
           iconLib: iconLibName.Ionicons,
           expandable: true,
           subItems: [
-            { key: 'job-reports', title: 'Job Reports', icon: 'document-text-outline', route: 'JobReports' },
-            { key: 'earnings-report', title: 'Earnings Report', icon: 'cash-outline', route: 'EarningsReport' },
-            { key: 'performance', title: 'Performance Analytics', icon: 'analytics-outline', route: 'PerformanceAnalytics' },
+            { key: 'job-reports', title: 'Job Reports', icon: 'document-text-outline', route: screenNames.JOBSEEKER_JOB_REPORTS },
+            { key: 'earnings-report', title: 'Earnings Report', icon: 'cash-outline', route: screenNames.JOBSEEKER_EARNING_REPORTS },
+            { key: 'performance', title: 'Performance Analytics', icon: 'analytics-outline', route: screenNames.JOBSEEKER_PERFORMANCE_ANALYTICS },
           ],
         },
         {

@@ -4,6 +4,95 @@ import { colors, hp, wp, getFontSize } from '@/theme'
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
 import AppText, { Variant } from '@/core/AppText'
 
+const DAYS_OF_WEEK = [
+  'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+]
+
+const normalizeJobTypeLabel = (type) => {
+  if (!type) return 'N/A'
+  const t = String(type).trim()
+  if (t.toLowerCase() === 'full-time' || t.toLowerCase() === 'full time' || t === 'Full-time') return 'Full-Time'
+  if (t.toLowerCase() === 'part-time' || t.toLowerCase() === 'part time' || t === 'Part-time') return 'Part-Time'
+  if (t.toLowerCase() === 'contract') return 'Contract'
+  if (t.toLowerCase() === 'casual') return 'Casual'
+  return t
+}
+
+// Format "HH:MM" (24h) to "h:MM AM/PM"
+const formatTimeString = (timeString) => {
+  if (!timeString || typeof timeString !== 'string') return ''
+  const match = timeString.match(/^(\d{1,2}):(\d{2})$/)
+  if (!match) return String(timeString)
+  const hours = parseInt(match[1], 10)
+  const minutes = match[2]
+  if (Number.isNaN(hours)) return String(timeString)
+  const period = hours >= 12 ? 'PM' : 'AM'
+  const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours
+  return `${displayHours}:${minutes} ${period}`
+}
+
+const formatDateToGb = (value) => {
+  if (!value) return ''
+  if (typeof value === 'string') {
+    const s = value.trim()
+    // If already in AU-like display format, keep as-is
+    if (/^\d{1,2}\s+[A-Za-z]{3,}\s+\d{4}$/.test(s)) return s
+  }
+  const d = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(d.getTime())) return typeof value === 'string' ? value : ''
+  return d.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+const getQuickSearchStartEndTime = (availability) => {
+  if (!availability || typeof availability !== 'object') return null
+  for (const day of DAYS_OF_WEEK) {
+    const dayData = availability?.[day]
+    if (dayData?.enabled && dayData?.from && dayData?.to) {
+      return {
+        day,
+        startTime: dayData.from,
+        endTime: dayData.to,
+      }
+    }
+  }
+  return null
+}
+
+const formatPayRange = (job) => {
+  const salaryMin = job?.salaryMin
+  const salaryMax = job?.salaryMax
+  const salaryType = job?.salaryType
+
+  if (typeof salaryMin === 'number' && typeof salaryMax === 'number' && (salaryMin > 0 || salaryMax > 0)) {
+    const st = String(salaryType || '').toLowerCase()
+    const suffix = st.includes('hour') ? '/hr' : st.includes('day') ? '/day' : ''
+    return `$${salaryMin}–$${salaryMax}${suffix}`
+  }
+
+  const range = job?.salaryRange
+  if (typeof range === 'string' && range.trim() !== '') {
+    // Convert "$28/hr to $38/hr" -> "$28–$38/hr"
+    const m = range.match(/\$?\s*(\d+(?:\.\d+)?)\s*(?:\/hr)?\s*to\s*\$?\s*(\d+(?:\.\d+)?)\s*(?:\/hr)?/i)
+    if (m) {
+      const st = String(salaryType || '').toLowerCase()
+      const suffix =
+        /\/hr/i.test(range) || st.includes('hour')
+          ? '/hr'
+          : /\/day/i.test(range) || st.includes('day')
+          ? '/day'
+          : ''
+      return `$${m[1]}–$${m[2]}${suffix}`
+    }
+    return range
+  }
+
+  return salaryType ? `Salary type: ${salaryType}` : 'Not specified'
+}
+
 // Reusable Job Detail Row Component
 const JobDetailRow = ({ iconName, label, value }) => (
   <View style={styles.detailRow}>
@@ -32,6 +121,19 @@ const JobCard = ({
   onContinueEdit,
   onDeleteDraft,
 }) => {
+  const displayJobType = normalizeJobTypeLabel(job?.type)
+  const searchType = job?.searchType === 'quick' ? 'quick' : 'manual' // default to manual
+  const payRange = formatPayRange(job)
+  const paySummary = job?.salaryType ? `${job.salaryType}: ${payRange}` : payRange
+  const positions = job?.staffNumber ?? job?.staffCount ?? job?.positions ?? job?.staffNeeded
+  const quickTime = searchType === 'quick' ? getQuickSearchStartEndTime(job?.availability) : null
+  const expireDateDisplay =
+    job?.expireDate ||
+    formatDateToGb(job?.expiresAt) ||
+    'Not specified'
+  const experienceDisplay = job?.experience || 'Not specified'
+  const offerDateDisplay = formatDateToGb(job?.offerDate || job?.createdAt) || 'Not specified'
+
   return (
     <View style={styles.cardContainer}>
       
@@ -43,25 +145,23 @@ const JobCard = ({
         <View style={styles.badgeContainer}>
           <View style={styles.jobTypeBadge}>
             <AppText variant={Variant.caption} style={styles.jobTypeText}>
-              {job.type}
+              {displayJobType}
             </AppText>
           </View>
-          {job.searchType && (
-            <View style={[
-              styles.searchTypeBadge,
-              job.searchType === 'quick' ? styles.quickSearchBadge : styles.manualSearchBadge
-            ]}>
-              <AppText variant={Variant.caption} style={styles.searchTypeText}>
-                {job.searchType === 'quick' ? 'Quick Search' : 'Manual Search'}
-              </AppText>
-            </View>
-          )}
+          <View style={[
+            styles.searchTypeBadge,
+            searchType === 'quick' ? styles.quickSearchBadge : styles.manualSearchBadge
+          ]}>
+            <AppText variant={Variant.caption} style={styles.searchTypeText}>
+              {searchType === 'quick' ? 'Quick Search' : 'Manual Search'}
+            </AppText>
+          </View>
         </View>
       </View>
 
       {/* Salary Range */}
       <AppText variant={Variant.bodyMedium} style={styles.salaryText}>
-        {job.salaryRange}
+        {paySummary}
       </AppText>
 
       {/* Job Details */}
@@ -69,13 +169,13 @@ const JobCard = ({
         <JobDetailRow 
           iconName="calendar-outline"
           label="Offer date"
-          value={job.offerDate}
+          value={offerDateDisplay}
         />
         
         <JobDetailRow 
           iconName="time-outline"
           label="Offer expire date"
-          value={job.expireDate}
+          value={expireDateDisplay}
         />
         
         <JobDetailRow 
@@ -83,18 +183,45 @@ const JobCard = ({
           label="Work location"
           value={job.location}
         />
+
+        {positions ? (
+          <JobDetailRow
+            iconName="people-outline"
+            label="Positions"
+            value={String(positions)}
+          />
+        ) : null}
         
         <JobDetailRow 
           iconName="star-outline"
           label="Experience"
-          value={job.experience}
+          value={experienceDisplay}
         />
-        
-        <JobDetailRow 
-          iconName="cash-outline"
-          label="Salary type"
-          value={job.salaryType}
-        />
+
+        {/* Quick Search: show exact time range from availability */}
+        {searchType === 'quick' && quickTime ? (
+          <>
+            <JobDetailRow
+              iconName="time-outline"
+              label="Start time"
+              value={formatTimeString(quickTime.startTime)}
+            />
+            <JobDetailRow
+              iconName="time-outline"
+              label="End time"
+              value={formatTimeString(quickTime.endTime)}
+            />
+          </>
+        ) : null}
+
+        {/* Show salary type only when we don't have a real range */}
+        {!job?.salaryRange && !(typeof job?.salaryMin === 'number' && typeof job?.salaryMax === 'number') ? (
+          <JobDetailRow
+            iconName="cash-outline"
+            label="Salary type"
+            value={job.salaryType}
+          />
+        ) : null}
       </View>
 
       {/* Action Buttons */}
@@ -170,9 +297,9 @@ const JobCard = ({
             </View>
 
             {/* Third Row */}
-            {(job?.searchType === 'manual' && onViewMatches) || onTrackHours ? (
+            {onViewMatches || onTrackHours ? (
               <View style={styles.buttonRow}>
-                {(job?.searchType === 'manual' && onViewMatches) ? (
+                {onViewMatches ? (
                   <TouchableOpacity 
                     style={[styles.actionButton, styles.matchesButton]}
                     onPress={() => onViewMatches?.(job)}
