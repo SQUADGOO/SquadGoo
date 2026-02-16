@@ -23,12 +23,35 @@ export const squadMatchesQuery = (squad, query) => {
 
 export const filterAndSortSquads = (
   squads,
-  { query = '', location = 'all', job = 'all', badge = 'all', radius = 'all', sort = 'rating_desc' } = {}
+  {
+    query = '',
+    location = 'all',
+    job = 'all',
+    badge = 'all',
+    radius = 'all',
+    sort = 'rating_desc',
+    minRating = 'all', // compares against displayed rating (averageRating / 10)
+    language = 'all',
+  } = {}
 ) => {
   let list = (squads || []).filter((squad) => {
     if (location !== 'all' && squad?.location !== location) return false;
     if (badge !== 'all' && squad?.badge !== badge) return false;
     if (job !== 'all' && !(squad?.preferredJobs || []).includes(job)) return false;
+
+    if (language !== 'all') {
+      const langs = squad?.languages || [];
+      if (!langs.includes(language)) return false;
+    }
+
+    if (minRating !== 'all') {
+      const threshold = typeof minRating === 'number' ? minRating : Number(minRating);
+      if (!Number.isNaN(threshold)) {
+        const ratingValue = (squad?.averageRating || 0) / 10;
+        if (ratingValue < threshold) return false;
+      }
+    }
+
     if (radius !== 'all') {
       const maxRadius = typeof radius === 'number' ? radius : Number(radius);
       if (!Number.isNaN(maxRadius)) {

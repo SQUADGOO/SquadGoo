@@ -14,10 +14,13 @@ import FormField from '@/core/FormField'
 import RbSheetComponent from '@/core/RbSheetComponent'
 import BottomDataSheet from '@/components/Recruiter/JobBottomSheet'
 import EducationSelector from '@/components/EducationSelector'
-import QualificationSelector from '@/components/QualificationSelector'
-import LanguageSelector from '@/components/LanguageSelector'
+import MultiSelectSheet from '@/components/MultiSelectSheet'
 import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
+import {
+  EXTRA_QUALIFICATIONS_OPTIONS,
+  PREFERRED_LANGUAGES_OPTIONS,
+} from '@/constants/jobFormOptions'
 
 const dateFromMaybeIso = (value) => {
   if (!value) return null
@@ -44,7 +47,7 @@ const LanguageTag = ({ language, onRemove }) => (
 
 // Simple toggle row for tax type
 const TaxTypeSelector = ({ selectedType, onSelect }) => {
-  const options = ['ABN', 'TFN', 'Both']
+  const options = ['ABN', 'TFN', 'ANY']
 
   return (
     <View style={styles.taxTypeContainer}>
@@ -74,14 +77,19 @@ const TaxTypeSelector = ({ selectedType, onSelect }) => {
 }
 
 const StepThree = ({ navigation, route }) => {
-  const [selectedLanguages, setSelectedLanguages] = useState([])
   const [selectedTaxType, setSelectedTaxType] = useState('ABN')
   const [selectedEducations, setSelectedEducations] = useState([])
   const [selectedQualifications, setSelectedQualifications] = useState([])
+  const [selectedLanguageItems, setSelectedLanguageItems] = useState([
+    { key: 'english', title: 'English' },
+  ])
+  const [interestedInSquadPairs, setInterestedInSquadPairs] = useState(false)
 
   const editMode = route?.params?.editMode
   const draftJob = route?.params?.draftJob
   const existingJobId = route?.params?.jobId || draftJob?.id
+  const returnToPreview = route?.params?.returnToPreview
+  const previewData = route?.params?.previewData
 
   const methods = useForm({
     mode: 'onChange',
@@ -93,14 +101,57 @@ const StepThree = ({ navigation, route }) => {
       jobEndDate: null,
       jobEndTime: null,
       jobDescription: '',
+      requiredUniforms: '',
     },
   })
 
   useEffect(() => {
+    if (returnToPreview && previewData?.step3Data) {
+      const s3 = previewData.step3Data
+      const langs =
+        Array.isArray(s3.preferredLanguageItems) && s3.preferredLanguageItems.length
+          ? s3.preferredLanguageItems
+          : [{ key: 'english', title: 'English' }]
+      setSelectedLanguageItems(langs)
+
+      if (s3.taxType) setSelectedTaxType(s3.taxType)
+      if (typeof s3.interestedInSquadPairs === 'boolean') {
+        setInterestedInSquadPairs(s3.interestedInSquadPairs)
+      }
+      if (Array.isArray(s3.educationalQualifications)) {
+        setSelectedEducations(s3.educationalQualifications)
+      }
+      if (Array.isArray(s3.extraQualificationItems)) {
+        setSelectedQualifications(s3.extraQualificationItems)
+      }
+
+      methods.reset({
+        educationalQualification: '',
+        extraQualification: s3.extraQualification || '',
+        jobStartDate: s3.jobStartDate || null,
+        jobStartTime: s3.jobStartTime || null,
+        jobEndDate: s3.jobEndDate || null,
+        jobEndTime: s3.jobEndTime || null,
+        jobDescription: s3.jobDescription || '',
+        requiredUniforms: s3.requiredUniforms || '',
+      })
+      return
+    }
+
     if (editMode && draftJob) {
-      const langs = Array.isArray(draftJob.preferredLanguages) ? draftJob.preferredLanguages : []
-      if (langs.length) setSelectedLanguages(langs)
+      const langsRaw =
+        Array.isArray(draftJob.preferredLanguageItems) ? draftJob.preferredLanguageItems : null
+      const langs =
+        langsRaw ||
+        (Array.isArray(draftJob.preferredLanguages)
+          ? draftJob.preferredLanguages.map((t, idx) => ({ key: `lang-${idx}`, title: t }))
+          : [])
+      if (langs.length) setSelectedLanguageItems(langs)
+
       if (draftJob.taxType) setSelectedTaxType(draftJob.taxType)
+      if (typeof draftJob.interestedInSquadPairs === 'boolean') {
+        setInterestedInSquadPairs(draftJob.interestedInSquadPairs)
+      }
       if (draftJob.educationalQualifications && Array.isArray(draftJob.educationalQualifications)) {
         setSelectedEducations(draftJob.educationalQualifications)
       } else if (draftJob.educationalQualification && draftJob.educationalQualification !== 'Not specified') {
@@ -121,6 +172,10 @@ const StepThree = ({ navigation, route }) => {
         jobDescription:
           draftJob.jobDescription && draftJob.jobDescription !== 'No description provided'
             ? draftJob.jobDescription
+            : '',
+        requiredUniforms:
+          draftJob.requiredUniforms && draftJob.requiredUniforms !== 'Not specified'
+            ? draftJob.requiredUniforms
             : '',
       })
     }
@@ -151,33 +206,46 @@ const StepThree = ({ navigation, route }) => {
     })
   }
 
-  const handleQualificationSelect = (qualifications) => {
-    setSelectedQualifications(qualifications)
-    const qualificationValue = qualifications.length > 0
-      ? qualifications.map(q => q.displayTitle || q.title).join(', ')
-      : ''
-    methods.setValue('extraQualification', qualificationValue)
+  const toDisplayString = (item) =>
+    item?.specifyText ? `${item.title}: ${item.specifyText}` : item?.title
+
+  const handleQualificationsChange = (items) => {
+    setSelectedQualifications(items)
+    const value =
+      items.length > 0 ? items.map(toDisplayString).filter(Boolean).join(', ') : ''
+    methods.setValue('extraQualification', value)
   }
 
-  const handleLanguageSelect = (language) => {
-    if (!selectedLanguages.includes(language)) {
-      setSelectedLanguages((prev) => [...prev, language])
-    }
-  }
-
-  const handleLanguageRemove = (language) => {
-    setSelectedLanguages((prev) => prev.filter((lang) => lang !== language))
+  const handleLanguagesChange = (items) => {
+    setSelectedLanguageItems(items)
   }
 
   const handleNext = methods.handleSubmit((formValues) => {
     // require job description
     if (!formValues.jobDescription || !String(formValues.jobDescription).trim()) return
+    if (!formValues.requiredUniforms || !String(formValues.requiredUniforms).trim()) return
 
     const formData = {
       ...formValues,
       educationalQualifications: selectedEducations,
-      preferredLanguages: selectedLanguages,
+      preferredLanguageItems: selectedLanguageItems,
+      preferredLanguages: selectedLanguageItems.map(toDisplayString).filter(Boolean),
       taxType: selectedTaxType,
+      interestedInSquadPairs,
+      extraQualificationItems: selectedQualifications,
+    }
+
+    if (returnToPreview) {
+      navigation.navigate(screenNames.JOB_PREVIEW, {
+        step1Data: previewData?.step1Data,
+        step2Data: previewData?.step2Data,
+        step3Data: formData,
+        step4Data: previewData?.step4Data,
+        editMode: previewData?.editMode,
+        draftJob: previewData?.draftJob,
+        jobId: previewData?.jobId,
+      })
+      return
     }
 
     navigation.navigate(screenNames.MANUAL_SEARCH_STEPFOUR, {
@@ -220,6 +288,7 @@ const StepThree = ({ navigation, route }) => {
             onSelect={handleEducationSelect}
             selectedEducation={selectedEducations[selectedEducations.length - 1] || null}
             placeholder="Select education level"
+            courseOnly
           />
 
           {selectedEducations.length > 0 && (
@@ -240,10 +309,12 @@ const StepThree = ({ navigation, route }) => {
           <AppText variant={Variant.boldCaption} style={styles.label}>
             Required extra qualification
           </AppText>
-          <QualificationSelector
-            onSelect={handleQualificationSelect}
-            selectedQualifications={selectedQualifications}
-            placeholder="Select qualifications"
+          <MultiSelectSheet
+            title="Extra Qualifications"
+            placeholder="Select all that apply"
+            options={EXTRA_QUALIFICATIONS_OPTIONS}
+            selectedItems={selectedQualifications}
+            onChange={handleQualificationsChange}
           />
         </View>
 
@@ -252,24 +323,13 @@ const StepThree = ({ navigation, route }) => {
           <AppText variant={Variant.boldCaption} style={styles.label}>
             Preferred languages
           </AppText>
-          <LanguageSelector
-            onSelect={handleLanguageSelect}
-            selectedValue={selectedLanguages[selectedLanguages.length - 1] || ''}
-            placeholder="Select language"
+          <MultiSelectSheet
+            title="Preferred Languages"
+            placeholder="English (default)"
+            options={PREFERRED_LANGUAGES_OPTIONS}
+            selectedItems={selectedLanguageItems}
+            onChange={handleLanguagesChange}
           />
-
-          {/* Display Selected Languages */}
-          {selectedLanguages.length > 0 && (
-            <View style={styles.languageTagsContainer}>
-              {selectedLanguages.map((lang) => (
-                <LanguageTag
-                  key={lang}
-                  language={lang}
-                  onRemove={() => handleLanguageRemove(lang)}
-                />
-              ))}
-            </View>
-          )}
         </View>
 
         {/* Job Start Date/Time */}
@@ -315,11 +375,22 @@ const StepThree = ({ navigation, route }) => {
         {/* Job Description */}
         <View style={styles.section}>
           <FormField
-            label="Job description"
+            label="Roles and responsibilities"
             name="jobDescription"
             multiline
-            placeholder="Enter job description"
+            placeholder="ROLES AND RESPONSIBILITIES"
             rules={{ required: 'Job description is required' }}
+          />
+        </View>
+
+        {/* Mandatory requirements */}
+        <View style={styles.section}>
+          <FormField
+            label="Required uniforms"
+            name="requiredUniforms"
+            multiline
+            placeholder="Required Uniforms"
+            rules={{ required: 'Required uniforms is required' }}
           />
         </View>
 
@@ -332,6 +403,28 @@ const StepThree = ({ navigation, route }) => {
             selectedType={selectedTaxType}
             onSelect={setSelectedTaxType}
           />
+        </View>
+
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={styles.squadPairsRow}
+            activeOpacity={0.8}
+            onPress={() => setInterestedInSquadPairs((v) => !v)}
+          >
+            <View style={[styles.checkbox, interestedInSquadPairs && styles.checkboxActive]}>
+              {interestedInSquadPairs ? (
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="checkmark"
+                  size={16}
+                  color="#FFFFFF"
+                />
+              ) : null}
+            </View>
+            <AppText variant={Variant.body} style={styles.checkboxText}>
+              Interested in SquadPairs
+            </AppText>
+          </TouchableOpacity>
         </View>
 
         {/* Next Button */}

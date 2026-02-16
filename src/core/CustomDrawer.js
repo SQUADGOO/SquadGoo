@@ -36,14 +36,14 @@ const CustomDrawer = ({
       return [
         {
           key: 'home',
-          title: 'Home',
+          title: 'Dashboard',
           icon: 'home-outline',
           iconLib: iconLibName.Ionicons,
           route: screenNames.Tab_NAVIGATION,
         },
         {
           key: 'dashboard',
-          title: 'Dashboard',
+          title: 'Home',
           iconImage: icons.menu,
           route: screenNames.MAIN_DASHBOARD, // unified route
         },
@@ -207,7 +207,7 @@ const CustomDrawer = ({
         },
         {
           key: 'dashboard',
-          title: 'Dashboard',
+          title: 'Home',
           icon: 'apps-outline',
           iconLib: iconLibName.Ionicons,
           route: screenNames.JOB_SEEKER_DASHBOARD,

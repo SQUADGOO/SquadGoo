@@ -6,14 +6,15 @@ import { Images } from '@/assets'
 import globalStyles from '@/styles/globalStyles'
 import HomeTopTabNavigator from './HomeTabs/HomeTopTabNavigator'
 
-const Home = () => {
+const Dashboard = () => {
   const [activeTab, setActiveTab] = React.useState(0)
   const jobsState = useSelector((state) => state.jobs)
   
   // Debug: Log jobs state on mount
   React.useEffect(() => {
-    console.log('=== RECRUITER HOME - JOBS STATE ===')
+    console.log('=== RECRUITER DASHBOARD (OFFERS) - JOBS STATE ===')
     console.log('Active Jobs:', jobsState?.activeJobs?.length || 0)
+    console.log('Drafted Jobs:', jobsState?.draftedJobs?.length || 0)
     console.log('Completed Jobs:', jobsState?.completedJobs?.length || 0)
     console.log('Expired Jobs:', jobsState?.expiredJobs?.length || 0)
     console.log('===================================')
@@ -32,7 +33,7 @@ const Home = () => {
   )
 }
 
-export default Home
+export default Dashboard
 
 const styles = StyleSheet.create({
   container: {

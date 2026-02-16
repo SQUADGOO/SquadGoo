@@ -624,11 +624,28 @@ const manualOffersSlice = createSlice({
     sendManualOffer: (state, { payload }) => {
       const { jobId, candidateId, expiresAt, message } = payload;
       const job = state.jobs.find(j => j.id === jobId);
-      const candidate =
+      let candidate =
         state.matchesByJobId[jobId]?.find(match => match.id === candidateId) ??
         null;
 
-      if (!job || !candidate) return;
+      if (!job) return;
+
+      // If the candidate isn't in the current match list, fall back to lookup + compute a snapshot.
+      // This enables sending offers from pools (e.g. "Your Pool") without requiring prior matching.
+      if (!candidate) {
+        const baseCandidate = DUMMY_JOB_SEEKERS.find(c => c.id === candidateId) || null;
+        if (!baseCandidate) return;
+
+        const score = computeMatchScore(job, baseCandidate);
+        const currentRating = state.acceptanceRatings[candidateId] ?? baseCandidate.acceptanceRating;
+        const maxKm = Math.min(job?.rangeKm || 0, baseCandidate?.radiusKm || 0);
+        const distanceKm = computeDistanceKm(jobId, candidateId, maxKm);
+        candidate = buildCandidateSnapshot(baseCandidate, score, currentRating, { distanceKm });
+
+        if (!state.matchesByJobId[jobId]) state.matchesByJobId[jobId] = [];
+        const exists = state.matchesByJobId[jobId].some(m => m.id === candidateId);
+        if (!exists) state.matchesByJobId[jobId].unshift(candidate);
+      }
 
       const offerId = nanoid();
       state.offers.unshift({
@@ -685,6 +702,19 @@ const manualOffersSlice = createSlice({
         });
       }
     },
+
+    // Recruiter withdraws a manual offer (cancel)
+    withdrawManualOffer: (state, { payload }) => {
+      const { offerId } = payload || {};
+      const offer = state.offers.find(o => o.id === offerId);
+      if (!offer) return;
+      offer.status = 'withdrawn';
+      offer.response = {
+        type: 'withdrawn',
+        withdrawnAt: new Date().toISOString(),
+      };
+      offer.updatedAt = new Date().toISOString();
+    },
     expireManualOffers: (state) => {
       const now = Date.now();
       state.offers.forEach(offer => {
@@ -711,6 +741,7 @@ export const {
   generateManualMatches,
   sendManualOffer,
   updateManualOfferStatus,
+  withdrawManualOffer,
   expireManualOffers,
   initializeDummyData,
   ensureDummyOffersForJob,

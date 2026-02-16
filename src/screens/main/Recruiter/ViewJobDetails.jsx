@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   View,
   StyleSheet,
@@ -6,91 +6,133 @@ import {
   StatusBar,
   TouchableOpacity,
   Image,
-  TextInput,
-} from 'react-native'
-import { useDispatch, useSelector } from 'react-redux'
-import { colors, hp, wp, getFontSize } from '@/theme'
-import AppText, { Variant } from '@/core/AppText'
-import AppHeader from '@/core/AppHeader'
-import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
-import moment from 'moment'
-import { formatTime } from '@/utilities/helperFunctions'
-import { screenNames } from '@/navigation/screenNames'
-import AppButton from '@/core/AppButton'
-import { updateExpiredJobFeedback } from '@/store/jobsSlice'
+} from 'react-native';
+import {useSelector} from 'react-redux';
+import {colors, hp, wp, getFontSize} from '@/theme';
+import AppText, {Variant} from '@/core/AppText';
+import AppHeader from '@/core/AppHeader';
+import VectorIcons, {iconLibName} from '@/theme/vectorIcon';
+import moment from 'moment';
+import {formatTime} from '@/utilities/helperFunctions';
+import {screenNames} from '@/navigation/screenNames';
 
-const normalizeJobTypeLabel = (type) => {
-  if (!type) return ''
-  const t = String(type).trim()
-  if (t.toLowerCase() === 'full-time' || t.toLowerCase() === 'full time' || t === 'Full-time') return 'Full-Time'
-  if (t.toLowerCase() === 'part-time' || t.toLowerCase() === 'part time' || t === 'Part-time') return 'Part-Time'
-  if (t.toLowerCase() === 'contract') return 'Contract'
-  if (t.toLowerCase() === 'casual') return 'Casual'
-  return t
-}
+const normalizeJobTypeLabel = type => {
+  if (!type) return '';
+  const t = String(type).trim();
 
-const formatAuDate = (value) => {
-  if (!value) return ''
-  const m = moment(value, [moment.ISO_8601, 'YYYY-MM-DD', 'DD/MM/YYYY', 'DD MMM YYYY', 'DD MMMM YYYY'], true)
-  return m.isValid() ? m.format('DD MMM YYYY') : String(value)
-}
+  if (
+    t.toLowerCase() === 'full-time' ||
+    t.toLowerCase() === 'full time' ||
+    t === 'Full-time'
+  )
+    return 'Full-Time';
 
-const formatPayRange = (job) => {
-  const salaryMin = job?.salaryMin
-  const salaryMax = job?.salaryMax
-  const salaryType = job?.salaryType
+  if (
+    t.toLowerCase() === 'part-time' ||
+    t.toLowerCase() === 'part time' ||
+    t === 'Part-time'
+  )
+    return 'Part-Time';
 
-  if (typeof salaryMin === 'number' && typeof salaryMax === 'number' && (salaryMin > 0 || salaryMax > 0)) {
-    const st = String(salaryType || '').toLowerCase()
-    const suffix = st.includes('hour') ? '/hr' : st.includes('day') ? '/day' : ''
-    return `$${salaryMin}–$${salaryMax}${suffix}`
+  if (t.toLowerCase() === 'contract') return 'Contract';
+
+  if (t.toLowerCase() === 'casual') return 'Casual';
+
+  return t;
+};
+
+const formatAuDate = value => {
+  if (!value) return '';
+  const m = moment(
+    value,
+    [
+      moment.ISO_8601,
+      'YYYY-MM-DD',
+      'DD/MM/YYYY',
+      'DD MMM YYYY',
+      'DD MMMM YYYY',
+    ],
+    true,
+  );
+
+  return m.isValid() ? m.format('DD MMM YYYY') : String(value);
+};
+
+const formatPayRange = job => {
+  const salaryMin = job?.salaryMin;
+  const salaryMax = job?.salaryMax;
+  const salaryType = job?.salaryType;
+
+  if (
+    typeof salaryMin === 'number' &&
+    typeof salaryMax === 'number' &&
+    (salaryMin > 0 || salaryMax > 0)
+  ) {
+    const st = String(salaryType || '').toLowerCase();
+    const suffix = st.includes('hour')
+      ? '/hr'
+      : st.includes('day')
+        ? '/day'
+        : '';
+
+    return `$${salaryMin}–$${salaryMax}${suffix}`;
   }
 
-  const range = job?.salaryRange
+  const range = job?.salaryRange;
+
   if (typeof range === 'string' && range.trim() !== '') {
-    const m = range.match(/\$?\s*(\d+(?:\.\d+)?)\s*(?:\/hr)?\s*to\s*\$?\s*(\d+(?:\.\d+)?)\s*(?:\/hr)?/i)
+    const m = range.match(
+      /\$?\s*(\d+(?:\.\d+)?)\s*(?:\/hr)?\s*to\s*\$?\s*(\d+(?:\.\d+)?)\s*(?:\/hr)?/i,
+    );
+
     if (m) {
-      const st = String(salaryType || '').toLowerCase()
+      const st = String(salaryType || '').toLowerCase();
       const suffix =
         /\/hr/i.test(range) || st.includes('hour')
           ? '/hr'
           : /\/day/i.test(range) || st.includes('day')
-          ? '/day'
-          : ''
-      return `$${m[1]}–$${m[2]}${suffix}`
+            ? '/day'
+            : '';
+
+      return `$${m[1]}–$${m[2]}${suffix}`;
     }
-    return range
+
+    return range;
   }
 
-  return ''
-}
+  return '';
+};
 
-const ViewJobDetails = ({ navigation, route }) => {
-  const { jobId, isCompleted, isExpired } = route.params || {}
-  const dispatch = useDispatch()
-  const userInfo = useSelector((state) => state?.auth?.userInfo || {})
-  const currentUserId = userInfo?._id || userInfo?.id || userInfo?.userId || null
-  const contactReveals = useSelector((state) => state?.contactReveal?.contactReveals || [])
-  
+const ViewJobDetails = ({navigation, route}) => {
+  const {jobId, isCompleted, isExpired} = route.params || {};
+  const userInfo = useSelector(state => state?.auth?.userInfo || {});
+  const currentUserId =
+    userInfo?._id || userInfo?.id || userInfo?.userId || null;
+  const contactReveals = useSelector(
+    state => state?.contactReveal?.contactReveals || [],
+  );
+
   // Get job details from Redux (check all job lists)
-  const job = useSelector((state) => {
+  const job = useSelector(state => {
     if (isCompleted) {
-      return state.jobs?.completedJobs?.find(j => j.id === jobId)
+      return state.jobs?.completedJobs?.find(j => j.id === jobId);
     } else if (isExpired) {
-      return state.jobs?.expiredJobs?.find(j => j.id === jobId)
+      return state.jobs?.expiredJobs?.find(j => j.id === jobId);
     }
-    return state.jobs?.activeJobs?.find(j => j.id === jobId)
-  })
-  
-  const completedByCandidates = useSelector((state) => 
-    state.jobs?.completedByCandidates?.[jobId] || []
-  )
-  
-  const allCandidates = useSelector((state) => 
-    state.jobs?.jobCandidates?.[jobId] || []
-  )
 
-  console.log('job', job)
+    return state.jobs?.activeJobs?.find(j => j.id === jobId);
+  });
+
+  const completedByCandidates = useSelector(
+    state => state.jobs?.completedByCandidates?.[jobId] || [],
+  );
+
+  const allCandidates = useSelector(
+    state => state.jobs?.jobCandidates?.[jobId] || [],
+  );
+
+  console.log('job', job);
+
   if (!job) {
     return (
       <View style={styles.container}>
@@ -101,20 +143,22 @@ const ViewJobDetails = ({ navigation, route }) => {
           </AppText>
         </View>
       </View>
-    )
+    );
   }
 
-  const isEmptyValue = (value) => {
-    if (value === null || value === undefined) return true
-    if (typeof value === 'string' && value.trim() === '') return true
-    return false
-  }
+  const isEmptyValue = value => {
+    if (value === null || value === undefined) return true;
 
-  const Card = ({ children, style }) => (
+    if (typeof value === 'string' && value.trim() === '') return true;
+
+    return false;
+  };
+
+  const Card = ({children, style}) => (
     <View style={[styles.card, style]}>{children}</View>
-  )
+  );
 
-  const SectionHeader = ({ iconName, title, iconColor = colors.primary }) => (
+  const SectionHeader = ({iconName, title, iconColor = colors.primary}) => (
     <View style={styles.sectionHeader}>
       <VectorIcons
         name={iconLibName.Ionicons}
@@ -126,7 +170,7 @@ const ViewJobDetails = ({ navigation, route }) => {
         {title}
       </AppText>
     </View>
-  )
+  );
 
   const InfoRow = ({
     iconName,
@@ -136,7 +180,8 @@ const ViewJobDetails = ({ navigation, route }) => {
     hideIfEmpty = true,
     rowStyle,
   }) => {
-    if (hideIfEmpty && isEmptyValue(value)) return null
+    if (hideIfEmpty && isEmptyValue(value)) return null;
+
     return (
       <View style={[styles.infoRow, rowStyle]}>
         <VectorIcons
@@ -151,19 +196,19 @@ const ViewJobDetails = ({ navigation, route }) => {
           </AppText>
           <AppText
             variant={Variant.body}
-            style={[styles.infoValue, valueStyle]}
-          >
+            style={[styles.infoValue, valueStyle]}>
             {isEmptyValue(value) ? 'Not specified' : value}
           </AppText>
         </View>
       </View>
-    )
-  }
+    );
+  };
 
-  const AvailabilityRow = ({ day, timeData }) => {
-    console.log('timeData', timeData)
-    if (!timeData?.enabled) return null
-    
+  const AvailabilityRow = ({day, timeData}) => {
+    console.log('timeData', timeData);
+
+    if (!timeData?.enabled) return null;
+
     return (
       <View style={styles.availabilityRow}>
         <AppText variant={Variant.body} style={styles.dayLabel}>
@@ -173,96 +218,74 @@ const ViewJobDetails = ({ navigation, route }) => {
           {formatTime(timeData.from)} - {formatTime(timeData.to)}
         </AppText>
       </View>
-    )
-  }
+    );
+  };
 
-  const displayJobType = normalizeJobTypeLabel(job?.type)
-  const payRange = formatPayRange(job)
-  const searchType = job?.searchType === 'quick' ? 'quick' : 'manual' // default manual
-  const experienceValue = job?.experience
-  const positionsRequiredValue = job?.staffNumber || job?.staffCount
+  const displayJobType = normalizeJobTypeLabel(job?.type);
+  const payRange = formatPayRange(job);
+  const searchType = job?.searchType === 'quick' ? 'quick' : 'manual'; // default manual
+  const experienceValue = job?.experience;
+  const positionsRequiredValue = job?.staffNumber || job?.staffCount;
   const positionsFilledValue =
     Array.isArray(completedByCandidates) && completedByCandidates.length > 0
       ? completedByCandidates.length
-      : positionsRequiredValue
-  const positionsFilledExpiredValue =
-    typeof job?.positionsFilled === 'number'
-      ? job.positionsFilled
-      : 0
+      : positionsRequiredValue;
 
   const paySummary = job?.salaryType
     ? `${job.salaryType}: ${payRange || job?.salaryRange || '—'}`
-    : (payRange || job?.salaryRange || '—')
+    : payRange || job?.salaryRange || '—';
 
   // Timeline fields (AU format)
-  const postedDateValue = job?.offerDate || formatAuDate(job?.createdAt)
-  const startDateValue = formatAuDate(job?.jobStartDate)
-  const endDateValue = formatAuDate(job?.jobEndDate)
-  const expiryValue = job?.expireDate || formatAuDate(job?.expiresAt)
-  const completedDateValue = job?.completedDate || formatAuDate(job?.completedAt)
+  const postedDateValue = job?.offerDate || formatAuDate(job?.createdAt);
+  const startDateValue = formatAuDate(job?.jobStartDate);
+  const endDateValue = formatAuDate(job?.jobEndDate);
+  const expiryValue = job?.expireDate || formatAuDate(job?.expiresAt);
+  const completedDateValue =
+    job?.completedDate || formatAuDate(job?.completedAt);
 
   const keyQualificationsValue = (() => {
-    const parts = []
-    if (job?.educationalQualification) parts.push(String(job.educationalQualification))
-    if (job?.extraQualification) parts.push(String(job.extraQualification))
-    return parts.length > 0 ? parts.join(' • ') : ''
-  })()
+    const parts = [];
 
-  const [expiryReasonDraft, setExpiryReasonDraft] = React.useState(job?.expiryReason || '')
-  const [expiryNotesDraft, setExpiryNotesDraft] = React.useState(job?.expiryNotes || '')
-  const [positionsFilledDraft, setPositionsFilledDraft] = React.useState(
-    String(typeof job?.positionsFilled === 'number' ? job.positionsFilled : 0),
-  )
+    if (job?.educationalQualification)
+      parts.push(String(job.educationalQualification));
 
-  React.useEffect(() => {
-    setExpiryReasonDraft(job?.expiryReason || '')
-    setExpiryNotesDraft(job?.expiryNotes || '')
-    setPositionsFilledDraft(String(typeof job?.positionsFilled === 'number' ? job.positionsFilled : 0))
-  }, [job?.expiryReason, job?.expiryNotes, job?.positionsFilled])
+    if (job?.extraQualification) parts.push(String(job.extraQualification));
 
-  const parseNonNegativeInt = (value) => {
-    const n = Number.parseInt(String(value), 10)
-    if (!Number.isFinite(n) || Number.isNaN(n)) return 0
-    return Math.max(0, n)
-  }
+    return parts.length > 0 ? parts.join(' • ') : '';
+  })();
 
-  const handleSaveExpiryFeedback = () => {
-    dispatch(
-      updateExpiredJobFeedback({
-        jobId,
-        expiryReason: expiryReasonDraft,
-        expiryNotes: expiryNotesDraft,
-        positionsFilled: parseNonNegativeInt(positionsFilledDraft),
-      }),
-    )
-  }
+  const canSeeCandidatePhone = candidateId => {
+    if (!currentUserId || !candidateId) return false;
+    const now = new Date();
 
-  const canSeeCandidatePhone = (candidateId) => {
-    if (!currentUserId || !candidateId) return false
-    const now = new Date()
-    return contactReveals.some((r) => {
-      if (!r?.isActive) return false
-      if (r?.jobId !== jobId) return false
-      if (new Date(r.expiresAt) <= now) return false
+    return contactReveals.some(r => {
+      if (!r?.isActive) return false;
+
+      if (r?.jobId !== jobId) return false;
+
+      if (new Date(r.expiresAt) <= now) return false;
+
       return (
         (r.userId1 === currentUserId && r.userId2 === candidateId) ||
         (r.userId2 === currentUserId && r.userId1 === candidateId)
-      )
-    })
-  }
+      );
+    });
+  };
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-      
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="transparent"
+        translucent
+      />
+
       <AppHeader title="Job Details" showTopIcons={false} height={hp(14)} />
 
-      <ScrollView 
+      <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.contentContainer}
-      >
-
+        contentContainerStyle={styles.contentContainer}>
         {/* Summary / Hero card */}
         <Card style={styles.summaryCard}>
           <View style={styles.summaryHeader}>
@@ -285,7 +308,9 @@ const ViewJobDetails = ({ navigation, route }) => {
                   size={14}
                   color={colors.gray}
                 />
-                <AppText variant={Variant.bodySmall} style={styles.summaryMetaText}>
+                <AppText
+                  variant={Variant.bodySmall}
+                  style={styles.summaryMetaText}>
                   {job.location || 'Location not specified'}
                 </AppText>
               </View>
@@ -297,7 +322,9 @@ const ViewJobDetails = ({ navigation, route }) => {
                     size={14}
                     color={colors.gray}
                   />
-                  <AppText variant={Variant.bodySmall} style={styles.summaryMetaText}>
+                  <AppText
+                    variant={Variant.bodySmall}
+                    style={styles.summaryMetaText}>
                     {job.industry}
                   </AppText>
                 </View>
@@ -324,10 +351,11 @@ const ViewJobDetails = ({ navigation, route }) => {
               style={[
                 styles.chip,
                 searchType === 'quick' ? styles.quickChip : styles.manualChip,
-              ]}
-            >
+              ]}>
               <AppText variant={Variant.caption} style={styles.chipText}>
-                {searchType === 'quick' ? '⚡ Quick Search' : '📝 Manual Search'}
+                {searchType === 'quick'
+                  ? '⚡ Quick Search'
+                  : '📝 Manual Search'}
               </AppText>
             </View>
           </View>
@@ -362,10 +390,21 @@ const ViewJobDetails = ({ navigation, route }) => {
 
         {/* Job Information */}
         <Card>
-          <SectionHeader iconName="information-circle-outline" title="Job information" />
+          <SectionHeader
+            iconName="information-circle-outline"
+            title="Job information"
+          />
           <View style={styles.divider} />
-          <InfoRow iconName="briefcase-outline" label="Job type" value={displayJobType} />
-          <InfoRow iconName="pricetag-outline" label="Industry" value={job.industry} />
+          <InfoRow
+            iconName="briefcase-outline"
+            label="Job type"
+            value={displayJobType}
+          />
+          <InfoRow
+            iconName="pricetag-outline"
+            label="Industry"
+            value={job.industry}
+          />
           <InfoRow
             iconName="ribbon-outline"
             label="Key qualifications"
@@ -383,7 +422,11 @@ const ViewJobDetails = ({ navigation, route }) => {
         <Card>
           <SectionHeader iconName="location-outline" title="Location" />
           <View style={styles.divider} />
-          <InfoRow iconName="navigate-outline" label="Work location" value={job.location} />
+          <InfoRow
+            iconName="navigate-outline"
+            label="Work location (Full address)"
+            value={job.location}
+          />
           <InfoRow
             iconName="compass-outline"
             label="Range from location"
@@ -393,18 +436,21 @@ const ViewJobDetails = ({ navigation, route }) => {
 
         {/* Positions & Experience */}
         <Card>
-          <SectionHeader iconName="people-outline" title="Positions & experience" />
+          <SectionHeader
+            iconName="people-outline"
+            title="Positions & experience"
+          />
           <View style={styles.divider} />
           <InfoRow
             iconName="people-outline"
             label="Positions"
             value={positionsRequiredValue}
           />
-          {isExpired ? (
+          {isCompleted ? (
             <InfoRow
               iconName="checkmark-done-outline"
               label="Positions filled"
-              value={positionsFilledExpiredValue}
+              value={positionsFilledValue}
               hideIfEmpty={false}
             />
           ) : null}
@@ -437,9 +483,15 @@ const ViewJobDetails = ({ navigation, route }) => {
           <View style={styles.divider} />
           <InfoRow
             iconName="cash-outline"
-            label="Pay"
-            value={paySummary}
+            label="Salary range"
+            value={payRange || job?.salaryRange || ''}
             valueStyle={styles.salaryValue}
+            hideIfEmpty={false}
+          />
+          <InfoRow
+            iconName="calculator-outline"
+            label="Salary type"
+            value={job?.salaryType || ''}
             hideIfEmpty={false}
           />
         </Card>
@@ -453,8 +505,25 @@ const ViewJobDetails = ({ navigation, route }) => {
             label="Posted date"
             value={postedDateValue ? formatAuDate(postedDateValue) : ''}
           />
-          <InfoRow iconName="play-outline" label="Start date" value={startDateValue} />
-          <InfoRow iconName="stop-outline" label="End date" value={endDateValue || job?.duration} />
+          {searchType === 'quick' ? (
+            <InfoRow
+              iconName="play-outline"
+              label="Start date"
+              value={startDateValue || ''}
+              hideIfEmpty={false}
+            />
+          ) : (
+            <InfoRow
+              iconName="play-outline"
+              label="Start date"
+              value={startDateValue}
+            />
+          )}
+          <InfoRow
+            iconName="stop-outline"
+            label="End date"
+            value={endDateValue || job?.duration}
+          />
           {isCompleted ? (
             <InfoRow
               iconName="checkmark-done-outline"
@@ -466,7 +535,13 @@ const ViewJobDetails = ({ navigation, route }) => {
             <InfoRow
               iconName="close-circle-outline"
               label="Expired date"
-              value={job?.expireDate ? formatAuDate(job.expireDate) : (expiryValue ? formatAuDate(expiryValue) : '')}
+              value={
+                job?.expireDate
+                  ? formatAuDate(job.expireDate)
+                  : expiryValue
+                    ? formatAuDate(expiryValue)
+                    : ''
+              }
               hideIfEmpty={false}
             />
           ) : (
@@ -478,141 +553,85 @@ const ViewJobDetails = ({ navigation, route }) => {
           )}
         </Card>
 
-        {/* Expiry details (reason + recruiter notes) */}
-        {isExpired ? (
-          <Card>
-            <SectionHeader iconName="alert-circle-outline" title="Expiry details" iconColor="#EF4444" />
-            <View style={styles.divider} />
-
-            <InfoRow
-              iconName="chatbox-ellipses-outline"
-              label="Reason for expiry"
-              value={job?.expiryReason || ''}
-              hideIfEmpty={true}
-            />
-
-            <AppText variant={Variant.caption} style={styles.inputLabel}>
-              Reason for expiry (optional)
-            </AppText>
-            <TextInput
-              value={expiryReasonDraft}
-              onChangeText={setExpiryReasonDraft}
-              placeholder="e.g. No suitable candidates"
-              placeholderTextColor={colors.gray}
-              style={styles.input}
-            />
-
-            <View style={styles.twoColRow}>
-              <View style={styles.twoCol}>
-                <AppText variant={Variant.caption} style={styles.inputLabel}>
-                  Positions filled
-                </AppText>
-                <TextInput
-                  value={positionsFilledDraft}
-                  onChangeText={setPositionsFilledDraft}
-                  keyboardType="number-pad"
-                  placeholder="0"
-                  placeholderTextColor={colors.gray}
-                  style={styles.input}
-                />
-              </View>
-              <View style={styles.twoCol} />
-            </View>
-
-            <AppText variant={Variant.caption} style={styles.inputLabel}>
-              Feedback / notes (optional)
-            </AppText>
-            <TextInput
-              value={expiryNotesDraft}
-              onChangeText={setExpiryNotesDraft}
-              placeholder="Add notes about why the offer expired..."
-              placeholderTextColor={colors.gray}
-              style={[styles.input, styles.notesInput]}
-              multiline
-            />
-
-            <View style={styles.saveRow}>
-              <AppButton
-                text="Save notes"
-                onPress={handleSaveExpiryFeedback}
-                bgColor={colors.primary}
-                textColor="#FFFFFF"
-              />
-            </View>
-          </Card>
-        ) : null}
-
         {/* Extra pay */}
-        {job.extraPay && Object.keys(job.extraPay).length > 0 ? (
-          <Card>
-            <SectionHeader iconName="sparkles-outline" title="Extra pay offered" />
-            <View style={styles.divider} />
-            <InfoRow
-              iconName="calendar-outline"
-              label="Public holidays"
-              value={job.extraPay.publicHolidays ? 'Yes' : 'No'}
-              valueStyle={job.extraPay.publicHolidays && styles.yesValue}
-              hideIfEmpty={false}
-            />
-            <InfoRow
-              iconName="sunny-outline"
-              label="Weekend"
-              value={job.extraPay.weekend ? 'Yes' : 'No'}
-              valueStyle={job.extraPay.weekend && styles.yesValue}
-              hideIfEmpty={false}
-            />
-            <InfoRow
-              iconName="time-outline"
-              label="Shift loading"
-              value={job.extraPay.shiftLoading ? 'Yes' : 'No'}
-              valueStyle={job.extraPay.shiftLoading && styles.yesValue}
-              hideIfEmpty={false}
-            />
-            <InfoRow
-              iconName="gift-outline"
-              label="Bonuses"
-              value={job.extraPay.bonuses ? 'Yes' : 'No'}
-              valueStyle={job.extraPay.bonuses && styles.yesValue}
-              hideIfEmpty={false}
-            />
-            <InfoRow
-              iconName="add-circle-outline"
-              label="Overtime"
-              value={job.extraPay.overtime ? 'Yes' : 'No'}
-              valueStyle={job.extraPay.overtime && styles.yesValue}
-              hideIfEmpty={false}
-            />
-          </Card>
-        ) : null}
+        <Card>
+          <SectionHeader iconName="sparkles-outline" title="Extra pay offered" />
+          <View style={styles.divider} />
+          <InfoRow
+            iconName="calendar-outline"
+            label="Public holidays"
+            value={job?.extraPay?.publicHolidays ? 'Yes' : 'No'}
+            valueStyle={job?.extraPay?.publicHolidays && styles.yesValue}
+            hideIfEmpty={false}
+          />
+          <InfoRow
+            iconName="sunny-outline"
+            label="Weekend"
+            value={job?.extraPay?.weekend ? 'Yes' : 'No'}
+            valueStyle={job?.extraPay?.weekend && styles.yesValue}
+            hideIfEmpty={false}
+          />
+          <InfoRow
+            iconName="time-outline"
+            label="Shift loading"
+            value={job?.extraPay?.shiftLoading ? 'Yes' : 'No'}
+            valueStyle={job?.extraPay?.shiftLoading && styles.yesValue}
+            hideIfEmpty={false}
+          />
+          <InfoRow
+            iconName="gift-outline"
+            label="Bonuses"
+            value={job?.extraPay?.bonuses ? 'Yes' : 'No'}
+            valueStyle={job?.extraPay?.bonuses && styles.yesValue}
+            hideIfEmpty={false}
+          />
+          <InfoRow
+            iconName="add-circle-outline"
+            label="Overtime"
+            value={job?.extraPay?.overtime ? 'Yes' : 'No'}
+            valueStyle={job?.extraPay?.overtime && styles.yesValue}
+            hideIfEmpty={false}
+          />
+        </Card>
 
-        {/* Availability (Quick Search jobs) */}
-        {job.availability && typeof job.availability === 'object' && Object.keys(job.availability).length > 0 ? (
-          <Card>
-            <SectionHeader iconName="time-outline" title="Availability to work" />
-            <View style={styles.divider} />
+        {/* Availability */}
+        <Card>
+          <SectionHeader iconName="time-outline" title="Availability to work" />
+          <View style={styles.divider} />
+          {job.availability &&
+          typeof job.availability === 'object' &&
+          Object.keys(job.availability).length > 0 ? (
             <View style={styles.availabilityContainer}>
               {Object.entries(job.availability).map(([day, timeData]) => (
                 <AvailabilityRow key={day} day={day} timeData={timeData} />
               ))}
             </View>
-          </Card>
-        ) : null}
-
-        {/* Description */}
-        {job.jobDescription ? (
-          <Card>
-            <SectionHeader iconName="document-text-outline" title="Job description" />
-            <View style={styles.divider} />
+          ) : (
             <AppText variant={Variant.body} style={styles.descriptionText}>
-              {job.jobDescription}
+              Not specified
             </AppText>
-          </Card>
-        ) : null}
+          )}
+        </Card>
+
+        {/* Job Description */}
+        <Card>
+          <SectionHeader
+            iconName="document-text-outline"
+            title="Job description"
+          />
+          <View style={styles.divider} />
+          <AppText variant={Variant.body} style={styles.descriptionText}>
+            {job.jobDescription || job.description || 'Not specified'}
+          </AppText>
+        </Card>
 
         {/* Completed by */}
         {isCompleted && allCandidates.length > 0 ? (
           <Card>
-            <SectionHeader iconName="checkmark-done-outline" title="Completed by" />
+            <SectionHeader
+              iconName="checkmark-done-outline"
+              title="Completed by"
+            />
             <View style={styles.divider} />
             <View style={styles.completedByContainer}>
               {allCandidates
@@ -621,39 +640,69 @@ const ViewJobDetails = ({ navigation, route }) => {
                     ? completedByCandidates.includes(candidate.id)
                     : candidate.status === 'accepted',
                 )
-                .map((candidate) => (
-                  <View key={candidate.id} style={styles.candidateCard}>
+                .map(candidate => (
+                  <TouchableOpacity
+                    key={candidate.id}
+                    style={styles.candidateCard}
+                    activeOpacity={0.85}
+                    onPress={() =>
+                      navigation.navigate(
+                        screenNames.COMPLETED_WORKER_PROFILE,
+                        {
+                          jobId,
+                          candidateId: candidate.id,
+                          source: searchType,
+                        },
+                      )
+                    }>
                     <View style={styles.candidateAvatar}>
-                      {candidate?.avatarUri || candidate?.photo || candidate?.profilePhoto ? (
+                      {candidate?.avatarUri ||
+                      candidate?.photo ||
+                      candidate?.profilePhoto ? (
                         <Image
-                          source={{ uri: candidate.avatarUri || candidate.photo || candidate.profilePhoto }}
+                          source={{
+                            uri:
+                              candidate.avatarUri ||
+                              candidate.photo ||
+                              candidate.profilePhoto,
+                          }}
                           style={styles.candidateAvatarImage}
                         />
                       ) : (
-                        <AppText variant={Variant.bodyMedium} style={styles.candidateAvatarText}>
+                        <AppText
+                          variant={Variant.bodyMedium}
+                          style={styles.candidateAvatarText}>
                           {candidate.name?.charAt(0) || '?'}
                         </AppText>
                       )}
                     </View>
                     <View style={styles.candidateInfo}>
-                      <AppText variant={Variant.bodyMedium} style={styles.candidateName}>
+                      <AppText
+                        variant={Variant.bodyMedium}
+                        style={styles.candidateName}>
                         {candidate.name || 'Unknown'}
                       </AppText>
-                      <AppText variant={Variant.bodySmall} style={styles.candidateDetail}>
-                        📍 {candidate.location || 'N/A'}
+                      <AppText
+                        variant={Variant.bodySmall}
+                        style={styles.candidateDetail}>
+                        📍 Full address: {candidate.location || 'N/A'}
                       </AppText>
                       {candidate.phone && canSeeCandidatePhone(candidate.id) ? (
-                        <AppText variant={Variant.bodySmall} style={styles.candidateDetail}>
+                        <AppText
+                          variant={Variant.bodySmall}
+                          style={styles.candidateDetail}>
                           📞 {candidate.phone}
                         </AppText>
                       ) : null}
                     </View>
                     <View style={styles.completedBadge}>
-                      <AppText variant={Variant.caption} style={styles.completedBadgeText}>
+                      <AppText
+                        variant={Variant.caption}
+                        style={styles.completedBadgeText}>
                         ✓ Completed
                       </AppText>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 ))}
             </View>
           </Card>
@@ -666,20 +715,18 @@ const ViewJobDetails = ({ navigation, route }) => {
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => navigation.navigate(screenNames.SUPPORT)}
-            style={styles.supportBtn}
-          >
+            style={styles.supportBtn}>
             <AppText variant={Variant.bodyMedium} style={styles.supportText}>
               Need help? Contact support
             </AppText>
           </TouchableOpacity>
         </Card>
-
       </ScrollView>
     </View>
-  )
-}
+  );
+};
 
-export default ViewJobDetails
+export default ViewJobDetails;
 
 const styles = StyleSheet.create({
   container: {
@@ -700,7 +747,7 @@ const styles = StyleSheet.create({
     borderRadius: hp(2.5),
     padding: wp(5),
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
@@ -979,5 +1026,4 @@ const styles = StyleSheet.create({
     fontSize: getFontSize(11),
     fontWeight: 'bold',
   },
-})
-
+});

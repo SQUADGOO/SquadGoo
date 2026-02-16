@@ -939,6 +939,7 @@ const dummyQuickJobs = [
 
 const initialState = {
   activeJobs: dummyQuickJobs, // Start with dummy quick search jobs for accepted offers
+  draftedJobs: [],
   completedJobs: initialCompletedJobs,
   expiredJobs: initialExpiredJobs,
   jobCandidates: initialJobCandidates,
@@ -949,6 +950,62 @@ const jobsSlice = createSlice({
   name: 'jobs',
   initialState,
   reducers: {
+    // Save/update a drafted job offer (like email drafts)
+    // - Upserts by id
+    // - Allows incomplete data (so users can save anytime)
+    saveDraftJob: (state, action) => {
+      const payload = action.payload || {};
+      const nowIso = new Date().toISOString();
+      const formattedDate = new Date().toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      });
+
+      const draftId =
+        payload.id ||
+        payload.jobId ||
+        `draft-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+
+      const safeTitle =
+        typeof payload.title === 'string' && payload.title.trim()
+          ? payload.title.trim()
+          : 'Untitled draft';
+
+      const nextDraft = {
+        ...payload,
+        id: draftId,
+        title: safeTitle,
+        status: 'draft',
+        updatedAt: nowIso,
+        createdAt: payload.createdAt || nowIso,
+        offerDate: payload.offerDate || `Draft saved ${formattedDate}`,
+        expireDate:
+          typeof payload.expireDate === 'string'
+            ? payload.expireDate
+            : payload.expireDate ?? 'Not set',
+      };
+
+      if (!Array.isArray(state.draftedJobs)) state.draftedJobs = [];
+
+      const idx = state.draftedJobs.findIndex(j => j.id === draftId);
+      if (idx === -1) {
+        state.draftedJobs.unshift(nextDraft);
+      } else {
+        state.draftedJobs[idx] = {
+          ...state.draftedJobs[idx],
+          ...nextDraft,
+        };
+      }
+    },
+
+    deleteDraftJob: (state, action) => {
+      const draftId = action.payload;
+      if (!draftId) return;
+      if (!Array.isArray(state.draftedJobs)) state.draftedJobs = [];
+      state.draftedJobs = state.draftedJobs.filter(j => j.id !== draftId);
+    },
+
     // Add a new job (from Quick Search or Manual Search)
     addJob: (state, action) => {
       const jobId = action.payload.id || `job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -964,6 +1021,12 @@ const jobsSlice = createSlice({
           year: 'numeric',
         }),
       };
+
+      // If this job was previously saved as a draft, remove it from drafts once posted
+      if (Array.isArray(state.draftedJobs)) {
+        state.draftedJobs = state.draftedJobs.filter(j => j.id !== jobId);
+      }
+
       state.activeJobs.unshift(newJob); // Add to beginning of array
       
       // Generate dummy candidates for the job
@@ -981,6 +1044,11 @@ const jobsSlice = createSlice({
           ...updates,
           updatedAt: new Date().toISOString(),
         };
+      }
+
+      // Safety: if a draft exists with same id, assume it has been posted/updated and remove draft
+      if (Array.isArray(state.draftedJobs)) {
+        state.draftedJobs = state.draftedJobs.filter(j => j.id !== jobId);
       }
     },
 
@@ -1211,6 +1279,7 @@ const jobsSlice = createSlice({
     // Clear all jobs (for logout or reset)
     clearJobs: (state) => {
       state.activeJobs = [];
+      state.draftedJobs = [];
       state.completedJobs = [];
       state.expiredJobs = [];
       state.jobCandidates = {};
@@ -1243,6 +1312,7 @@ const jobsSlice = createSlice({
         return {
           ...state,
           activeJobs: mergedJobs, // Merge real jobs with dummy quick search jobs
+          draftedJobs: action.payload.jobs?.draftedJobs || state.draftedJobs || [],
           completedJobs: action.payload.jobs?.completedJobs || initialCompletedJobs,
           expiredJobs: action.payload.jobs?.expiredJobs || initialExpiredJobs,
           jobCandidates: action.payload.jobs?.jobCandidates || initialJobCandidates,
@@ -1255,6 +1325,8 @@ const jobsSlice = createSlice({
 });
 
 export const {
+  saveDraftJob,
+  deleteDraftJob,
   addJob,
   updateJob,
   closeJob,

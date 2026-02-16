@@ -5,6 +5,7 @@ import { colors, hp, wp, getFontSize } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import { screenNames } from '@/navigation/screenNames'
 import ActiveJobOffers from './ActiveJobOffers'
+import DraftedOffers from './DraftedOffers'
 import CompletedOffers from './CompletedOffers'
 import ExpiredOffers from './ExpiredOffers'
 
@@ -47,6 +48,17 @@ const HomeTopTabNavigator = () => {
           tabBarLabel: ({ focused }) => (
             <CustomTabLabel focused={focused}>
               Active job offers
+            </CustomTabLabel>
+          ),
+        }}
+      />
+      <Tab.Screen
+        name={screenNames.DRAFTED_OFFERS}
+        component={DraftedOffers}
+        options={{
+          tabBarLabel: ({ focused }) => (
+            <CustomTabLabel focused={focused}>
+              Drafted offers
             </CustomTabLabel>
           ),
         }}
