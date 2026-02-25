@@ -4,7 +4,7 @@ import {createDrawerNavigator} from '@react-navigation/drawer';
 import CustomDrawer from '@/core/CustomDrawer';
 import TabNavigator from './TabNavigator';
 import {screenNames} from './screenNames';
-import { JobPreview } from '@/screens';
+import {JobPreview} from '@/screens';
 import * as ui from '@/screens';
 import SupportStack from './SupportStack';
 import ManualSearchStack from './ManualSearchStack';
@@ -16,18 +16,24 @@ const Drawer = createDrawerNavigator();
 const DrawerNavigator = () => {
   return (
     <Drawer.Navigator
-    backBehavior='history'
-      drawerContent={props => <CustomDrawer {...props}  onNavigate={(route, params) => props.navigation.navigate(route, params)}
- />}
+      backBehavior="history"
+      drawerContent={props => (
+        <CustomDrawer
+          {...props}
+          onNavigate={(route, params) =>
+            props.navigation.navigate(route, params)
+          }
+        />
+      )}
       screenOptions={{
         headerShown: false,
         drawerStyle: styles.drawerStyle,
       }}>
-      <Drawer.Screen name={screenNames.Tab_NAVIGATION} component={TabNavigator} />
       <Drawer.Screen
-        name={screenNames.JOB_PREVIEW}
-        component={JobPreview}
+        name={screenNames.Tab_NAVIGATION}
+        component={TabNavigator}
       />
+      <Drawer.Screen name={screenNames.JOB_PREVIEW} component={JobPreview} />
       <Drawer.Screen
         name={screenNames.QUICK_SEARCH}
         component={ui.QuickSearch}
@@ -40,7 +46,7 @@ const DrawerNavigator = () => {
         name={screenNames.MANUAL_SEARCH_STACK}
         component={ManualSearchStack}
       />
-      
+
       {/* Manual Search Result Screens - moved out of stack */}
       <Drawer.Screen
         name={screenNames.MANUAL_MATCH_LIST}
@@ -55,78 +61,84 @@ const DrawerNavigator = () => {
         component={ui.ManualOffers}
       />
 
-        <Drawer.Screen
+      <Drawer.Screen
         name={screenNames.WALLET_STACK}
         component={ui.WalletStack}
       />
-        
-        <Drawer.Screen
-        name={screenNames.MESSAGES}
-        component={ui.Messages}
-      />
-             <Drawer.Screen
+
+      <Drawer.Screen name={screenNames.MESSAGES} component={ui.Messages} />
+      <Drawer.Screen
         name={screenNames.MAIN_DASHBOARD}
-        component={ui.MainDashboard}
+        component={ui.Home}
       />
-          <Drawer.Screen
+      <Drawer.Screen
+        name={screenNames.MATCHED_CANDIDATES_POOL}
+        component={ui.MatchedCandidatesPool}
+      />
+      <Drawer.Screen
+        name={screenNames.MATCHED_CANDIDATE_PROFILE}
+        component={ui.MatchedCandidateProfile}
+      />
+      <Drawer.Screen
+        name={screenNames.PENDING_OFFER_ACCEPTANCE}
+        component={ui.PendingOfferAcceptance}
+      />
+      <Drawer.Screen
         name={screenNames.LABOR_POOL}
         component={ui.LaborPoolScreen}
       />
-       <Drawer.Screen
+      <Drawer.Screen
         name={screenNames.SQUAD_POOL}
         component={ui.SquadPoolScreen}
       />
-          <Drawer.Screen
+      <Drawer.Screen
+        name={screenNames.SQUAD_REVIEWS}
+        component={ui.SquadReviews}
+      />
+      <Drawer.Screen
         name={screenNames.CONTRACTORS}
         component={ui.Contractors}
       />
-          <Drawer.Screen
-        name={screenNames.EMPLOYEES}
-        component={ui.Employees}
-      />
+      <Drawer.Screen name={screenNames.EMPLOYEES} component={ui.Employees} />
 
-          <Drawer.Screen
-        name={screenNames.ACTIVE_OFFERS}  
+      <Drawer.Screen
+        name={screenNames.ACTIVE_OFFERS}
         component={ui.ActiveJobOffers}
       />
 
-          <Drawer.Screen
-        name={screenNames.DRAFTED_OFFERS}  
+      <Drawer.Screen
+        name={screenNames.DRAFTED_OFFERS}
         component={ui.DraftedOffers}
       />
-          <Drawer.Screen
+      <Drawer.Screen
         name={screenNames.COMPLETED_OFFERS}
         component={ui.CompletedOffers}
       />
 
-          <Drawer.Screen  
+      <Drawer.Screen
         name={screenNames.EXPIRED_OFFERS}
         component={ui.ExpiredOffers}
       />
-       <Drawer.Screen  
+      <Drawer.Screen
         name={screenNames.STAFF_PREFERENCES}
         component={ui.StaffPreferences}
       />
 
-        <Drawer.Screen
-        name={screenNames.UPDATE_MAIN}
-        component={ui.UpdateMain}
-      />
-      
-        <Drawer.Screen
+      <Drawer.Screen name={screenNames.UPDATE_MAIN} component={ui.UpdateMain} />
+
+      <Drawer.Screen
         name={screenNames.UPDATE_SECOND}
         component={ui.UpdateSecond}
       />
-          <Drawer.Screen
+      <Drawer.Screen
         name={screenNames.UPDATE_THIRD}
         component={ui.UpdateThird}
       />
-       <Drawer.Screen
+      <Drawer.Screen
         name={screenNames.NOTICATIONS}
         component={ui.Notifications}
       />
 
-       
       {/* Quick Search Screens - Job Seeker */}
       <Drawer.Screen
         name={screenNames.QUICK_SEARCH_ACTIVE_OFFERS_JS}
@@ -156,7 +168,7 @@ const DrawerNavigator = () => {
         name={screenNames.CANDIDATE_HOURS}
         component={ui.CandidateHours}
       />
-      
+
       {/* Quick Search Screens - Recruiter */}
       <Drawer.Screen
         name={screenNames.QUICK_SEARCH_ACTIVE_OFFERS_RECRUITER}
@@ -183,15 +195,16 @@ const DrawerNavigator = () => {
         component={ui.QuickSearchCandidateProfile}
       />
       <Drawer.Screen
-        name={screenNames.SEND_OFFER}
-        component={ui.SendOffer}
+        name={screenNames.COMPLETED_WORKER_PROFILE}
+        component={ui.CompletedWorkerProfile}
       />
+      <Drawer.Screen name={screenNames.SEND_OFFER} component={ui.SendOffer} />
       {/* <Drawer.Screen
         name={screenNames.QUICK_SEARCH_MATCH_LIST}
         component={ui.QuickSearchMatchList}
       />
        */}
-            <Drawer.Screen
+      <Drawer.Screen
         name={screenNames.MARKETPLACE_STACK}
         component={ui.MarketplaceStack}
       />
@@ -207,33 +220,51 @@ const DrawerNavigator = () => {
         name={screenNames.JOB_CANDIDATES}
         component={ui.JobCandidates}
       />
-  <Drawer.Screen
-        name={screenNames.CHAT}
-        component={ui.Chat}
+      <Drawer.Screen name={screenNames.CHAT} component={ui.Chat} />
+      <Drawer.Screen name={screenNames.Wallet} component={ui.Wallet} />
+      <Drawer.Screen
+        name={screenNames.BASIC_DETAILS}
+        component={ui.BasicDetails}
       />
-  <Drawer.Screen
-        name={screenNames.Wallet}
-        component={ui.Wallet}
-      />
-       <Drawer.Screen name={screenNames.BASIC_DETAILS} component={ui.BasicDetails} />
       <Drawer.Screen name={screenNames.ADDRESS} component={ui.Address} />
-      <Drawer.Screen name={screenNames.CONTACT_DETAILS} component={ui.ContactDetails} />
-      <Drawer.Screen name={screenNames.TAX_INFO} component={ui.TaxInformation} />
-      <Drawer.Screen name={screenNames.VISA_DETAILS} component={ui.VisaDetails} />
-      <Drawer.Screen name={screenNames.KYC_KYB} component={ui.KycVerification} />
-      <Drawer.Screen name={screenNames.EXTRA_QUALIFICATIONS} component={ui.JobQualification} />
+      <Drawer.Screen
+        name={screenNames.CONTACT_DETAILS}
+        component={ui.ContactDetails}
+      />
+      <Drawer.Screen
+        name={screenNames.TAX_INFO}
+        component={ui.TaxInformation}
+      />
+      <Drawer.Screen
+        name={screenNames.VISA_DETAILS}
+        component={ui.VisaDetails}
+      />
+      <Drawer.Screen
+        name={screenNames.KYC_KYB}
+        component={ui.KycVerification}
+      />
+      <Drawer.Screen
+        name={screenNames.EXTRA_QUALIFICATIONS}
+        component={ui.JobQualification}
+      />
       <Drawer.Screen name={screenNames.BIO} component={ui.Biography} />
-      <Drawer.Screen name={screenNames.SOCIAL_MEDIA} component={ui.SocialMedia} />
+      <Drawer.Screen
+        name={screenNames.SOCIAL_MEDIA}
+        component={ui.SocialMedia}
+      />
       <Drawer.Screen name={screenNames.PASSWORD} component={ui.Password} />
       <Drawer.Screen name={screenNames.PROFILE} component={ui.Profile} />
       <Drawer.Screen name={'AccountSettings'} component={ui.AccountSettings} />
-      <Drawer.Screen name={screenNames.KYC_KYB_DOC} component={ui.KycDocument} />
-      <Drawer.Screen name={screenNames.KYC_KYB_SUBMIT} component={ui.KycSubmit} />
+      <Drawer.Screen
+        name={screenNames.KYC_KYB_DOC}
+        component={ui.KycDocument}
+      />
+      <Drawer.Screen
+        name={screenNames.KYC_KYB_SUBMIT}
+        component={ui.KycSubmit}
+      />
 
-  
-
-
-        <Drawer.Screen
+      <Drawer.Screen
         name={screenNames.JOB_SETTINGS}
         component={ui.JobSettings}
       />
@@ -250,12 +281,9 @@ const DrawerNavigator = () => {
         name={screenNames.ACCOUNT_UPGRADE}
         component={ui.AccountUpgrade}
       />
-      <Drawer.Screen
-        name={screenNames.SUPPORT}
-        component={SupportStack}
-      />
+      <Drawer.Screen name={screenNames.SUPPORT} component={SupportStack} />
 
-<Drawer.Screen
+      <Drawer.Screen
         name={screenNames.ACCEPTED_OFFERS}
         component={ui.AcceptedOffers}
       />
@@ -264,7 +292,6 @@ const DrawerNavigator = () => {
         name={screenNames.RECRUITER_BILLING_REPORTS}
         component={ui.RecruiterBillingReports}
       />
-
     </Drawer.Navigator>
   );
 };

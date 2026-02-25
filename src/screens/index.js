@@ -8,7 +8,7 @@ import PasswordReset from './auth/PasswordReset';
 import OnBoardingScreen from './auth/OnBoarding/OnBoardingScreen';
 import SignUp from './auth/SignUp';
 import VerifyEmail from './auth/VerifyEmail';
-import Home from './main/Recruiter/Home';
+import Dashboard from './main/Recruiter/Dashboard';
 import Chat from './main/Recruiter/Chat';
 import FindStaff from './main/Recruiter/FindStaff';
 import Wallet from './main/Recruiter/Wallet';
@@ -34,9 +34,13 @@ import ManualSearchStepFour from './main/Recruiter/ManualSearchSteps/StepFour';
 import ManualMatchList from './main/Recruiter/ManualSearchSteps/ManualMatchList';
 import ManualCandidateProfile from './main/Recruiter/ManualSearchSteps/ManualCandidateProfile';
 import ManualOffers from './main/Recruiter/ManualSearchSteps/ManualOffers';
-import MainDashboard from './main/Recruiter/DashBoard/MainDashboard';
+import Home from './main/Recruiter/DashBoard/Home';
+import MatchedCandidatesPool from './main/Recruiter/DashBoard/MatchedCandidatesPool';
+import MatchedCandidateProfile from './main/Recruiter/DashBoard/MatchedCandidateProfile';
+import PendingOfferAcceptance from './main/Recruiter/DashBoard/PendingOfferAcceptance';
 import LaborPoolScreen from './main/Recruiter/LaborPool/LaborPool';
 import SquadPoolScreen from './main/Recruiter/LaborPool/SquadPool';
+import SquadReviews from './main/Recruiter/LaborPool/SquadReviews';
 import Contractors from './main/Recruiter/LaborPool/Contractors';
 import Employees from './main/Recruiter/LaborPool/Employees';
 import SendOffer from './main/Recruiter/Offers/SendOffer';
@@ -90,11 +94,11 @@ import OrderDetails from './main/JobSeeker/DashBoard/MarketPlace/OrderDetails';
 import MarketplaceStack from '@/navigation/MarketplaceStack';
 
 // Marketplace Support Screens
-import { 
-  MarketplaceSupport, 
-  DisputeResolution, 
-  CreateDispute, 
-  DisputeDetails, 
+import {
+  MarketplaceSupport,
+  DisputeResolution,
+  CreateDispute,
+  DisputeDetails,
   MarketplaceFAQ,
   MarketplaceRequestCallback,
   MarketplaceSupportTickets,
@@ -113,6 +117,7 @@ import EditProfile from './main/Recruiter/profile/EditProfile';
 import QuickSearchPreview from './main/Recruiter/QuickSearch/QuickSearchPreview';
 import QuickSearchMatchList from './main/Recruiter/QuickSearch/MatchList';
 import QuickSearchCandidateProfile from './main/Recruiter/QuickSearch/CandidateProfile';
+import CompletedWorkerProfile from './main/Recruiter/CompletedWorkerProfile';
 
 import AcceptedOffers from './main/JobSeeker/AcceptedOffers';
 import JobOfferDetails from './main/JobSeeker/JobOfferDetails';
@@ -151,7 +156,7 @@ export {
   OnBoardingScreen,
   SignUp,
   VerifyEmail,
-  Home,
+  Dashboard,
   Wallet,
   FindStaff,
   Chat,
@@ -161,16 +166,13 @@ export {
   JobCandidates,
   QuickSearch,
   ManualSearch,
-
   AccountDetails,
   BankDetails,
   FormSummary,
   PurchaseCoins,
   WithdrawCoins,
-
   WalletStack,
   Messages,
-
   AbilityToWork,
   StepThree,
   StepTwo,
@@ -178,9 +180,13 @@ export {
   ManualMatchList,
   ManualCandidateProfile,
   ManualOffers,
-  MainDashboard,
+  Home,
+  MatchedCandidatesPool,
+  MatchedCandidateProfile,
+  PendingOfferAcceptance,
   LaborPoolScreen,
   SquadPoolScreen,
+  SquadReviews,
   Contractors,
   Employees,
   SendOffer,
@@ -219,42 +225,42 @@ export {
   KycDocument,
   KycSubmit,
   JobSeekerTabNavigator,
-JobSeekerDashboard,
-MarketPlace,
-ProductDetails,
-PostProduct,
-MarketplaceCart,
-MarketplaceFavorites,
-Checkout,
-Payment,
-Orders,
-OrderDetails,
-MarketplaceStack,
+  JobSeekerDashboard,
+  MarketPlace,
+  ProductDetails,
+  PostProduct,
+  MarketplaceCart,
+  MarketplaceFavorites,
+  Checkout,
+  Payment,
+  Orders,
+  OrderDetails,
+  MarketplaceStack,
 
-// Marketplace Support
-MarketplaceSupport,
-DisputeResolution,
-CreateDispute,
-DisputeDetails,
-MarketplaceFAQ,
-MarketplaceRequestCallback,
-MarketplaceSupportTickets,
-MarketplaceLiveChat,
-KycBusiness,
-AddExperience,
-AddJobStep1,
-AddJobStep2,
-SquadSettingsGroups,
-GroupDetail,
-Members,
-EditProfile,
+  // Marketplace Support
+  MarketplaceSupport,
+  DisputeResolution,
+  CreateDispute,
+  DisputeDetails,
+  MarketplaceFAQ,
+  MarketplaceRequestCallback,
+  MarketplaceSupportTickets,
+  MarketplaceLiveChat,
+  KycBusiness,
+  AddExperience,
+  AddJobStep1,
+  AddJobStep2,
+  SquadSettingsGroups,
+  GroupDetail,
+  Members,
+  EditProfile,
   QuickSearchPreview,
   QuickSearchMatchList,
   QuickSearchCandidateProfile,
-
-AcceptedOffers,
-JobOfferDetails,
-CompletedOffersJobSeeker,
+  CompletedWorkerProfile,
+  AcceptedOffers,
+  JobOfferDetails,
+  CompletedOffersJobSeeker,
 
   // Quick Search Screens
   QuickSearchActiveOffersJS,
@@ -272,7 +278,7 @@ CompletedOffersJobSeeker,
   JobSeekerJobReports,
   JobSeekerPerformanceAnalytics,
   RecruiterBillingReports,
-  
+
   // Manual Search Screens (Job Seeker)
   ManualOffersJS,
   MyCurrentJobs,

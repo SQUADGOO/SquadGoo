@@ -6,11 +6,15 @@ import AppDropDown from '@/core/AppDropDown';
 import CustomCalendar from '@/core/CustomCalendar';
 import {colors, hp, wp, getFontSize} from '@/theme';
 import { ScrollView } from 'react-native-gesture-handler';
+import { useDispatch, useSelector } from 'react-redux'
+import { setAllowModificationRequests, setQuickFillSendMode } from '@/store/recruiterSettingsSlice'
 
 const JobSettings = () => {
   // Dropdown states
   const [isJobTypeVisible, setIsJobTypeVisible] = useState(false);
   const [isUserTypeVisible, setIsUserTypeVisible] = useState(false);
+  const [isQuickFillSendModeVisible, setIsQuickFillSendModeVisible] =
+    useState(false)
   const [jobTypeFilter, setJobTypeFilter] = useState('both');
   const [userTypeFilter, setUserTypeFilter] = useState('all');
 
@@ -22,6 +26,14 @@ const JobSettings = () => {
   const [onlyProSeekers, setOnlyProSeekers] = useState(false);
   const [inAppPayments, setInAppPayments] = useState(false);
   const [squadMatching, setSquadMatching] = useState(false);
+
+  const dispatch = useDispatch()
+  const quickFillSendMode = useSelector(
+    (state) => state.recruiterSettings?.quickFillSendMode || 'auto',
+  )
+  const allowModificationRequests = useSelector(
+    (state) => state.recruiterSettings?.allowModificationRequests ?? true,
+  )
 
   // Dropdown options
   const jobTypeOptions = [
@@ -35,6 +47,11 @@ const JobSettings = () => {
     {label: 'Recruiters Only', value: 'recruiters'},
     {label: 'Individuals Only', value: 'individuals'},
   ];
+
+  const quickFillSendModeOptions = [
+    { label: 'Send Quick Fill job offers automatically', value: 'auto' },
+    { label: 'Send Quick Fill job offers manually', value: 'manual' },
+  ]
 
   // Toggle row helper function
   const renderToggleRow = (label, description, value, onChange) => (
@@ -147,6 +164,26 @@ const JobSettings = () => {
         <AppText variant={Variant.caption} style={styles.sectionDesc}>
           Configure automatic matching preferences
         </AppText>
+
+        <AppText variant={Variant.body} style={styles.inputLabel}>
+          Quick Fill send mode
+        </AppText>
+        <AppDropDown
+          placeholder="Select send mode"
+          options={quickFillSendModeOptions}
+          isVisible={isQuickFillSendModeVisible}
+          setIsVisible={setIsQuickFillSendModeVisible}
+          selectedValue={quickFillSendMode}
+          onSelect={(value) => dispatch(setQuickFillSendMode(value))}
+          style={[styles.filterDropdown, { zIndex: 1 }]}
+        />
+
+        {renderToggleRow(
+          'Allow modification requests',
+          'If enabled, candidates can request modifications to offers. These will appear in Pending.',
+          !!allowModificationRequests,
+          (v) => dispatch(setAllowModificationRequests(v)),
+        )}
 
         {renderToggleRow(
           'Enable AI auto-matching',

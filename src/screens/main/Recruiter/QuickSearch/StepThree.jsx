@@ -8,7 +8,6 @@ import AppButton from '@/core/AppButton'
 import FormField from '@/core/FormField'
 import AppHeader from '@/core/AppHeader'
 import CustomToggle from '@/core/CustomToggle'
-import globalStyles from '@/styles/globalStyles'
 import { screenNames } from '@/navigation/screenNames'
 
 const QuickSearchStepThree = ({ navigation, route }) => {
@@ -17,72 +16,85 @@ const QuickSearchStepThree = ({ navigation, route }) => {
 
   const step3Draft = draftJob?.rawData?.step3 || {}
 
-  const [toggleStates, setToggleStates] = useState(editMode ? (step3Draft?.extraPay ?? draftJob?.extraPay ?? {
-    publicHolidays: true,
-    weekend: true,
-    shiftLoading: true,
-    bonuses: true,
-    overtime: true
-  }) : {
-    publicHolidays: true,
-    weekend: true,
-    shiftLoading: true,
-    bonuses: true,
-    overtime: true
-  })
+  const [salaryType, setSalaryType] = useState(
+    editMode
+      ? (step3Draft?.salaryType ?? draftJob?.salaryType ?? 'Hourly')
+      : 'Hourly',
+  )
+  const [overtimeEnabled, setOvertimeEnabled] = useState(
+    editMode
+      ? !!(step3Draft?.overtimeEnabled ?? draftJob?.overtimeEnabled ?? step3Draft?.extraPay?.overtime ?? draftJob?.extraPay?.overtime)
+      : false,
+  )
 
   const methods = useForm({
     mode: 'onChange',
     defaultValues: {
-      salaryMin: editMode ? String(step3Draft?.salaryMin ?? draftJob?.salaryMin ?? '') : '',
-      salaryMax: editMode ? String(step3Draft?.salaryMax ?? draftJob?.salaryMax ?? '') : '',
+      fixedRate: editMode
+        ? String(
+            step3Draft?.fixedRate ??
+              step3Draft?.salaryMin ??
+              draftJob?.fixedRate ??
+              draftJob?.salaryMin ??
+              '',
+          )
+        : '',
+      overtimeRate: editMode
+        ? String(step3Draft?.overtimeRate ?? draftJob?.overtimeRate ?? '')
+        : '',
     },
   })
 
   useEffect(() => {
     if (editMode) {
-      const nextExtraPay = step3Draft?.extraPay ?? draftJob?.extraPay
-      if (nextExtraPay) setToggleStates(nextExtraPay)
+      setSalaryType(step3Draft?.salaryType ?? draftJob?.salaryType ?? 'Hourly')
+      setOvertimeEnabled(
+        !!(step3Draft?.overtimeEnabled ?? draftJob?.overtimeEnabled ?? step3Draft?.extraPay?.overtime ?? draftJob?.extraPay?.overtime),
+      )
 
       methods.reset({
-        salaryMin: String(step3Draft?.salaryMin ?? draftJob?.salaryMin ?? ''),
-        salaryMax: String(step3Draft?.salaryMax ?? draftJob?.salaryMax ?? ''),
+        fixedRate: String(
+          step3Draft?.fixedRate ??
+            step3Draft?.salaryMin ??
+            draftJob?.fixedRate ??
+            draftJob?.salaryMin ??
+            '',
+        ),
+        overtimeRate: String(step3Draft?.overtimeRate ?? draftJob?.overtimeRate ?? ''),
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editMode, draftJob])
 
-  const handleToggle = (key) => {
-    setToggleStates(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }))
-  }
-
   const onSubmit = (data) => {
-    const min = Number(data.salaryMin)
-    const max = Number(data.salaryMax)
+    const fixed = Number(data.fixedRate)
 
-    if (Number.isNaN(min) || Number.isNaN(max)) {
-      Alert.alert('Invalid salary', 'Please enter numeric values for both minimum and maximum salary.')
+    if (Number.isNaN(fixed)) {
+      Alert.alert('Invalid rate', 'Please enter a numeric fixed rate.')
       return
     }
 
-    if (min <= 0) {
-      Alert.alert('Invalid salary', 'Minimum salary must be greater than 0.')
+    if (fixed <= 0) {
+      Alert.alert('Invalid rate', 'Fixed rate must be greater than 0.')
       return
     }
 
-    if (max < min) {
-      Alert.alert('Invalid range', 'Maximum salary must be greater than or equal to minimum salary.')
-      return
+    const overtimeRateNum = Number(data.overtimeRate)
+    if (overtimeEnabled) {
+      if (Number.isNaN(overtimeRateNum) || overtimeRateNum <= 0) {
+        Alert.alert('Invalid overtime rate', 'Please enter a valid overtime rate greater than 0.')
+        return
+      }
     }
 
     const quickSearchStep3Data = {
-      ...data,
-      salaryMin: min,
-      salaryMax: max,
-      extraPay: toggleStates,
+      salaryType,
+      fixedRate: fixed,
+      salaryMin: fixed,
+      salaryMax: fixed,
+      overtimeEnabled,
+      overtimeRate: overtimeEnabled ? overtimeRateNum : null,
+      extraPay: { overtime: overtimeEnabled },
     }
 
     console.log('Quick Search Step 3 Data:', quickSearchStep3Data)
@@ -110,7 +122,7 @@ const QuickSearchStepThree = ({ navigation, route }) => {
         rightComponent={
           <TouchableOpacity activeOpacity={0.7}>
             <AppText variant={Variant.body} style={styles.stepText}>
-              Step 3/4
+              Step 3/5
             </AppText>
           </TouchableOpacity>
         }
@@ -120,44 +132,50 @@ const QuickSearchStepThree = ({ navigation, route }) => {
         {/* Salary Section */}
         <View style={styles.section}>
           <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
-            Salary you are offering*
+            Fixed rate*
           </AppText>
-          
-          <View style={styles.salaryRow}>
-            <View style={{width: '42%'}}>
-              <FormField
-                name="salaryMin"
-                placeholder="Minimum"
-                keyboardType="numeric"
-                rules={{
-                  required: 'Minimum salary is required',
-                  validate: value =>
-                    value.trim() !== '' && !Number.isNaN(Number(value)) || 'Enter a valid number',
-                }}
-                startIcon={
-                  <AppText variant={Variant.body} style={styles.currencySymbol}>$</AppText>
-                }
-              />
-            </View>
-            
-            <AppText variant={Variant.body} style={styles.toText}>To</AppText>
 
-            <View style={{width: '42%'}}>
-              <FormField
-                name="salaryMax"
-                placeholder="Maximum"
-                keyboardType="numeric"
-                rules={{
-                  required: 'Maximum salary is required',
-                  validate: value =>
-                    value.trim() !== '' && !Number.isNaN(Number(value)) || 'Enter a valid number',
-                }}
-                startIcon={
-                  <AppText variant={Variant.body} style={styles.currencySymbol}>$</AppText>
-                }
-              />
-            </View>
+          <AppText variant={Variant.bodyMedium} style={styles.label}>
+            Salary type*
+          </AppText>
+          <View style={styles.salaryTypeRow}>
+            {['Hourly', 'Per job'].map((t) => (
+              <TouchableOpacity
+                key={t}
+                activeOpacity={0.8}
+                onPress={() => setSalaryType(t)}
+                style={[
+                  styles.salaryTypeBtn,
+                  salaryType === t && styles.salaryTypeBtnActive,
+                ]}
+              >
+                <AppText
+                  variant={Variant.bodyMedium}
+                  style={[
+                    styles.salaryTypeText,
+                    salaryType === t && styles.salaryTypeTextActive,
+                  ]}
+                >
+                  {t}
+                </AppText>
+              </TouchableOpacity>
+            ))}
           </View>
+
+          <FormField
+            name="fixedRate"
+            placeholder="Enter fixed rate"
+            keyboardType="numeric"
+            rules={{
+              required: 'Fixed rate is required',
+              validate: value =>
+                value.trim() !== '' && !Number.isNaN(Number(value)) && Number(value) > 0 ||
+                'Enter a valid number greater than 0',
+            }}
+            startIcon={
+              <AppText variant={Variant.body} style={styles.currencySymbol}>$</AppText>
+            }
+          />
         </View>
 
         {/* Extra Pay Section */}
@@ -165,47 +183,32 @@ const QuickSearchStepThree = ({ navigation, route }) => {
           <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
             Extra pay
           </AppText>
-          
-          <View style={styles.toggleGrid}>
-            <View style={globalStyles.rowJustify}>
-              <View style={{width: '48%'}}>
-                <CustomToggle
-                  label='Public holidays'
-                  onChange={() => handleToggle('publicHolidays')}
-                />
-              </View>
-              <View style={{width: '48%'}}>
-                <CustomToggle
-                  label="Weekend"
-                  onChange={() => handleToggle('weekend')}
-                />
-              </View>
-            </View>
-
-            <View style={globalStyles.rowJustify}>
-              <View style={{width: '48%'}}>
-                <CustomToggle
-                  label='Shift loading'
-                  onChange={() => handleToggle('shiftLoading')}
-                />
-              </View>
-              <View style={{width: '48%'}}>
-                <CustomToggle
-                  label="Bonuses"
-                  onChange={() => handleToggle('bonuses')}
-                />
-              </View>
-            </View>
-
-            <View style={globalStyles.rowJustify}>
-              <View style={{width: '48%'}}>
-                <CustomToggle
-                  label='Overtime'
-                  onChange={() => handleToggle('overtime')}
-                />
-              </View>
-            </View>
-          </View>
+          <CustomToggle
+            label="Overtime"
+            value={overtimeEnabled}
+            onChange={() => setOvertimeEnabled((v) => !v)}
+          />
+          {overtimeEnabled ? (
+            <>
+              <AppText variant={Variant.bodyMedium} style={styles.label}>
+                Overtime rate*
+              </AppText>
+              <FormField
+                name="overtimeRate"
+                placeholder="Enter overtime rate"
+                keyboardType="numeric"
+                rules={{
+                  required: 'Overtime rate is required',
+                  validate: value =>
+                    value.trim() !== '' && !Number.isNaN(Number(value)) && Number(value) > 0 ||
+                    'Enter a valid number greater than 0',
+                }}
+                startIcon={
+                  <AppText variant={Variant.body} style={styles.currencySymbol}>$</AppText>
+                }
+              />
+            </>
+          ) : null}
         </View>
 
         {/* Next Button */}
@@ -245,6 +248,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginBottom: hp(2),
   },
+  label: {
+    color: colors.secondary,
+    fontSize: getFontSize(14),
+    fontWeight: '500',
+    marginBottom: hp(1),
+  },
   salaryRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -266,5 +275,28 @@ const styles = StyleSheet.create({
   buttonContainer: { 
     marginTop: hp(2), 
     marginBottom: hp(6) 
+  },
+  salaryTypeRow: {
+    flexDirection: 'row',
+    gap: wp(2),
+    marginBottom: hp(2),
+  },
+  salaryTypeBtn: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    paddingVertical: hp(1.2),
+    borderRadius: 50,
+    alignItems: 'center',
+  },
+  salaryTypeBtnActive: {
+    backgroundColor: colors.primary,
+  },
+  salaryTypeText: {
+    color: colors.primary,
+    fontWeight: '700',
+  },
+  salaryTypeTextActive: {
+    color: colors.white,
   },
 })

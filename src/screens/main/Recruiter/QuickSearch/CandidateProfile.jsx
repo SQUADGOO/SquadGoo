@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import AppHeader from '@/core/AppHeader';
 import AppText, { Variant } from '@/core/AppText';
@@ -21,6 +21,7 @@ import { DUMMY_EMPLOYEES } from '@/utilities/dummyEmployees';
 import SendManualOfferModal from '@/components/Recruiter/ManualSearch/SendManualOfferModal';
 import { showToast, toastTypes } from '@/utilities/toastConfig';
 import { screenNames } from '@/navigation/screenNames';
+import { scoreJobPostSuspicion } from '@/utilities/mediaModeration';
 
 const QuickSearchCandidateProfile = ({ route, navigation }) => {
   const { jobId, candidateId, squadId, mode } = route.params || {};
@@ -157,6 +158,11 @@ const QuickSearchCandidateProfile = ({ route, navigation }) => {
   }, [matches, candidateId, jobId, allOffers, acceptanceRatings, isSquad, squad]);
   
   const [offerModal, setOfferModal] = useState(false);
+  const [activeTab, setActiveTab] = useState('profile'); // for squad profile: 'profile' | 'media' | 'reviews'
+
+  // Frontend-only Squad MEDIA (will be backed by API later)
+  const [mediaDraft, setMediaDraft] = useState('');
+  const [mediaPosts, setMediaPosts] = useState([]); // [{id, text, status:'published'|'pending', createdAt, moderation:{score,reasons}}]
 
   const handleMessage = () => {
     if (!candidateId) return;
@@ -229,7 +235,50 @@ const QuickSearchCandidateProfile = ({ route, navigation }) => {
         showTopIcons={false}
         onBackPress={() => navigation.goBack()}
       />
+      {candidate.isSquad ? (
+        <View style={styles.tabsBar}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => setActiveTab('profile')}
+            style={[styles.tabBtn, activeTab === 'profile' && styles.tabBtnActive]}
+          >
+            <AppText
+              variant={Variant.bodyMedium}
+              style={[styles.tabText, activeTab === 'profile' && styles.tabTextActive]}
+            >
+              PROFILE
+            </AppText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => setActiveTab('media')}
+            style={[styles.tabBtn, activeTab === 'media' && styles.tabBtnActive]}
+          >
+            <AppText
+              variant={Variant.bodyMedium}
+              style={[styles.tabText, activeTab === 'media' && styles.tabTextActive]}
+            >
+              MEDIA
+            </AppText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => setActiveTab('reviews')}
+            style={[styles.tabBtn, activeTab === 'reviews' && styles.tabBtnActive]}
+          >
+            <AppText
+              variant={Variant.bodyMedium}
+              style={[styles.tabText, activeTab === 'reviews' && styles.tabTextActive]}
+            >
+              REVIEWS
+            </AppText>
+          </TouchableOpacity>
+        </View>
+      ) : null}
+
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {!candidate.isSquad || activeTab === 'profile' ? (
+          <>
         {/* Expired summary (read-only) */}
         {isExpiredReview ? (
           <View style={styles.card}>
@@ -1033,6 +1082,314 @@ const QuickSearchCandidateProfile = ({ route, navigation }) => {
             </>
           )}
         </View>
+          </>
+        ) : activeTab === 'media' ? (
+          <>
+            <View style={styles.card}>
+              <View style={styles.sectionHeader}>
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="images-outline"
+                  size={20}
+                  color={colors.primary}
+                />
+                <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
+                  Media
+                </AppText>
+              </View>
+              <View style={styles.divider} />
+              <View style={styles.policyBanner}>
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="shield-checkmark-outline"
+                  size={18}
+                  color={colors.primary}
+                />
+                <View style={{ flex: 1 }}>
+                  <AppText variant={Variant.bodyMedium} style={styles.policyTitle}>
+                    No job-post content allowed
+                  </AppText>
+                  <AppText variant={Variant.caption} style={styles.policyText}>
+                    Any post suspected to be a job advertisement will be blocked or sent to Pending until customer service verifies it.
+                  </AppText>
+                </View>
+              </View>
+
+              <AppText variant={Variant.caption} style={styles.inputLabel}>
+                Create a post
+              </AppText>
+              <TextInput
+                value={mediaDraft}
+                onChangeText={setMediaDraft}
+                placeholder="Share updates, photos, achievements... (no job ads)"
+                placeholderTextColor="#9CA3AF"
+                style={styles.postInput}
+                multiline
+              />
+              <View style={styles.postActionsRow}>
+                <AppButton
+                  text="Publish"
+                  bgColor={colors.primary}
+                  textColor="#FFFFFF"
+                  onPress={() => {
+                    const text = String(mediaDraft || '').trim();
+                    if (!text) return;
+
+                    const moderation = scoreJobPostSuspicion(text);
+                    const isSuspected = moderation.isSuspectedJobPost;
+
+                    const nextPost = {
+                      id: `post_${Date.now()}`,
+                      text,
+                      createdAt: new Date().toISOString(),
+                      status: isSuspected ? 'pending' : 'published',
+                      moderation,
+                    };
+
+                    setMediaPosts((prev) => [nextPost, ...(prev || [])]);
+                    setMediaDraft('');
+
+                    if (isSuspected) {
+                      showToast(
+                        'Your post looks like a job advertisement. It has been sent to Pending for verification.',
+                        'Pending verification',
+                        toastTypes.warning
+                      );
+                    } else {
+                      showToast('Post published', 'Success', toastTypes.success);
+                    }
+                  }}
+                  style={{ marginTop: hp(1.2) }}
+                />
+              </View>
+            </View>
+
+            {mediaPosts.length ? (
+              mediaPosts.map((p) => (
+                <View key={p.id} style={styles.card}>
+                  <View style={styles.mediaPostHeader}>
+                    <AppText variant={Variant.bodyMedium} style={styles.mediaPostStatus}>
+                      {p.status === 'pending' ? 'PENDING' : 'PUBLISHED'}
+                    </AppText>
+                    {p.status === 'pending' ? (
+                      <AppText variant={Variant.caption} style={styles.pendingHint}>
+                        (customer service will verify)
+                      </AppText>
+                    ) : null}
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => setMediaPosts((prev) => (prev || []).filter((x) => x.id !== p.id))}
+                      style={styles.deletePostBtn}
+                    >
+                      <VectorIcons
+                        name={iconLibName.Ionicons}
+                        iconName="trash-outline"
+                        size={18}
+                        color="#EF4444"
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  <AppText variant={Variant.body} style={styles.mediaPostText}>
+                    {p.text}
+                  </AppText>
+                  {p.status === 'pending' && Array.isArray(p.moderation?.reasons) && p.moderation.reasons.length ? (
+                    <View style={styles.moderationReasons}>
+                      <AppText variant={Variant.caption} style={styles.moderationTitle}>
+                        Why it was flagged
+                      </AppText>
+                      {p.moderation.reasons.slice(0, 3).map((r, idx) => (
+                        <AppText key={`${p.id}_r_${idx}`} variant={Variant.caption} style={styles.moderationReason}>
+                          - {r}
+                        </AppText>
+                      ))}
+                    </View>
+                  ) : null}
+                </View>
+              ))
+            ) : (
+              <View style={styles.card}>
+                <AppText variant={Variant.body} style={styles.comingSoonTitle}>
+                  No posts yet
+                </AppText>
+                <AppText variant={Variant.caption} style={styles.comingSoonText}>
+                  Posts will appear here once the Squad Group starts publishing updates.
+                </AppText>
+                <View style={styles.mediaActionsRow}>
+                  <View style={styles.mediaActionChip}>
+                    <VectorIcons
+                      name={iconLibName.Ionicons}
+                      iconName="heart-outline"
+                      size={16}
+                      color={colors.primary}
+                    />
+                    <AppText variant={Variant.caption} style={styles.mediaActionText}>
+                      Like
+                    </AppText>
+                  </View>
+                  <View style={styles.mediaActionChip}>
+                    <VectorIcons
+                      name={iconLibName.Ionicons}
+                      iconName="share-social-outline"
+                      size={16}
+                      color={colors.primary}
+                    />
+                    <AppText variant={Variant.caption} style={styles.mediaActionText}>
+                      Share
+                    </AppText>
+                  </View>
+                  <View style={styles.mediaActionChip}>
+                    <VectorIcons
+                      name={iconLibName.Ionicons}
+                      iconName="chatbubble-ellipses-outline"
+                      size={16}
+                      color={colors.primary}
+                    />
+                    <AppText variant={Variant.caption} style={styles.mediaActionText}>
+                      Comment
+                    </AppText>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            <View style={styles.footerActions}>
+              {isDeclinedReview || isExpiredReview ? (
+                <AppButton
+                  text="Back"
+                  onPress={() => navigation.goBack()}
+                  bgColor="#FFFFFF"
+                  textStyle={{color: colors.primary}}
+                  style={styles.secondaryButton}
+                />
+              ) : isWorkCoordination ? (
+                <>
+                  <AppButton
+                    text="Message"
+                    onPress={handleMessage}
+                    bgColor={colors.primary}
+                    textColor="#FFF"
+                    style={styles.primaryButton}
+                  />
+                  <AppButton
+                    text="Track Hours"
+                    onPress={handleTrackHours}
+                    bgColor="#FFFFFF"
+                    textStyle={{color: colors.primary}}
+                    style={styles.secondaryButton}
+                  />
+                </>
+              ) : (
+                <>
+                  <AppButton
+                    text="Send Offer"
+                    onPress={() => setOfferModal(true)}
+                    bgColor={colors.primary}
+                    textColor="#FFF"
+                    style={styles.primaryButton}
+                  />
+                  <AppButton
+                    text="Back to Matches"
+                    onPress={() =>
+                      navigation.goBack()
+                    }
+                    bgColor="#FFFFFF"
+                    textStyle={{color: colors.primary}}
+                    style={styles.secondaryButton}
+                  />
+                </>
+              )}
+            </View>
+          </>
+        ) : (
+          <>
+            <View style={styles.card}>
+              <View style={styles.sectionHeader}>
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="star-outline"
+                  size={20}
+                  color={colors.primary}
+                />
+                <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
+                  Reviews
+                </AppText>
+              </View>
+              <View style={styles.divider} />
+
+              {candidate.squad?.members?.some((m) => Array.isArray(m?.reviews) && m.reviews.length) ? (
+                candidate.squad.members.flatMap((m) =>
+                  (m?.reviews || []).map((r, idx) => ({
+                    key: `${m.id}_${idx}`,
+                    memberName: m.name,
+                    reviewer: r.reviewer,
+                    rating: r.rating,
+                    comment: r.comment,
+                    date: r.date,
+                  }))
+                ).map((r) => (
+                  <View key={r.key} style={styles.reviewCard}>
+                    <View style={styles.reviewRow}>
+                      <View style={{ flex: 1 }}>
+                        <AppText variant={Variant.bodyMedium} style={styles.reviewReviewer}>
+                          {r.reviewer || 'Recruiter'}
+                        </AppText>
+                        <AppText variant={Variant.caption} style={styles.reviewMeta}>
+                          {r.memberName ? `For ${r.memberName}` : ''}
+                          {r.date ? `${r.memberName ? ' • ' : ''}${r.date}` : ''}
+                        </AppText>
+                      </View>
+                      <View style={styles.reviewRatingPill}>
+                        <VectorIcons
+                          name={iconLibName.Ionicons}
+                          iconName="star"
+                          size={14}
+                          color="#F59E0B"
+                        />
+                        <AppText variant={Variant.caption} style={styles.reviewRatingText}>
+                          {typeof r.rating === 'number' ? r.rating.toFixed(1) : r.rating || '—'}
+                        </AppText>
+                      </View>
+                    </View>
+                    {r.comment ? (
+                      <AppText variant={Variant.body} style={styles.reviewComment}>
+                        {r.comment}
+                      </AppText>
+                    ) : null}
+                  </View>
+                ))
+              ) : (
+                <>
+                  <AppText variant={Variant.body} style={styles.comingSoonTitle}>
+                    No reviews yet
+                  </AppText>
+                  <AppText variant={Variant.caption} style={styles.comingSoonText}>
+                    Reviews will appear here once recruiters leave feedback for squad members.
+                  </AppText>
+                </>
+              )}
+            </View>
+
+            <View style={styles.footerActions}>
+              {isDeclinedReview || isExpiredReview ? (
+                <AppButton
+                  text="Back"
+                  onPress={() => navigation.goBack()}
+                  bgColor="#FFFFFF"
+                  textStyle={{color: colors.primary}}
+                  style={styles.secondaryButton}
+                />
+              ) : (
+                <AppButton
+                  text="Back"
+                  onPress={() => navigation.goBack()}
+                  bgColor="#FFFFFF"
+                  textStyle={{color: colors.primary}}
+                  style={styles.secondaryButton}
+                />
+              )}
+            </View>
+          </>
+        )}
       </ScrollView>
 
       {!isWorkCoordination && !isDeclinedReview && !isExpiredReview ? (
@@ -1053,6 +1410,35 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background || '#F5F7FA',
+  },
+  tabsBar: {
+    flexDirection: 'row',
+    marginHorizontal: wp(4),
+    marginTop: hp(1),
+    backgroundColor: '#FFFFFF',
+    borderRadius: hp(1.6),
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    overflow: 'hidden',
+  },
+  tabBtn: {
+    flex: 1,
+    paddingVertical: hp(1.2),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  tabBtnActive: {
+    backgroundColor: '#EEF2FF',
+  },
+  tabText: {
+    color: colors.gray,
+    fontWeight: '800',
+    fontSize: getFontSize(12),
+    letterSpacing: 0.5,
+  },
+  tabTextActive: {
+    color: colors.primary,
   },
   content: {
     padding: wp(4),
@@ -1079,6 +1465,116 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
+  },
+  comingSoonTitle: {
+    marginTop: hp(1),
+    color: colors.secondary,
+    fontWeight: '800',
+  },
+  comingSoonText: {
+    marginTop: hp(0.8),
+    color: colors.gray,
+    lineHeight: hp(2.1),
+  },
+  mediaActionsRow: {
+    marginTop: hp(2),
+    flexDirection: 'row',
+    gap: wp(2),
+    flexWrap: 'wrap',
+  },
+  mediaActionChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1.5),
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.9),
+    borderRadius: 999,
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  mediaActionText: {
+    color: colors.secondary,
+    fontWeight: '700',
+  },
+  policyBanner: {
+    flexDirection: 'row',
+    gap: wp(2),
+    backgroundColor: '#FFF7ED',
+    borderWidth: 1,
+    borderColor: '#FDBA74',
+    padding: wp(3),
+    borderRadius: hp(1.6),
+    marginTop: hp(1),
+  },
+  policyTitle: {
+    color: colors.secondary,
+    fontWeight: '800',
+  },
+  policyText: {
+    marginTop: hp(0.3),
+    color: colors.gray,
+    lineHeight: hp(2.0),
+  },
+  inputLabel: {
+    marginTop: hp(1.5),
+    color: colors.gray,
+    fontWeight: '700',
+  },
+  postInput: {
+    marginTop: hp(0.8),
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#FFFFFF',
+    borderRadius: hp(1.5),
+    paddingHorizontal: wp(3.5),
+    paddingVertical: hp(1.2),
+    minHeight: hp(10),
+    color: colors.secondary,
+    textAlignVertical: 'top',
+  },
+  postActionsRow: {
+    marginTop: hp(0.5),
+  },
+  mediaPostHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+  },
+  mediaPostStatus: {
+    color: colors.secondary,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  pendingHint: {
+    color: colors.gray,
+    flex: 1,
+  },
+  deletePostBtn: {
+    marginLeft: 'auto',
+    padding: wp(1),
+  },
+  mediaPostText: {
+    marginTop: hp(1),
+    color: colors.secondary,
+    lineHeight: hp(2.2),
+  },
+  moderationReasons: {
+    marginTop: hp(1.2),
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: hp(1.4),
+    padding: wp(3),
+  },
+  moderationTitle: {
+    color: colors.secondary,
+    fontWeight: '800',
+    marginBottom: hp(0.5),
+  },
+  moderationReason: {
+    color: colors.gray,
+    marginTop: hp(0.3),
   },
   profileHeader: {
     flexDirection: 'row',
@@ -1349,6 +1845,28 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     flex: 1,
     paddingRight: wp(2),
+  },
+  reviewCard: {
+    marginTop: hp(1.2),
+    paddingTop: hp(1.2),
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+  },
+  reviewRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: wp(2),
+    marginBottom: hp(0.8),
+  },
+  reviewRatingPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1),
+    paddingHorizontal: wp(2.5),
+    paddingVertical: hp(0.6),
+    borderRadius: 999,
+    backgroundColor: `${'#F59E0B'}15`,
   },
   reviewRating: {
     flexDirection: 'row',

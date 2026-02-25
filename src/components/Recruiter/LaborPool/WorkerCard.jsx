@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { colors, hp, wp, getFontSize } from '@/theme';
 import AppText, { Variant } from '@/core/AppText';
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
@@ -17,6 +17,8 @@ import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
  * - onView: Callback when View button is pressed
  * - onOffer: Callback when Offer button is pressed
  * - onPress: Optional callback when card is pressed
+ * - keySkills: Optional array of strings to show as "KEY SKILLS" chips (used for Squad cards)
+ * - onPressRating: Optional callback when rating is pressed (used to open Reviews)
  */
 const WorkerCard = ({
   name,
@@ -28,11 +30,18 @@ const WorkerCard = ({
   onView,
   onOffer,
   onPress,
+  keySkills = [],
+  onPressRating,
 }) => {
   const Wrapper = onPress ? TouchableOpacity : View;
   const wrapperProps = onPress
     ? { activeOpacity: 0.7, onPress }
     : {};
+
+  const visibleSkills = useMemo(() => {
+    const skills = (keySkills || []).filter(Boolean);
+    return skills.slice(0, 6);
+  }, [keySkills]);
 
   return (
     <Wrapper style={styles.card} {...wrapperProps}>
@@ -62,7 +71,12 @@ const WorkerCard = ({
           </View>
         </View>
 
-        <View style={styles.ratingContainer}>
+        <TouchableOpacity
+          disabled={!onPressRating}
+          onPress={onPressRating}
+          activeOpacity={0.85}
+          style={styles.ratingContainer}
+        >
           <VectorIcons
             name={iconLibName.Ionicons}
             iconName="star"
@@ -72,7 +86,7 @@ const WorkerCard = ({
           <AppText variant={Variant.caption} style={styles.ratingText}>
             {rating}
           </AppText>
-        </View>
+        </TouchableOpacity>
       </View>
 
       {/* Stats Row */}
@@ -113,6 +127,24 @@ const WorkerCard = ({
           {rate}
         </AppText>
       </View>
+
+      {/* Key skills (for squad cards) */}
+      {visibleSkills.length ? (
+        <View style={styles.skillsSection}>
+          <AppText variant={Variant.caption} style={styles.skillsTitle}>
+            KEY SKILLS
+          </AppText>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.skillsRow}>
+            {visibleSkills.map((s) => (
+              <View key={s} style={styles.skillChip}>
+                <AppText variant={Variant.caption} style={styles.skillChipText}>
+                  {s}
+                </AppText>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      ) : null}
 
       {/* Actions */}
       <View style={styles.cardActions}>
@@ -242,6 +274,30 @@ const styles = StyleSheet.create({
   expiryText: {
     color: colors.gray,
     fontSize: getFontSize(12),
+  },
+  skillsSection: {
+    marginTop: hp(0.5),
+  },
+  skillsTitle: {
+    color: colors.gray,
+    fontWeight: '800',
+    marginBottom: hp(1),
+  },
+  skillsRow: {
+    gap: wp(2),
+    paddingRight: wp(2),
+  },
+  skillChip: {
+    backgroundColor: '#EEF2FF',
+    borderWidth: 1,
+    borderColor: '#C7D2FE',
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.7),
+    borderRadius: 999,
+  },
+  skillChipText: {
+    color: colors.primary,
+    fontWeight: '700',
   },
   cardActions: {
     flexDirection: 'row',

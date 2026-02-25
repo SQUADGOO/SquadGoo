@@ -7,7 +7,12 @@ import AppInputField from '@/core/AppInputField';
 import RbSheetComponent from '@/core/RbSheetComponent';
 import { EDUCATION_LEVELS } from '@/utilities/appData';
 
-const EducationSelector = ({ onSelect, selectedEducation, placeholder = 'Select education level' }) => {
+const EducationSelector = ({
+  onSelect,
+  selectedEducation,
+  placeholder = 'Select education level',
+  courseOnly = false,
+}) => {
   const sheetRef = useRef(null);
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [courseValue, setCourseValue] = useState('');
@@ -60,7 +65,16 @@ const EducationSelector = ({ onSelect, selectedEducation, placeholder = 'Select 
       });
       sheetRef.current?.close();
     } else if (levelConfig.requiresCourse && levelConfig.requiresFaculty) {
-      if (courseValue.trim() && facultyValue.trim()) {
+      if (courseOnly) {
+        if (courseValue.trim()) {
+          onSelect && onSelect({
+            level: selectedLevel,
+            course: courseValue.trim(),
+            faculty: null,
+          });
+          sheetRef.current?.close();
+        }
+      } else if (courseValue.trim() && facultyValue.trim()) {
         onSelect && onSelect({
           level: selectedLevel,
           course: courseValue.trim(),
@@ -90,14 +104,17 @@ const EducationSelector = ({ onSelect, selectedEducation, placeholder = 'Select 
 
   const levelConfig = selectedLevel ? EDUCATION_LEVELS[selectedLevel] : null;
   const showCourseInput = selectedLevel && levelConfig?.requiresCourse && selectedLevel !== 'OTHERS';
-  const showFacultyInput = selectedLevel && levelConfig?.requiresFaculty && selectedLevel !== 'OTHERS';
+  const showFacultyInput =
+    selectedLevel && levelConfig?.requiresFaculty && selectedLevel !== 'OTHERS' && !courseOnly;
   const showOtherInput = selectedLevel === 'OTHERS';
   const canConfirm = showOtherInput
     ? otherValue.trim()
     : selectedLevel === '<_10th'
     ? true
-    : showCourseInput && showFacultyInput
-    ? courseValue.trim() && facultyValue.trim()
+    : showCourseInput && (courseOnly ? true : showFacultyInput)
+    ? courseOnly
+      ? courseValue.trim()
+      : courseValue.trim() && facultyValue.trim()
     : false;
 
   return (
@@ -219,7 +236,7 @@ const EducationSelector = ({ onSelect, selectedEducation, placeholder = 'Select 
             </View>
           )}
 
-          {showCourseInput && showFacultyInput && (
+          {showCourseInput && (courseOnly || showFacultyInput) && (
             <View style={styles.inputContainer}>
               <AppInputField
                 label="Which course"
@@ -228,13 +245,15 @@ const EducationSelector = ({ onSelect, selectedEducation, placeholder = 'Select 
                 onChangeText={setCourseValue}
                 style={styles.courseInput}
               />
-              <AppInputField
-                label="In which faculty"
-                placeholder="Enter faculty name"
-                value={facultyValue}
-                onChangeText={setFacultyValue}
-                style={styles.facultyInput}
-              />
+              {!courseOnly ? (
+                <AppInputField
+                  label="In which faculty"
+                  placeholder="Enter faculty name"
+                  value={facultyValue}
+                  onChangeText={setFacultyValue}
+                  style={styles.facultyInput}
+                />
+              ) : null}
               <TouchableOpacity
                 style={[
                   styles.confirmButton,

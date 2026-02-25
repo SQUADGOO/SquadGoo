@@ -1,11 +1,11 @@
-import React from 'react'
-import { View, StyleSheet, TouchableOpacity } from 'react-native'
-import { colors, hp, wp, getFontSize } from '@/theme'
-import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
-import AppText, { Variant } from '@/core/AppText'
+import React from 'react';
+import {View, StyleSheet, TouchableOpacity} from 'react-native';
+import {colors, hp, wp, getFontSize} from '@/theme';
+import VectorIcons, {iconLibName} from '@/theme/vectorIcon';
+import AppText, {Variant} from '@/core/AppText';
 
 // Reusable Job Detail Row Component
-const JobDetailRow = ({ iconName, label, value }) => (
+const JobDetailRow = ({iconName, label, value}) => (
   <View style={styles.detailRow}>
     <VectorIcons
       name={iconLibName.Ionicons}
@@ -15,59 +15,74 @@ const JobDetailRow = ({ iconName, label, value }) => (
       style={styles.detailIcon}
     />
     <AppText variant={Variant.body} style={styles.detailText}>
-      {label}: <AppText variant={Variant.bodyMedium} style={styles.detailValue}>{value}</AppText>
+      {label}:{' '}
+      <AppText variant={Variant.bodyMedium} style={styles.detailValue}>
+        {value}
+      </AppText>
     </AppText>
   </View>
-)
+);
 
-const CompletedJobCard = ({ 
-  job, 
-  positionsFilled,
-  onViewDetails
-}) => {
-  const formatAuDate = (value) => {
-    if (!value) return '—'
+const CompletedJobCard = ({job, positionsFilled, onViewDetails}) => {
+  const formatAuDate = value => {
+    if (!value) return '—';
+
     if (typeof value === 'string') {
-      const s = value.trim()
-      if (/^\d{1,2}\s+[A-Za-z]{3,}\s+\d{4}$/.test(s)) return s
-    }
-    const d = value instanceof Date ? value : new Date(value)
-    if (Number.isNaN(d.getTime())) return typeof value === 'string' ? value : '—'
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-  }
+      const s = value.trim();
 
-  const toNumber = (v) => {
-    const n = typeof v === 'number' ? v : Number(v)
-    return Number.isFinite(n) ? n : null
-  }
+      if (/^\d{1,2}\s+[A-Za-z]{3,}\s+\d{4}$/.test(s)) return s;
+    }
+    const d = value instanceof Date ? value : new Date(value);
+
+    if (Number.isNaN(d.getTime()))
+      return typeof value === 'string' ? value : '—';
+
+    return d.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
+  const toNumber = v => {
+    const n = typeof v === 'number' ? v : Number(v);
+
+    return Number.isFinite(n) ? n : null;
+  };
 
   const formatPayRange = () => {
-    const min = toNumber(job?.salaryMin)
-    const max = toNumber(job?.salaryMax)
-    const type = String(job?.salaryType || '').toLowerCase()
-    const suffix = type.includes('hour') ? '/hr' : type.includes('day') ? '/day' : ''
+    const min = toNumber(job?.salaryMin);
+    const max = toNumber(job?.salaryMax);
+    const type = String(job?.salaryType || '').toLowerCase();
+    const suffix = type.includes('hour')
+      ? '/hr'
+      : type.includes('day')
+        ? '/day'
+        : '';
 
     if (min != null && max != null && (min > 0 || max > 0)) {
-      return `$${min}${suffix} – $${max}${suffix}`
+      return `$${min}${suffix} – $${max}${suffix}`;
     }
 
     if (typeof job?.salaryRange === 'string' && job.salaryRange.trim() !== '') {
-      return job.salaryRange
+      return job.salaryRange;
     }
-    return '—'
-  }
 
-  const paySummary = job?.salaryType ? `${job.salaryType}: ${formatPayRange()}` : formatPayRange()
-  const searchType = job?.searchType === 'quick' ? 'quick' : 'manual'
+    return '—';
+  };
+
+  const paySummary = job?.salaryType
+    ? `${job.salaryType}: ${formatPayRange()}`
+    : formatPayRange();
+  const searchType = job?.searchType === 'quick' ? 'quick' : 'manual';
 
   const positionsValue =
     typeof positionsFilled === 'number'
       ? positionsFilled
-      : toNumber(job?.staffNumber) ?? toNumber(job?.staffCount) ?? '—'
+      : (toNumber(job?.staffNumber) ?? toNumber(job?.staffCount) ?? '—');
 
   return (
     <View style={styles.cardContainer}>
-      
       {/* Header - Job Title and Badges */}
       <View style={styles.cardHeader}>
         <AppText variant={Variant.subTitle} style={styles.jobTitle}>
@@ -88,9 +103,10 @@ const CompletedJobCard = ({
           <View
             style={[
               styles.searchTypeBadge,
-              searchType === 'quick' ? styles.quickSearchBadge : styles.manualSearchBadge,
-            ]}
-          >
+              searchType === 'quick'
+                ? styles.quickSearchBadge
+                : styles.manualSearchBadge,
+            ]}>
             <AppText variant={Variant.caption} style={styles.searchTypeText}>
               {searchType === 'quick' ? 'Quick' : 'Manual'}
             </AppText>
@@ -105,25 +121,25 @@ const CompletedJobCard = ({
 
       {/* Job Details */}
       <View style={styles.detailsContainer}>
-        <JobDetailRow 
+        <JobDetailRow
           iconName="calendar-outline"
           label="Posted"
           value={formatAuDate(job.offerDate || job.createdAt)}
         />
-        
-        <JobDetailRow 
+
+        <JobDetailRow
           iconName="checkmark-done-outline"
           label="Completed"
           value={formatAuDate(job.completedDate || job.completedAt)}
         />
-        
-        <JobDetailRow 
+
+        <JobDetailRow
           iconName="location-outline"
           label="Location"
           value={job.location}
         />
-        
-        <JobDetailRow 
+
+        <JobDetailRow
           iconName="people-outline"
           label="Positions"
           value={positionsValue}
@@ -132,27 +148,28 @@ const CompletedJobCard = ({
 
       {/* Action Buttons */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.actionButton, styles.detailsButton]}
           onPress={() => onViewDetails(job)}
-          activeOpacity={0.8}
-        >
+          activeOpacity={0.8}>
           <VectorIcons
             name={iconLibName.Ionicons}
             iconName="eye-outline"
             size={20}
             color="#4ADE80"
           />
-          <AppText variant={Variant.bodyMedium} style={styles.detailsButtonText}>
+          <AppText
+            variant={Variant.bodyMedium}
+            style={styles.detailsButtonText}>
             View Details
           </AppText>
         </TouchableOpacity>
       </View>
     </View>
-  )
-}
+  );
+};
 
-export default CompletedJobCard
+export default CompletedJobCard;
 
 const styles = StyleSheet.create({
   cardContainer: {
@@ -261,5 +278,4 @@ const styles = StyleSheet.create({
   detailsButtonText: {
     color: '#4ADE80',
   },
-})
-
+});

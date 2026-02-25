@@ -12,7 +12,7 @@ import { colors, hp, wp, getFontSize } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import AppHeader from '@/core/AppHeader'
 import AppButton from '@/core/AppButton'
-import { addJob, updateJob } from '@/store/jobsSlice'
+import { addJob, saveDraftJob, updateJob } from '@/store/jobsSlice'
 import { createQuickJob, updateQuickJob, autoMatchCandidates, sendQuickOffer } from '@/store/quickSearchSlice'
 import { autoSendOffers } from '@/services/autoOfferService'
 import { screenNames } from '@/navigation/screenNames'
@@ -22,6 +22,9 @@ const QuickSearchPreview = ({ navigation, route }) => {
   const dispatch = useDispatch()
   const acceptanceRatings = useSelector(
     state => state.quickSearch.acceptanceRatings || {}
+  )
+  const quickFillSendMode = useSelector(
+    state => state.recruiterSettings?.quickFillSendMode || 'auto',
   )
   
   // Get all data from all 4 steps
@@ -63,15 +66,40 @@ const QuickSearchPreview = ({ navigation, route }) => {
   const getMissingRequiredFields = () => {
     const missing = []
     if (isEmptyValue(quickSearchStep1Data?.jobTitle)) missing.push('Job title')
+    if (isEmptyValue(quickSearchStep1Data?.jobType)) missing.push('Job type')
     if (isEmptyValue(quickSearchStep1Data?.industry)) missing.push('Industry')
     if (isEmptyValue(quickSearchStep1Data?.staffCount)) missing.push('Positions')
+    if (isEmptyValue(quickSearchStep1Data?.rolesAndResponsibilities))
+      missing.push('Roles and responsibilities')
+    if (isEmptyValue(quickSearchStep1Data?.requiredUniforms))
+      missing.push('Required uniforms')
+    if (!quickSearchStep1Data?.requiredEducation)
+      missing.push('Required education')
+
+    if (!quickSearchStep1Data?.freshersCanApply) {
+      const y = parseNumberFromText(quickSearchStep1Data?.experienceYear)
+      const m = parseNumberFromText(quickSearchStep1Data?.experienceMonth)
+      if (y === 0 && m === 0) missing.push('Experience')
+    }
+
     if (isEmptyValue(quickSearchStep2Data?.workLocation)) missing.push('Work location')
     if (quickSearchStep2Data?.rangeKm === null || quickSearchStep2Data?.rangeKm === undefined) missing.push('Range from location')
     if (isEmptyValue(quickSearchStep2Data?.jobStartDate)) missing.push('Job start date')
     if (isEmptyValue(quickSearchStep2Data?.jobEndDate)) missing.push('Job end date')
-    if (isEmptyValue(quickSearchStep3Data?.salaryMin)) missing.push('Salary min')
-    if (isEmptyValue(quickSearchStep3Data?.salaryMax)) missing.push('Salary max')
+    if (isEmptyValue(quickSearchStep3Data?.fixedRate ?? quickSearchStep3Data?.salaryMin))
+      missing.push('Fixed rate')
+    if (quickSearchStep3Data?.extraPay?.overtime) {
+      if (isEmptyValue(quickSearchStep3Data?.overtimeRate)) missing.push('Overtime rate')
+    }
+
     if (isEmptyValue(quickSearchStep4Data?.taxType)) missing.push('Required tax type')
+
+    if (quickSearchStep4Data?.weekendSatExtraPay && isEmptyValue(quickSearchStep4Data?.weekendSatRate)) {
+      missing.push('Saturday weekend rate')
+    }
+    if (quickSearchStep4Data?.weekendSunExtraPay && isEmptyValue(quickSearchStep4Data?.weekendSunRate)) {
+      missing.push('Sunday weekend rate')
+    }
 
     // Availability should have at least one enabled day with times
     const availabilityEntries = quickSearchStep4Data?.availability ? Object.entries(quickSearchStep4Data.availability) : []
@@ -84,6 +112,43 @@ const QuickSearchPreview = ({ navigation, route }) => {
 
   const missingRequiredFields = getMissingRequiredFields()
   const canSave = missingRequiredFields.length === 0
+  const isDraftEdit =
+    !!editMode &&
+    !!draftJob &&
+    String(draftJob?.status || '').toLowerCase() === 'draft'
+  const isEditingActive = !!editMode && !!existingJobId && !isDraftEdit
+
+  const handleEdit = () => {
+    const draftForEdit = {
+      id: existingJobId || null,
+      jobCategory: quickSearchStep1Data?.jobCategory,
+      jobSubCategory: quickSearchStep1Data?.jobSubCategory,
+      jobTitle: quickSearchStep1Data?.jobTitle,
+      industry: quickSearchStep1Data?.industry,
+      staffCount: quickSearchStep1Data?.staffCount,
+      jobType: quickSearchStep1Data?.jobType,
+      freshersCanApply: !!quickSearchStep1Data?.freshersCanApply,
+      experienceYear: quickSearchStep1Data?.experienceYear,
+      experienceMonth: quickSearchStep1Data?.experienceMonth,
+      rolesAndResponsibilities: quickSearchStep1Data?.rolesAndResponsibilities,
+      requiredUniforms: quickSearchStep1Data?.requiredUniforms,
+      requiredEducation: quickSearchStep1Data?.requiredEducation,
+      preferredLanguages: quickSearchStep1Data?.preferredLanguages,
+      extraQualifications: quickSearchStep1Data?.extraQualifications,
+      rawData: {
+        step1: quickSearchStep1Data,
+        step2: quickSearchStep2Data,
+        step3: quickSearchStep3Data,
+        step4: quickSearchStep4Data,
+      },
+    }
+
+    navigation.navigate(screenNames.QUICK_SEARCH_STEPONE, {
+      editMode: true,
+      draftJob: draftForEdit,
+      jobId: existingJobId,
+    })
+  }
 
   const formatDate = (value) => {
     if (!value) return ''
@@ -154,6 +219,90 @@ const QuickSearchPreview = ({ navigation, route }) => {
     )
   }
 
+  const buildQuickDraftJobData = (draftId) => {
+    const salarySuffix = getSalarySuffix(quickSearchStep3Data?.salaryType || draftJob?.salaryType || 'Hourly')
+    const salaryMin = quickSearchStep3Data?.salaryMin ?? draftJob?.salaryMin
+    const salaryMax = quickSearchStep3Data?.salaryMax ?? draftJob?.salaryMax
+
+    const title =
+      quickSearchStep1Data?.jobTitle ||
+      draftJob?.title ||
+      draftJob?.jobTitle ||
+      'Untitled draft'
+
+    const allData = {
+      step1: quickSearchStep1Data,
+      step2: quickSearchStep2Data,
+      step3: quickSearchStep3Data,
+      step4: quickSearchStep4Data,
+    }
+
+    const maybeSalaryRange =
+      salaryMin && salaryMax
+        ? `$${salaryMin} to $${salaryMax}${salarySuffix}`
+        : (quickSearchStep3Data?.salaryRange || draftJob?.salaryRange || '')
+
+    return {
+      id: draftId,
+      title,
+      type: draftJob?.type || 'Contract',
+      industry: quickSearchStep1Data?.industry || draftJob?.industry || '',
+      experience: draftJob?.experience || '',
+      staffNumber:
+        quickSearchStep1Data?.staffCount ??
+        draftJob?.staffNumber ??
+        draftJob?.staffCount ??
+        '',
+      location:
+        quickSearchStep2Data?.workLocation || draftJob?.location || '',
+      rangeKm: quickSearchStep2Data?.rangeKm ?? draftJob?.rangeKm ?? 0,
+      salaryRange: maybeSalaryRange,
+      salaryMin,
+      salaryMax,
+      salaryType: quickSearchStep3Data?.salaryType || draftJob?.salaryType || 'Hourly',
+      jobStartDate:
+        formatDate(quickSearchStep2Data?.jobStartDate) ||
+        draftJob?.jobStartDate ||
+        '',
+      jobEndDate:
+        formatDate(quickSearchStep2Data?.jobEndDate) ||
+        draftJob?.jobEndDate ||
+        '',
+      expireDate: draftJob?.expireDate || 'Not set',
+      extraPay: quickSearchStep3Data?.extraPay || draftJob?.extraPay || {},
+      availability:
+        quickSearchStep4Data?.availability || draftJob?.availability || {},
+      jobDescription:
+        quickSearchStep4Data?.jobDescription || draftJob?.jobDescription || '',
+      description:
+        quickSearchStep4Data?.jobDescription || draftJob?.description || '',
+      taxType: quickSearchStep4Data?.taxType || draftJob?.taxType || '',
+      searchType: 'quick',
+      rawData: allData,
+    }
+  }
+
+  const handleSaveAsDraft = () => {
+    const draftId = existingJobId || `quick-job-${Date.now()}`
+    const draftData = buildQuickDraftJobData(draftId)
+    dispatch(saveDraftJob(draftData))
+
+    Alert.alert(
+      'Saved to drafts',
+      'You can find this offer in "Drafted offers" on the dashboard.',
+      [
+        {
+          text: 'Back to dashboard',
+          onPress: () => {
+            navigation.navigate(screenNames.Tab_NAVIGATION, {
+              screen: screenNames.HOME,
+            })
+          },
+        },
+      ],
+    )
+  }
+
   const handleSubmit = () => {
     // Required-field check for Save
     const missing = getMissingRequiredFields()
@@ -162,9 +311,9 @@ const QuickSearchPreview = ({ navigation, route }) => {
       return
     }
 
-    const isEdit = !!editMode && !!existingJobId
+    const isEdit = isEditingActive
     // Build a stable job ID so quickSearch slice, matches and offers all align
-    const jobId = isEdit ? existingJobId : `quick-job-${Date.now()}`
+    const jobId = isEdit ? existingJobId : (existingJobId || `quick-job-${Date.now()}`)
 
     const allData = {
       step1: quickSearchStep1Data,
@@ -279,8 +428,26 @@ const QuickSearchPreview = ({ navigation, route }) => {
     
     // 2) Generate / cache matches for this quick job
     dispatch(autoMatchCandidates({ jobId, settings: {} }))
-    
-    // 3) Auto-send offers to top matches (like manual, but automatic)
+
+    if (quickFillSendMode === 'manual') {
+      Alert.alert(
+        'Job Posted Successfully!',
+        'Matches are ready. Please review candidates and send offers manually.',
+        [
+          {
+            text: 'View matches',
+            onPress: () => {
+              navigation.navigate(screenNames.QUICK_SEARCH_MATCH_LIST, {
+                jobId,
+              })
+            },
+          },
+        ],
+      )
+      return
+    }
+
+    // Auto mode: auto-send offers to top matches
     autoSendOffers(
       { ...quickJobData },                 // quick search job data
       { autoMatchingEnabled: true },       // settings: auto-matching ON
@@ -288,8 +455,7 @@ const QuickSearchPreview = ({ navigation, route }) => {
       dispatch,
       sendQuickOffer                       // action creator
     )
-    
-    // 4) Show success & take recruiter directly to Quick Search offers
+
     Alert.alert(
       'Job Posted Successfully!',
       'Your job offer has been posted, matches found, and offers sent automatically.',
@@ -311,7 +477,16 @@ const QuickSearchPreview = ({ navigation, route }) => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       
-      <AppHeader title="Quick Search Preview" showTopIcons={false} height={hp(14)} />
+      <AppHeader
+        title="Quick Search Preview"
+        showTopIcons={false}
+        height={hp(14)}
+        rightComponent={
+          <AppText variant={Variant.body} style={styles.stepText}>
+            Step 5/5
+          </AppText>
+        }
+      />
 
       <ScrollView 
         style={styles.content}
@@ -321,10 +496,22 @@ const QuickSearchPreview = ({ navigation, route }) => {
         
         {/* Step 1 Data - Job Requirements */}
         <SectionTitle title="Job Requirements" />
-        <DetailRow 
-          label="Job title:" 
+        <DetailRow
+          label="Job category:"
+          value={quickSearchStep1Data?.jobCategory}
+        />
+        <DetailRow
+          label="Sub category:"
+          value={quickSearchStep1Data?.jobSubCategory}
+        />
+        <DetailRow
+          label="Job title:"
           value={quickSearchStep1Data?.jobTitle}
           valueStyle={styles.highlightValue}
+        />
+        <DetailRow
+          label="Job type:"
+          value={quickSearchStep1Data?.jobType}
         />
         <DetailRow 
           label="Industry:" 
@@ -332,13 +519,58 @@ const QuickSearchPreview = ({ navigation, route }) => {
         />
         <DetailRow 
           label="Experience:" 
-          value={`${experienceYears} Years ${experienceMonths} Months`}
+          value={
+            quickSearchStep1Data?.freshersCanApply
+              ? 'Freshers can also apply'
+              : `${experienceYears} Years ${experienceMonths} Months`
+          }
           hideIfEmpty={false}
         />
         <DetailRow 
           label="Positions:" 
           value={quickSearchStep1Data?.staffCount}
           hideIfEmpty={false}
+        />
+
+        <DetailRow
+          label="Roles and responsibilities:"
+          value={quickSearchStep1Data?.rolesAndResponsibilities}
+          hideIfEmpty={false}
+        />
+        <DetailRow
+          label="Required uniforms:"
+          value={quickSearchStep1Data?.requiredUniforms}
+          hideIfEmpty={false}
+        />
+        <DetailRow
+          label="Required education:"
+          value={
+            quickSearchStep1Data?.requiredEducation?.customValue ||
+            quickSearchStep1Data?.requiredEducation?.level ||
+            ''
+          }
+        />
+        <DetailRow
+          label="Preferred languages:"
+          value={
+            Array.isArray(quickSearchStep1Data?.preferredLanguages)
+              ? quickSearchStep1Data.preferredLanguages
+                  .map((l) => (l?.specifyText ? `${l.title}: ${l.specifyText}` : l?.title))
+                  .filter(Boolean)
+                  .join(', ')
+              : ''
+          }
+        />
+        <DetailRow
+          label="Extra qualifications:"
+          value={
+            Array.isArray(quickSearchStep1Data?.extraQualifications)
+              ? quickSearchStep1Data.extraQualifications
+                  .map((q) => (q?.specifyText ? `${q.title}: ${q.specifyText}` : q?.title))
+                  .filter(Boolean)
+                  .join(', ')
+              : ''
+          }
         />
 
         {/* Step 2 Data - Work Location */}
@@ -364,40 +596,35 @@ const QuickSearchPreview = ({ navigation, route }) => {
         {/* Step 3 Data - Salary & Benefits */}
         <SectionTitle title="Salary & Benefits" />
         <DetailRow 
-          label="Salary range ($/hr or $/day):" 
-          value={quickSearchStep3Data ? 
-            `$${quickSearchStep3Data.salaryMin}–$${quickSearchStep3Data.salaryMax}${getSalarySuffix(quickSearchStep3Data?.salaryType)}` : 
-            ''}
+          label="Fixed rate:" 
+          value={
+            quickSearchStep3Data
+              ? `$${quickSearchStep3Data.fixedRate ?? quickSearchStep3Data.salaryMin}${getSalarySuffix(
+                  quickSearchStep3Data?.salaryType,
+                )}`
+              : ''
+          }
           valueStyle={styles.salaryValue}
           hideIfEmpty={false}
         />
 
-        <SectionTitle title="Extra Pay Offered:" />
-        <DetailRow 
-          label="Public holidays:" 
-          value={quickSearchStep3Data?.extraPay?.publicHolidays ? 'Yes' : 'No'}
-          valueStyle={quickSearchStep3Data?.extraPay?.publicHolidays && styles.yesValue}
-        />
-        <DetailRow 
-          label="Weekend:" 
-          value={quickSearchStep3Data?.extraPay?.weekend ? 'Yes' : 'No'}
-          valueStyle={quickSearchStep3Data?.extraPay?.weekend && styles.yesValue}
-        />
-        <DetailRow 
-          label="Shift loading:" 
-          value={quickSearchStep3Data?.extraPay?.shiftLoading ? 'Yes' : 'No'}
-          valueStyle={quickSearchStep3Data?.extraPay?.shiftLoading && styles.yesValue}
-        />
-        <DetailRow 
-          label="Bonuses:" 
-          value={quickSearchStep3Data?.extraPay?.bonuses ? 'Yes' : 'No'}
-          valueStyle={quickSearchStep3Data?.extraPay?.bonuses && styles.yesValue}
-        />
+        <SectionTitle title="Extra Pay" />
         <DetailRow 
           label="Overtime:" 
           value={quickSearchStep3Data?.extraPay?.overtime ? 'Yes' : 'No'}
           valueStyle={quickSearchStep3Data?.extraPay?.overtime && styles.yesValue}
         />
+        {quickSearchStep3Data?.extraPay?.overtime ? (
+          <DetailRow
+            label="Overtime rate:"
+            value={
+              quickSearchStep3Data?.overtimeRate
+                ? `$${quickSearchStep3Data.overtimeRate}`
+                : ''
+            }
+            hideIfEmpty={false}
+          />
+        ) : null}
 
         {/* Step 4 Data - Availability */}
         <SectionTitle title="Availability to Work:" />
@@ -409,29 +636,106 @@ const QuickSearchPreview = ({ navigation, route }) => {
           }
         </View>
 
+        <SectionTitle title="Weekend extra pay" />
+        <DetailRow
+          label="Saturday extra pay:"
+          value={quickSearchStep4Data?.weekendSatExtraPay ? 'Yes' : 'No'}
+          valueStyle={quickSearchStep4Data?.weekendSatExtraPay && styles.yesValue}
+        />
+        {quickSearchStep4Data?.weekendSatExtraPay ? (
+          <DetailRow
+            label="Saturday rate:"
+            value={
+              quickSearchStep4Data?.weekendSatRate
+                ? `$${quickSearchStep4Data.weekendSatRate}`
+                : ''
+            }
+            hideIfEmpty={false}
+          />
+        ) : null}
+        <DetailRow
+          label="Sunday extra pay:"
+          value={quickSearchStep4Data?.weekendSunExtraPay ? 'Yes' : 'No'}
+          valueStyle={quickSearchStep4Data?.weekendSunExtraPay && styles.yesValue}
+        />
+        {quickSearchStep4Data?.weekendSunExtraPay ? (
+          <DetailRow
+            label="Sunday rate:"
+            value={
+              quickSearchStep4Data?.weekendSunRate
+                ? `$${quickSearchStep4Data.weekendSunRate}`
+                : ''
+            }
+            hideIfEmpty={false}
+          />
+        ) : null}
+
+        <SectionTitle title="Tax type & hiring" />
+        <DetailRow
+          label="Paid through SquadGoo wallet:"
+          value={quickSearchStep4Data?.paidThroughWallet ? 'Yes' : 'No'}
+          valueStyle={quickSearchStep4Data?.paidThroughWallet && styles.yesValue}
+        />
         <DetailRow 
           label="Required Tax type:" 
           value={quickSearchStep4Data?.taxType}
           valueStyle={styles.highlightValue}
         />
+        <DetailRow
+          label="Hire SquadPairs:"
+          value={quickSearchStep4Data?.hireSquadPairs ? 'Yes' : 'No'}
+          valueStyle={quickSearchStep4Data?.hireSquadPairs && styles.yesValue}
+        />
 
-        {/* Save / Cancel */}
-        <View style={styles.buttonRow}>
-          <AppButton
-            text="Cancel / Back"
-            onPress={() => navigation.goBack()}
-            secondary
-            bgColor={colors.white}
-            style={styles.buttonHalf}
-          />
-          <AppButton
-            text="Save"
-            onPress={handleSubmit}
-            bgColor={colors.primary}
-            disabled={!canSave}
-            style={styles.buttonHalf}
-          />
-        </View>
+        {/* Actions */}
+        {isEditingActive ? (
+          <View style={styles.buttonRow}>
+            <AppButton
+              text="Cancel / Back"
+              onPress={() => navigation.goBack()}
+              secondary
+              bgColor={colors.white}
+              style={styles.buttonHalf}
+            />
+            <AppButton
+              text="Save"
+              onPress={handleSubmit}
+              bgColor={colors.primary}
+              disabled={!canSave}
+              style={styles.buttonHalf}
+            />
+          </View>
+        ) : (
+          <>
+            <View style={styles.buttonRow}>
+              <AppButton
+                text="Edit"
+                onPress={handleEdit}
+                secondary
+                bgColor={colors.white}
+                style={styles.buttonHalf}
+              />
+              <AppButton
+                text="Send offers"
+                onPress={handleSubmit}
+                bgColor={colors.primary}
+                disabled={!canSave}
+                style={styles.buttonHalf}
+              />
+            </View>
+
+            {/* Keep drafts support (optional) */}
+            {!isEditingActive ? (
+              <AppButton
+                text="Save as draft"
+                onPress={handleSaveAsDraft}
+                secondary
+                bgColor={colors.white}
+                style={styles.buttonFull}
+              />
+            ) : null}
+          </>
+        )}
 
       </ScrollView>
     </View>
@@ -444,6 +748,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white || '#FFFFFF',
+  },
+  stepText: {
+    color: colors.white,
+    fontWeight: 'bold',
+    fontSize: getFontSize(16),
   },
   content: {
     flex: 1,
@@ -509,5 +818,9 @@ const styles = StyleSheet.create({
   },
   buttonHalf: {
     width: '48%',
+  },
+  buttonFull: {
+    width: '100%',
+    marginBottom: hp(2),
   },
 })

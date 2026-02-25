@@ -15,7 +15,7 @@ import AppText, { Variant } from '@/core/AppText'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import AppHeader from '@/core/AppHeader'
 import AppButton from '@/core/AppButton'
-import { addJob, updateJob } from '@/store/jobsSlice'
+import { addJob, saveDraftJob, updateJob } from '@/store/jobsSlice'
 import { createManualJob, updateManualJob, generateManualMatches } from '@/store/manualOffersSlice'
 import { screenNames } from '@/navigation/screenNames'
 import moment from 'moment'
@@ -27,6 +27,16 @@ const JobPreview = ({ navigation, route }) => {
   // Get data from all three steps
   const { step1Data, step2Data, step3Data, step4Data, editMode, draftJob, jobId: existingJobId } = route.params || {}
   console.log('step3Data', step3Data)
+
+  const previewData = {
+    step1Data,
+    step2Data,
+    step3Data,
+    step4Data,
+    editMode: !!editMode,
+    draftJob,
+    jobId: existingJobId,
+  }
 
   const isEmptyValue = (value) => {
     if (value === null || value === undefined) return true
@@ -43,10 +53,12 @@ const JobPreview = ({ navigation, route }) => {
 
   const getSalarySuffix = (salaryType) => {
     const t = String(salaryType || '').trim().toLowerCase()
-    if (t === 'hourly') return '/hr'
-    if (t === 'daily') return '/day'
-    if (t === 'weekly') return '/week'
-    if (t === 'annually' || t === 'annual' || t === 'yearly') return '/year'
+    if (t.includes('hourly')) return '/hr'
+    if (t.includes('daily')) return '/day'
+    if (t.includes('weekly')) return '/week'
+    if (t.includes('annual')) return '/year'
+    if (t.includes('per task') || t.includes('piecework')) return '/task'
+    if (t.includes('contract') || t.includes('project')) return '/project'
     return ''
   }
 
@@ -103,6 +115,100 @@ const JobPreview = ({ navigation, route }) => {
 
   const missingRequiredFields = getMissingRequiredFields()
   const canSave = missingRequiredFields.length === 0
+  const isDraftEdit =
+    !!editMode &&
+    !!draftJob &&
+    String(draftJob?.status || '').toLowerCase() === 'draft'
+  const isEditingActive = !!editMode && !!existingJobId && !isDraftEdit
+
+  const buildManualDraftJobData = (draftId) => {
+    const salarySuffix = getSalarySuffix(step2Data?.salaryType || draftJob?.salaryType)
+    const salaryMin = step2Data?.salaryMin ?? draftJob?.salaryMin
+    const salaryMax = step2Data?.salaryMax ?? draftJob?.salaryMax
+
+    const title =
+      step1Data?.jobTitle ||
+      draftJob?.title ||
+      draftJob?.jobTitle ||
+      'Untitled draft'
+
+    const salaryRange =
+      salaryMin && salaryMax
+        ? `$${salaryMin} to $${salaryMax}${salarySuffix}`
+        : (draftJob?.salaryRange || '')
+
+    return {
+      id: draftId,
+      title,
+      type: step1Data?.jobType || draftJob?.type || '',
+      location: step4Data?.workLocation || step1Data?.workLocation || draftJob?.location || '',
+      rangeKm: step4Data?.rangeKm ?? step1Data?.rangeKm ?? draftJob?.rangeKm ?? 0,
+      staffNumber: step1Data?.staffNumber ?? draftJob?.staffNumber ?? '',
+      industry: step1Data?.industry || draftJob?.industry || '',
+      jobReferenceId: step1Data?.jobReferenceId || draftJob?.jobReferenceId,
+      experience: draftJob?.experience || '',
+      salaryRange,
+      salaryMin,
+      salaryMax,
+      salaryType: step2Data?.salaryType || draftJob?.salaryType || 'Hourly Rate',
+      salaryTypeOther: step2Data?.salaryTypeOther || draftJob?.salaryTypeOther || '',
+      salaryTypeDisplay:
+        step2Data?.salaryTypeDisplay ||
+        draftJob?.salaryTypeDisplay ||
+        step2Data?.salaryType ||
+        draftJob?.salaryType ||
+        '',
+      expireDate: draftJob?.expireDate || 'Not set',
+      extraPay: step2Data?.extraPay || draftJob?.extraPay || {},
+      extraPayRates: step2Data?.extraPayRates || draftJob?.extraPayRates || {},
+      availability: step2Data?.availability || draftJob?.availability || '',
+      freshersCanApply: step2Data?.freshersCanApply ?? draftJob?.freshersCanApply ?? false,
+      educationalQualification: step3Data?.educationalQualification || draftJob?.educationalQualification || '',
+      educationalQualifications: step3Data?.educationalQualifications || draftJob?.educationalQualifications || [],
+      extraQualification: step3Data?.extraQualification || draftJob?.extraQualification || '',
+      extraQualificationItems:
+        step3Data?.extraQualificationItems || draftJob?.extraQualificationItems || [],
+      preferredLanguages: step3Data?.preferredLanguages || draftJob?.preferredLanguages || [],
+      preferredLanguageItems:
+        step3Data?.preferredLanguageItems || draftJob?.preferredLanguageItems || [],
+      jobEndDate: step3Data?.jobEndDate || draftJob?.jobEndDate,
+      jobStartDate: step3Data?.jobStartDate || draftJob?.jobStartDate,
+      jobStartTime: step3Data?.jobStartTime || draftJob?.jobStartTime || null,
+      jobEndTime: step3Data?.jobEndTime || draftJob?.jobEndTime || null,
+      jobDescription: step3Data?.jobDescription || draftJob?.jobDescription || '',
+      requiredUniforms:
+        step3Data?.requiredUniforms || draftJob?.requiredUniforms || '',
+      description: step3Data?.jobDescription || draftJob?.description || '',
+      taxType: step3Data?.taxType || draftJob?.taxType || '',
+      interestedInSquadPairs:
+        step3Data?.interestedInSquadPairs ??
+        draftJob?.interestedInSquadPairs ??
+        false,
+      searchType: 'manual',
+      rawData: { step1Data, step2Data, step3Data, step4Data },
+    }
+  }
+
+  const handleSaveAsDraft = () => {
+    const draftId = existingJobId || `manual-job-${Date.now()}`
+    const draftData = buildManualDraftJobData(draftId)
+    dispatch(saveDraftJob(draftData))
+
+    Alert.alert(
+      'Saved to drafts',
+      'You can find this offer in "Drafted offers" on the dashboard.',
+      [
+        {
+          text: 'Back to dashboard',
+          onPress: () => {
+            navigation.navigate(screenNames.Tab_NAVIGATION, {
+              screen: screenNames.HOME,
+            })
+          },
+        },
+      ],
+    )
+  }
 
   const handlePostJob = () => {
     if (!canSave) {
@@ -113,13 +219,13 @@ const JobPreview = ({ navigation, route }) => {
       return
     }
 
-    const isEdit = !!editMode && !!existingJobId
+    const isEdit = isEditingActive
     // Calculate expiry date (30 days from now)
     const expiryDate = new Date()
     expiryDate.setDate(expiryDate.getDate() + 30)
     
     // Format job data
-    const jobId = isEdit ? existingJobId : `manual-job-${Date.now()}`
+    const jobId = isEdit ? existingJobId : (existingJobId || `manual-job-${Date.now()}`)
     const salarySuffix = getSalarySuffix(step2Data?.salaryType)
     const jobData = {
       id: jobId,
@@ -145,25 +251,32 @@ const JobPreview = ({ navigation, route }) => {
       salaryMin: step2Data?.salaryMin,
       salaryMax: step2Data?.salaryMax,
       salaryType: step2Data?.salaryType,
-      expireDate: (isEdit && draftJob?.expireDate) ? draftJob.expireDate : expiryDate.toLocaleDateString('en-GB', {
+      salaryTypeOther: step2Data?.salaryTypeOther || '',
+      salaryTypeDisplay: step2Data?.salaryTypeDisplay || '',
+      expireDate: (isEdit && draftJob?.expireDate) ? draftJob.expireDate : (draftJob?.expireDate || expiryDate.toLocaleDateString('en-GB', {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
-      }),
+      })),
       extraPay: step2Data?.extraPay || {},
+      extraPayRates: step2Data?.extraPayRates || {},
       availability: step2Data?.availability,
       freshersCanApply: step2Data?.freshersCanApply || false,
       educationalQualification: step3Data?.educationalQualification,
       educationalQualifications: step3Data?.educationalQualifications || [],
       extraQualification: step3Data?.extraQualification,
+      extraQualificationItems: step3Data?.extraQualificationItems || [],
       preferredLanguages: step3Data?.preferredLanguages || [],
+      preferredLanguageItems: step3Data?.preferredLanguageItems || [],
       jobEndDate: step3Data?.jobEndDate,
       jobStartDate: step3Data?.jobStartDate,
       jobStartTime: step3Data?.jobStartTime || null,
       jobEndTime: step3Data?.jobEndTime || null,
       jobDescription: step3Data?.jobDescription,
+      requiredUniforms: step3Data?.requiredUniforms,
       description: step3Data?.jobDescription,
       taxType: step3Data?.taxType,
+      interestedInSquadPairs: step3Data?.interestedInSquadPairs || false,
       searchType: 'manual',
       rawData: { step1Data, step2Data, step3Data }, // Store complete data for future reference
     }
@@ -254,6 +367,76 @@ const JobPreview = ({ navigation, route }) => {
     </AppText>
   )
 
+  const StepSectionHeader = ({ title, onEdit }) => (
+    <View style={styles.stepHeader}>
+      <AppText variant={Variant.bodyMedium} style={styles.stepHeaderTitle}>
+        {title}
+      </AppText>
+      <TouchableOpacity
+        onPress={onEdit}
+        activeOpacity={0.8}
+        style={styles.stepHeaderEdit}
+      >
+        <VectorIcons
+          name={iconLibName.Feather}
+          iconName="edit-2"
+          size={18}
+          color={colors.primary}
+        />
+      </TouchableOpacity>
+    </View>
+  )
+
+  const openEditStep = (step) => {
+    if (step === 1) {
+      navigation.navigate(screenNames.MANUAL_SEARCH, {
+        returnToPreview: true,
+        previewData,
+        step1Data,
+        editMode: true,
+        draftJob,
+        jobId: existingJobId,
+      })
+      return
+    }
+    if (step === 2) {
+      navigation.navigate(screenNames.STEP_TWO, {
+        returnToPreview: true,
+        previewData,
+        step1Data,
+        editMode: true,
+        draftJob,
+        jobId: existingJobId,
+      })
+      return
+    }
+    if (step === 3) {
+      navigation.navigate(screenNames.STEP_THREE, {
+        returnToPreview: true,
+        previewData,
+        step1Data,
+        step2Data,
+        editMode: true,
+        draftJob,
+        jobId: existingJobId,
+      })
+      return
+    }
+    if (step === 4) {
+      navigation.navigate(screenNames.MANUAL_SEARCH_STEPFOUR, {
+        returnToPreview: true,
+        previewData,
+        step1Data,
+        step2Data,
+        step3Data,
+        step4Data,
+        editMode: true,
+        draftJob,
+        jobId: existingJobId,
+      })
+    }
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
@@ -267,7 +450,11 @@ const JobPreview = ({ navigation, route }) => {
         contentContainerStyle={styles.scrollContent}
       >
         
-        {/* Basic Job Info - Step 1 Data */}
+        {/* Step 1 */}
+        <StepSectionHeader
+          title="Step 1: Job Requirements"
+          onEdit={() => openEditStep(1)}
+        />
         <DetailRow 
           label="Job title:" 
           value={step1Data?.jobTitle}
@@ -288,24 +475,32 @@ const JobPreview = ({ navigation, route }) => {
         />
         
         <DetailRow 
+          label="Positions:" 
+          value={step1Data?.staffNumber}
+          hideIfEmpty={false}
+        />
+
+        {/* Step 4 (Location) */}
+        <StepSectionHeader
+          title="Step 4: Location"
+          onEdit={() => openEditStep(4)}
+        />
+        <DetailRow 
           label="Work location:" 
           value={step4Data?.workLocation || step1Data?.workLocation}
           hideIfEmpty={false}
         />
-        
         <DetailRow 
           label="Range from location:" 
           value={(step4Data?.rangeKm ?? step1Data?.rangeKm) !== undefined ? `${step4Data?.rangeKm ?? step1Data?.rangeKm} km` : ''}
           hideIfEmpty={false}
         />
         
-        <DetailRow 
-          label="Positions:" 
-          value={step1Data?.staffNumber}
-          hideIfEmpty={false}
+        {/* Step 2 */}
+        <StepSectionHeader
+          title="Step 2: Salary, Extra Pay & Availability"
+          onEdit={() => openEditStep(2)}
         />
-        
-        {/* Experience - Step 2 Data */}
         {(() => {
           const years = parseNumberFromText(step2Data?.experienceYears)
           const months = parseNumberFromText(step2Data?.experienceMonths)
@@ -328,15 +523,27 @@ const JobPreview = ({ navigation, route }) => {
 
         <DetailRow
           label="Salary range ($/hr or $/day):"
-          value={step2Data ? `$${step2Data.salaryMin}–$${step2Data.salaryMax}${getSalarySuffix(step2Data?.salaryType)}` : ''}
+          value={
+            step2Data
+              ? `$${step2Data.salaryMin}–$${step2Data.salaryMax}${getSalarySuffix(
+                  step2Data?.salaryType,
+                )}`
+              : ''
+          }
           valueStyle={styles.salaryValue}
+          hideIfEmpty={false}
+        />
+
+        <DetailRow
+          label="Salary type:"
+          value={step2Data?.salaryTypeDisplay || step2Data?.salaryType || ''}
           hideIfEmpty={false}
         />
             </>
           )
         })()}
         
-        {/* Leave Section - Step 2 Data */}
+        {/* Extra pay you are offering */}
         <SectionTitle title="Extra pay you are offering:" />
         
         <DetailRow 
@@ -344,30 +551,65 @@ const JobPreview = ({ navigation, route }) => {
           value={step2Data?.extraPay?.publicHolidays ? 'Yes' : 'No'}
           valueStyle={step2Data?.extraPay?.publicHolidays && styles.yesValue}
         />
+        {step2Data?.extraPay?.publicHolidays && step2Data?.extraPayRates?.publicHolidays ? (
+          <DetailRow
+            label="Public holidays rate:"
+            value={`$${step2Data.extraPayRates.publicHolidays}`}
+            hideIfEmpty={false}
+          />
+        ) : null}
         
         <DetailRow 
           label="Weekend:" 
           value={step2Data?.extraPay?.weekend ? 'Yes' : 'No'}
           valueStyle={step2Data?.extraPay?.weekend && styles.yesValue}
         />
+        {step2Data?.extraPay?.weekend && step2Data?.extraPayRates?.weekend ? (
+          <DetailRow
+            label="Weekend rate:"
+            value={`$${step2Data.extraPayRates.weekend}`}
+            hideIfEmpty={false}
+          />
+        ) : null}
         
         <DetailRow 
           label="Shift loading:" 
           value={step2Data?.extraPay?.shiftLoading ? 'Yes' : 'No'}
           valueStyle={step2Data?.extraPay?.shiftLoading && styles.yesValue}
         />
+        {step2Data?.extraPay?.shiftLoading && step2Data?.extraPayRates?.shiftLoading ? (
+          <DetailRow
+            label="Shift loading rate:"
+            value={`$${step2Data.extraPayRates.shiftLoading}`}
+            hideIfEmpty={false}
+          />
+        ) : null}
 
         <DetailRow 
           label="Bonuses:" 
           value={step2Data?.extraPay?.bonuses ? 'Yes' : 'No'}
           valueStyle={step2Data?.extraPay?.bonuses && styles.yesValue}
         />
+        {step2Data?.extraPay?.bonuses && step2Data?.extraPayRates?.bonuses ? (
+          <DetailRow
+            label="Bonuses rate:"
+            value={`$${step2Data.extraPayRates.bonuses}`}
+            hideIfEmpty={false}
+          />
+        ) : null}
         
         <DetailRow 
           label="Overtime:" 
           value={step2Data?.extraPay?.overtime ? 'Yes' : 'No'}
           valueStyle={step2Data?.extraPay?.overtime && styles.yesValue}
         />
+        {step2Data?.extraPay?.overtime && step2Data?.extraPayRates?.overtime ? (
+          <DetailRow
+            label="Overtime rate:"
+            value={`$${step2Data.extraPayRates.overtime}`}
+            hideIfEmpty={false}
+          />
+        ) : null}
 
         {/* Availability Section - Step 2 Data */}
         <SectionTitle title="Availability to work:" />
@@ -380,7 +622,11 @@ const JobPreview = ({ navigation, route }) => {
           </View>
         ) : null}
 
-        {/* Requirements Section - Step 3 Data */}
+        {/* Step 3 */}
+        <StepSectionHeader
+          title="Step 3: Requirements, Dates & Tax"
+          onEdit={() => openEditStep(3)}
+        />
         <View style={styles.requirementSection}>
           <AppText variant={Variant.body} style={styles.requirementLabel}>
             Required education:
@@ -443,6 +689,26 @@ const JobPreview = ({ navigation, route }) => {
           </AppText>
         </View>
 
+        {!isEmptyValue(step3Data?.requiredUniforms) ? (
+          <View style={styles.requirementSection}>
+            <AppText variant={Variant.body} style={styles.requirementLabel}>
+              Required uniforms:
+            </AppText>
+            <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
+              {step3Data?.requiredUniforms}
+            </AppText>
+          </View>
+        ) : null}
+
+        <View style={styles.requirementSection}>
+          <AppText variant={Variant.body} style={styles.requirementLabel}>
+            Interested in SquadPairs:
+          </AppText>
+          <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
+            {step3Data?.interestedInSquadPairs ? 'Yes' : 'No'}
+          </AppText>
+        </View>
+
         {/* Description - Step 3 Data */}
         <View style={styles.descriptionSection}>
           <AppText variant={Variant.body} style={styles.requirementLabel}>
@@ -453,23 +719,42 @@ const JobPreview = ({ navigation, route }) => {
           </AppText>
         </View>
 
-        {/* Save / Cancel */}
-        <View style={styles.buttonRow}>
-          <AppButton
-            text="Cancel / Back"
-            onPress={() => navigation.goBack()}
-            secondary
-            bgColor={colors.white}
-            style={styles.buttonHalf}
-          />
-          <AppButton
-            text="Save"
-            onPress={handlePostJob}
-            bgColor={colors.primary}
-            disabled={!canSave}
-            style={styles.buttonHalf}
-          />
-        </View>
+        {/* Actions */}
+        {isEditingActive ? (
+          <View style={styles.buttonRow}>
+            <AppButton
+              text="Cancel / Back"
+              onPress={() => navigation.goBack()}
+              secondary
+              bgColor={colors.white}
+              style={styles.buttonHalf}
+            />
+            <AppButton
+              text="Save"
+              onPress={handlePostJob}
+              bgColor={colors.primary}
+              disabled={!canSave}
+              style={styles.buttonHalf}
+            />
+          </View>
+        ) : (
+          <View style={styles.buttonRow}>
+            <AppButton
+              text="Edit"
+              onPress={() => openEditStep(1)}
+              secondary
+              bgColor={colors.white}
+              style={styles.buttonHalf}
+            />
+            <AppButton
+              text="Find candidates"
+              onPress={handlePostJob}
+              bgColor={colors.primary}
+              disabled={!canSave}
+              style={styles.buttonHalf}
+            />
+          </View>
+        )}
 
       </ScrollView>
     </View>
@@ -508,6 +793,22 @@ const styles = StyleSheet.create({
   },
   yesValue: {
     color: '#4ADE80',
+  },
+  stepHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: hp(2.5),
+    marginBottom: hp(1.2),
+    paddingBottom: hp(1),
+    borderBottomWidth: 1,
+    borderBottomColor: colors.grayE8 || '#E5E7EB',
+  },
+  stepHeaderTitle: {
+    fontWeight: '800',
+  },
+  stepHeaderEdit: {
+    padding: wp(1),
   },
   sectionTitle: {
     marginTop: hp(2),
@@ -555,5 +856,9 @@ const styles = StyleSheet.create({
   },
   buttonHalf: {
     width: '48%',
+  },
+  buttonFull: {
+    width: '100%',
+    marginBottom: hp(2),
   },
 })

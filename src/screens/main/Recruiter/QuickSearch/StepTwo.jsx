@@ -36,6 +36,29 @@ const QuickSearchStepTwo = ({ navigation, route }) => {
     },
   })
 
+  const startDateValue = methods.watch('jobStartDate')
+  const todayStart = React.useMemo(() => {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d
+  }, [])
+
+  const minEndDate = React.useMemo(() => {
+    if (!startDateValue) return null
+    const d = startDateValue instanceof Date ? startDateValue : new Date(startDateValue)
+    if (Number.isNaN(d.getTime())) return null
+    const start = new Date(d)
+    start.setHours(0, 0, 0, 0)
+
+    const isStartToday = start.getTime() === todayStart.getTime()
+    if (isStartToday) {
+      const tomorrow = new Date(todayStart)
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      return tomorrow
+    }
+    return start
+  }, [startDateValue, todayStart])
+
   useEffect(() => {
     if (editMode) {
       methods.reset({
@@ -56,6 +79,19 @@ const QuickSearchStepTwo = ({ navigation, route }) => {
       rangeKm,
     }
 
+    // Prevent past dates (extra safety)
+    if (quickSearchStep2Data.jobStartDate) {
+      const start = new Date(quickSearchStep2Data.jobStartDate)
+      if (!Number.isNaN(start.getTime())) {
+        const s = new Date(start)
+        s.setHours(0, 0, 0, 0)
+        if (s < todayStart) {
+          Alert.alert('Invalid start date', 'Job start date cannot be in the past.')
+          return
+        }
+      }
+    }
+
     // Basic logical validation: end date should not be before start date
     if (quickSearchStep2Data.jobStartDate && quickSearchStep2Data.jobEndDate) {
       const start = new Date(quickSearchStep2Data.jobStartDate)
@@ -67,6 +103,20 @@ const QuickSearchStepTwo = ({ navigation, route }) => {
           'Job end date must be on or after the job start date.',
         )
         return
+      }
+
+      if (minEndDate) {
+        const min = new Date(minEndDate)
+        min.setHours(0, 0, 0, 0)
+        const e = new Date(end)
+        e.setHours(0, 0, 0, 0)
+        if (e < min) {
+          Alert.alert(
+            'Invalid end date',
+            'Job end date must be a future date based on the selected start date.',
+          )
+          return
+        }
       }
     }
 
@@ -94,7 +144,7 @@ const QuickSearchStepTwo = ({ navigation, route }) => {
         rightComponent={
           <TouchableOpacity activeOpacity={0.7}>
             <AppText variant={Variant.body} style={styles.stepText}>
-              Step 2/4
+              Step 2/5
             </AppText>
           </TouchableOpacity>
         }
@@ -105,7 +155,7 @@ const QuickSearchStepTwo = ({ navigation, route }) => {
         <FormField
           name="workLocation"
           label="Work location*"
-          placeholder="Enter location"
+          placeholder="Street no, street, suburb, state, postcode"
           rules={{
             required: 'Work location is required'
           }}
@@ -155,6 +205,7 @@ const QuickSearchStepTwo = ({ navigation, route }) => {
           label="Job start date*"
           placeholder="DD : MM : YYYY"
           type="datePicker"
+          minimumDate={todayStart}
           rules={{
             required: 'Job start date is required',
           }}
@@ -166,6 +217,7 @@ const QuickSearchStepTwo = ({ navigation, route }) => {
           label="Job end date*"
           placeholder="DD : MM : YYYY"
           type="datePicker"
+          minimumDate={minEndDate || todayStart}
           rules={{
             required: 'Job end date is required',
           }}

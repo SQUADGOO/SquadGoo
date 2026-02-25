@@ -13,10 +13,10 @@ const Tab = createBottomTabNavigator();
 const tabItems = [
   {
     name: screenNames.HOME,
-    label: 'Home',
+    label: 'Dashboard',
     activeIcon: Icons.homeActive,
     inactiveIcon: Icons.home,
-    component: ui.Home,
+    component: ui.Dashboard,
   },
   {
     name: screenNames.FIND_STAFF,

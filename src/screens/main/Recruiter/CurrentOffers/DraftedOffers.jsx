@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useState } from 'react'
 import { View, StyleSheet, FlatList, Modal, TouchableOpacity } from 'react-native'
 import { wp, hp } from '@/theme'
 import { colors } from '@/theme'
@@ -7,57 +7,14 @@ import PoolHeader from '@/core/PoolHeader'
 import AppText, { Variant } from '@/core/AppText'
 import JobCard from '@/components/Recruiter/JobCard'
 import { screenNames } from '@/navigation/screenNames'
+import { useDispatch, useSelector } from 'react-redux'
+import { deleteDraftJob } from '@/store/jobsSlice'
 
 const DraftedOffers = ({ navigation, route }) => {
+  const dispatch = useDispatch()
+  const draftedJobs = useSelector((state) => state.jobs?.draftedJobs || [])
   const fromDrawer = route?.params?.fromDrawer
   const headerTitle = route?.params?.headerTitle || 'Drafted Offers'
-
-  const initialDraftJobs = useMemo(
-    () => [
-      {
-        id: 'draft-quick-1',
-        title: 'Forklift Operator (Urgent)',
-        type: 'Casual',
-        searchType: 'quick',
-        salaryRange: '$32/hr to $38/hr',
-        offerDate: 'Draft saved today',
-        expireDate: 'Not set',
-        location: 'Sydney CBD',
-        experience: '1 Year 0 Month',
-        salaryType: 'Hourly',
-        // Draft data for Quick Search Step 1
-        jobCategory: 'Logistics',
-        jobSubCategory: 'Forklift Operator',
-        industry: 'Transportation',
-        experienceYear: '1 Year',
-        experienceMonth: '0 Month',
-        staffCount: 2,
-      },
-      {
-        id: 'draft-manual-1',
-        title: 'General Labourer',
-        type: 'Contract',
-        searchType: 'manual',
-        salaryRange: '$28/hr to $35/hr',
-        offerDate: 'Draft saved yesterday',
-        expireDate: 'Not set',
-        location: 'Melbourne',
-        experience: '2 Years 0 Month',
-        salaryType: 'Hourly',
-        // Draft data for Manual Search Step 1
-        jobCategory: 'Construction',
-        jobSubCategory: 'Labourer',
-        workLocation: 'Melbourne',
-        rangeKm: 25,
-        staffNumber: '3',
-        jobType: 'Contract',
-        jobTitle: 'Labourer',
-      },
-    ],
-    [],
-  )
-
-  const [draftJobs, setDraftJobs] = useState(initialDraftJobs)
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
   const [selectedDraft, setSelectedDraft] = useState(null)
 
@@ -92,7 +49,7 @@ const DraftedOffers = ({ navigation, route }) => {
       closeDeleteModal()
       return
     }
-    setDraftJobs(prev => prev.filter(job => job.id !== selectedDraft.id))
+    dispatch(deleteDraftJob(selectedDraft.id))
     closeDeleteModal()
   }
 
@@ -105,7 +62,7 @@ const DraftedOffers = ({ navigation, route }) => {
       )}
 
       <FlatList
-        data={draftJobs}
+        data={draftedJobs}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
           <JobCard

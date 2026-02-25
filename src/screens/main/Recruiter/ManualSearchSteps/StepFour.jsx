@@ -12,14 +12,20 @@ import { AU_LOCATION_OPTIONS } from '@/constants/recruiterOptions'
 
 const ManualSearchStepFour = ({ navigation, route }) => {
   const { step1Data, step2Data, step3Data, editMode, draftJob, jobId } = route.params || {}
+  const returnToPreview = route?.params?.returnToPreview
+  const previewData = route?.params?.previewData
+  const incomingStep4Data = route?.params?.step4Data || previewData?.step4Data
 
   const initialLocation =
+    incomingStep4Data?.workLocation ||
     step1Data?.workLocation ||
     draftJob?.location ||
     'Sydney, NSW'
 
   const initialRange =
-    typeof step1Data?.rangeKm === 'number'
+    typeof incomingStep4Data?.rangeKm === 'number'
+      ? incomingStep4Data.rangeKm
+      : typeof step1Data?.rangeKm === 'number'
       ? step1Data.rangeKm
       : (typeof draftJob?.rangeKm === 'number' ? draftJob.rangeKm : 25)
 
@@ -42,6 +48,19 @@ const ManualSearchStepFour = ({ navigation, route }) => {
     const step4Data = {
       workLocation: selectedLocation,
       rangeKm: Math.round(rangeKm),
+    }
+
+    if (returnToPreview) {
+      navigation.navigate(screenNames.JOB_PREVIEW, {
+        step1Data: previewData?.step1Data,
+        step2Data: previewData?.step2Data,
+        step3Data: previewData?.step3Data,
+        step4Data,
+        editMode: previewData?.editMode,
+        draftJob: previewData?.draftJob,
+        jobId: previewData?.jobId,
+      })
+      return
     }
 
     navigation.navigate(screenNames.JOB_PREVIEW, {

@@ -813,6 +813,19 @@ const quickSearchSlice = createSlice({
       }
     },
 
+    // Recruiter withdraws an offer (cancel)
+    withdrawQuickOffer: (state, { payload }) => {
+      const { offerId } = payload || {};
+      const offer = state.activeOffers.find(o => o.id === offerId);
+      if (!offer) return;
+      offer.status = 'withdrawn';
+      offer.response = {
+        type: 'withdrawn',
+        withdrawnAt: new Date().toISOString(),
+      };
+      offer.updatedAt = new Date().toISOString();
+    },
+
     // Job seeker accepts quick offer
     acceptQuickOffer: (state, { payload }) => {
       const { offerId } = payload;
@@ -1224,6 +1237,7 @@ export const {
   requestOfferModification,
   acceptOfferModification,
   declineOfferModification,
+  withdrawQuickOffer,
   updateLocationTracking,
   requestPlatformPayment,
   verifyPaymentCode,

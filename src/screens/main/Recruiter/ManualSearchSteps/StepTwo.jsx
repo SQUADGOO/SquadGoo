@@ -17,6 +17,7 @@ import globalStyles from '@/styles/globalStyles'
 import CustomToggle from '@/core/CustomToggle'
 import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
+import { showToast, toastTypes } from '@/utilities/toastConfig'
 import {
   EXPERIENCE_MONTH_OPTIONS,
   EXPERIENCE_YEAR_OPTIONS,
@@ -28,6 +29,8 @@ const StepTwo = ({ navigation, route }) => {
   const draftJob = route?.params?.draftJob
   const existingJobId = route?.params?.jobId || draftJob?.id
   const detailedAvailabilityFromRoute = route?.params?.detailedAvailability
+  const returnToPreview = route?.params?.returnToPreview
+  const previewData = route?.params?.previewData
 
   const parseExperienceToForm = (experience) => {
     if (!experience || typeof experience !== 'string') return null
@@ -38,12 +41,23 @@ const StepTwo = ({ navigation, route }) => {
     return { years, months }
   }
 
+  const normalizeSalaryType = (value) => {
+    const t = String(value || '').trim()
+    if (!t) return 'Hourly Rate'
+    // Back-compat for older saved values
+    if (t === 'Hourly') return 'Hourly Rate'
+    if (t === 'Daily') return 'Daily Rate'
+    if (t === 'Weekly') return 'Weekly Rate'
+    if (t === 'Annually') return 'Annual Salary Package'
+    return t
+  }
+
   const [toggleStates, setToggleStates] = useState({
-    publicHolidays: true,
-    weekend: true,
-    shiftLoading: true,
-    bonuses: true,
-    overtime: true
+    publicHolidays: false,
+    weekend: false,
+    shiftLoading: false,
+    bonuses: false,
+    overtime: false
   })
 
   const [freshersCanApply, setFreshersCanApply] = useState(false)
@@ -57,9 +71,15 @@ const StepTwo = ({ navigation, route }) => {
     defaultValues: {
       experienceYears: '0 Year',
       experienceMonths: '0 Month',
-      salaryType: 'Hourly',
+      salaryType: 'Hourly Rate',
+      salaryTypeOther: '',
       salaryMin: '',
       salaryMax: '',
+      publicHolidaysRate: '',
+      weekendRate: '',
+      shiftLoadingRate: '',
+      bonusesRate: '',
+      overtimeRate: '',
       // Grouped availability (Mon–Thu / Fri–Sun)
       weekdaysStartTime: null,
       weekdaysEndTime: null,
@@ -69,19 +89,63 @@ const StepTwo = ({ navigation, route }) => {
   })
 
   const salaryType = methods.watch('salaryType')
+  const salaryTypeOther = methods.watch('salaryTypeOther')
   const salarySuffix = useMemo(() => {
-    switch (salaryType) {
-      case 'Daily':
-        return '/day'
-      case 'Weekly':
-        return '/week'
-      case 'Annually':
-        return '/year'
-      case 'Hourly':
-      default:
-        return '/hr'
-    }
+    const t = String(salaryType || '').trim().toLowerCase()
+    if (t.includes('hourly')) return '/hr'
+    if (t.includes('daily')) return '/day'
+    if (t.includes('weekly')) return '/week'
+    if (t.includes('annual')) return '/year'
+    if (t.includes('per task') || t.includes('piecework')) return '/task'
+    if (t.includes('contract') || t.includes('project')) return '/project'
+    return ''
   }, [salaryType])
+
+  const getSalaryTypeDisplay = () => {
+    if (salaryType === 'Other (please specify)') {
+      return salaryTypeOther?.trim() ? `Other: ${salaryTypeOther.trim()}` : 'Other'
+    }
+    return salaryType
+  }
+
+  const setExtraPayToggle = (key, isYes) => {
+    setToggleStates((s) => ({ ...s, [key]: isYes }))
+    if (!isYes) {
+      const map = {
+        publicHolidays: 'publicHolidaysRate',
+        weekend: 'weekendRate',
+        shiftLoading: 'shiftLoadingRate',
+        bonuses: 'bonusesRate',
+        overtime: 'overtimeRate',
+      }
+      const field = map[key]
+      if (field) methods.setValue(field, '', { shouldDirty: true })
+    }
+  }
+
+  const validateExtraPayRates = (data) => {
+    const required = []
+    const checkRate = (enabledKey, fieldName, label) => {
+      if (!toggleStates[enabledKey]) return
+      const v = String(data[fieldName] || '').trim()
+      const n = Number(v)
+      if (!v || Number.isNaN(n) || n <= 0) required.push(label)
+    }
+
+    checkRate('publicHolidays', 'publicHolidaysRate', 'Public holidays rate')
+    checkRate('weekend', 'weekendRate', 'Weekend rate')
+    checkRate('shiftLoading', 'shiftLoadingRate', 'Shift loading rate')
+    checkRate('bonuses', 'bonusesRate', 'Bonuses rate')
+    checkRate('overtime', 'overtimeRate', 'Overtime rate')
+
+    return required
+  }
+
+  const currencyIcon = (
+    <AppText variant={Variant.body} style={styles.currencySymbol}>
+      $
+    </AppText>
+  )
 
   const dateFromTimeString = (timeString) => {
     if (!timeString || typeof timeString !== 'string') return null
@@ -133,6 +197,33 @@ const StepTwo = ({ navigation, route }) => {
       setDetailedAvailability(detailedAvailabilityFromRoute)
     }
 
+    if (returnToPreview && previewData?.step2Data) {
+      const s2 = previewData.step2Data
+      methods.reset({
+        experienceYears: s2.experienceYears || '0 Year',
+        experienceMonths: s2.experienceMonths || '0 Month',
+        salaryType: s2.salaryType || 'Hourly Rate',
+        salaryTypeOther: s2.salaryTypeOther || '',
+        salaryMin: s2.salaryMin ? String(s2.salaryMin) : '',
+        salaryMax: s2.salaryMax ? String(s2.salaryMax) : '',
+        publicHolidaysRate: s2.publicHolidaysRate || '',
+        weekendRate: s2.weekendRate || '',
+        shiftLoadingRate: s2.shiftLoadingRate || '',
+        bonusesRate: s2.bonusesRate || '',
+        overtimeRate: s2.overtimeRate || '',
+        weekdaysStartTime: s2.weekdaysStartTime || null,
+        weekdaysEndTime: s2.weekdaysEndTime || null,
+        weekendsStartTime: s2.weekendsStartTime || null,
+        weekendsEndTime: s2.weekendsEndTime || null,
+      })
+      if (s2.extraPay) setToggleStates(s2.extraPay)
+      if (typeof s2.freshersCanApply === 'boolean') setFreshersCanApply(s2.freshersCanApply)
+      if (s2.availability && typeof s2.availability === 'object') {
+        setDetailedAvailability(s2.availability)
+      }
+      return
+    }
+
     if (editMode && draftJob) {
       const parsedExp = parseExperienceToForm(draftJob.experience)
       const expYears = parsedExp?.years || '0 Year'
@@ -141,9 +232,25 @@ const StepTwo = ({ navigation, route }) => {
       methods.reset({
         experienceYears: expYears,
         experienceMonths: expMonths,
-        salaryType: draftJob.salaryType || 'Hourly',
+        salaryType: normalizeSalaryType(draftJob.salaryType),
+        salaryTypeOther: draftJob.salaryTypeOther || '',
         salaryMin: draftJob.salaryMin ? String(draftJob.salaryMin) : '',
         salaryMax: draftJob.salaryMax ? String(draftJob.salaryMax) : '',
+        publicHolidaysRate: draftJob?.extraPayRates?.publicHolidays
+          ? String(draftJob.extraPayRates.publicHolidays)
+          : '',
+        weekendRate: draftJob?.extraPayRates?.weekend
+          ? String(draftJob.extraPayRates.weekend)
+          : '',
+        shiftLoadingRate: draftJob?.extraPayRates?.shiftLoading
+          ? String(draftJob.extraPayRates.shiftLoading)
+          : '',
+        bonusesRate: draftJob?.extraPayRates?.bonuses
+          ? String(draftJob.extraPayRates.bonuses)
+          : '',
+        overtimeRate: draftJob?.extraPayRates?.overtime
+          ? String(draftJob.extraPayRates.overtime)
+          : '',
         weekdaysStartTime: dateFromTimeString(draftJob?.rawData?.step2Data?.weekdaysFrom) || null,
         weekdaysEndTime: dateFromTimeString(draftJob?.rawData?.step2Data?.weekdaysTo) || null,
         weekendsStartTime: dateFromTimeString(draftJob?.rawData?.step2Data?.weekendsFrom) || null,
@@ -167,18 +274,41 @@ const StepTwo = ({ navigation, route }) => {
   const handleSalaryTypeSelect = (item) => {
     if (item?.title) {
       methods.setValue('salaryType', item.title, { shouldValidate: true, shouldDirty: true })
+      if (item.title !== 'Other (please specify)') {
+        methods.setValue('salaryTypeOther', '', { shouldDirty: true })
+      }
     }
     salaryTypeSheetRef.current?.close()
   }
 
  const onSubmit = (data) => {
+  const missingRates = validateExtraPayRates(data)
+  if (missingRates.length > 0) {
+    showToast(
+      `Please enter: ${missingRates.join(', ')}`,
+      'Missing rates',
+      toastTypes.warning,
+    )
+    return
+  }
+
   const availabilityGrouped = buildGroupedAvailability(data)
   const availabilityFinal = detailedAvailability || availabilityGrouped
+
+  const extraPayRates = {
+    publicHolidays: toggleStates.publicHolidays ? Number(data.publicHolidaysRate) : null,
+    weekend: toggleStates.weekend ? Number(data.weekendRate) : null,
+    shiftLoading: toggleStates.shiftLoading ? Number(data.shiftLoadingRate) : null,
+    bonuses: toggleStates.bonuses ? Number(data.bonusesRate) : null,
+    overtime: toggleStates.overtime ? Number(data.overtimeRate) : null,
+  }
 
   const formData = {
     ...data,
     freshersCanApply,
     extraPay: toggleStates,
+    extraPayRates,
+    salaryTypeDisplay: getSalaryTypeDisplay(),
     availability: availabilityFinal,
     availabilitySource: detailedAvailability ? 'detailed' : 'grouped',
     // keep grouped times in rawData for edit prefill
@@ -191,6 +321,19 @@ const StepTwo = ({ navigation, route }) => {
   console.log('✅ Step 2 Data:', formData)
   
   // Pass both step1Data and step2Data to next screen
+  if (returnToPreview) {
+    navigation.navigate(screenNames.JOB_PREVIEW, {
+      step1Data: previewData?.step1Data,
+      step2Data: formData,
+      step3Data: previewData?.step3Data,
+      step4Data: previewData?.step4Data,
+      editMode: previewData?.editMode,
+      draftJob: previewData?.draftJob,
+      jobId: previewData?.jobId,
+    })
+    return
+  }
+
   navigation.navigate(screenNames.STEP_THREE, { 
     step1Data: route.params?.step1Data, // Pass step1Data forward
     step2Data: formData,
@@ -384,6 +527,23 @@ const StepTwo = ({ navigation, route }) => {
               onPressField={() => salaryTypeSheetRef.current?.open()}
             />
           </View>
+
+          {salaryType === 'Other (please specify)' ? (
+            <View style={{ marginBottom: hp(1.5) }}>
+              <FormField
+                name="salaryTypeOther"
+                label="Please specify"
+                placeholder="Enter salary type"
+                rules={{
+                  required: 'Please specify salary type',
+                }}
+              />
+            </View>
+          ) : null}
+
+          <AppText variant={Variant.caption} style={styles.helperText}>
+            All employees working in Australia are entitled to minimum wage.
+          </AppText>
           
           <View style={styles.salaryRow}>
             <View style={{width: '42%'}}>
@@ -401,11 +561,7 @@ const StepTwo = ({ navigation, route }) => {
                     return true;
                   }
                 }}
-                startIcon={
-                  <AppText variant={Variant.body} style={styles.currencySymbol}>
-                    ${salarySuffix}
-                  </AppText>
-                }
+                startIcon={currencyIcon}
               />
             </View>
             
@@ -430,14 +586,14 @@ const StepTwo = ({ navigation, route }) => {
                     return true;
                   }
                 }}
-                startIcon={
-                  <AppText variant={Variant.body} style={styles.currencySymbol}>
-                    ${salarySuffix}
-                  </AppText>
-                }
+                startIcon={currencyIcon}
               />
             </View>
           </View>
+
+          <AppText variant={Variant.caption} style={styles.helperText}>
+            Type: {getSalaryTypeDisplay()} {salarySuffix ? `(${salarySuffix})` : ''}
+          </AppText>
         </View>
 
         {/* Extra Pay */}
@@ -452,15 +608,47 @@ const StepTwo = ({ navigation, route }) => {
                 <CustomToggle
                   label='Public holidays'
                 defaultValue={toggleStates.publicHolidays ? 'Yes' : 'No'}
-                onChange={(val) => setToggleStates(s => ({ ...s, publicHolidays: val === 'Yes' }))}
+                onChange={(val) => setExtraPayToggle('publicHolidays', val === 'Yes')}
                 />
+                {toggleStates.publicHolidays ? (
+                  <FormField
+                    name="publicHolidaysRate"
+                    placeholder="Extra pay rate"
+                    keyboardType="numeric"
+                    startIcon={currencyIcon}
+                    rules={{
+                      required: 'Rate is required',
+                      validate: (v) => {
+                        const n = Number(v)
+                        if (!v || Number.isNaN(n) || n <= 0) return 'Enter a valid rate'
+                        return true
+                      },
+                    }}
+                  />
+                ) : null}
               </View>
               <View style={{width: '48%'}}>
                 <CustomToggle
                   label="Weekend"
                 defaultValue={toggleStates.weekend ? 'Yes' : 'No'}
-                onChange={(val) => setToggleStates(s => ({ ...s, weekend: val === 'Yes' }))}
+                onChange={(val) => setExtraPayToggle('weekend', val === 'Yes')}
                 />
+                {toggleStates.weekend ? (
+                  <FormField
+                    name="weekendRate"
+                    placeholder="Extra pay rate"
+                    keyboardType="numeric"
+                    startIcon={currencyIcon}
+                    rules={{
+                      required: 'Rate is required',
+                      validate: (v) => {
+                        const n = Number(v)
+                        if (!v || Number.isNaN(n) || n <= 0) return 'Enter a valid rate'
+                        return true
+                      },
+                    }}
+                  />
+                ) : null}
               </View>
             </View>
 
@@ -469,15 +657,47 @@ const StepTwo = ({ navigation, route }) => {
                 <CustomToggle
                   label='Shift loading'
                 defaultValue={toggleStates.shiftLoading ? 'Yes' : 'No'}
-                onChange={(val) => setToggleStates(s => ({ ...s, shiftLoading: val === 'Yes' }))}
+                onChange={(val) => setExtraPayToggle('shiftLoading', val === 'Yes')}
                 />
+                {toggleStates.shiftLoading ? (
+                  <FormField
+                    name="shiftLoadingRate"
+                    placeholder="Extra pay rate"
+                    keyboardType="numeric"
+                    startIcon={currencyIcon}
+                    rules={{
+                      required: 'Rate is required',
+                      validate: (v) => {
+                        const n = Number(v)
+                        if (!v || Number.isNaN(n) || n <= 0) return 'Enter a valid rate'
+                        return true
+                      },
+                    }}
+                  />
+                ) : null}
               </View>
               <View style={{width: '48%'}}>
                 <CustomToggle
                   label="Bonuses"
                 defaultValue={toggleStates.bonuses ? 'Yes' : 'No'}
-                onChange={(val) => setToggleStates(s => ({ ...s, bonuses: val === 'Yes' }))}
+                onChange={(val) => setExtraPayToggle('bonuses', val === 'Yes')}
                 />
+                {toggleStates.bonuses ? (
+                  <FormField
+                    name="bonusesRate"
+                    placeholder="Extra pay rate"
+                    keyboardType="numeric"
+                    startIcon={currencyIcon}
+                    rules={{
+                      required: 'Rate is required',
+                      validate: (v) => {
+                        const n = Number(v)
+                        if (!v || Number.isNaN(n) || n <= 0) return 'Enter a valid rate'
+                        return true
+                      },
+                    }}
+                  />
+                ) : null}
               </View>
             </View>
 
@@ -486,8 +706,24 @@ const StepTwo = ({ navigation, route }) => {
                 <CustomToggle
                   label='Overtime'
                 defaultValue={toggleStates.overtime ? 'Yes' : 'No'}
-                onChange={(val) => setToggleStates(s => ({ ...s, overtime: val === 'Yes' }))}
+                onChange={(val) => setExtraPayToggle('overtime', val === 'Yes')}
                 />
+                {toggleStates.overtime ? (
+                  <FormField
+                    name="overtimeRate"
+                    placeholder="Extra pay rate"
+                    keyboardType="numeric"
+                    startIcon={currencyIcon}
+                    rules={{
+                      required: 'Rate is required',
+                      validate: (v) => {
+                        const n = Number(v)
+                        if (!v || Number.isNaN(n) || n <= 0) return 'Enter a valid rate'
+                        return true
+                      },
+                    }}
+                  />
+                ) : null}
               </View>
             </View>
           </View>
@@ -606,8 +842,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  currencySymbol: { color: colors.gray, fontSize: getFontSize(14), marginLeft: wp(2) },
+  currencySymbol: { color: colors.gray, fontSize: getFontSize(14) },
   toText: { color: colors.gray, fontSize: getFontSize(16), bottom: 10 },
+  helperText: {
+    color: colors.gray,
+    marginBottom: hp(1.2),
+  },
   toggleGrid: { gap: hp(2) },
   buttonContainer: { marginTop: hp(2), marginBottom: hp(6) },
 })

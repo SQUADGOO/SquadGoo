@@ -15,6 +15,7 @@ import quickSearchReducer from './quickSearchSlice'
 import notificationsReducer from './notificationsSlice'
 import chatReducer from './chatSlice'
 import contactRevealReducer from './contactRevealSlice'
+import recruiterSettingsReducer from './recruiterSettingsSlice'
 
 const rootReducer = combineReducers({
   auth: authSlice,
@@ -31,12 +32,13 @@ const rootReducer = combineReducers({
   notifications: notificationsReducer,
   chat: chatReducer,
   contactReveal: contactRevealReducer,
+  recruiterSettings: recruiterSettingsReducer,
 });
 
 const presisConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['auth', 'marketplace', 'jobs', 'jobSeekerOffers', 'jobSeekerExperience', 'jobSeekerPreferred', 'wallet', 'bank', 'manualOffers', 'quickSearch', 'notifications', 'chat', 'contactReveal'],
+  whitelist: ['auth', 'marketplace', 'jobs', 'jobSeekerOffers', 'jobSeekerExperience', 'jobSeekerPreferred', 'wallet', 'bank', 'manualOffers', 'quickSearch', 'notifications', 'chat', 'contactReveal', 'recruiterSettings'],
 };
 const presisReducer = persistReducer(presisConfig, rootReducer);
 

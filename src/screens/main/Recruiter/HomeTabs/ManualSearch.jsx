@@ -27,6 +27,8 @@ const ManualSearch = ({ navigation, route }) => {
   const editMode = route?.params?.editMode
   const draftJob = route?.params?.draftJob
   const existingJobId = route?.params?.jobId || draftJob?.id
+  const returnToPreview = route?.params?.returnToPreview
+  const previewData = route?.params?.previewData
 
   const jobReferenceId = useMemo(() => {
     // Keep stable for edits, generate for new jobs
@@ -69,6 +71,24 @@ const ManualSearch = ({ navigation, route }) => {
       if (draftJob.jobSubCategory) setJobSubCategory(draftJob.jobSubCategory)
     }
   }, [editMode, draftJob])
+
+  // Prefill from preview when editing a single section
+  useEffect(() => {
+    if (!returnToPreview) return
+    const s1 = previewData?.step1Data
+    if (!s1) return
+
+    methods.reset({
+      workLocation: s1.workLocation || 'Sydney',
+      staffNumber: s1.staffNumber ? String(s1.staffNumber) : '1',
+      jobTitle: s1.jobTitle || '',
+      jobType: s1.jobType || '',
+      industry: s1.industry || '',
+    })
+    if (typeof s1.rangeKm === 'number') setRangeKm(s1.rangeKm)
+    if (s1.jobCategory) setJobCategory(s1.jobCategory)
+    if (s1.jobSubCategory) setJobSubCategory(s1.jobSubCategory)
+  }, [returnToPreview, previewData])
 
   const { watch, setValue } = methods
 
@@ -122,6 +142,19 @@ const ManualSearch = ({ navigation, route }) => {
       jobReferenceId: jobReferenceId,
     }
     console.log('Step 1 data:', searchData)
+    if (returnToPreview) {
+      navigation.navigate(screenNames.JOB_PREVIEW, {
+        step1Data: searchData,
+        step2Data: previewData?.step2Data,
+        step3Data: previewData?.step3Data,
+        step4Data: previewData?.step4Data,
+        editMode: previewData?.editMode,
+        draftJob: previewData?.draftJob,
+        jobId: previewData?.jobId,
+      })
+      return
+    }
+
     navigation.navigate(screenNames.STEP_TWO, {
       step1Data: searchData,
       editMode: !!editMode,
@@ -152,10 +185,10 @@ const ManualSearch = ({ navigation, route }) => {
         }
       />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Job Title */}
+        {/* Job Category */}
         <View style={styles.formGroup}>
           <AppText variant={Variant.boldCaption} style={styles.label}>
-            Job title
+            Job category
           </AppText>
           <JobCategorySelector
             onSelect={handleJobCategorySelect}
@@ -165,12 +198,13 @@ const ManualSearch = ({ navigation, route }) => {
           />
         </View>
 
-        {/* Job Title (Manual Entry) */}
+        {/* Job Title (Auto-filled from sub-category) */}
         <View style={styles.formGroup}>
           <FormField
             name="jobTitle"
-            label="Job title (manual entry)"
-            placeholder="Enter job title"
+            label="Job title"
+            placeholder="Auto-filled from sub-category"
+            disabled
           />
         </View>
 

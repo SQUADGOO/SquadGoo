@@ -1,11 +1,11 @@
-import React from 'react'
-import { View, StyleSheet, TouchableOpacity } from 'react-native'
-import { colors, hp, wp, getFontSize } from '@/theme'
-import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
-import AppText, { Variant } from '@/core/AppText'
+import React from 'react';
+import {View, StyleSheet, TouchableOpacity} from 'react-native';
+import {colors, hp, wp, getFontSize} from '@/theme';
+import VectorIcons, {iconLibName} from '@/theme/vectorIcon';
+import AppText, {Variant} from '@/core/AppText';
 
 // Reusable Job Detail Row Component
-const JobDetailRow = ({ iconName, label, value }) => (
+const JobDetailRow = ({iconName, label, value}) => (
   <View style={styles.detailRow}>
     <VectorIcons
       name={iconLibName.Ionicons}
@@ -15,61 +15,87 @@ const JobDetailRow = ({ iconName, label, value }) => (
       style={styles.detailIcon}
     />
     <AppText variant={Variant.body} style={styles.detailText}>
-      {label}: <AppText variant={Variant.bodyMedium} style={styles.detailValue}>{value}</AppText>
+      {label}:{' '}
+      <AppText variant={Variant.bodyMedium} style={styles.detailValue}>
+        {value}
+      </AppText>
     </AppText>
   </View>
-)
+);
 
-const ExpiredJobCard = ({ 
-  job, 
-  onViewDetails
-}) => {
-  const formatAuDate = (value) => {
-    if (!value) return '—'
+const ExpiredJobCard = ({job, onViewDetails}) => {
+  const formatAuDate = value => {
+    if (!value) return '—';
+
     if (typeof value === 'string') {
-      const s = value.trim()
-      if (/^\d{1,2}\s+[A-Za-z]{3,}\s+\d{4}$/.test(s)) return s
-    }
-    const d = value instanceof Date ? value : new Date(value)
-    if (Number.isNaN(d.getTime())) return typeof value === 'string' ? value : '—'
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-  }
+      const s = value.trim();
 
-  const toNumber = (v) => {
-    const n = typeof v === 'number' ? v : Number(v)
-    return Number.isFinite(n) ? n : null
-  }
+      if (/^\d{1,2}\s+[A-Za-z]{3,}\s+\d{4}$/.test(s)) return s;
+    }
+    const d = value instanceof Date ? value : new Date(value);
+
+    if (Number.isNaN(d.getTime()))
+      return typeof value === 'string' ? value : '—';
+
+    return d.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
+  const toNumber = v => {
+    const n = typeof v === 'number' ? v : Number(v);
+
+    return Number.isFinite(n) ? n : null;
+  };
 
   const formatPayRange = () => {
-    const min = toNumber(job?.salaryMin)
-    const max = toNumber(job?.salaryMax)
-    const type = String(job?.salaryType || '').toLowerCase()
-    const suffix = type.includes('hour') ? '/hr' : type.includes('day') ? '/day' : ''
+    const min = toNumber(job?.salaryMin);
+    const max = toNumber(job?.salaryMax);
+    const type = String(job?.salaryType || '').toLowerCase();
+    const suffix = type.includes('hour')
+      ? '/hr'
+      : type.includes('day')
+        ? '/day'
+        : '';
 
     if (min != null && max != null && (min > 0 || max > 0)) {
-      return `$${min}${suffix}–$${max}${suffix}`
+      return `$${min}${suffix}–$${max}${suffix}`;
     }
+
     if (typeof job?.salaryRange === 'string' && job.salaryRange.trim() !== '') {
       // normalize "$28/hr to $38/hr" -> "$28–$38/hr"
-      const m = job.salaryRange.match(/\$?\s*(\d+(?:\.\d+)?)\s*(?:\/hr)?\s*to\s*\$?\s*(\d+(?:\.\d+)?)\s*(?:\/hr)?/i)
-      if (m) {
-        const suffix2 = /\/hr/i.test(job.salaryRange) || type.includes('hour') ? '/hr' : /\/day/i.test(job.salaryRange) || type.includes('day') ? '/day' : ''
-        return `$${m[1]}–$${m[2]}${suffix2}`
-      }
-      return job.salaryRange
-    }
-    return '—'
-  }
+      const m = job.salaryRange.match(
+        /\$?\s*(\d+(?:\.\d+)?)\s*(?:\/hr)?\s*to\s*\$?\s*(\d+(?:\.\d+)?)\s*(?:\/hr)?/i,
+      );
 
-  const paySummary = job?.salaryType ? `${job.salaryType}: ${formatPayRange()}` : formatPayRange()
-  const searchType = job?.searchType === 'quick' ? 'quick' : 'manual'
-  const positionsRequired = job?.staffNumber ?? job?.staffCount ?? job?.positions ?? '—'
-  const positionsFilled = typeof job?.positionsFilled === 'number' ? job.positionsFilled : 0
-  const hasNotes = typeof job?.expiryNotes === 'string' && job.expiryNotes.trim() !== ''
+      if (m) {
+        const suffix2 =
+          /\/hr/i.test(job.salaryRange) || type.includes('hour')
+            ? '/hr'
+            : /\/day/i.test(job.salaryRange) || type.includes('day')
+              ? '/day'
+              : '';
+
+        return `$${m[1]}–$${m[2]}${suffix2}`;
+      }
+
+      return job.salaryRange;
+    }
+
+    return '—';
+  };
+
+  const paySummary = job?.salaryType
+    ? `${job.salaryType}: ${formatPayRange()}`
+    : formatPayRange();
+  const searchType = job?.searchType === 'quick' ? 'quick' : 'manual';
+  const positionsRequired =
+    job?.staffNumber ?? job?.staffCount ?? job?.positions ?? '—';
 
   return (
     <View style={styles.cardContainer}>
-      
       {/* Header - Job Title and Badges */}
       <View style={styles.cardHeader}>
         <AppText variant={Variant.subTitle} style={styles.jobTitle}>
@@ -90,20 +116,14 @@ const ExpiredJobCard = ({
           <View
             style={[
               styles.searchTypeBadge,
-              searchType === 'quick' ? styles.quickSearchBadge : styles.manualSearchBadge,
-            ]}
-          >
+              searchType === 'quick'
+                ? styles.quickSearchBadge
+                : styles.manualSearchBadge,
+            ]}>
             <AppText variant={Variant.caption} style={styles.searchTypeText}>
               {searchType === 'quick' ? 'Quick' : 'Manual'}
             </AppText>
           </View>
-          {hasNotes ? (
-            <View style={styles.notesBadge}>
-              <AppText variant={Variant.caption} style={styles.notesText}>
-                Has notes
-              </AppText>
-            </View>
-          ) : null}
         </View>
       </View>
 
@@ -115,80 +135,54 @@ const ExpiredJobCard = ({
       {/* Job Details */}
       <View style={styles.detailsContainer}>
         <JobDetailRow
-          iconName="briefcase-outline"
-          label="Job type"
-          value={job.type || '—'}
-        />
-
-        <JobDetailRow 
           iconName="calendar-outline"
           label="Posted"
           value={formatAuDate(job.offerDate || job.createdAt)}
         />
-        
-        <JobDetailRow 
+
+        <JobDetailRow
           iconName="close-circle-outline"
           label="Expired"
           value={formatAuDate(job.expireDate || job.expiredAt)}
         />
-        
-        <JobDetailRow 
+
+        <JobDetailRow
           iconName="location-outline"
           label="Location"
           value={job.location}
         />
-        
-        <JobDetailRow 
+
+        <JobDetailRow
           iconName="people-outline"
           label="Positions"
           value={String(positionsRequired)}
         />
-
-        <JobDetailRow
-          iconName="checkmark-done-outline"
-          label="Positions filled"
-          value={String(positionsFilled)}
-        />
       </View>
-
-      {job?.expiryReason ? (
-        <View style={styles.reasonRow}>
-          <VectorIcons
-            name={iconLibName.Ionicons}
-            iconName="chatbox-ellipses-outline"
-            size={18}
-            color={colors.gray}
-            style={styles.detailIcon}
-          />
-          <AppText variant={Variant.body} style={styles.reasonText} numberOfLines={1} ellipsizeMode="tail">
-            Reason: <AppText variant={Variant.bodyMedium} style={styles.detailValue}>{job.expiryReason}</AppText>
-          </AppText>
-        </View>
-      ) : null}
 
       {/* Action Buttons */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.actionButton, styles.detailsButton]}
           onPress={() => onViewDetails(job)}
-          activeOpacity={0.8}
-        >
+          activeOpacity={0.8}>
           <VectorIcons
             name={iconLibName.Ionicons}
             iconName="eye-outline"
             size={20}
             color="#EF4444"
           />
-          <AppText variant={Variant.bodyMedium} style={styles.detailsButtonText}>
+          <AppText
+            variant={Variant.bodyMedium}
+            style={styles.detailsButtonText}>
             View Details
           </AppText>
         </TouchableOpacity>
       </View>
     </View>
-  )
-}
+  );
+};
 
-export default ExpiredJobCard
+export default ExpiredJobCard;
 
 const styles = StyleSheet.create({
   cardContainer: {
@@ -292,16 +286,6 @@ const styles = StyleSheet.create({
   detailValue: {
     fontWeight: 'bold',
   },
-  reasonRow: {
-    flexDirection: 'row',
-    gap: 5,
-    alignItems: 'center',
-    marginBottom: hp(2),
-  },
-  reasonText: {
-    flex: 1,
-    color: colors.gray,
-  },
   buttonContainer: {
     marginTop: hp(1),
   },
@@ -321,5 +305,4 @@ const styles = StyleSheet.create({
   detailsButtonText: {
     color: '#EF4444',
   },
-})
-
+});
