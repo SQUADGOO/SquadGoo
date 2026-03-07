@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, Modal, Linking, Alert } from 'react-native';
+import React from 'react';
+import { StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
 import PoolHeader from '@/core/PoolHeader';
 import AppText, { Variant } from '@/core/AppText';
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
@@ -8,11 +8,6 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { screenNames } from '@/navigation/screenNames';
 
 const ApplicationSettings = ({ navigation }) => {
-  const PROFILE_SWITCH_EMAIL = 'support@squadgoo.com.au';
-
-  // Modals
-  const [showSwitchProfileModal, setShowSwitchProfileModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
 
   // Handlers
@@ -34,7 +29,7 @@ const ApplicationSettings = ({ navigation }) => {
   };
 
   const handleSwitchProfile = () => {
-    setShowSwitchProfileModal(true);
+    navigation.navigate(screenNames.SWITCH_PROFILE);
   };
 
   const handleAppSettings = () => {
@@ -48,29 +43,11 @@ const ApplicationSettings = ({ navigation }) => {
   };
 
   const handleLegalCompliance = () => {
-    Alert.alert('Legal & Compliance', 'Privacy Policy, Terms of Service, and Open Source Licenses will be available here.');
+    navigation.navigate(screenNames.LEGAL_COMPLIANCE);
   };
 
   const handleDeleteAccount = () => {
-    setShowDeleteModal(true);
-  };
-
-  const confirmDeleteAccount = () => {
-    setShowDeleteModal(false);
-    Alert.alert('Account Deletion', 'Your account deletion request has been submitted. You will receive an email confirmation.');
-  };
-
-  const handleSendSwitchProfileEmail = async () => {
-    try {
-      const subject = encodeURIComponent('Profile Switch Request');
-      const body = encodeURIComponent(
-        `Hi SquadGoo Support,\n\nI would like to request a profile switch.\n\nCurrent email: \nCurrent profile type: \nRequested profile type: \nReason: \n\nThanks,`
-      );
-      const mailtoUrl = `mailto:${PROFILE_SWITCH_EMAIL}?subject=${subject}&body=${body}`;
-      await Linking.openURL(mailtoUrl);
-    } catch (e) {
-      // ignore errors
-    }
+    navigation.navigate(screenNames.DELETE_ACCOUNT);
   };
 
   // SettingsRow component
@@ -218,115 +195,6 @@ const ApplicationSettings = ({ navigation }) => {
             danger
           />
         </View>
-
-
-        {/* Switch Profile Modal */}
-        <Modal
-          visible={showSwitchProfileModal}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setShowSwitchProfileModal(false)}
-        >
-          <TouchableOpacity
-            activeOpacity={1}
-            style={styles.sheetBackdrop}
-            onPress={() => setShowSwitchProfileModal(false)}
-          >
-            <TouchableOpacity activeOpacity={1} style={styles.sheet}>
-              <View style={styles.sheetHandle} />
-              <AppText variant={Variant.h6} style={styles.sheetTitle}>
-                Switch Profile
-              </AppText>
-              <AppText variant={Variant.caption} style={styles.sheetSubtitle}>
-                To switch profile, register with a new email or send a request from your registered email.
-              </AppText>
-
-              <View style={styles.sheetCard}>
-                <View style={styles.tipSection}>
-                  <AppText variant={Variant.body} style={styles.tipTitle}>
-                    Option 1: Register with a new email
-                  </AppText>
-                  <AppText variant={Variant.caption} style={styles.tipText}>
-                    • Sign out from this account.{'\n'}
-                    • Create a new account using a different email.{'\n'}
-                    • Choose the profile type during registration.
-                  </AppText>
-                </View>
-                <View style={styles.divider} />
-                <View style={styles.tipSection}>
-                  <AppText variant={Variant.body} style={styles.tipTitle}>
-                    Option 2: Request via email
-                  </AppText>
-                  <AppText variant={Variant.caption} style={styles.tipText}>
-                    • Send us a request from your registered email.{'\n'}
-                    • Include current and requested profile type.
-                  </AppText>
-                </View>
-              </View>
-
-              <View style={styles.sheetButtonRow}>
-                <TouchableOpacity
-                  style={[styles.sheetButton, styles.sheetButtonSecondary]}
-                  onPress={() => setShowSwitchProfileModal(false)}
-                >
-                  <AppText variant={Variant.body} style={styles.sheetButtonSecondaryText}>
-                    Close
-                  </AppText>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.sheetButton, styles.sheetButtonPrimary]}
-                  onPress={handleSendSwitchProfileEmail}
-                >
-                  <AppText variant={Variant.body} style={styles.sheetButtonPrimaryText}>
-                    Send Email Request
-                  </AppText>
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </Modal>
-
-        {/* Delete Account Confirmation Modal */}
-        <Modal
-          visible={showDeleteModal}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setShowDeleteModal(false)}
-        >
-          <TouchableOpacity activeOpacity={1} style={styles.sheetBackdrop} onPress={() => setShowDeleteModal(false)}>
-            <TouchableOpacity activeOpacity={1} style={styles.sheet}>
-              <View style={styles.sheetHandle} />
-              <View style={styles.deleteIconWrap}>
-                <VectorIcons name={iconLibName.Ionicons} iconName="warning-outline" size={36} color="#DC3545" />
-              </View>
-              <AppText variant={Variant.h6} style={[styles.sheetTitle, { color: '#DC3545' }]}>
-                Delete Account
-              </AppText>
-              <AppText variant={Variant.caption} style={styles.sheetSubtitle}>
-                This action is permanent. All your data, offers, and profile information will be permanently removed and cannot be recovered.
-              </AppText>
-
-              <View style={styles.sheetButtonRow}>
-                <TouchableOpacity
-                  style={[styles.sheetButton, styles.sheetButtonSecondary]}
-                  onPress={() => setShowDeleteModal(false)}
-                >
-                  <AppText variant={Variant.body} style={styles.sheetButtonSecondaryText}>
-                    Cancel
-                  </AppText>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.sheetButton, styles.sheetButtonDanger]}
-                  onPress={confirmDeleteAccount}
-                >
-                  <AppText variant={Variant.body} style={styles.sheetButtonPrimaryText}>
-                    Delete Account
-                  </AppText>
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </Modal>
       </ScrollView>
     </View>
   );

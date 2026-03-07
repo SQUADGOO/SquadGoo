@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Modal, Alert } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { colors, hp, wp, getFontSize } from '@/theme';
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
 import AppText, { Variant } from '@/core/AppText';
@@ -66,7 +66,6 @@ const SECTIONS = [
 ];
 
 const SecurityPassword = ({ navigation }) => {
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const handleSectionPress = (section) => {
         switch (section.key) {
@@ -86,28 +85,14 @@ const SecurityPassword = ({ navigation }) => {
                 navigation.navigate(screenNames.ACCOUNT_RECOVERY);
                 break;
             case 'other':
-                Alert.alert(
-                    'Other Security Features',
-                    '• Biometric login: Available\n• Auto-logout: After 30 minutes of inactivity\n• Session timeout: 24 hours'
-                );
+                navigation.navigate(screenNames.OTHER_SECURITY_FEATURES);
                 break;
             case 'legal':
-                Alert.alert(
-                    'Legal & Compliance',
-                    '• Privacy Policy\n• Terms of Service\n• Open Source Licenses\n• Data Processing Agreement'
-                );
+                navigation.navigate(screenNames.LEGAL_COMPLIANCE);
                 break;
             default:
                 break;
         }
-    };
-
-    const confirmDeleteAccount = () => {
-        setShowDeleteModal(false);
-        Alert.alert(
-            'Account Deletion',
-            'Your account deletion request has been submitted. You will receive an email confirmation.'
-        );
     };
 
     return (
@@ -175,7 +160,7 @@ const SecurityPassword = ({ navigation }) => {
                     <TouchableOpacity
                         style={styles.dangerRow}
                         activeOpacity={0.7}
-                        onPress={() => setShowDeleteModal(true)}
+                        onPress={() => navigation.navigate(screenNames.DELETE_ACCOUNT)}
                     >
                         <View style={[styles.rowIconWrap, { backgroundColor: '#FDECEC' }]}>
                             <VectorIcons
@@ -202,57 +187,6 @@ const SecurityPassword = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
 
-                {/* Delete Account Modal */}
-                <Modal
-                    visible={showDeleteModal}
-                    transparent
-                    animationType="slide"
-                    onRequestClose={() => setShowDeleteModal(false)}
-                >
-                    <TouchableOpacity
-                        activeOpacity={1}
-                        style={styles.sheetBackdrop}
-                        onPress={() => setShowDeleteModal(false)}
-                    >
-                        <TouchableOpacity activeOpacity={1} style={styles.sheet}>
-                            <View style={styles.sheetHandle} />
-                            <View style={styles.deleteIconWrap}>
-                                <VectorIcons
-                                    name={iconLibName.Ionicons}
-                                    iconName="warning-outline"
-                                    size={36}
-                                    color="#DC3545"
-                                />
-                            </View>
-                            <AppText variant={Variant.h6} style={[styles.sheetTitle, { color: '#DC3545' }]}>
-                                Delete Account
-                            </AppText>
-                            <AppText variant={Variant.caption} style={styles.sheetSubtitle}>
-                                This action is permanent. All your data, offers, and profile information will be
-                                permanently removed and cannot be recovered.
-                            </AppText>
-
-                            <View style={styles.sheetButtonRow}>
-                                <TouchableOpacity
-                                    style={[styles.sheetButton, styles.sheetButtonSecondary]}
-                                    onPress={() => setShowDeleteModal(false)}
-                                >
-                                    <AppText variant={Variant.body} style={styles.sheetButtonSecondaryText}>
-                                        Cancel
-                                    </AppText>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={[styles.sheetButton, styles.sheetButtonDanger]}
-                                    onPress={confirmDeleteAccount}
-                                >
-                                    <AppText variant={Variant.body} style={styles.sheetButtonPrimaryText}>
-                                        Delete Account
-                                    </AppText>
-                                </TouchableOpacity>
-                            </View>
-                        </TouchableOpacity>
-                    </TouchableOpacity>
-                </Modal>
             </ScrollView>
         </View>
     );

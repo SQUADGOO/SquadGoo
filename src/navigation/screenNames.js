@@ -80,6 +80,10 @@ export const screenNames = {
   PRIVACY_CONTROLS: 'privacy_controls',
   SECURITY_ALERTS: 'security_alerts',
   ACCOUNT_RECOVERY: 'account_recovery',
+  OTHER_SECURITY_FEATURES: 'other_security_features',
+  LEGAL_COMPLIANCE: 'legal_compliance',
+  DELETE_ACCOUNT: 'delete_account',
+  SWITCH_PROFILE: 'switch_profile',
 
   ACCOUNT_UPGRADE: 'account_upgrade',
   SUPPORT: 'support',

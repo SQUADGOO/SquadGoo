@@ -1,107 +1,86 @@
-import {Alert, StyleSheet, View, TouchableOpacity} from 'react-native';
-import React, {useState} from 'react';
-import PoolHeader from '@/core/PoolHeader';
-import AppButton from '@/core/AppButton';
-import {colors, hp, wp, getFontSize} from '@/theme';
-import AppText, {Variant} from '@/core/AppText';
-import AppInputField from '@/core/AppInputField';
-import AppDropDown from '@/core/AppDropDown';
-import {ScrollView} from 'react-native-gesture-handler';
-import VectorIcons, {iconLibName} from '@/theme/vectorIcon';
-import {useNavigation} from '@react-navigation/native';
-import {screenNames} from '@/navigation/screenNames';
+import React, { useState, useMemo } from 'react';
 import {
-  defaultTickets,
-  supportAgentProfile,
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+} from 'react-native';
+import { colors, hp, wp, getFontSize } from '@/theme';
+import AppText, { Variant } from '@/core/AppText';
+import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
+import { ScrollView } from 'react-native-gesture-handler';
+import { useNavigation } from '@react-navigation/native';
+import { screenNames } from '@/navigation/screenNames';
+import LinearGradient from 'react-native-linear-gradient';
+import {
   supportFaqs,
+  supportAgentProfile,
 } from './supportData';
 
-const supportOptions = [
+const SUPPORT_CARDS = [
   {
     id: 'faqs',
     title: "FAQ's",
-    subtitle: 'Find answers to common questions',
+    subtitle: 'Find answers quickly',
     icon: 'help-circle-outline',
-    iconColor: colors.primary,
-    bgColor: '#FEF3C7',
   },
   {
     id: 'chat',
     title: 'Live Chat',
-    subtitle: 'Chat with our support team',
+    subtitle: 'Connect instantly',
     icon: 'chatbubbles-outline',
-    iconColor: '#10B981',
-    bgColor: '#D1FAE5',
   },
   {
     id: 'callback',
     title: 'Request Callback',
-    subtitle: 'Schedule a call with support',
+    subtitle: 'Talk to a representative',
     icon: 'call-outline',
-    iconColor: '#6366F1',
-    bgColor: '#E0E7FF',
   },
   {
     id: 'tickets',
     title: 'Support Tickets',
-    subtitle: 'View and manage your tickets',
+    subtitle: 'Track your issues',
     icon: 'ticket-outline',
-    iconColor: '#8B5CF6',
-    bgColor: '#EDE9FE',
   },
 ];
 
-const issueTypeOptions = [
-  {label: 'General', value: 'general'},
-  {label: 'Payments', value: 'payments'},
-  {label: 'Job Offers', value: 'job_offers'},
-  {label: 'Technical', value: 'technical'},
+// Search topics for autocomplete
+const SEARCH_TOPICS = [
+  'How to post a job',
+  'How to manage offers',
+  'Payment methods',
+  'Refund policy',
+  'Account settings',
+  'Change password',
+  'Two-factor authentication',
+  'Delete my account',
+  'Profile visibility',
+  'Labour pool',
+  'Switch profile type',
+  'Subscription plans',
+  'Contact support',
+  'Report a bug',
+  'Privacy policy',
+  'Terms of service',
 ];
 
 const Support = () => {
   const navigation = useNavigation();
-  const [isVisible, setIsVisible] = useState(false);
-  const [postFilter, setPostFilter] = useState('general');
-  const [subject, setSubject] = useState('');
-  const [description, setDescription] = useState('');
-  const [tickets, setTickets] = useState(defaultTickets);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showResults, setShowResults] = useState(false);
 
-  const handlePostFilterChange = (value, option) => {
-    setPostFilter(value);
-    console.log('Post filter changed to:', option.label);
-  };
-
-  const handleSubmitTicket = () => {
-    if (!subject.trim() || !description.trim()) {
-      Alert.alert(
-        'Add more details',
-        'Please provide both subject and description for your ticket.',
-      );
-      return;
-    }
-
-    const newTicket = {
-      id: `TCK-${Math.floor(1000 + Math.random() * 9000)}`,
-      subject: subject.trim(),
-      status: 'Open',
-      priority: 'Medium',
-      lastUpdated: 'Just now',
-    };
-
-    setTickets(prev => [newTicket, ...prev]);
-    setSubject('');
-    setDescription('');
-    setPostFilter('general');
-    Alert.alert(
-      'Ticket submitted',
-      'Thanks! Our support team will get back to you shortly.',
+  const filteredTopics = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    return SEARCH_TOPICS.filter((topic) =>
+      topic.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  };
+  }, [searchQuery]);
 
-  const handleSupportAction = action => {
+  const handleSupportAction = (action) => {
     switch (action) {
       case 'faqs':
-        navigation.navigate(screenNames.SUPPORT_FAQ, {faqs: supportFaqs});
+        navigation.navigate(screenNames.SUPPORT_FAQ, { faqs: supportFaqs });
         break;
       case 'chat':
         navigation.navigate(screenNames.MESSAGES, {
@@ -110,177 +89,150 @@ const Support = () => {
         break;
       case 'callback':
         Alert.alert(
-          'Callback scheduled',
-          'A support specialist will reach out within the next 30 minutes.',
+          'Callback Requested',
+          'A support specialist will reach out within the next 30 minutes.'
         );
         break;
       case 'tickets':
-        navigation.navigate(screenNames.SUPPORT_TICKETS, {tickets});
+        navigation.navigate(screenNames.SUPPORT_TICKETS);
         break;
       default:
         break;
     }
   };
 
+  const handleSearchSelect = (topic) => {
+    setSearchQuery('');
+    setShowResults(false);
+    // Navigate to FAQ with search
+    navigation.navigate(screenNames.SUPPORT_FAQ, {
+      faqs: supportFaqs,
+      searchQuery: topic,
+    });
+  };
+
   return (
     <View style={styles.screen}>
-      <PoolHeader title="Support" />
+      <ScrollView
+        style={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* ═══════ Hero Header ═══════ */}
+        <LinearGradient
+          colors={[colors.primary || '#6C3CE1', '#8B5CF6', '#A78BFA']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.hero}
+        >
+          <AppText variant={Variant.caption} style={styles.heroLabel}>
+            SQUADGOO
+          </AppText>
+          <AppText variant={Variant.h6} style={styles.heroTitle}>
+            Support
+          </AppText>
 
-      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Header Section */}
-        <View style={styles.headerSection}>
-          <View style={styles.headerIconContainer}>
+          {/* Search Bar */}
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search support topics..."
+              placeholderTextColor="rgba(255,255,255,0.6)"
+              value={searchQuery}
+              onChangeText={(text) => {
+                setSearchQuery(text);
+                setShowResults(text.trim().length > 0);
+              }}
+              onFocus={() => {
+                if (searchQuery.trim()) setShowResults(true);
+              }}
+              onBlur={() => {
+                setTimeout(() => setShowResults(false), 200);
+              }}
+            />
             <VectorIcons
               name={iconLibName.Ionicons}
-              iconName="headset-outline"
-              size={38}
-              color={colors.primary}
+              iconName="search-outline"
+              size={20}
+              color="rgba(255,255,255,0.6)"
             />
           </View>
-          <AppText variant={Variant.h6} style={styles.headerTitle}>
-            How can we help you?
-          </AppText>
-          <AppText variant={Variant.caption} style={styles.headerSubtitle}>
-            Choose an option below to get started
-          </AppText>
-        </View>
+        </LinearGradient>
 
-        {/* Support Options */}
-        <View style={styles.optionsContainer}>
-          {supportOptions.map(option => (
-            <TouchableOpacity
-              key={option.id}
-              style={styles.optionCard}
-              onPress={() => handleSupportAction(option.id)}
-              activeOpacity={0.7}>
-              <View
-                style={[
-                  styles.optionIconContainer,
-                  {backgroundColor: option.bgColor},
-                ]}>
+        {/* Search Results Dropdown */}
+        {showResults && filteredTopics.length > 0 && (
+          <View style={styles.searchResults}>
+            {filteredTopics.map((topic, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.searchResultItem}
+                activeOpacity={0.7}
+                onPress={() => handleSearchSelect(topic)}
+              >
                 <VectorIcons
                   name={iconLibName.Ionicons}
-                  iconName={option.icon}
-                  size={24}
-                  color={option.iconColor}
+                  iconName="search-outline"
+                  size={14}
+                  color={colors.gray}
                 />
-              </View>
-              <View style={styles.optionContent}>
-                <AppText variant={Variant.body} style={styles.optionTitle}>
-                  {option.title}
+                <AppText variant={Variant.body} style={styles.searchResultText}>
+                  {topic}
                 </AppText>
-                <AppText variant={Variant.caption} style={styles.optionSubtitle}>
-                  {option.subtitle}
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        {/* ═══════ Support Cards Grid ═══════ */}
+        <View style={styles.cardsGrid}>
+          {SUPPORT_CARDS.map((card) => (
+            <TouchableOpacity
+              key={card.id}
+              style={styles.card}
+              activeOpacity={0.8}
+              onPress={() => handleSupportAction(card.id)}
+            >
+              <LinearGradient
+                colors={['rgba(139,92,246,0.85)', 'rgba(168,130,246,0.75)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.cardGradient}
+              >
+                <View style={styles.cardIconWrap}>
+                  <VectorIcons
+                    name={iconLibName.Ionicons}
+                    iconName={card.icon}
+                    size={28}
+                    color="rgba(255,255,255,0.9)"
+                  />
+                </View>
+                <AppText variant={Variant.bodyMedium} style={styles.cardTitle}>
+                  {card.title}
                 </AppText>
-              </View>
-              <VectorIcons
-                name={iconLibName.Ionicons}
-                iconName="chevron-forward"
-                size={20}
-                color={colors.gray}
-              />
+                <AppText variant={Variant.caption} style={styles.cardSubtitle}>
+                  {card.subtitle}
+                </AppText>
+              </LinearGradient>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Info Section */}
-        <View style={styles.infoSection}>
-          <VectorIcons
-            name={iconLibName.Ionicons}
-            iconName="information-circle-outline"
-            size={20}
-            color={colors.gray}
-          />
-          <AppText variant={Variant.caption} style={styles.infoText}>
-            If you need help urgently, start a Live Chat. For longer issues, submit a ticket and our team will follow up.
-          </AppText>
-        </View>
-
-        {/* Create Ticket Card */}
-        <View style={styles.ticketCard}>
-          <AppText variant={Variant.bodybold} style={styles.ticketTitle}>
-            Create New Ticket
-          </AppText>
-          <AppText variant={Variant.caption} style={styles.ticketSubtitle}>
-            Describe your issue and we'll help you resolve it
-          </AppText>
-
-          <AppText variant={Variant.body} style={styles.inputLabel}>
-            Subject
-          </AppText>
-          <AppInputField
-            placeholder="Brief description of your issue"
-            value={subject}
-            onChangeText={setSubject}
-            style={styles.fieldContainer}
-            wrapperStyle={styles.fieldWrapper}
-            inputStyle={styles.fieldInput}
-          />
-
-          <AppText variant={Variant.body} style={styles.inputLabel}>
-            Related To
-          </AppText>
-          <AppDropDown
-            placeholder="Select issue type"
-            options={issueTypeOptions}
-            isVisible={isVisible}
-            setIsVisible={setIsVisible}
-            selectedValue={postFilter}
-            onSelect={handlePostFilterChange}
-            style={styles.dropdownContainer}
-          />
-
-          <AppText variant={Variant.body} style={styles.inputLabel}>
-            Description
-          </AppText>
-          <AppInputField
-            placeholder="Provide detailed information..."
-            value={description}
-            onChangeText={setDescription}
-            multiline
-            style={styles.fieldContainer}
-            wrapperStyle={[styles.fieldWrapper, styles.textAreaWrapper]}
-            inputStyle={[styles.fieldInput, styles.textAreaInput]}
-          />
-
-          <AppButton
-            text="Submit Ticket"
-            bgColor={colors.primary}
-            onPress={handleSubmitTicket}
-            style={styles.submitBtn}
-          />
-        </View>
-
-        {/* Contact Section */}
-        <View style={styles.contactSection}>
-          <AppText variant={Variant.body} style={styles.contactTitle}>
-            Need urgent help?
-          </AppText>
-          <View style={styles.contactRow}>
-            <VectorIcons
-              name={iconLibName.Ionicons}
-              iconName="mail-outline"
-              size={18}
-              color={colors.primary}
-            />
-            <AppText variant={Variant.caption} style={styles.contactText}>
-              support@squadgoo.com.au
+        {/* ═══════ Info Banner ═══════ */}
+        <View style={styles.infoBanner}>
+          <LinearGradient
+            colors={['rgba(139,92,246,0.12)', 'rgba(168,130,246,0.08)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.infoBannerGradient}
+          >
+            <AppText variant={Variant.caption} style={styles.infoBannerText}>
+              If you need urgent help, start a <AppText variant={Variant.caption} style={styles.infoBold}>Live Chat</AppText>.{'\n'}
+              For longer issues, submit a ticket.
             </AppText>
-          </View>
-          <View style={styles.contactRow}>
-            <VectorIcons
-              name={iconLibName.Ionicons}
-              iconName="time-outline"
-              size={18}
-              color={colors.primary}
-            />
-            <AppText variant={Variant.caption} style={styles.contactText}>
-              Support hours: Mon-Fri, 9AM-6PM AEST
-            </AppText>
-          </View>
+          </LinearGradient>
         </View>
 
-        <View style={{height: hp(3)}} />
+        <View style={{ height: hp(5) }} />
       </ScrollView>
     </View>
   );
@@ -291,164 +243,142 @@ export default Support;
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: '#1A1031',
   },
   scroll: {
     flex: 1,
-    backgroundColor: colors.white,
   },
-  headerSection: {
+  // Hero
+  hero: {
+    paddingTop: hp(6),
+    paddingBottom: hp(3.5),
+    paddingHorizontal: wp(5),
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  heroLabel: {
+    color: 'rgba(255,255,255,0.6)',
+    fontWeight: '600',
+    fontSize: getFontSize(11),
+    letterSpacing: 1.5,
+    textAlign: 'center',
+    marginBottom: hp(0.5),
+  },
+  heroTitle: {
+    color: colors.white,
+    fontWeight: '800',
+    fontSize: getFontSize(28),
+    textAlign: 'center',
+    marginBottom: hp(2.5),
+  },
+  searchContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: hp(4),
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 14,
     paddingHorizontal: wp(4),
-    backgroundColor: (colors.grayE8 ? colors.grayE8 : '#E8E8E8') + '30',
+    paddingVertical: hp(1.2),
   },
-  headerIconContainer: {
-    width: wp(18),
-    height: wp(18),
-    borderRadius: wp(9),
-    backgroundColor: colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: hp(2),
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  headerTitle: {
-    color: colors.black,
-    fontSize: getFontSize(18),
-    fontWeight: '700',
-    marginBottom: hp(0.5),
-    textAlign: 'center',
-  },
-  headerSubtitle: {
-    color: colors.gray,
-    textAlign: 'center',
-  },
-  optionsContainer: {
-    padding: wp(4),
-  },
-  optionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    padding: wp(4),
-    borderRadius: 12,
-    marginBottom: hp(1.5),
-    borderWidth: 1,
-    borderColor: colors.grayE8 ? colors.grayE8 : '#E8E8E8',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  optionIconContainer: {
-    width: wp(12),
-    height: wp(12),
-    borderRadius: wp(6),
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: wp(3),
-  },
-  optionContent: {
+  searchInput: {
     flex: 1,
-  },
-  optionTitle: {
-    color: colors.black,
-    fontWeight: '600',
-    marginBottom: hp(0.3),
-  },
-  optionSubtitle: {
-    color: colors.gray,
-  },
-  infoSection: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: (colors.grayE8 ? colors.grayE8 : '#E8E8E8') + '40',
-    marginHorizontal: wp(4),
-    padding: wp(4),
-    borderRadius: 12,
-    marginBottom: hp(2),
-  },
-  infoText: {
-    flex: 1,
-    marginLeft: wp(2),
-    color: colors.gray,
-    lineHeight: 20,
-  },
-  ticketCard: {
-    marginHorizontal: wp(4),
-    padding: wp(4),
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.grayE8 ? colors.grayE8 : '#E8E8E8',
-    marginBottom: hp(2),
-  },
-  ticketTitle: {
-    color: colors.black,
-    marginBottom: hp(0.5),
-  },
-  ticketSubtitle: {
-    color: colors.gray,
-    marginBottom: hp(2),
-  },
-  inputLabel: {
-    color: colors.black,
-    fontWeight: '600',
-    marginBottom: hp(1),
-  },
-  fieldContainer: {
-    marginBottom: hp(1.4),
-  },
-  fieldWrapper: {
-    backgroundColor: (colors.lightGray || '#F6F7FB'),
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.grayE8 ? colors.grayE8 : '#E8E8E8',
-  },
-  fieldInput: {
     fontSize: getFontSize(14),
-    color: colors.black,
+    color: colors.white,
+    paddingVertical: 0,
   },
-  textAreaWrapper: {
-    // keep the default multiline height from AppInputField, just adjust padding feel
-    paddingTop: hp(0.5),
-  },
-  textAreaInput: {
-    paddingTop: hp(0.6),
-  },
-  dropdownContainer: {
-    marginBottom: hp(1.4),
-  },
-  submitBtn: {
-    marginTop: hp(1),
-  },
-  contactSection: {
-    marginHorizontal: wp(4),
-    padding: wp(4),
+  // Search results
+  searchResults: {
     backgroundColor: colors.white,
+    marginHorizontal: wp(5),
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.grayE8 ? colors.grayE8 : '#E8E8E8',
-    marginBottom: hp(4),
+    marginTop: -hp(0.5),
+    paddingVertical: hp(0.5),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+    zIndex: 10,
   },
-  contactTitle: {
-    color: colors.black,
-    fontWeight: '600',
-    marginBottom: hp(1.5),
-  },
-  contactRow: {
+  searchResultItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: hp(1),
+    gap: wp(2.5),
+    paddingVertical: hp(1.2),
+    paddingHorizontal: wp(4),
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#F3F3F3',
   },
-  contactText: {
-    marginLeft: wp(2),
-    color: colors.gray,
+  searchResultText: {
+    color: '#333',
+    fontSize: getFontSize(13),
+  },
+  // Cards grid
+  cardsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingHorizontal: wp(5),
+    paddingTop: hp(2.5),
+    gap: hp(1.5),
+  },
+  card: {
+    width: '48%',
+    borderRadius: 18,
+    overflow: 'hidden',
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  cardGradient: {
+    padding: wp(4.5),
+    paddingVertical: hp(2.5),
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: hp(16),
+  },
+  cardIconWrap: {
+    width: 50,
+    height: 50,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: hp(1.2),
+  },
+  cardTitle: {
+    color: colors.white,
+    fontWeight: '700',
+    fontSize: getFontSize(14),
+    textAlign: 'center',
+  },
+  cardSubtitle: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: getFontSize(11),
+    textAlign: 'center',
+    marginTop: hp(0.3),
+  },
+  // Info banner
+  infoBanner: {
+    marginHorizontal: wp(5),
+    marginTop: hp(2.5),
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  infoBannerGradient: {
+    paddingVertical: hp(1.8),
+    paddingHorizontal: wp(5),
+    alignItems: 'center',
+  },
+  infoBannerText: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: getFontSize(12),
+    textAlign: 'center',
+    lineHeight: getFontSize(18),
+  },
+  infoBold: {
+    fontWeight: '700',
+    color: colors.white,
   },
 });

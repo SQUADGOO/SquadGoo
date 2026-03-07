@@ -67,6 +67,10 @@ import TwoFactorAuth from './main/Recruiter/Settings/TwoFactorAuth';
 import PrivacyControls from './main/Recruiter/Settings/PrivacyControls';
 import SecurityAlerts from './main/Recruiter/Settings/SecurityAlerts';
 import AccountRecovery from './main/Recruiter/Settings/AccountRecovery';
+import OtherSecurityFeatures from './main/Recruiter/Settings/OtherSecurityFeatures';
+import LegalCompliance from './main/Recruiter/Settings/LegalCompliance';
+import DeleteAccount from './main/Recruiter/Settings/DeleteAccount';
+import SwitchProfile from './main/Recruiter/Settings/SwitchProfile';
 import AccountUpgrade from './main/Recruiter/AccountUpgrade';
 import Support from './main/Recruiter/Support';
 import SupportFAQ from './main/Recruiter/SupportFAQ';
@@ -220,6 +224,10 @@ export {
   PrivacyControls,
   SecurityAlerts,
   AccountRecovery,
+  OtherSecurityFeatures,
+  LegalCompliance,
+  DeleteAccount,
+  SwitchProfile,
   AccountUpgrade,
   Support,
   SupportFAQ,

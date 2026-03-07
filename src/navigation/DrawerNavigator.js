@@ -273,10 +273,6 @@ const DrawerNavigator = () => {
         component={ui.AppSettings}
       />
       <Drawer.Screen
-        name={screenNames.SQUAD_SETTINGS}
-        component={ui.SquadSettings}
-      />
-      <Drawer.Screen
         name={screenNames.NOTIFICATION_PREFERENCES}
         component={ui.NotificationPreferences}
       />
@@ -303,6 +299,22 @@ const DrawerNavigator = () => {
       <Drawer.Screen
         name={screenNames.ACCOUNT_RECOVERY}
         component={ui.AccountRecovery}
+      />
+      <Drawer.Screen
+        name={screenNames.OTHER_SECURITY_FEATURES}
+        component={ui.OtherSecurityFeatures}
+      />
+      <Drawer.Screen
+        name={screenNames.LEGAL_COMPLIANCE}
+        component={ui.LegalCompliance}
+      />
+      <Drawer.Screen
+        name={screenNames.DELETE_ACCOUNT}
+        component={ui.DeleteAccount}
+      />
+      <Drawer.Screen
+        name={screenNames.SWITCH_PROFILE}
+        component={ui.SwitchProfile}
       />
 
       <Drawer.Screen

@@ -160,7 +160,6 @@ const CustomDrawer = ({
           subItems: [
             { key: 'job-settings', title: 'Job Settings', icon: 'briefcase-outline', route: screenNames.JOB_SETTINGS },
             { key: 'app-settings', title: 'App Settings', icon: 'phone-portrait-outline', route: screenNames.APP_SETTINGS },
-            { key: 'squad-settings', title: 'Squad Settings', icon: 'people-outline', route: screenNames.SQUAD_SETTINGS },
           ],
         },
         {
