@@ -1,10 +1,10 @@
-import {StyleSheet} from 'react-native';
+import { StyleSheet } from 'react-native';
 import React from 'react';
-import {createDrawerNavigator} from '@react-navigation/drawer';
+import { createDrawerNavigator } from '@react-navigation/drawer';
 import CustomDrawer from '@/core/CustomDrawer';
 import TabNavigator from './TabNavigator';
-import {screenNames} from './screenNames';
-import {JobPreview} from '@/screens';
+import { screenNames } from './screenNames';
+import { JobPreview } from '@/screens';
 import * as ui from '@/screens';
 import SupportStack from './SupportStack';
 import ManualSearchStack from './ManualSearchStack';
@@ -275,6 +275,34 @@ const DrawerNavigator = () => {
       <Drawer.Screen
         name={screenNames.SQUAD_SETTINGS}
         component={ui.SquadSettings}
+      />
+      <Drawer.Screen
+        name={screenNames.NOTIFICATION_PREFERENCES}
+        component={ui.NotificationPreferences}
+      />
+      <Drawer.Screen
+        name={screenNames.SECURITY_PASSWORD}
+        component={ui.SecurityPassword}
+      />
+      <Drawer.Screen
+        name={screenNames.PASSWORD_MANAGEMENT}
+        component={ui.PasswordManagement}
+      />
+      <Drawer.Screen
+        name={screenNames.TWO_FACTOR_AUTH}
+        component={ui.TwoFactorAuth}
+      />
+      <Drawer.Screen
+        name={screenNames.PRIVACY_CONTROLS}
+        component={ui.PrivacyControls}
+      />
+      <Drawer.Screen
+        name={screenNames.SECURITY_ALERTS}
+        component={ui.SecurityAlerts}
+      />
+      <Drawer.Screen
+        name={screenNames.ACCOUNT_RECOVERY}
+        component={ui.AccountRecovery}
       />
 
       <Drawer.Screen

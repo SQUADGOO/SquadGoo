@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { View, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native'
-import LinearGradient from 'react-native-linear-gradient'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
 import AppText, { Variant } from '@/core/AppText'
@@ -8,68 +7,82 @@ import AppDropDown from '@/core/AppDropDown'
 import PoolHeader from '../../../../core/PoolHeader'
 
 const StaffPreferences = () => {
-  const [aiMatching, setAiMatching] = useState(false)
-  const [onlyProQuick, setOnlyProQuick] = useState(true)
-  const [inAppProfiles, setInAppProfiles] = useState(false)
-  const [squadMatching, setSquadMatching] = useState(false)
+  // Active tab: 'quick' or 'manual'
+  const [activeTab, setActiveTab] = useState('quick')
 
-  const [onlyProManual, setOnlyProManual] = useState(false)
-  const [squadProfiles, setSquadProfiles] = useState(false)
-
-  const [badgeQuick, setBadgeQuick] = useState(null)
-  const [badgeManual, setBadgeManual] = useState(null)
+  // Quick Fill state
+  const [aiMatchingQuick, setAiMatchingQuick] = useState(true)
+  const [aiHiringQuick, setAiHiringQuick] = useState(true)
+  const [badgeQuick, setBadgeQuick] = useState('none')
   const [isDropdownVisibleQuick, setDropdownVisibleQuick] = useState(false)
+
+  // Manual Fill state
+  const [aiMatchingManual, setAiMatchingManual] = useState(true)
+  const [badgeManual, setBadgeManual] = useState('none')
   const [isDropdownVisibleManual, setDropdownVisibleManual] = useState(false)
 
   const badgeOptions = [
+    { label: 'None', value: 'none' },
     { label: 'Bronze', value: 'bronze' },
     { label: 'Silver', value: 'silver' },
     { label: 'Gold', value: 'gold' },
     { label: 'Platinum', value: 'platinum' },
   ]
 
-  const renderToggleRow = (label, description, value, onChange) => (
-    <View style={styles.toggleRow}>
-      <View style={{ flex: 1 }}>
-        <AppText variant={Variant.body} style={styles.toggleLabel}>
-          {label}
-        </AppText>
-        <AppText variant={Variant.caption} style={styles.toggleDesc}>
-          {description}
-        </AppText>
+  const renderToggleRow = (label, description, value, onChange, { icon, disabled = false, disabledNote } = {}) => (
+    <View style={[styles.toggleCard, disabled && styles.toggleCardDisabled]}>
+      <View style={styles.toggleRow}>
+        <View style={{ flex: 1 }}>
+          <View style={styles.toggleLabelRow}>
+            {icon ? (
+              <AppText variant={Variant.caption} style={styles.toggleIcon}>{icon}</AppText>
+            ) : null}
+            <AppText variant={Variant.body} style={[styles.toggleLabel, disabled && styles.textDisabled]}>
+              {label}
+            </AppText>
+          </View>
+          <AppText variant={Variant.caption} style={[styles.toggleDesc, disabled && styles.textDisabled]}>
+            {description}
+          </AppText>
+          {disabledNote ? (
+            <AppText variant={Variant.caption} style={styles.disabledNote}>
+              {disabledNote}
+            </AppText>
+          ) : null}
+        </View>
+        <View style={styles.toggleRight}>
+          <Switch
+            value={value}
+            onValueChange={onChange}
+            disabled={disabled}
+            trackColor={{ false: '#e0e0e0', true: disabled ? '#ccc' : colors.primary }}
+            thumbColor={value ? (disabled ? '#eee' : colors.white) : '#f4f3f4'}
+          />
+          {disabled ? (
+            <AppText variant={Variant.caption} style={styles.disabledLabel}>Disabled</AppText>
+          ) : null}
+        </View>
       </View>
-      <Switch
-        value={value}
-        onValueChange={onChange}
-        trackColor={{ false: '#e0e0e0', true: colors.primary }}
-        thumbColor={value ? colors.white : '#f4f3f4'}
-      />
     </View>
   )
 
-  return (
-    <View style={styles.container}>
-      {/* Header */}
-     <PoolHeader title='Staff Preferences'/>
-      {/* Content */}
-      <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Quick Offer */}
-        <AppText variant={Variant.h6} style={styles.sectionTitle}>
-          Quick Offer Settings
-        </AppText>
-        <AppText variant={Variant.caption} style={styles.sectionDesc}>
-          Configure automatic matching preferences
-        </AppText>
+  const renderQuickFill = () => (
+    <View>
+      {/* Section header */}
+      <AppText variant={Variant.h6} style={styles.sectionTitle}>
+        Quick Fill Settings
+      </AppText>
+      <AppText variant={Variant.caption} style={styles.sectionDesc}>
+        Automatically fill job offers with AI assistance
+      </AppText>
 
-        {renderToggleRow(
-          'Enable AI Auto Matching',
-          'Let AI automatically match candidates',
-          aiMatching,
-          setAiMatching
-        )}
-
-        <AppText variant={Variant.body} style={styles.inputLabel}>
+      {/* Minimum Badge Requirements */}
+      <View style={styles.fieldCard}>
+        <AppText variant={Variant.body} style={styles.fieldLabel}>
           Minimum Badge Requirements
+        </AppText>
+        <AppText variant={Variant.caption} style={styles.fieldDesc}>
+          Set minimum badge level for auto-matching candidates
         </AppText>
         <AppDropDown
           placeholder="Select Minimum Badge"
@@ -79,38 +92,64 @@ const StaffPreferences = () => {
           isVisible={isDropdownVisibleQuick}
           setIsVisible={setDropdownVisibleQuick}
         />
+      </View>
 
-        {renderToggleRow(
-          'Only Pro Job Seekers',
-          'Match only with verified pro members',
-          onlyProQuick,
-          setOnlyProQuick
-        )}
+      {/* AI Auto Matching toggle */}
+      {renderToggleRow(
+        'Enable AI Auto Matching',
+        'Let AI find and suggest best candidates',
+        aiMatchingQuick,
+        setAiMatchingQuick,
+        { icon: '🔍' }
+      )}
 
-        {renderToggleRow(
-          'Only In-App Payment Profiles',
-          'Match only with candidates accepting in-app payments',
-          inAppProfiles,
-          setInAppProfiles
-        )}
+      {/* AI Auto Hiring toggle */}
+      {renderToggleRow(
+        'Enable AI Auto Hiring',
+        'Let AI automatically hire candidates on your behalf',
+        aiHiringQuick,
+        setAiHiringQuick,
+        { icon: '⚡' }
+      )}
 
-        {renderToggleRow(
-          'Enable Squad Matching',
-          'Allow squad matching when multiple staff needed',
-          squadMatching,
-          setSquadMatching
-        )}
-
-        {/* Manual Offer */}
-        <AppText variant={Variant.h6} style={[styles.sectionTitle, { marginTop: hp(3) }]}>
-          Manual Offer Settings
+      {/* Info note */}
+      <View style={styles.infoNote}>
+        <VectorIcons name={iconLibName.Ionicons} iconName="information-circle" size={16} color={colors.primary} />
+        <AppText variant={Variant.caption} style={styles.infoNoteText}>
+          AI Auto Matching and Auto Hiring are enabled by default.{'\n'}You can change these settings anytime.
         </AppText>
-        <AppText variant={Variant.caption} style={styles.sectionDesc}>
-          Configure manual search preferences
-        </AppText>
+      </View>
+    </View>
+  )
 
-        <AppText variant={Variant.body} style={styles.inputLabel}>
+  const renderManualFill = () => (
+    <View>
+      {/* Section header */}
+      <AppText variant={Variant.h6} style={styles.sectionTitle}>
+        Manual Fill Settings
+      </AppText>
+      <AppText variant={Variant.caption} style={styles.sectionDesc}>
+        You have full control over candidate selection process
+      </AppText>
+
+      {/* Manual Fill Mode info card */}
+      <View style={styles.modeInfoCard}>
+        <View style={styles.modeInfoHeader}>
+          <AppText variant={Variant.caption} style={styles.modeInfoIcon}>📋</AppText>
+          <AppText variant={Variant.bodyMedium} style={styles.modeInfoTitle}>Manual Fill Mode</AppText>
+        </View>
+        <AppText variant={Variant.caption} style={styles.modeInfoDesc}>
+          You manually review and select each candidate. No automatic hiring will occur. You approve every match and hire decision.
+        </AppText>
+      </View>
+
+      {/* Minimum Badge Requirements */}
+      <View style={styles.fieldCard}>
+        <AppText variant={Variant.body} style={styles.fieldLabel}>
           Minimum Badge Requirements
+        </AppText>
+        <AppText variant={Variant.caption} style={styles.fieldDesc}>
+          Set minimum badge level for candidate suggestions
         </AppText>
         <AppDropDown
           placeholder="Select Minimum Badge"
@@ -120,20 +159,67 @@ const StaffPreferences = () => {
           isVisible={isDropdownVisibleManual}
           setIsVisible={setDropdownVisibleManual}
         />
+      </View>
 
-        {renderToggleRow(
-          'Only Pro Job Seekers',
-          'Show only verified pro members',
-          onlyProManual,
-          setOnlyProManual
-        )}
+      {/* AI Auto Matching toggle (enabled) */}
+      {renderToggleRow(
+        'Enable AI Auto Matching',
+        'AI will suggest candidates but YOU decide to hire',
+        aiMatchingManual,
+        setAiMatchingManual,
+        { icon: '🔍', disabledNote: 'No automatic hiring - full manual control maintained' }
+      )}
 
-        {renderToggleRow(
-          'Enable Squad Profiles',
-          'Show squad profiles when multiple staff needed',
-          squadProfiles,
-          setSquadProfiles
-        )}
+      {/* AI Auto Hiring toggle (disabled/greyed) */}
+      {renderToggleRow(
+        'AI Auto Hiring',
+        'Not available in Manual Fill mode',
+        false,
+        () => { },
+        { icon: '⚡', disabled: true, disabledNote: 'Switch to Quick Fill to enable automatic hiring' }
+      )}
+    </View>
+  )
+
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <PoolHeader title='Staff Preference' />
+
+      {/* Tab Bar */}
+      <View style={styles.tabBar}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'quick' && styles.tabActive]}
+          activeOpacity={0.8}
+          onPress={() => setActiveTab('quick')}
+        >
+          <AppText variant={Variant.caption} style={styles.tabIcon}>⚡</AppText>
+          <AppText
+            variant={Variant.bodyMedium}
+            style={[styles.tabText, activeTab === 'quick' && styles.tabTextActive]}
+          >
+            Quick Fill
+          </AppText>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'manual' && styles.tabActive]}
+          activeOpacity={0.8}
+          onPress={() => setActiveTab('manual')}
+        >
+          <AppText variant={Variant.caption} style={styles.tabIcon}>📋</AppText>
+          <AppText
+            variant={Variant.bodyMedium}
+            style={[styles.tabText, activeTab === 'manual' && styles.tabTextActive]}
+          >
+            Manual Fill
+          </AppText>
+        </TouchableOpacity>
+      </View>
+
+      {/* Content */}
+      <ScrollView contentContainerStyle={styles.scroll}>
+        {activeTab === 'quick' ? renderQuickFill() : renderManualFill()}
       </ScrollView>
     </View>
   )
@@ -146,50 +232,170 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
   },
-  header: {
-    paddingTop: hp(5),
-    paddingBottom: hp(3),
-    paddingHorizontal: wp(4),
+  tabBar: {
+    flexDirection: 'row',
+    marginHorizontal: wp(4),
+    marginTop: hp(2),
+    backgroundColor: '#F3F4F6',
+    borderRadius: hp(1.5),
+    padding: hp(0.5),
+  },
+  tab: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(1.4),
+    borderRadius: hp(1.2),
+    gap: wp(1.5),
   },
-  backBtn: {
-    marginRight: wp(3),
+  tabActive: {
+    backgroundColor: colors.primary,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  headerTitle: {
-    color: colors.white,
+  tabIcon: {
+    fontSize: getFontSize(14),
+  },
+  tabText: {
+    color: colors.gray,
     fontWeight: '600',
+    fontSize: getFontSize(14),
+  },
+  tabTextActive: {
+    color: '#FFFFFF',
   },
   scroll: {
     padding: wp(4),
     paddingBottom: hp(10),
   },
   sectionTitle: {
-    color: colors.black,
+    color: colors.black || '#111',
     fontWeight: '700',
-    fontSize: getFontSize(16),
+    fontSize: getFontSize(18),
     marginBottom: hp(0.5),
+    marginTop: hp(1),
   },
   sectionDesc: {
-    color: colors.textPrimary,
+    color: colors.gray,
+    marginBottom: hp(2.5),
+    fontSize: getFontSize(13),
+  },
+  fieldCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border || '#E8E8EF',
+    padding: wp(4),
     marginBottom: hp(2),
+  },
+  fieldLabel: {
+    color: colors.secondary || '#111',
+    fontWeight: '700',
+    fontSize: getFontSize(14),
+    marginBottom: hp(0.3),
+  },
+  fieldDesc: {
+    color: colors.gray,
+    fontSize: getFontSize(12),
+    marginBottom: hp(1.2),
+  },
+  toggleCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border || '#E8E8EF',
+    padding: wp(4),
+    marginBottom: hp(2),
+  },
+  toggleCardDisabled: {
+    backgroundColor: '#FAFAFA',
+    borderColor: '#E5E5E5',
   },
   toggleRow: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  toggleLabelRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: hp(2),
-    marginTop: hp(1),
+    gap: wp(1.5),
+    marginBottom: hp(0.3),
+  },
+  toggleIcon: {
+    fontSize: getFontSize(14),
   },
   toggleLabel: {
-    color: colors.secondary,
-    fontWeight: '600',
+    color: colors.secondary || '#111',
+    fontWeight: '700',
+    fontSize: getFontSize(14),
   },
   toggleDesc: {
-    color: colors.textPrimary,
+    color: colors.gray,
+    fontSize: getFontSize(12),
   },
-  inputLabel: {
-    color: colors.secondary,
-    fontWeight: '600',
-    marginBottom: hp(1),
+  toggleRight: {
+    alignItems: 'center',
+    marginLeft: wp(2),
+  },
+  textDisabled: {
+    color: '#B0B0B0',
+  },
+  disabledNote: {
+    color: colors.primary,
+    fontSize: getFontSize(11),
+    marginTop: hp(0.5),
+    fontWeight: '500',
+  },
+  disabledLabel: {
+    color: '#B0B0B0',
+    fontSize: getFontSize(10),
+    marginTop: hp(0.3),
+  },
+  infoNote: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: wp(2),
+    backgroundColor: '#EEF4FF',
+    borderRadius: 10,
+    paddingHorizontal: wp(3.5),
+    paddingVertical: hp(1.2),
+    marginTop: hp(0.5),
+  },
+  infoNoteText: {
+    color: colors.primary,
+    flex: 1,
+    fontSize: getFontSize(12),
+    lineHeight: getFontSize(17),
+  },
+  modeInfoCard: {
+    backgroundColor: '#F0FDF4',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+    padding: wp(4),
+    marginBottom: hp(2),
+  },
+  modeInfoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1.5),
+    marginBottom: hp(0.8),
+  },
+  modeInfoIcon: {
+    fontSize: getFontSize(14),
+  },
+  modeInfoTitle: {
+    color: '#166534',
+    fontWeight: '700',
+    fontSize: getFontSize(14),
+  },
+  modeInfoDesc: {
+    color: '#15803D',
+    fontSize: getFontSize(12),
+    lineHeight: getFontSize(17),
   },
 })

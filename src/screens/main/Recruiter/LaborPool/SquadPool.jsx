@@ -189,7 +189,7 @@ const SquadPoolScreen = ({ navigation }) => {
           iconName="swap-vertical-outline"
           onPress={() => sortSheetRef.current?.open()}
         />
-       <Chip label="More" iconName="options-outline" onPress={openMore} />
+        <Chip label="More" iconName="options-outline" onPress={openMore} />
       </ScrollView>
 
       <FlatList
@@ -203,6 +203,7 @@ const SquadPoolScreen = ({ navigation }) => {
             availability={item.availability}
             rate={item.rate}
             rating={item.rating}
+            badge={item.originalData?.badge}
             onView={() => handleView(item)}
             onOffer={() => handleOffer(item)}
             keySkills={item.originalData?.specialties || []}

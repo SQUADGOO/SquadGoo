@@ -73,6 +73,13 @@ export const screenNames = {
   JOB_SETTINGS: 'job_settings',
   APP_SETTINGS: 'app_settings',
   SQUAD_SETTINGS: 'squad_settings',
+  NOTIFICATION_PREFERENCES: 'notification_preferences',
+  SECURITY_PASSWORD: 'security_password',
+  PASSWORD_MANAGEMENT: 'password_management',
+  TWO_FACTOR_AUTH: 'two_factor_auth',
+  PRIVACY_CONTROLS: 'privacy_controls',
+  SECURITY_ALERTS: 'security_alerts',
+  ACCOUNT_RECOVERY: 'account_recovery',
 
   ACCOUNT_UPGRADE: 'account_upgrade',
   SUPPORT: 'support',

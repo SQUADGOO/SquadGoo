@@ -22,6 +22,7 @@ const PoolFilters = ({
   sort = null,
   resultCount = 0,
   onClear,
+  searchPlaceholder,
 }) => {
   // Track dropdown visibility internally so screens don't need boilerplate state
   const [openKey, setOpenKey] = useState(null);
@@ -38,7 +39,7 @@ const PoolFilters = ({
   return (
     <View style={styles.filtersCard}>
       <TextInput
-        placeholder="Search by name, suburb, job, specialty..."
+        placeholder={searchPlaceholder || "Search by name, suburb, job, specialty..."}
         placeholderTextColor="#9CA3AF"
         value={query}
         onChangeText={onChangeQuery}

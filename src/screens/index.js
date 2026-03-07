@@ -60,6 +60,13 @@ import StepFourQuickSearch from './main/Recruiter/QuickSearch/StepFour';
 import JobSettings from './main/Recruiter/Settings/JobSettings';
 import AppSettings from './main/Recruiter/Settings/AppSettings';
 import SquadSettings from './main/Recruiter/Settings/SquadSettings';
+import NotificationPreferences from './main/Recruiter/Settings/NotificationPreferences';
+import SecurityPassword from './main/Recruiter/Settings/SecurityPassword';
+import PasswordManagement from './main/Recruiter/Settings/PasswordManagement';
+import TwoFactorAuth from './main/Recruiter/Settings/TwoFactorAuth';
+import PrivacyControls from './main/Recruiter/Settings/PrivacyControls';
+import SecurityAlerts from './main/Recruiter/Settings/SecurityAlerts';
+import AccountRecovery from './main/Recruiter/Settings/AccountRecovery';
 import AccountUpgrade from './main/Recruiter/AccountUpgrade';
 import Support from './main/Recruiter/Support';
 import SupportFAQ from './main/Recruiter/SupportFAQ';
@@ -206,6 +213,13 @@ export {
   JobSettings,
   AppSettings,
   SquadSettings,
+  NotificationPreferences,
+  SecurityPassword,
+  PasswordManagement,
+  TwoFactorAuth,
+  PrivacyControls,
+  SecurityAlerts,
+  AccountRecovery,
   AccountUpgrade,
   Support,
   SupportFAQ,

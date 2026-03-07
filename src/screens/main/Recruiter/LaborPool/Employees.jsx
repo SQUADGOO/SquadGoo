@@ -1,11 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
-import { hp, wp } from '@/theme';
+import { hp, wp, getFontSize, colors } from '@/theme';
 import PoolHeader from '../../../../core/PoolHeader';
-import WorkerCard from '@/components/Recruiter/LaborPool/WorkerCard';
+import EmployeeCard from '@/components/Recruiter/LaborPool/EmployeeCard';
 import { screenNames } from '@/navigation/screenNames';
 import { DUMMY_EMPLOYEES } from '@/utilities/dummyEmployees';
 import PoolFilters from '@/components/Recruiter/LaborPool/PoolFilters';
+import AppText, { Variant } from '@/core/AppText';
+import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
 import {
   getBadgeOptions,
   getLocationOptions,
@@ -13,7 +15,7 @@ import {
   POOL_RADIUS_OPTIONS,
   POOL_SORT_OPTIONS,
 } from '@/utilities/poolFilterHelpers';
-import { filterAndSortWorkers, toWorkerCardItems } from '@/utilities/workerPoolHelpers';
+import { filterAndSortWorkers } from '@/utilities/workerPoolHelpers';
 
 const Employees = ({ navigation }) => {
   // Filters
@@ -43,20 +45,28 @@ const Employees = ({ navigation }) => {
   };
 
   const employees = useMemo(() => {
-    const filtered = filterAndSortWorkers(DUMMY_EMPLOYEES, { query, location, role, badge, radius, sort });
-    return toWorkerCardItems(filtered, { roleFallback: 'Employee' });
+    let filtered = filterAndSortWorkers(DUMMY_EMPLOYEES, { query, location, role, badge, radius, sort });
+    // Also filter by TFN / name / skills if query present
+    if (query) {
+      const q = query.toLowerCase();
+      filtered = filtered.filter(e =>
+        (e.name || '').toLowerCase().includes(q) ||
+        (e.employeeId || '').toLowerCase().includes(q) ||
+        (e.skills || []).some(s => s.toLowerCase().includes(q))
+      );
+    }
+    return filtered;
   }, [badge, location, query, radius, role, sort]);
 
-  const handleView = (employee) => {
-    // Navigate to candidate profile screen
+  const handleViewProfile = (employee) => {
     navigation.navigate(screenNames.QUICK_SEARCH_CANDIDATE_PROFILE, {
       candidateId: employee.id,
-      jobId: null, // Employees don't have an associated job
-      source: 'employees_pool', // To identify where the navigation came from
+      jobId: null,
+      source: 'employees_pool',
     });
   };
 
-  const handleOffer = (employee) => {
+  const handleHire = (employee) => {
     navigation.navigate(screenNames.SEND_OFFER, {
       mode: 'worker',
       recipient: {
@@ -64,16 +74,47 @@ const Employees = ({ navigation }) => {
         name: employee.name,
       },
       prefill: {
-        workType: employee.originalData?.preferredRoles?.[0] || '',
-        availability: employee.originalData?.availability?.summary || '',
+        workType: employee.preferredRoles?.[0] || '',
+        availability: employee.availability?.summary || '',
       },
     });
   };
 
+  const handlePressRating = (employee) => {
+    navigation.navigate(screenNames.SQUAD_REVIEWS, {
+      name: employee.name,
+      rating: employee.acceptanceRating,
+    });
+  };
+
+  const maskTfn = (tfn) => {
+    if (!tfn) return '***';
+    const digits = tfn.replace(/\s/g, '');
+    return `***${digits.slice(-3)}`;
+  };
+
+  const toRating5 = (r) => {
+    return Math.round(((r || 0) / 100) * 5 * 10) / 10;
+  };
+
+  const renderInfoBanner = () => (
+    <View style={styles.infoBanner}>
+      <VectorIcons name={iconLibName.Ionicons} iconName="shield-checkmark" size={20} color="#0D9488" />
+      <View style={styles.infoBannerContent}>
+        <AppText variant={Variant.bodyMedium} style={styles.infoBannerTitle}>
+          TFN Verified Employees
+        </AppText>
+        <AppText variant={Variant.caption} style={styles.infoBannerDesc}>
+          Full-time, part-time, and casual employees with verified Tax File Numbers
+        </AppText>
+      </View>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <PoolHeader
-        title="Employees"
+        title="Employee Pool"
         leftIcon={{ name: 'Feather', iconName: 'arrow-left', onPress: () => navigation.goBack() }}
         containerStyle={{ backgroundColor: 'transparent' }}
         titleStyle={{ color: '#fff' }}
@@ -84,6 +125,7 @@ const Employees = ({ navigation }) => {
         onChangeQuery={setQuery}
         resultCount={employees.length}
         onClear={clearFilters}
+        searchPlaceholder="Search by TFN, name, skills, experience..."
         filters={[
           {
             key: 'location',
@@ -94,21 +136,21 @@ const Employees = ({ navigation }) => {
           },
           {
             key: 'role',
-            placeholder: 'Role',
+            placeholder: 'Skills',
             options: roleOptions,
             value: role,
             onChange: setRole,
           },
           {
             key: 'badge',
-            placeholder: 'Badge',
+            placeholder: 'Rating',
             options: badgeOptions,
             value: badge,
             onChange: setBadge,
           },
           {
             key: 'radius',
-            placeholder: 'Radius',
+            placeholder: 'Availability',
             options: POOL_RADIUS_OPTIONS,
             value: radius,
             onChange: setRadius,
@@ -125,20 +167,34 @@ const Employees = ({ navigation }) => {
       <FlatList
         data={employees}
         keyExtractor={item => item.id}
+        ListHeaderComponent={renderInfoBanner}
         renderItem={({ item }) => (
-          <WorkerCard
+          <EmployeeCard
             name={item.name}
-            role={item.role}
-            location={item.location}
-            availability={item.availability}
-            rate={item.rate}
-            rating={item.rating}
-            onView={() => handleView(item)}
-            onOffer={() => handleOffer(item)}
+            employeeId={item.employeeId || item.id}
+            tfnMasked={maskTfn(item.tfnNumber)}
+            phone={item.phone || '+61 400 000 000'}
+            email={item.email || 'contact@example.com'}
+            badge={item.badge}
+            employmentType={item.employmentType || 'Full-time'}
+            skills={item.skills}
+            rating={toRating5(item.acceptanceRating)}
+            experienceYears={item.experienceYears}
+            reviewCount={item.reviewCount || 0}
+            onViewProfile={() => handleViewProfile(item)}
+            onHire={() => handleHire(item)}
+            onPressRating={() => handlePressRating(item)}
           />
         )}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+        ListFooterComponent={<View style={{ height: hp(4) }} />}
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <VectorIcons name={iconLibName.Ionicons} iconName="search-outline" size={40} color={colors.gray} />
+            <AppText variant={Variant.body} style={styles.emptyText}>No employees found</AppText>
+          </View>
+        }
       />
     </View>
   );
@@ -150,8 +206,40 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F7FA' },
   listContainer: {
     paddingHorizontal: wp(4),
-    paddingBottom: hp(4),
     paddingTop: hp(1),
   },
+  infoBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#CCFBF1',
+    borderWidth: 1,
+    borderColor: '#99F6E4',
+    borderRadius: hp(1.6),
+    padding: wp(3.5),
+    marginBottom: hp(2),
+    gap: wp(3),
+  },
+  infoBannerContent: {
+    flex: 1,
+  },
+  infoBannerTitle: {
+    color: '#115E59',
+    fontWeight: '700',
+    fontSize: getFontSize(14),
+  },
+  infoBannerDesc: {
+    color: '#0F766E',
+    fontSize: getFontSize(11),
+    marginTop: hp(0.2),
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(10),
+    gap: hp(1),
+  },
+  emptyText: {
+    color: colors.gray,
+    fontWeight: '500',
+  },
 });
-

@@ -17,9 +17,18 @@ import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
  * - onView: Callback when View button is pressed
  * - onOffer: Callback when Offer button is pressed
  * - onPress: Optional callback when card is pressed
+ * - badge: Optional badge level (Bronze, Silver, Gold, Platinum)
  * - keySkills: Optional array of strings to show as "KEY SKILLS" chips (used for Squad cards)
  * - onPressRating: Optional callback when rating is pressed (used to open Reviews)
  */
+
+const BADGE_COLORS = {
+  Bronze: '#CD7F32',
+  Silver: '#A0AEC0',
+  Gold: '#F59E0B',
+  Platinum: '#8B5CF6',
+};
+
 const WorkerCard = ({
   name,
   role,
@@ -27,6 +36,7 @@ const WorkerCard = ({
   availability,
   rate,
   rating,
+  badge,
   onView,
   onOffer,
   onPress,
@@ -45,6 +55,16 @@ const WorkerCard = ({
 
   return (
     <Wrapper style={styles.card} {...wrapperProps}>
+      {/* Badge pill */}
+      {badge ? (
+        <View style={styles.badgeRow}>
+          <View style={[styles.badgePill, { backgroundColor: BADGE_COLORS[badge] || BADGE_COLORS.Bronze }]}>
+            <VectorIcons name={iconLibName.Ionicons} iconName="ribbon" size={11} color="#FFFFFF" />
+            <AppText variant={Variant.caption} style={styles.badgeText}>{badge}</AppText>
+          </View>
+        </View>
+      ) : null}
+
       {/* Header */}
       <View style={styles.cardHeader}>
         <View style={styles.headerLeft}>
@@ -187,6 +207,23 @@ const styles = StyleSheet.create({
     elevation: 4,
     borderWidth: 1,
     borderColor: '#F3F4F6',
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    marginBottom: hp(1),
+  },
+  badgePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1),
+    paddingHorizontal: wp(2.5),
+    paddingVertical: hp(0.4),
+    borderRadius: hp(1.5),
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: getFontSize(10),
   },
   cardHeader: {
     flexDirection: 'row',
