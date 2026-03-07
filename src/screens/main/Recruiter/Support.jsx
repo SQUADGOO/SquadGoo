@@ -83,15 +83,10 @@ const Support = () => {
         navigation.navigate(screenNames.SUPPORT_FAQ, { faqs: supportFaqs });
         break;
       case 'chat':
-        navigation.navigate(screenNames.MESSAGES, {
-          chatData: supportAgentProfile,
-        });
+        navigation.navigate(screenNames.LIVE_CHAT);
         break;
       case 'callback':
-        Alert.alert(
-          'Callback Requested',
-          'A support specialist will reach out within the next 30 minutes.'
-        );
+        navigation.navigate(screenNames.REQUEST_CALLBACK);
         break;
       case 'tickets':
         navigation.navigate(screenNames.SUPPORT_TICKETS);

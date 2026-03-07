@@ -84,6 +84,9 @@ export const screenNames = {
   LEGAL_COMPLIANCE: 'legal_compliance',
   DELETE_ACCOUNT: 'delete_account',
   SWITCH_PROFILE: 'switch_profile',
+  LIVE_CHAT: 'live_chat',
+  REQUEST_CALLBACK: 'request_callback',
+  MY_CALLBACK_REQUESTS: 'my_callback_requests',
 
   ACCOUNT_UPGRADE: 'account_upgrade',
   SUPPORT: 'support',

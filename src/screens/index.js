@@ -71,6 +71,9 @@ import OtherSecurityFeatures from './main/Recruiter/Settings/OtherSecurityFeatur
 import LegalCompliance from './main/Recruiter/Settings/LegalCompliance';
 import DeleteAccount from './main/Recruiter/Settings/DeleteAccount';
 import SwitchProfile from './main/Recruiter/Settings/SwitchProfile';
+import LiveChat from './main/Recruiter/LiveChat';
+import RequestCallback from './main/Recruiter/RequestCallback';
+import MyCallbackRequests from './main/Recruiter/MyCallbackRequests';
 import AccountUpgrade from './main/Recruiter/AccountUpgrade';
 import Support from './main/Recruiter/Support';
 import SupportFAQ from './main/Recruiter/SupportFAQ';
@@ -228,6 +231,9 @@ export {
   LegalCompliance,
   DeleteAccount,
   SwitchProfile,
+  LiveChat,
+  RequestCallback,
+  MyCallbackRequests,
   AccountUpgrade,
   Support,
   SupportFAQ,

@@ -316,6 +316,18 @@ const DrawerNavigator = () => {
         name={screenNames.SWITCH_PROFILE}
         component={ui.SwitchProfile}
       />
+      <Drawer.Screen
+        name={screenNames.LIVE_CHAT}
+        component={ui.LiveChat}
+      />
+      <Drawer.Screen
+        name={screenNames.REQUEST_CALLBACK}
+        component={ui.RequestCallback}
+      />
+      <Drawer.Screen
+        name={screenNames.MY_CALLBACK_REQUESTS}
+        component={ui.MyCallbackRequests}
+      />
 
       <Drawer.Screen
         name={screenNames.ACCOUNT_UPGRADE}

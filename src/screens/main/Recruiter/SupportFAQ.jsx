@@ -19,9 +19,7 @@ const SupportFAQ = ({ route }) => {
   };
 
   const handleLiveChat = () => {
-    navigation.navigate(screenNames.MESSAGES, {
-      chatData: supportAgentProfile,
-    });
+    navigation.navigate(screenNames.LIVE_CHAT);
   };
 
   const handleSubmitTicket = () => {
