@@ -29,6 +29,7 @@ import Share from 'react-native-share'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { showToast, toastTypes } from '@/utilities/toastConfig'
 import { Platform } from 'react-native'
+import { TRANSACTION_SUMMARY, transactionHistory } from '@/screens/main/wallet/transactionData'
 
 const Wallet = ({ navigation }) => {
   const { coins, transactions = [], withdrawRequests = [] } = useSelector((state) => state.wallet)
@@ -952,15 +953,15 @@ const Wallet = ({ navigation }) => {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Simplified Escrow Sections */}
-        {jobSeekerEscrows.length > 0 && (
+        {/* {jobSeekerEscrows.length > 0 && (
           <View style={styles.escrowSection}>
             <AppText variant={Variant.title} style={styles.sectionTitle}>
               Job Seeker Escrows
             </AppText>
             {jobSeekerEscrows.map(renderSimpleEscrowCard)}
           </View>
-        )}
-
+        )} */}
+        {/* 
         {recruiterEscrows.length > 0 && (
           <View style={styles.escrowSection}>
             <AppText variant={Variant.title} style={styles.sectionTitle}>
@@ -968,11 +969,12 @@ const Wallet = ({ navigation }) => {
             </AppText>
             {recruiterEscrows.map(renderSimpleEscrowCard)}
           </View>
-        )}
+        )} */}
 
         {/* Escrow & Holds Navigation */}
         <TouchableOpacity
           style={{
+            marginTop: 20,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -994,6 +996,67 @@ const Wallet = ({ navigation }) => {
           </View>
           <VectorIcons name={iconLibName.Ionicons} iconName="chevron-forward" size={18} color="#999" />
         </TouchableOpacity>
+
+        {/* Transaction Summary - Horizontal Scroll Cards */}
+        <AppText variant={Variant.title} style={styles.sectionTitle}>
+          Transaction Summary
+        </AppText>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingRight: wp(2), gap: wp(3) }}
+          style={{ marginBottom: hp(2) }}
+        >
+          {TRANSACTION_SUMMARY.map((item) => (
+            <View key={item.key} style={styles.summaryCard}>
+              <View style={[styles.summaryIconCircle, { backgroundColor: item.color + '15' }]}>
+                <VectorIcons name={iconLibName.Ionicons} iconName={item.icon} size={18} color={item.color} />
+              </View>
+              <AppText variant={Variant.caption} style={styles.summaryLabel}>{item.label}</AppText>
+              <AppText variant={Variant.bodyMedium} style={[styles.summaryValue, { color: item.color }]}>
+                ${item.value.toFixed(2)}
+              </AppText>
+            </View>
+          ))}
+        </ScrollView>
+
+        {/* Transaction History Preview */}
+        <View style={styles.txPreviewHeader}>
+          <AppText variant={Variant.title} style={styles.sectionTitle}>
+            Transaction History
+          </AppText>
+          <TouchableOpacity
+            onPress={() => navigation.navigate(screenNames.TRANSACTION_HISTORY)}
+            activeOpacity={0.7}
+            style={{
+              marginHorizontal: wp(4),
+            }}
+          >
+            <AppText variant={Variant.caption} style={styles.txViewAllLink}>View All</AppText>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.txPreviewCard}>
+          {transactionHistory.slice(0, 3).map((tx, idx) => {
+            const isCredit = tx.type === 'Credit';
+            const statusColor = tx.status === 'Completed' ? '#16A34A' : tx.status === 'Pending' ? '#F59E0B' : '#EF4444';
+            return (
+              <View key={tx.id} style={[styles.txPreviewRow, idx < 2 && styles.txPreviewBorder]}>
+                <View style={{ flex: 1 }}>
+                  <AppText variant={Variant.bodyMedium} style={styles.txPreviewName} numberOfLines={1}>{tx.name}</AppText>
+                  <AppText variant={Variant.caption} style={styles.txPreviewDate}>{tx.date}</AppText>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <AppText variant={Variant.bodyMedium} style={[styles.txPreviewAmount, { color: isCredit ? '#16A34A' : '#333' }]}>
+                    {isCredit ? '+' : '-'}${tx.amount.toFixed(2)}
+                  </AppText>
+                  <View style={[styles.txPreviewStatusBadge, { backgroundColor: statusColor + '15', borderColor: statusColor + '35' }]}>
+                    <AppText variant={Variant.caption} style={[styles.txPreviewStatusText, { color: statusColor }]}>{tx.status}</AppText>
+                  </View>
+                </View>
+              </View>
+            );
+          })}
+        </View>
 
         {/* Bank Account Info Section */}
         {selectedAccount && (
@@ -1543,6 +1606,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   sectionTitle: {
+    marginHorizontal: wp(4),
     color: colors.secondary,
     fontSize: getFontSize(18),
     fontWeight: '600',
@@ -1695,6 +1759,92 @@ const styles = StyleSheet.create({
   releaseDateValue: {
     color: colors.primary,
     fontSize: getFontSize(18),
+    fontWeight: '700',
+  },
+  // Transaction Summary Cards
+  summaryCard: {
+    width: wp(32),
+    backgroundColor: colors.white,
+    borderRadius: 14,
+    padding: wp(3),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  summaryIconCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: hp(0.6),
+  },
+  summaryLabel: {
+    color: '#888',
+    fontSize: getFontSize(10),
+    marginBottom: hp(0.2),
+  },
+  summaryValue: {
+    fontWeight: '800',
+    fontSize: getFontSize(15),
+  },
+  // Transaction History Preview
+  txPreviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: hp(0.8),
+  },
+  txViewAllLink: {
+    color: colors.primary,
+    fontWeight: '700',
+    fontSize: getFontSize(12),
+  },
+  txPreviewCard: {
+    backgroundColor: colors.white,
+    borderRadius: 14,
+    padding: wp(3.5),
+    marginBottom: hp(2),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  txPreviewRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: hp(1),
+  },
+  txPreviewBorder: {
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#F3F3F3',
+  },
+  txPreviewName: {
+    color: '#333',
+    fontWeight: '600',
+    fontSize: getFontSize(12),
+  },
+  txPreviewDate: {
+    color: '#999',
+    fontSize: getFontSize(10),
+    marginTop: hp(0.15),
+  },
+  txPreviewAmount: {
+    fontWeight: '700',
+    fontSize: getFontSize(13),
+  },
+  txPreviewStatusBadge: {
+    borderRadius: 5,
+    paddingHorizontal: wp(1.5),
+    paddingVertical: hp(0.1),
+    marginTop: hp(0.2),
+    borderWidth: 1,
+  },
+  txPreviewStatusText: {
+    fontSize: getFontSize(8),
     fontWeight: '700',
   },
 })

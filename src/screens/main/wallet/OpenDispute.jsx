@@ -216,29 +216,75 @@ const OpenDispute = ({ navigation, route }) => {
                 </TouchableOpacity>
             </Modal>
 
-            {/* Success Modal */}
-            <Modal visible={showSuccess} transparent animationType="fade">
-                <View style={[styles.modalBackdrop, { justifyContent: 'center' }]}>
-                    <View style={styles.successCard}>
-                        <View style={styles.successIconCircle}>
-                            <VectorIcons name={iconLibName.Ionicons} iconName="checkmark-circle" size={40} color="#16A34A" />
+            {/* Success Full Screen */}
+            <Modal visible={showSuccess} transparent={false} animationType="slide">
+                <View style={styles.successScreen}>
+                    <PoolHeader title="Dispute Submitted" />
+                    <ScrollView contentContainerStyle={styles.successScrollContent} showsVerticalScrollIndicator={false}>
+                        {/* Success icon */}
+                        <View style={styles.successIconWrap}>
+                            <LinearGradient
+                                colors={['#16A34A', '#22C55E']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                                style={styles.successIconCircle}
+                            >
+                                <VectorIcons name={iconLibName.Ionicons} iconName="checkmark" size={32} color="#FFFFFF" />
+                            </LinearGradient>
                         </View>
-                        <AppText variant={Variant.h6} style={styles.successTitle}>Dispute Submitted!</AppText>
-                        <AppText variant={Variant.body} style={styles.successText}>
-                            Your dispute has been submitted successfully. Our support team will review your case and contact you soon.
-                        </AppText>
-                        <View style={styles.successInfo}>
-                            <VectorIcons name={iconLibName.Ionicons} iconName="time-outline" size={14} color="#F59E0B" />
-                            <AppText variant={Variant.caption} style={styles.successInfoText}>
-                                Most disputes are reviewed within 24–48 hours. You'll receive notifications about the status of your case.
+                        <AppText variant={Variant.h6} style={styles.successTitle}>Dispute Submitted{'\n'}Successfully!</AppText>
+
+                        {/* Dispute Reference Card */}
+                        <View style={styles.successRefCard}>
+                            <AppText variant={Variant.caption} style={styles.successRefLabel}>Dispute Reference #</AppText>
+                            <AppText variant={Variant.bodyMedium} style={styles.successRefValue}>
+                                DISP-{hold.jobId?.replace('#JOB-', '') || '2024-0001'}-001
+                            </AppText>
+                            <View style={styles.successRefDivider} />
+                            <AppText variant={Variant.bodyMedium} style={styles.successNextTitle}>What happens next?</AppText>
+                            <AppText variant={Variant.caption} style={styles.successNextText}>
+                                Our team will review your dispute and contact you within 24-48 hours.
                             </AppText>
                         </View>
+
+                        {/* Job Details Recap */}
+                        <View style={styles.successJobCard}>
+                            <AppText variant={Variant.caption} style={styles.successJobLabel}>Job Details</AppText>
+                            <AppText variant={Variant.bodyMedium} style={styles.successJobTitle}>{hold.jobTitle}</AppText>
+                            <AppText variant={Variant.caption} style={styles.successJobSub}>
+                                {hold.candidate.name} • {hold.company}
+                            </AppText>
+                            {hold.amountOnHold > 0 && (
+                                <AppText variant={Variant.caption} style={styles.successJobAmount}>
+                                    Amount on hold: ${hold.amountOnHold.toFixed(2)}
+                                </AppText>
+                            )}
+                        </View>
+
+                        {/* Important Notice */}
+                        <View style={styles.successNotice}>
+                            <VectorIcons name={iconLibName.Ionicons} iconName="information-circle" size={16} color="#F59E0B" />
+                            <AppText variant={Variant.caption} style={styles.successNoticeText}>
+                                Funds remain on hold until the dispute is resolved. You'll receive notifications with updates on your case.
+                            </AppText>
+                        </View>
+
+                        {/* Buttons */}
                         <AppButton
-                            text="Back to Wallet"
+                            text="View My Disputes"
                             onPress={handleSuccessOk}
-                            style={styles.successBtn}
+                            style={styles.successPrimaryBtn}
                         />
-                    </View>
+                        <TouchableOpacity
+                            style={styles.successSecondaryBtn}
+                            onPress={handleSuccessOk}
+                            activeOpacity={0.7}
+                        >
+                            <AppText variant={Variant.bodyMedium} style={styles.successSecondaryText}>Back to Wallet</AppText>
+                        </TouchableOpacity>
+
+                        <View style={{ height: hp(4) }} />
+                    </ScrollView>
                 </View>
             </Modal>
         </View>
@@ -343,24 +389,49 @@ const styles = StyleSheet.create({
     reasonItemActive: { backgroundColor: '#F5F3FF' },
     reasonText: { flex: 1, color: '#333', fontSize: getFontSize(14) },
     reasonTextActive: { color: colors.primary, fontWeight: '600' },
-    // Success modal
-    successCard: {
-        backgroundColor: colors.white, borderRadius: 20, padding: wp(6),
-        alignItems: 'center', marginHorizontal: wp(6),
-        shadowColor: '#000', shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.15, shadowRadius: 20, elevation: 10,
+    // Success full screen
+    successScreen: { flex: 1, backgroundColor: '#F4F2F9' },
+    successScrollContent: { padding: wp(5), alignItems: 'center' },
+    successIconWrap: { marginTop: hp(3), marginBottom: hp(2) },
+    successIconCircle: {
+        width: 70, height: 70, borderRadius: 35,
+        alignItems: 'center', justifyContent: 'center',
     },
-    successIconCircle: { marginBottom: hp(1.5) },
-    successTitle: { color: '#111', fontWeight: '800', fontSize: getFontSize(20), marginBottom: hp(1) },
-    successText: {
-        color: '#555', fontSize: getFontSize(13), textAlign: 'center',
-        lineHeight: getFontSize(20), marginBottom: hp(1.5),
+    successTitle: {
+        color: '#111', fontWeight: '800', fontSize: getFontSize(22),
+        textAlign: 'center', marginBottom: hp(2.5),
     },
-    successInfo: {
-        flexDirection: 'row', alignItems: 'flex-start', gap: wp(2),
+    successRefCard: {
+        width: '100%', backgroundColor: colors.white, borderRadius: 16,
+        padding: wp(5), marginBottom: hp(2),
+        shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
+    },
+    successRefLabel: { color: '#888', fontSize: getFontSize(12), marginBottom: hp(0.3) },
+    successRefValue: { color: '#111', fontWeight: '800', fontSize: getFontSize(18), marginBottom: hp(1.5) },
+    successRefDivider: { height: 1, backgroundColor: '#E8E8EF', marginBottom: hp(1.5) },
+    successNextTitle: { color: '#111', fontWeight: '700', fontSize: getFontSize(15), marginBottom: hp(0.5) },
+    successNextText: { color: '#666', fontSize: getFontSize(13), lineHeight: getFontSize(19) },
+    successJobCard: {
+        width: '100%', backgroundColor: colors.white, borderRadius: 16,
+        padding: wp(4), marginBottom: hp(2),
+        shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
+    },
+    successJobLabel: { color: '#888', fontSize: getFontSize(11), marginBottom: hp(0.3) },
+    successJobTitle: { color: '#111', fontWeight: '700', fontSize: getFontSize(15), marginBottom: hp(0.2) },
+    successJobSub: { color: '#666', fontSize: getFontSize(12), marginBottom: hp(0.4) },
+    successJobAmount: { color: '#F59E0B', fontWeight: '600', fontSize: getFontSize(13) },
+    successNotice: {
+        width: '100%', flexDirection: 'row', alignItems: 'flex-start', gap: wp(2),
         backgroundColor: '#FFF8E1', borderRadius: 10, padding: wp(3),
-        marginBottom: hp(2), borderWidth: 1, borderColor: '#FFE082', width: '100%',
+        marginBottom: hp(2.5), borderWidth: 1, borderColor: '#FFE082',
     },
-    successInfoText: { flex: 1, color: '#BF360C', fontSize: getFontSize(11), lineHeight: getFontSize(16) },
-    successBtn: { width: '100%', borderRadius: 12 },
+    successNoticeText: { flex: 1, color: '#BF360C', fontSize: getFontSize(11), lineHeight: getFontSize(16) },
+    successPrimaryBtn: { width: '100%', borderRadius: 12, marginBottom: hp(1) },
+    successSecondaryBtn: {
+        width: '100%', borderWidth: 1.5, borderColor: '#E8E8EF', borderRadius: 12,
+        paddingVertical: hp(1.4), alignItems: 'center', backgroundColor: colors.white,
+    },
+    successSecondaryText: { color: '#555', fontWeight: '600', fontSize: getFontSize(14) },
 });

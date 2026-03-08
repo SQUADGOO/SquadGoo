@@ -162,43 +162,71 @@ const EscrowHolds = ({ navigation }) => {
     };
 
     // ── Completed hold card ──
+    const getCompletedStatusStyle = (status) => {
+        switch (status) {
+            case 'Paid Out':
+                return { color: '#16A34A', icon: 'checkmark-circle', bg: '#16A34A18', border: '#16A34A40' };
+            case 'Disputed':
+                return { color: '#F97316', icon: 'alert-circle', bg: '#F9731618', border: '#F9731640' };
+            case 'Refunded':
+                return { color: '#6B7280', icon: 'arrow-undo-circle', bg: '#6B728018', border: '#6B728040' };
+            default:
+                return { color: '#16A34A', icon: 'checkmark-circle', bg: '#16A34A18', border: '#16A34A40' };
+        }
+    };
+
     const renderCompletedCard = (hold) => {
-        const isPaidOut = hold.status === 'Paid Out';
-        const statusColor = isPaidOut ? '#16A34A' : '#F59E0B';
+        const s = getCompletedStatusStyle(hold.status);
         return (
-            <View key={hold.id} style={[styles.holdCard, { borderLeftColor: statusColor, borderLeftWidth: 3 }]}>
-                <View style={styles.cardTopRow}>
-                    <View style={[styles.statusBadge, { backgroundColor: statusColor + '18', borderColor: statusColor + '40' }]}>
-                        <VectorIcons name={iconLibName.Ionicons} iconName={isPaidOut ? 'checkmark-circle' : 'refresh-circle'} size={12} color={statusColor} />
-                        <AppText variant={Variant.caption} style={[styles.statusBadgeText, { color: statusColor }]}>{hold.status}</AppText>
+            <View key={hold.id} style={[styles.holdCard, styles.completedCard, { borderLeftColor: s.color, borderLeftWidth: 3 }]}>
+                {/* Status badges row */}
+                <View style={styles.completedBadgeRow}>
+                    <View style={[styles.statusBadge, { backgroundColor: s.bg, borderColor: s.border }]}>
+                        <VectorIcons name={iconLibName.Ionicons} iconName={s.icon} size={12} color={s.color} />
+                        <AppText variant={Variant.caption} style={[styles.statusBadgeText, { color: s.color }]}>
+                            {hold.statusBadge || hold.status}
+                        </AppText>
                     </View>
+                    <AppText variant={Variant.bodyMedium} style={[styles.completedAmount, { color: s.color }]}>
+                        ${hold.amountOnHold.toFixed(2)}
+                    </AppText>
                 </View>
-                <AppText variant={Variant.bodyMedium} style={styles.cardJobTitle}>{hold.jobTitle}</AppText>
+
+                {/* Job info */}
+                <AppText variant={Variant.bodyMedium} style={styles.completedJobTitle}>{hold.jobTitle}</AppText>
                 <AppText variant={Variant.caption} style={styles.cardCompany}>{hold.company}</AppText>
 
+                {/* Candidate */}
                 <View style={styles.candidateRow}>
-                    <View style={[styles.avatar, { backgroundColor: hold.candidate.color }]}>
+                    <View style={[styles.avatar, { backgroundColor: hold.candidate.color + '80' }]}>
                         <AppText variant={Variant.caption} style={styles.avatarText}>{hold.candidate.initials}</AppText>
                     </View>
                     <View style={styles.candidateInfo}>
                         <AppText variant={Variant.bodyMedium} style={styles.candidateName}>{hold.candidate.name}</AppText>
                         <AppText variant={Variant.caption} style={styles.candidateContact}>{hold.shiftDate} • {hold.shiftTime}</AppText>
                     </View>
-                    <AppText variant={Variant.bodyMedium} style={[styles.completedAmount, { color: statusColor }]}>${hold.amountOnHold.toFixed(2)}</AppText>
                 </View>
 
+                {/* Amount previously held */}
+                <View style={styles.completedAmountRow}>
+                    <AppText variant={Variant.caption} style={styles.completedAmountLabel}>Amount Previously Held</AppText>
+                    <AppText variant={Variant.caption} style={styles.completedAmountVal}>${hold.amountOnHold.toFixed(2)}</AppText>
+                </View>
+
+                {/* Payout date */}
+                {hold.payoutDate && (
+                    <View style={styles.completedPayoutRow}>
+                        <VectorIcons name={iconLibName.Ionicons} iconName="calendar-outline" size={12} color="#999" />
+                        <AppText variant={Variant.caption} style={styles.completedPayoutText}>
+                            {hold.status === 'Paid Out' ? 'Paid on' : hold.status === 'Refunded' ? 'Refunded on' : 'Resolved on'}: {hold.payoutDate}
+                        </AppText>
+                    </View>
+                )}
+
+                {/* Progress bar (fully filled) */}
                 {renderProgressBar(9)}
 
-                <View style={styles.actionRow}>
-                    <TouchableOpacity
-                        style={styles.actionBtn}
-                        onPress={() => navigation.navigate(screenNames.JOB_TIMELINE, { hold })}
-                        activeOpacity={0.7}
-                    >
-                        <VectorIcons name={iconLibName.Ionicons} iconName="time-outline" size={14} color={colors.primary} />
-                        <AppText variant={Variant.caption} style={styles.actionBtnText}>View Timeline</AppText>
-                    </TouchableOpacity>
-                </View>
+                {/* No action buttons — just for record */}
             </View>
         );
     };
@@ -245,29 +273,20 @@ const EscrowHolds = ({ navigation }) => {
                         {activeHoldsData.map(renderActiveCard)}
 
                         {/* View All Button */}
-
                         <AppButton
                             text="View All"
                             onPress={() => navigation.navigate(screenNames.ACTIVE_HOLDS_VIEW_ALL)}
                         />
-                        {/* <TouchableOpacity
-                            style={styles.viewAllBtn}
-                            onPress={() => navigation.navigate(screenNames.ACTIVE_HOLDS_VIEW_ALL)}
-                            activeOpacity={0.7}
-                        >
-                            <LinearGradient
-                                colors={[colors.primary || '#6C3CE1', '#8B5CF6']}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 0 }}
-                                style={styles.viewAllGradient}
-                            >
-                                <AppText variant={Variant.bodyMedium} style={styles.viewAllText}>View All</AppText>
-                            </LinearGradient>
-                        </TouchableOpacity> */}
                     </>
                 ) : (
                     <>
                         {completedHoldsData.map(renderCompletedCard)}
+                        {completedHoldsData.length > 0 && (
+                            <AppButton
+                                text="View All"
+                                onPress={() => navigation.navigate(screenNames.COMPLETED_HOLDS_VIEW_ALL)}
+                            />
+                        )}
                         {completedHoldsData.length === 0 && (
                             <View style={styles.emptyState}>
                                 <VectorIcons name={iconLibName.Ionicons} iconName="checkmark-done-circle-outline" size={48} color="#CCC" />
@@ -363,6 +382,23 @@ const styles = StyleSheet.create({
     },
     actionBtnDanger: { borderColor: '#FECACA' },
     actionBtnText: { color: colors.primary, fontWeight: '600', fontSize: getFontSize(11) },
+    // Completed card
+    completedCard: { opacity: 0.85 },
+    completedBadgeRow: {
+        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+        marginBottom: hp(0.8),
+    },
+    completedJobTitle: { color: '#555', fontWeight: '700', fontSize: getFontSize(15), marginBottom: hp(0.3) },
+    completedAmountRow: {
+        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+        backgroundColor: '#F9F9FB', borderRadius: 8, padding: wp(2.5), marginBottom: hp(0.5),
+    },
+    completedAmountLabel: { color: '#999', fontSize: getFontSize(11) },
+    completedAmountVal: { color: '#666', fontWeight: '600', fontSize: getFontSize(12) },
+    completedPayoutRow: {
+        flexDirection: 'row', alignItems: 'center', gap: wp(1.5), marginBottom: hp(0.8),
+    },
+    completedPayoutText: { color: '#999', fontSize: getFontSize(11) },
     // View All
     viewAllBtn: { alignItems: 'center', marginTop: hp(0.5) },
     viewAllGradient: { borderRadius: 20, paddingHorizontal: wp(8), paddingVertical: hp(1) },

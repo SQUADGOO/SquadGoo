@@ -42,6 +42,8 @@ export const screenNames = {
   ACTIVE_HOLDS_VIEW_ALL: 'active_holds_view_all',
   JOB_TIMELINE: 'job_timeline',
   OPEN_DISPUTE: 'open_dispute',
+  COMPLETED_HOLDS_VIEW_ALL: 'completed_holds_view_all',
+  TRANSACTION_HISTORY: 'transaction_history',
 
   WALLET_STACK: 'wallet_stack',
 

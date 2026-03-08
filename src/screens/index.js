@@ -30,6 +30,8 @@ import EscrowHolds from './main/wallet/EscrowHolds';
 import ActiveHoldsViewAll from './main/wallet/ActiveHoldsViewAll';
 import JobTimeline from './main/wallet/JobTimeline';
 import OpenDispute from './main/wallet/OpenDispute';
+import CompletedHoldsViewAll from './main/wallet/CompletedHoldsViewAll';
+import TransactionHistory from './main/wallet/TransactionHistory';
 import WithdrawCoins from './main/wallet/WithdrawCoins';
 import WalletStack from '@/navigation/WalletStack';
 import Messages from './main/chat/Messages';
@@ -201,6 +203,8 @@ export {
   ActiveHoldsViewAll,
   JobTimeline,
   OpenDispute,
+  CompletedHoldsViewAll,
+  TransactionHistory,
   WithdrawCoins,
   WalletStack,
   Messages,

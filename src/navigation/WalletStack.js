@@ -60,6 +60,14 @@ const WalletStack = () => {
         name={screenNames.OPEN_DISPUTE}
         component={ui.OpenDispute}
       />
+      <Stack.Screen
+        name={screenNames.COMPLETED_HOLDS_VIEW_ALL}
+        component={ui.CompletedHoldsViewAll}
+      />
+      <Stack.Screen
+        name={screenNames.TRANSACTION_HISTORY}
+        component={ui.TransactionHistory}
+      />
 
     </Stack.Navigator>
   );
