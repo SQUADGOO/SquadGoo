@@ -32,6 +32,7 @@ import JobTimeline from './main/wallet/JobTimeline';
 import OpenDispute from './main/wallet/OpenDispute';
 import CompletedHoldsViewAll from './main/wallet/CompletedHoldsViewAll';
 import TransactionHistory from './main/wallet/TransactionHistory';
+import RatingsReports from './main/wallet/RatingsReports';
 import WithdrawCoins from './main/wallet/WithdrawCoins';
 import WalletStack from '@/navigation/WalletStack';
 import Messages from './main/chat/Messages';
@@ -205,6 +206,7 @@ export {
   OpenDispute,
   CompletedHoldsViewAll,
   TransactionHistory,
+  RatingsReports,
   WithdrawCoins,
   WalletStack,
   Messages,

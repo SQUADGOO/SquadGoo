@@ -30,6 +30,9 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { showToast, toastTypes } from '@/utilities/toastConfig'
 import { Platform } from 'react-native'
 import { TRANSACTION_SUMMARY, transactionHistory } from '@/screens/main/wallet/transactionData'
+import Clipboard from '@react-native-clipboard/clipboard'
+import CodeExchangeModal from '@/screens/main/wallet/CodeExchangeModal'
+import LiveShiftTracker from '@/screens/main/wallet/LiveShiftTracker'
 
 const Wallet = ({ navigation }) => {
   const { coins, transactions = [], withdrawRequests = [] } = useSelector((state) => state.wallet)
@@ -228,6 +231,7 @@ const Wallet = ({ navigation }) => {
 
   const [selectedEscrow, setSelectedEscrow] = useState(null)
   const [modalVisible, setModalVisible] = useState(false)
+  const [showCodeModal, setShowCodeModal] = useState(false)
 
   // Calculate release date from escrow data
   const getReleaseDate = (entry) => {
@@ -971,6 +975,11 @@ const Wallet = ({ navigation }) => {
           </View>
         )} */}
 
+        {/* Live Shift Tracker (shown when a shift is active) */}
+        <LiveShiftTracker
+          onViewDetails={() => navigation.navigate(screenNames.ESCROW_HOLDS)}
+        />
+
         {/* Escrow & Holds Navigation */}
         <TouchableOpacity
           style={{
@@ -1057,6 +1066,103 @@ const Wallet = ({ navigation }) => {
             );
           })}
         </View>
+
+        {/* Referral & Rewards */}
+        <View style={styles.referralCard}>
+          <View style={styles.referralLeftAccent} />
+          <View style={styles.referralContent}>
+            <View style={styles.referralTopRow}>
+              <View style={{ flex: 1 }}>
+                <AppText variant={Variant.bodyMedium} style={styles.referralTitle}>Refer & Earn Coins</AppText>
+                <View style={styles.referralCodeRow}>
+                  <AppText variant={Variant.caption} style={styles.referralCodeLabel}>Your Code: </AppText>
+                  <AppText variant={Variant.bodyMedium} style={styles.referralCode}>SQD12345</AppText>
+                  <TouchableOpacity
+                    onPress={() => {
+                      Clipboard.setString('SQD12345');
+                      showToast(toastTypes.SUCCESS, 'Copied!', 'Referral code copied to clipboard');
+                    }}
+                    activeOpacity={0.6}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <VectorIcons name={iconLibName.Ionicons} iconName="copy-outline" size={14} color="#6366F1" />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.referralEarnedRow}>
+                  <AppText variant={Variant.caption} style={styles.referralEarnedIcon}>🪙</AppText>
+                  <AppText variant={Variant.caption} style={styles.referralEarned}>Earned: 50 SG</AppText>
+                </View>
+              </View>
+              <TouchableOpacity style={styles.referNowBtn} activeOpacity={0.7}>
+                <AppText variant={Variant.bodyMedium} style={styles.referNowText}>Refer Now</AppText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        {/* Security & Support Banner */}
+        <View style={styles.securityBanner}>
+          <VectorIcons name={iconLibName.Ionicons} iconName="shield-checkmark" size={18} color="#6366F1" />
+          <AppText variant={Variant.caption} style={styles.securityText}>
+            Your funds are protected by bank-level security. Need help?{' '}
+          </AppText>
+          <TouchableOpacity
+            onPress={() => navigation.navigate(screenNames.SUPPORT)}
+            activeOpacity={0.7}
+          >
+            <AppText variant={Variant.caption} style={styles.securityLink}>Visit Support</AppText>
+          </TouchableOpacity>
+        </View>
+
+        {/* Ratings & Reports Navigation */}
+        <TouchableOpacity
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: '#FFFBEB',
+            borderRadius: 12,
+            padding: wp(4),
+            marginHorizontal: wp(4),
+            marginBottom: hp(2),
+            borderWidth: 1,
+            borderColor: '#FDE68A',
+          }}
+          onPress={() => navigation.navigate(screenNames.RATINGS_REPORTS)}
+          activeOpacity={0.7}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{
+              width: 38,
+              height: 38,
+              borderRadius: 19,
+              backgroundColor: '#FEF3C7',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: wp(2.5),
+            }}>
+              <VectorIcons name={iconLibName.Ionicons} iconName="star" size={18} color="#F59E0B" />
+            </View>
+            <View>
+              <AppText variant={Variant.bodyMedium} style={{ color: '#333', fontWeight: '700', fontSize: getFontSize(14) }}>
+                Ratings & Reports
+              </AppText>
+              <AppText variant={Variant.caption} style={{ color: '#999', fontSize: getFontSize(10) }}>
+                View your performance & reviews
+              </AppText>
+            </View>
+          </View>
+          <VectorIcons name={iconLibName.Ionicons} iconName="chevron-forward" size={18} color="#999" />
+        </TouchableOpacity>
+
+        {/* Code Exchange Modal */}
+        <CodeExchangeModal
+          visible={showCodeModal}
+          onDismiss={() => setShowCodeModal(false)}
+          code="4832"
+          jobTitle="Warehouse Night Shift"
+          candidateName="Sarah J."
+        />
 
         {/* Bank Account Info Section */}
         {selectedAccount && (
@@ -1846,5 +1952,101 @@ const styles = StyleSheet.create({
   txPreviewStatusText: {
     fontSize: getFontSize(8),
     fontWeight: '700',
+  },
+  // Referral & Rewards
+  referralCard: {
+    flexDirection: 'row',
+    backgroundColor: colors.white,
+    borderRadius: 14,
+    marginBottom: hp(1.5),
+    marginHorizontal: wp(4),
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  referralLeftAccent: {
+    width: 5,
+    backgroundColor: '#6366F1',
+  },
+  referralContent: {
+    flex: 1,
+    paddingVertical: hp(1.2),
+    paddingHorizontal: wp(3),
+  },
+  referralTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  referralTitle: {
+    color: '#111',
+    fontWeight: '700',
+    fontSize: getFontSize(14),
+    marginBottom: hp(0.3),
+  },
+  referralCodeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1.5),
+    marginBottom: hp(0.3),
+  },
+  referralCodeLabel: {
+    color: '#888',
+    fontSize: getFontSize(11),
+  },
+  referralCode: {
+    color: '#111',
+    fontWeight: '800',
+    fontSize: getFontSize(12),
+  },
+  referralEarnedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1),
+  },
+  referralEarnedIcon: {
+    fontSize: getFontSize(11),
+  },
+  referralEarned: {
+    color: '#16A34A',
+    fontWeight: '600',
+    fontSize: getFontSize(11),
+  },
+  referNowBtn: {
+    backgroundColor: '#6366F1',
+    borderRadius: 20,
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(1),
+  },
+  referNowText: {
+    color: colors.white,
+    fontWeight: '700',
+    fontSize: getFontSize(12),
+  },
+  // Security & Support Banner
+  securityBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0EDFF',
+    borderRadius: 10,
+    paddingVertical: hp(1),
+    paddingHorizontal: wp(3),
+    marginBottom: hp(2),
+    marginHorizontal: wp(4),
+    gap: wp(1.5),
+    flexWrap: 'wrap',
+  },
+  securityText: {
+    color: '#555',
+    fontSize: getFontSize(10),
+    flex: 1,
+  },
+  securityLink: {
+    color: '#6366F1',
+    fontWeight: '700',
+    fontSize: getFontSize(10),
+    textDecorationLine: 'underline',
   },
 })

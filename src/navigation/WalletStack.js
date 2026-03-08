@@ -68,6 +68,10 @@ const WalletStack = () => {
         name={screenNames.TRANSACTION_HISTORY}
         component={ui.TransactionHistory}
       />
+      <Stack.Screen
+        name={screenNames.RATINGS_REPORTS}
+        component={ui.RatingsReports}
+      />
 
     </Stack.Navigator>
   );
