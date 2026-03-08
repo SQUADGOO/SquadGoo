@@ -14,6 +14,7 @@ import { colors, hp, wp, getFontSize } from '@/theme';
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
 import AppText, { Variant } from '@/core/AppText';
 import LinearGradient from 'react-native-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
     QUICK_ACTIONS,
     MORE_TOPICS,
@@ -28,6 +29,7 @@ const AGENT_AVATAR =
     'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=120&h=120&fit=crop&crop=faces';
 
 const LiveChat = ({ navigation }) => {
+    const insets = useSafeAreaInsets();
     const flatListRef = useRef(null);
     const [messages, setMessages] = useState([]);
     const [inputText, setInputText] = useState('');
@@ -45,6 +47,24 @@ const LiveChat = ({ navigation }) => {
     useEffect(() => {
         addBotMessage(WELCOME_MESSAGE);
     }, []);
+
+    const resetChat = () => {
+        setMessages([]);
+        setInputText('');
+        setShowMoreTopics(false);
+        setShowQuickActions(true);
+        setShowFollowUp(false);
+        setShowRating(false);
+        setRating(0);
+        setRatingFeedback('');
+        setIsAgentTyping(false);
+        setChatEnded(false);
+        setCurrentTopicLabel('');
+        // Re-add welcome message
+        setTimeout(() => {
+            addBotMessage(WELCOME_MESSAGE);
+        }, 200);
+    };
 
     const scrollToEnd = () => {
         setTimeout(() => {
@@ -271,39 +291,29 @@ const LiveChat = ({ navigation }) => {
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             keyboardVerticalOffset={0}
         >
-            {/* ═══════ Gradient Header ═══════ */}
-            <LinearGradient
-                colors={[colors.primary || '#6C3CE1', '#8B5CF6', '#A78BFA']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.header}
-            >
+            {/* ═══════ Chat Top Bar ═══════ */}
+            <View style={styles.chatTopBar}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                    <VectorIcons name={iconLibName.Ionicons} iconName="arrow-back" size={22} color={colors.white} />
+                    <VectorIcons name={iconLibName.Ionicons} iconName="arrow-back" size={22} color="#333" />
                 </TouchableOpacity>
-                <AppText variant={Variant.h6} style={styles.headerTitle}>Live Chat</AppText>
+                <Image source={{ uri: AGENT_AVATAR }} style={styles.agentAvatar} />
+                <View style={{ flex: 1 }}>
+                    <AppText variant={Variant.bodyMedium} style={styles.agentName}>SquadGoo Support</AppText>
+                    <View style={styles.agentStatusRow}>
+                        <View style={styles.onlineDot} />
+                        <AppText variant={Variant.caption} style={styles.agentStatus}>Active now</AppText>
+                    </View>
+                </View>
                 <View style={styles.headerActions}>
                     <TouchableOpacity
                         style={styles.headerActionBtn}
                         onPress={() => navigation.navigate('request_callback')}
                     >
-                        <VectorIcons name={iconLibName.Ionicons} iconName="call-outline" size={20} color={colors.white} />
+                        <VectorIcons name={iconLibName.Ionicons} iconName="call-outline" size={20} color={colors.primary} />
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.headerActionBtn}>
-                        <VectorIcons name={iconLibName.Ionicons} iconName="time-outline" size={20} color={colors.white} />
+                        <VectorIcons name={iconLibName.Ionicons} iconName="time-outline" size={20} color={colors.primary} />
                     </TouchableOpacity>
-                </View>
-            </LinearGradient>
-
-            {/* Agent info bar */}
-            <View style={styles.agentBar}>
-                <Image source={{ uri: AGENT_AVATAR }} style={styles.agentAvatar} />
-                <View style={{ flex: 1 }}>
-                    <AppText variant={Variant.bodyMedium} style={styles.agentName}>SquadGoo Support Team</AppText>
-                    <View style={styles.agentStatusRow}>
-                        <View style={styles.onlineDot} />
-                        <AppText variant={Variant.caption} style={styles.agentStatus}>Active now</AppText>
-                    </View>
                 </View>
             </View>
 
@@ -380,7 +390,7 @@ const LiveChat = ({ navigation }) => {
 
             {/* ═══════ Input Bar ═══════ */}
             {!chatEnded && (
-                <View style={styles.inputBar}>
+                <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom, hp(1)) }]}>
                     <TouchableOpacity style={styles.attachBtn}>
                         <VectorIcons name={iconLibName.Ionicons} iconName="attach-outline" size={22} color={colors.gray} />
                     </TouchableOpacity>
@@ -404,6 +414,20 @@ const LiveChat = ({ navigation }) => {
                             size={18}
                             color={inputText.trim() ? colors.white : '#999'}
                         />
+                    </TouchableOpacity>
+                </View>
+            )}
+
+            {/* ═══════ Start New Chat (when ended) ═══════ */}
+            {chatEnded && (
+                <View style={[styles.newChatBar, { paddingBottom: Math.max(insets.bottom, hp(1)) }]}>
+                    <TouchableOpacity
+                        style={styles.newChatBtn}
+                        activeOpacity={0.8}
+                        onPress={resetChat}
+                    >
+                        <VectorIcons name={iconLibName.Ionicons} iconName="chatbubble-ellipses-outline" size={18} color={colors.white} />
+                        <AppText variant={Variant.bodyMedium} style={styles.newChatBtnText}>Start New Chat</AppText>
                     </TouchableOpacity>
                 </View>
             )}
@@ -449,51 +473,38 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#F8F7FC',
     },
-    // Header
-    header: {
+    // Chat top bar
+    chatTopBar: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingTop: hp(5),
-        paddingBottom: hp(1.5),
+        gap: wp(3),
+        paddingTop: hp(6),
+        paddingBottom: hp(1.2),
         paddingHorizontal: wp(4),
+        backgroundColor: colors.white,
+        borderBottomWidth: 1,
+        borderBottomColor: '#EEE',
     },
     backBtn: {
         padding: wp(1),
     },
-    headerTitle: {
-        color: colors.white,
-        fontWeight: '800',
-        fontSize: getFontSize(18),
-    },
     headerActions: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: wp(2),
+        gap: wp(1),
     },
     headerActionBtn: {
         width: 34,
         height: 34,
         borderRadius: 17,
-        backgroundColor: 'rgba(255,255,255,0.2)',
+        backgroundColor: '#F3F0FF',
         alignItems: 'center',
         justifyContent: 'center',
     },
-    // Agent bar
-    agentBar: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: wp(3),
-        paddingHorizontal: wp(4),
-        paddingVertical: hp(1.2),
-        backgroundColor: colors.white,
-        borderBottomWidth: 1,
-        borderBottomColor: '#EEE',
-    },
     agentAvatar: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 38,
+        height: 38,
+        borderRadius: 19,
         borderWidth: 2,
         borderColor: colors.primary,
     },
@@ -732,6 +743,28 @@ const styles = StyleSheet.create({
         backgroundColor: '#D1C4E9',
     },
     ratingSubmitText: {
+        color: colors.white,
+        fontWeight: '700',
+        fontSize: getFontSize(14),
+    },
+    // New chat bar
+    newChatBar: {
+        backgroundColor: colors.white,
+        borderTopWidth: 1,
+        borderTopColor: '#EEE',
+        paddingHorizontal: wp(4),
+        paddingTop: hp(1),
+    },
+    newChatBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: wp(2),
+        backgroundColor: colors.primary,
+        borderRadius: 12,
+        paddingVertical: hp(1.4),
+    },
+    newChatBtnText: {
         color: colors.white,
         fontWeight: '700',
         fontSize: getFontSize(14),

@@ -109,27 +109,67 @@ export const supportFaqs = [
   },
 ];
 
+export const ticketCategories = {
+  'General': ['Other General Issue'],
+  'Payments & Billing': ['Wallet Issue', 'SG Coin Purchase', 'Refund Request', 'Invoice Problem', 'Other Payment Issue'],
+  'Job Offers / Postings': ['Create Offer', 'Edit Offer', 'Expire Offer', 'Offer Not Visible', 'Other Posting Issue'],
+  'Account Access & Login': ['Forgot Password', '2FA Issue', 'Locked Out', 'Other Login Problem'],
+  'Verification (KYC/KYB)': ['KYC Pending', 'KYB Document Upload', 'Verification Denied', 'Other Verification Issue'],
+  'Candidate Issues': ['Matching Problem', 'No Response', 'Communication Issue', 'Offer Status', 'Other Candidate Issue'],
+  'Wallet/SG Coins': ['Balance Not Updating', 'Top-Up Issue', 'Withdrawal Delay', 'Transaction Error', 'Other Wallet Issue'],
+  'Profile & Company Info': ['Edit Profile', 'Change Company Details', 'Logo Upload', 'Other Profile Issue'],
+  'Notifications & Alerts': ['Not Receiving Alerts', 'Too Many Alerts', 'Turn Off Alerts', 'Other Notification Issue'],
+  'App Features & Settings': ['Feature Not Working', 'Settings Not Saving', 'Other Feature Issue'],
+  'Marketplace': ['Buy/Sell Problem', 'Dispute', 'Listing Issue', 'Payment Issue', 'Other Marketplace Issue'],
+  'Reports & Analytics': ['Data Missing', 'Report Error', 'Understanding Metrics', 'Other Analytics Issue'],
+  'Technical / Other': ['App Crash', 'Bug Report', 'Slow Performance', 'Other Technical Issue'],
+};
+
 export const defaultTickets = [
   {
     id: 'TCK-2041',
     subject: 'Issue with job posting visibility',
+    category: 'Job Offers / Postings',
+    issueTypes: ['Offer Not Visible'],
     status: 'In Progress',
     priority: 'High',
+    createdAt: '2026-03-06 14:30',
     lastUpdated: '2h ago',
+    messages: [
+      { id: 'm1', sender: 'user', text: 'My recently posted job is not visible to applicants. I\'ve checked all settings. Please help!', time: '14:30', date: 'Mar 6' },
+      { id: 'm2', sender: 'agent', text: 'Thank you for reaching out. We are investigating the issue. You can track the progress here.', time: '15:00', date: 'Mar 6' },
+      { id: 'm3', sender: 'agent', text: 'We have identified a glitch and are working on a fix. Will notify once resolved.', time: '09:00', date: 'Mar 7', attachment: 'logs.zip' },
+    ],
   },
   {
     id: 'TCK-2036',
     subject: 'Unable to add new contractor',
+    category: 'Candidate Issues',
+    issueTypes: ['Communication Issue'],
     status: 'Open',
     priority: 'Medium',
+    createdAt: '2026-03-05 10:15',
     lastUpdated: 'Yesterday',
+    messages: [
+      { id: 'm1', sender: 'user', text: 'I am unable to add a new contractor to my team. The button is greyed out.', time: '10:15', date: 'Mar 5' },
+    ],
   },
   {
     id: 'TCK-2011',
     subject: 'Coins not reflecting after purchase',
+    category: 'Wallet/SG Coins',
+    issueTypes: ['Balance Not Updating', 'Top-Up Issue'],
     status: 'Resolved',
     priority: 'High',
+    createdAt: '2026-03-03 09:00',
     lastUpdated: '2d ago',
+    messages: [
+      { id: 'm1', sender: 'user', text: 'I purchased 100 SG Coins but they are not showing in my wallet.', time: '09:00', date: 'Mar 3' },
+      { id: 'm2', sender: 'agent', text: 'We are looking into this. Can you share your transaction receipt?', time: '09:30', date: 'Mar 3' },
+      { id: 'm3', sender: 'user', text: 'Here is the receipt screenshot.', time: '09:45', date: 'Mar 3', attachment: 'receipt.png' },
+      { id: 'm4', sender: 'agent', text: 'Thank you! We\'ve credited the coins to your wallet. Please check now.', time: '11:00', date: 'Mar 3' },
+      { id: 'm5', sender: 'user', text: 'Okay, thanks to the update.', time: '10:15', date: 'Mar 4' },
+    ],
   },
 ];
 

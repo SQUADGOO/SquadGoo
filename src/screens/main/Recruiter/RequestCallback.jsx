@@ -14,6 +14,7 @@ import AppText, { Variant } from '@/core/AppText';
 import PoolHeader from '@/core/PoolHeader';
 import LinearGradient from 'react-native-linear-gradient';
 import { screenNames } from '@/navigation/screenNames';
+import AppButton from '@/core/AppButton';
 
 const SUBJECT_OPTIONS = [
     'Top-up SG Coins Issues',
@@ -61,8 +62,7 @@ const RequestCallback = ({ navigation }) => {
                         style={[styles.optionCard, showForm && styles.optionCardActive]}
                         activeOpacity={0.7}
                         onPress={() => {
-                            setShowForm(true);
-                            setShowHistory(false);
+                            setShowForm(!showForm);
                         }}
                     >
                         <View style={[styles.optionIconWrap, { backgroundColor: '#EDE9FE' }]}>
@@ -194,22 +194,11 @@ const RequestCallback = ({ navigation }) => {
                             </View>
 
                             {/* Submit button */}
-                            <TouchableOpacity
-                                style={styles.submitBtn}
-                                activeOpacity={0.8}
+                            <AppButton
+                                text="Request Callback"
                                 onPress={handleSubmit}
-                            >
-                                <LinearGradient
-                                    colors={[colors.primary || '#6C3CE1', '#8B5CF6']}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 0 }}
-                                    style={styles.submitGradient}
-                                >
-                                    <AppText variant={Variant.bodyMedium} style={styles.submitText}>
-                                        Request Callback
-                                    </AppText>
-                                </LinearGradient>
-                            </TouchableOpacity>
+                                style={styles.submitBtn}
+                            />
                         </View>
                     )}
 
@@ -283,20 +272,11 @@ const RequestCallback = ({ navigation }) => {
                             <AppText variant={Variant.body} style={styles.confirmPhone}>{phone}</AppText>.
                             {' '}Keep your phone handy.
                         </AppText>
-                        <TouchableOpacity
-                            style={styles.confirmBtn}
-                            activeOpacity={0.8}
+                        <AppButton
+                            text="OK"
                             onPress={handleConfirmationOk}
-                        >
-                            <LinearGradient
-                                colors={[colors.primary || '#6C3CE1', '#8B5CF6']}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 0 }}
-                                style={styles.confirmBtnGradient}
-                            >
-                                <AppText variant={Variant.bodyMedium} style={styles.confirmBtnText}>OK</AppText>
-                            </LinearGradient>
-                        </TouchableOpacity>
+                            style={styles.submitBtn}
+                        />
                     </View>
                 </View>
             </Modal>
@@ -464,6 +444,7 @@ const styles = StyleSheet.create({
     // Submit
     submitBtn: {
         marginTop: hp(2),
+        width: '100%',
         borderRadius: 12,
         overflow: 'hidden',
     },

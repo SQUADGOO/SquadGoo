@@ -99,7 +99,7 @@ const LiveChat = ({ navigation }) => {
       setIsTyping(false);
       const agentResponse = getAgentResponse(text);
       setMessages((prev) => [...prev, agentResponse]);
-      
+
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
@@ -163,7 +163,7 @@ const LiveChat = ({ navigation }) => {
           </View>
         )}
         {!isUser && !showAvatar && <View style={styles.avatarPlaceholder} />}
-        
+
         <View
           style={[
             styles.messageBubble,
@@ -330,7 +330,7 @@ const LiveChat = ({ navigation }) => {
               color={colors.gray}
             />
           </TouchableOpacity>
-          
+
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.textInput}

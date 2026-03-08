@@ -32,9 +32,16 @@ export const screenNames = {
 
   ACCOUNT_DETAILS: 'account_details',
   PURCHASE_COINS: 'purchase_coins',
+  TOP_UP: 'top_up',
+  PAYID_DEPOSIT: 'payid_deposit',
   WITHDRAW_COINS: 'withdraw_coins',
   BANK_DETAILS: 'bank_details',
+  MANAGE_BANK_ACCOUNTS: 'manage_bank_accounts',
   FORM_SUMMARY: 'form_summary',
+  ESCROW_HOLDS: 'escrow_holds',
+  ACTIVE_HOLDS_VIEW_ALL: 'active_holds_view_all',
+  JOB_TIMELINE: 'job_timeline',
+  OPEN_DISPUTE: 'open_dispute',
 
   WALLET_STACK: 'wallet_stack',
 
@@ -92,6 +99,9 @@ export const screenNames = {
   SUPPORT: 'support',
   SUPPORT_FAQ: 'support_faq',
   SUPPORT_TICKETS: 'support_tickets',
+  CREATE_TICKET: 'create_ticket',
+  MY_TICKETS: 'my_tickets',
+  TICKET_DETAILS: 'ticket_details',
 
   PROFILE: 'profile',
   BASIC_DETAILS: 'BasicDetails',

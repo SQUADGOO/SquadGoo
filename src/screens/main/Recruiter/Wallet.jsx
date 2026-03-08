@@ -16,6 +16,7 @@ import AppText, { Variant } from '@/core/AppText'
 import { LinearGradient } from 'react-native-linear-gradient'
 import AppHeader from '@/core/AppHeader'
 import { Icons } from '@/assets'
+import { screenNames } from '@/navigation/screenNames'
 import AppButton from '@/core/AppButton'
 import WalletBalanceComponent from '@/components/wallet/WalletBalanceComponent'
 import CodeSharing from '@/components/QuickSearch/CodeSharing'
@@ -247,9 +248,9 @@ const Wallet = ({ navigation }) => {
           const now = new Date()
           const releaseDate = new Date(now)
           releaseDate.setDate(releaseDate.getDate() + 7)
-          return releaseDate.toLocaleDateString('en-AU', { 
-            day: 'numeric', 
-            month: 'short', 
+          return releaseDate.toLocaleDateString('en-AU', {
+            day: 'numeric',
+            month: 'short',
             year: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
@@ -645,10 +646,10 @@ const Wallet = ({ navigation }) => {
 
       const csvContent = headers + rows
       const fileName = `transactions_${new Date().toISOString().split('T')[0]}.csv`
-      
+
       // Use CacheDirectoryPath for better compatibility
-      const baseDir = Platform.OS === 'android' 
-        ? RNFS.CachesDirectoryPath 
+      const baseDir = Platform.OS === 'android'
+        ? RNFS.CachesDirectoryPath
         : RNFS.DocumentDirectoryPath
       const path = `${baseDir}/${fileName}`
 
@@ -659,12 +660,12 @@ const Wallet = ({ navigation }) => {
       }
 
       await RNFS.writeFile(path, csvContent, 'utf8')
-      
+
       // Use proper file URI format
-      const fileUri = Platform.OS === 'ios' 
-        ? `file://${path}` 
+      const fileUri = Platform.OS === 'ios'
+        ? `file://${path}`
         : `file://${path}`
-      
+
       const shareOptions = {
         url: fileUri,
         type: 'text/csv',
@@ -678,7 +679,7 @@ const Wallet = ({ navigation }) => {
       }
 
       await Share.open(shareOptions)
-      
+
       showToast('CSV exported successfully', 'Success', toastTypes.success)
     } catch (error) {
       console.error('CSV export error:', error)
@@ -763,7 +764,7 @@ const Wallet = ({ navigation }) => {
       // Table data
       combinedTransactions.forEach((item, index) => {
         checkNewPage()
-        
+
         const rowY = y
         currentPage.drawText(`${index + 1}.`, { x: margin, y: rowY, size: fontSize, font })
         currentPage.drawText(item.name || 'N/A', { x: margin + 40, y: rowY, size: fontSize, font })
@@ -792,10 +793,10 @@ const Wallet = ({ navigation }) => {
 
       const pdfBytes = await pdfDoc.save()
       const fileName = `transactions_${new Date().toISOString().split('T')[0]}.pdf`
-      
+
       // Use CacheDirectoryPath for better compatibility
-      const baseDir = Platform.OS === 'android' 
-        ? RNFS.CachesDirectoryPath 
+      const baseDir = Platform.OS === 'android'
+        ? RNFS.CachesDirectoryPath
         : RNFS.DocumentDirectoryPath
       const path = `${baseDir}/${fileName}`
 
@@ -804,19 +805,19 @@ const Wallet = ({ navigation }) => {
       if (!dirExists) {
         await RNFS.mkdir(baseDir)
       }
-      
+
       // Convert Uint8Array to base64 for RNFS (React Native compatible)
       const uint8ArrayToBase64 = (uint8Array) => {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
         let result = ''
         let i = 0
         const len = uint8Array.length
-        
+
         while (i < len) {
           const a = uint8Array[i++]
           const b = i < len ? uint8Array[i++] : 0
           const c = i < len ? uint8Array[i++] : 0
-          
+
           const bitmap = (a << 16) | (b << 8) | c
           result += chars.charAt((bitmap >> 18) & 63)
           result += chars.charAt((bitmap >> 12) & 63)
@@ -825,13 +826,13 @@ const Wallet = ({ navigation }) => {
         }
         return result
       }
-      
+
       const base64String = uint8ArrayToBase64(pdfBytes)
       await RNFS.writeFile(path, base64String, 'base64')
-      
+
       // Use proper file URI format
       const fileUri = `file://${path}`
-      
+
       const shareOptions = {
         url: fileUri,
         type: 'application/pdf',
@@ -843,9 +844,9 @@ const Wallet = ({ navigation }) => {
       if (Platform.OS === 'android') {
         shareOptions.title = 'Share PDF File'
       }
-      
+
       await Share.open(shareOptions)
-      
+
       showToast('PDF exported successfully', 'Success', toastTypes.success)
     } catch (error) {
       console.error('PDF export error:', error)
@@ -968,6 +969,31 @@ const Wallet = ({ navigation }) => {
             {recruiterEscrows.map(renderSimpleEscrowCard)}
           </View>
         )}
+
+        {/* Escrow & Holds Navigation */}
+        <TouchableOpacity
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: '#F5F3FF',
+            borderRadius: 12,
+            padding: wp(4),
+            marginBottom: hp(2),
+            borderWidth: 1,
+            borderColor: '#E8E5F0',
+          }}
+          onPress={() => navigation.navigate(screenNames.ESCROW_HOLDS)}
+          activeOpacity={0.7}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(2) }}>
+            <VectorIcons name={iconLibName.Ionicons} iconName="shield-checkmark-outline" size={20} color={colors.secondary} />
+            <AppText variant={Variant.bodyMedium} style={{ color: '#333', fontWeight: '700', fontSize: getFontSize(14) }}>
+              Escrow & Holds
+            </AppText>
+          </View>
+          <VectorIcons name={iconLibName.Ionicons} iconName="chevron-forward" size={18} color="#999" />
+        </TouchableOpacity>
 
         {/* Bank Account Info Section */}
         {selectedAccount && (

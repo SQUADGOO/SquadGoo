@@ -1,6 +1,6 @@
 import React from 'react';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {screenNames} from './screenNames';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { screenNames } from './screenNames';
 import * as ui from '@/screens';
 
 const Stack = createNativeStackNavigator();
@@ -16,6 +16,18 @@ const SupportStack = () => {
       <Stack.Screen
         name={screenNames.SUPPORT_TICKETS}
         component={ui.SupportTickets}
+      />
+      <Stack.Screen
+        name={screenNames.CREATE_TICKET}
+        component={ui.CreateTicket}
+      />
+      <Stack.Screen
+        name={screenNames.MY_TICKETS}
+        component={ui.MyTickets}
+      />
+      <Stack.Screen
+        name={screenNames.TICKET_DETAILS}
+        component={ui.TicketDetails}
       />
     </Stack.Navigator>
   );

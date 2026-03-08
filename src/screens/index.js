@@ -23,6 +23,13 @@ import AccountDetails from './main/wallet/AccountDetails';
 import BankDetails from './main/wallet/BankDetails';
 import FormSummary from './main/wallet/FormSummary';
 import PurchaseCoins from './main/wallet/PurchaseCoins';
+import TopUp from './main/wallet/TopUp';
+import PayIDDeposit from './main/wallet/PayIDDeposit';
+import ManageBankAccounts from './main/wallet/ManageBankAccounts';
+import EscrowHolds from './main/wallet/EscrowHolds';
+import ActiveHoldsViewAll from './main/wallet/ActiveHoldsViewAll';
+import JobTimeline from './main/wallet/JobTimeline';
+import OpenDispute from './main/wallet/OpenDispute';
 import WithdrawCoins from './main/wallet/WithdrawCoins';
 import WalletStack from '@/navigation/WalletStack';
 import Messages from './main/chat/Messages';
@@ -78,6 +85,9 @@ import AccountUpgrade from './main/Recruiter/AccountUpgrade';
 import Support from './main/Recruiter/Support';
 import SupportFAQ from './main/Recruiter/SupportFAQ';
 import SupportTickets from './main/Recruiter/SupportTickets';
+import CreateTicket from './main/Recruiter/CreateTicket';
+import MyTickets from './main/Recruiter/MyTickets';
+import TicketDetails from './main/Recruiter/TicketDetails';
 
 import Profile from './main/Recruiter/profile/Profile';
 import BasicDetails from './main/Recruiter/profile/BasicDetails';
@@ -184,6 +194,13 @@ export {
   BankDetails,
   FormSummary,
   PurchaseCoins,
+  TopUp,
+  PayIDDeposit,
+  ManageBankAccounts,
+  EscrowHolds,
+  ActiveHoldsViewAll,
+  JobTimeline,
+  OpenDispute,
   WithdrawCoins,
   WalletStack,
   Messages,
@@ -238,6 +255,9 @@ export {
   Support,
   SupportFAQ,
   SupportTickets,
+  CreateTicket,
+  MyTickets,
+  TicketDetails,
   Profile,
   BasicDetails,
   Address,
