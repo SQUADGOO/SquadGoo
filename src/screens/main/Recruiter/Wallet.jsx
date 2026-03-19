@@ -16,6 +16,7 @@ import AppText, { Variant } from '@/core/AppText'
 import { LinearGradient } from 'react-native-linear-gradient'
 import AppHeader from '@/core/AppHeader'
 import { Icons } from '@/assets'
+import { screenNames } from '@/navigation/screenNames'
 import AppButton from '@/core/AppButton'
 import WalletBalanceComponent from '@/components/wallet/WalletBalanceComponent'
 import CodeSharing from '@/components/QuickSearch/CodeSharing'
@@ -28,6 +29,10 @@ import Share from 'react-native-share'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { showToast, toastTypes } from '@/utilities/toastConfig'
 import { Platform } from 'react-native'
+import { TRANSACTION_SUMMARY, transactionHistory } from '@/screens/main/wallet/transactionData'
+import Clipboard from '@react-native-clipboard/clipboard'
+import CodeExchangeModal from '@/screens/main/wallet/CodeExchangeModal'
+import LiveShiftTracker from '@/screens/main/wallet/LiveShiftTracker'
 
 const Wallet = ({ navigation }) => {
   const { coins, transactions = [], withdrawRequests = [] } = useSelector((state) => state.wallet)
@@ -226,6 +231,7 @@ const Wallet = ({ navigation }) => {
 
   const [selectedEscrow, setSelectedEscrow] = useState(null)
   const [modalVisible, setModalVisible] = useState(false)
+  const [showCodeModal, setShowCodeModal] = useState(false)
 
   // Calculate release date from escrow data
   const getReleaseDate = (entry) => {
@@ -247,9 +253,9 @@ const Wallet = ({ navigation }) => {
           const now = new Date()
           const releaseDate = new Date(now)
           releaseDate.setDate(releaseDate.getDate() + 7)
-          return releaseDate.toLocaleDateString('en-AU', { 
-            day: 'numeric', 
-            month: 'short', 
+          return releaseDate.toLocaleDateString('en-AU', {
+            day: 'numeric',
+            month: 'short',
             year: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
@@ -645,10 +651,10 @@ const Wallet = ({ navigation }) => {
 
       const csvContent = headers + rows
       const fileName = `transactions_${new Date().toISOString().split('T')[0]}.csv`
-      
+
       // Use CacheDirectoryPath for better compatibility
-      const baseDir = Platform.OS === 'android' 
-        ? RNFS.CachesDirectoryPath 
+      const baseDir = Platform.OS === 'android'
+        ? RNFS.CachesDirectoryPath
         : RNFS.DocumentDirectoryPath
       const path = `${baseDir}/${fileName}`
 
@@ -659,12 +665,12 @@ const Wallet = ({ navigation }) => {
       }
 
       await RNFS.writeFile(path, csvContent, 'utf8')
-      
+
       // Use proper file URI format
-      const fileUri = Platform.OS === 'ios' 
-        ? `file://${path}` 
+      const fileUri = Platform.OS === 'ios'
+        ? `file://${path}`
         : `file://${path}`
-      
+
       const shareOptions = {
         url: fileUri,
         type: 'text/csv',
@@ -678,7 +684,7 @@ const Wallet = ({ navigation }) => {
       }
 
       await Share.open(shareOptions)
-      
+
       showToast('CSV exported successfully', 'Success', toastTypes.success)
     } catch (error) {
       console.error('CSV export error:', error)
@@ -763,7 +769,7 @@ const Wallet = ({ navigation }) => {
       // Table data
       combinedTransactions.forEach((item, index) => {
         checkNewPage()
-        
+
         const rowY = y
         currentPage.drawText(`${index + 1}.`, { x: margin, y: rowY, size: fontSize, font })
         currentPage.drawText(item.name || 'N/A', { x: margin + 40, y: rowY, size: fontSize, font })
@@ -792,10 +798,10 @@ const Wallet = ({ navigation }) => {
 
       const pdfBytes = await pdfDoc.save()
       const fileName = `transactions_${new Date().toISOString().split('T')[0]}.pdf`
-      
+
       // Use CacheDirectoryPath for better compatibility
-      const baseDir = Platform.OS === 'android' 
-        ? RNFS.CachesDirectoryPath 
+      const baseDir = Platform.OS === 'android'
+        ? RNFS.CachesDirectoryPath
         : RNFS.DocumentDirectoryPath
       const path = `${baseDir}/${fileName}`
 
@@ -804,19 +810,19 @@ const Wallet = ({ navigation }) => {
       if (!dirExists) {
         await RNFS.mkdir(baseDir)
       }
-      
+
       // Convert Uint8Array to base64 for RNFS (React Native compatible)
       const uint8ArrayToBase64 = (uint8Array) => {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
         let result = ''
         let i = 0
         const len = uint8Array.length
-        
+
         while (i < len) {
           const a = uint8Array[i++]
           const b = i < len ? uint8Array[i++] : 0
           const c = i < len ? uint8Array[i++] : 0
-          
+
           const bitmap = (a << 16) | (b << 8) | c
           result += chars.charAt((bitmap >> 18) & 63)
           result += chars.charAt((bitmap >> 12) & 63)
@@ -825,13 +831,13 @@ const Wallet = ({ navigation }) => {
         }
         return result
       }
-      
+
       const base64String = uint8ArrayToBase64(pdfBytes)
       await RNFS.writeFile(path, base64String, 'base64')
-      
+
       // Use proper file URI format
       const fileUri = `file://${path}`
-      
+
       const shareOptions = {
         url: fileUri,
         type: 'application/pdf',
@@ -843,9 +849,9 @@ const Wallet = ({ navigation }) => {
       if (Platform.OS === 'android') {
         shareOptions.title = 'Share PDF File'
       }
-      
+
       await Share.open(shareOptions)
-      
+
       showToast('PDF exported successfully', 'Success', toastTypes.success)
     } catch (error) {
       console.error('PDF export error:', error)
@@ -951,15 +957,15 @@ const Wallet = ({ navigation }) => {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Simplified Escrow Sections */}
-        {jobSeekerEscrows.length > 0 && (
+        {/* {jobSeekerEscrows.length > 0 && (
           <View style={styles.escrowSection}>
             <AppText variant={Variant.title} style={styles.sectionTitle}>
               Job Seeker Escrows
             </AppText>
             {jobSeekerEscrows.map(renderSimpleEscrowCard)}
           </View>
-        )}
-
+        )} */}
+        {/* 
         {recruiterEscrows.length > 0 && (
           <View style={styles.escrowSection}>
             <AppText variant={Variant.title} style={styles.sectionTitle}>
@@ -967,7 +973,196 @@ const Wallet = ({ navigation }) => {
             </AppText>
             {recruiterEscrows.map(renderSimpleEscrowCard)}
           </View>
-        )}
+        )} */}
+
+        {/* Live Shift Tracker (shown when a shift is active) */}
+        <LiveShiftTracker
+          onViewDetails={() => navigation.navigate(screenNames.ESCROW_HOLDS)}
+        />
+
+        {/* Escrow & Holds Navigation */}
+        <TouchableOpacity
+          style={{
+            marginTop: 20,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: '#F5F3FF',
+            borderRadius: 12,
+            padding: wp(4),
+            marginBottom: hp(2),
+            borderWidth: 1,
+            borderColor: '#E8E5F0',
+          }}
+          onPress={() => navigation.navigate(screenNames.ESCROW_HOLDS)}
+          activeOpacity={0.7}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(2) }}>
+            <VectorIcons name={iconLibName.Ionicons} iconName="shield-checkmark-outline" size={20} color={colors.secondary} />
+            <AppText variant={Variant.bodyMedium} style={{ color: '#333', fontWeight: '700', fontSize: getFontSize(14) }}>
+              Escrow & Holds
+            </AppText>
+          </View>
+          <VectorIcons name={iconLibName.Ionicons} iconName="chevron-forward" size={18} color="#999" />
+        </TouchableOpacity>
+
+        {/* Transaction Summary - Horizontal Scroll Cards */}
+        <AppText variant={Variant.title} style={styles.sectionTitle}>
+          Transaction Summary
+        </AppText>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingRight: wp(2), gap: wp(3) }}
+          style={{ marginBottom: hp(2) }}
+        >
+          {TRANSACTION_SUMMARY.map((item) => (
+            <View key={item.key} style={styles.summaryCard}>
+              <View style={[styles.summaryIconCircle, { backgroundColor: item.color + '15' }]}>
+                <VectorIcons name={iconLibName.Ionicons} iconName={item.icon} size={18} color={item.color} />
+              </View>
+              <AppText variant={Variant.caption} style={styles.summaryLabel}>{item.label}</AppText>
+              <AppText variant={Variant.bodyMedium} style={[styles.summaryValue, { color: item.color }]}>
+                ${item.value.toFixed(2)}
+              </AppText>
+            </View>
+          ))}
+        </ScrollView>
+
+        {/* Transaction History Preview */}
+        <View style={styles.txPreviewHeader}>
+          <AppText variant={Variant.title} style={styles.sectionTitle}>
+            Transaction History
+          </AppText>
+          <TouchableOpacity
+            onPress={() => navigation.navigate(screenNames.TRANSACTION_HISTORY)}
+            activeOpacity={0.7}
+            style={{
+              marginHorizontal: wp(4),
+            }}
+          >
+            <AppText variant={Variant.caption} style={styles.txViewAllLink}>View All</AppText>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.txPreviewCard}>
+          {transactionHistory.slice(0, 3).map((tx, idx) => {
+            const isCredit = tx.type === 'Credit';
+            const statusColor = tx.status === 'Completed' ? '#16A34A' : tx.status === 'Pending' ? '#F59E0B' : '#EF4444';
+            return (
+              <View key={tx.id} style={[styles.txPreviewRow, idx < 2 && styles.txPreviewBorder]}>
+                <View style={{ flex: 1 }}>
+                  <AppText variant={Variant.bodyMedium} style={styles.txPreviewName} numberOfLines={1}>{tx.name}</AppText>
+                  <AppText variant={Variant.caption} style={styles.txPreviewDate}>{tx.date}</AppText>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <AppText variant={Variant.bodyMedium} style={[styles.txPreviewAmount, { color: isCredit ? '#16A34A' : '#333' }]}>
+                    {isCredit ? '+' : '-'}${tx.amount.toFixed(2)}
+                  </AppText>
+                  <View style={[styles.txPreviewStatusBadge, { backgroundColor: statusColor + '15', borderColor: statusColor + '35' }]}>
+                    <AppText variant={Variant.caption} style={[styles.txPreviewStatusText, { color: statusColor }]}>{tx.status}</AppText>
+                  </View>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+
+        {/* Referral & Rewards */}
+        <View style={styles.referralCard}>
+          <View style={styles.referralLeftAccent} />
+          <View style={styles.referralContent}>
+            <View style={styles.referralTopRow}>
+              <View style={{ flex: 1 }}>
+                <AppText variant={Variant.bodyMedium} style={styles.referralTitle}>Refer & Earn Coins</AppText>
+                <View style={styles.referralCodeRow}>
+                  <AppText variant={Variant.caption} style={styles.referralCodeLabel}>Your Code: </AppText>
+                  <AppText variant={Variant.bodyMedium} style={styles.referralCode}>SQD12345</AppText>
+                  <TouchableOpacity
+                    onPress={() => {
+                      Clipboard.setString('SQD12345');
+                      showToast(toastTypes.SUCCESS, 'Copied!', 'Referral code copied to clipboard');
+                    }}
+                    activeOpacity={0.6}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <VectorIcons name={iconLibName.Ionicons} iconName="copy-outline" size={14} color="#6366F1" />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.referralEarnedRow}>
+                  <AppText variant={Variant.caption} style={styles.referralEarnedIcon}>🪙</AppText>
+                  <AppText variant={Variant.caption} style={styles.referralEarned}>Earned: 50 SG</AppText>
+                </View>
+              </View>
+              <TouchableOpacity style={styles.referNowBtn} activeOpacity={0.7}>
+                <AppText variant={Variant.bodyMedium} style={styles.referNowText}>Refer Now</AppText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        {/* Security & Support Banner */}
+        <View style={styles.securityBanner}>
+          <VectorIcons name={iconLibName.Ionicons} iconName="shield-checkmark" size={18} color="#6366F1" />
+          <AppText variant={Variant.caption} style={styles.securityText}>
+            Your funds are protected by bank-level security. Need help?{' '}
+          </AppText>
+          <TouchableOpacity
+            onPress={() => navigation.navigate(screenNames.SUPPORT)}
+            activeOpacity={0.7}
+          >
+            <AppText variant={Variant.caption} style={styles.securityLink}>Visit Support</AppText>
+          </TouchableOpacity>
+        </View>
+
+        {/* Ratings & Reports Navigation */}
+        <TouchableOpacity
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: '#FFFBEB',
+            borderRadius: 12,
+            padding: wp(4),
+            marginHorizontal: wp(4),
+            marginBottom: hp(2),
+            borderWidth: 1,
+            borderColor: '#FDE68A',
+          }}
+          onPress={() => navigation.navigate(screenNames.RATINGS_REPORTS)}
+          activeOpacity={0.7}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{
+              width: 38,
+              height: 38,
+              borderRadius: 19,
+              backgroundColor: '#FEF3C7',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: wp(2.5),
+            }}>
+              <VectorIcons name={iconLibName.Ionicons} iconName="star" size={18} color="#F59E0B" />
+            </View>
+            <View>
+              <AppText variant={Variant.bodyMedium} style={{ color: '#333', fontWeight: '700', fontSize: getFontSize(14) }}>
+                Ratings & Reports
+              </AppText>
+              <AppText variant={Variant.caption} style={{ color: '#999', fontSize: getFontSize(10) }}>
+                View your performance & reviews
+              </AppText>
+            </View>
+          </View>
+          <VectorIcons name={iconLibName.Ionicons} iconName="chevron-forward" size={18} color="#999" />
+        </TouchableOpacity>
+
+        {/* Code Exchange Modal */}
+        <CodeExchangeModal
+          visible={showCodeModal}
+          onDismiss={() => setShowCodeModal(false)}
+          code="4832"
+          jobTitle="Warehouse Night Shift"
+          candidateName="Sarah J."
+        />
 
         {/* Bank Account Info Section */}
         {selectedAccount && (
@@ -1517,6 +1712,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   sectionTitle: {
+    marginHorizontal: wp(4),
     color: colors.secondary,
     fontSize: getFontSize(18),
     fontWeight: '600',
@@ -1670,5 +1866,187 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontSize: getFontSize(18),
     fontWeight: '700',
+  },
+  // Transaction Summary Cards
+  summaryCard: {
+    width: wp(32),
+    backgroundColor: colors.white,
+    borderRadius: 14,
+    padding: wp(3),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  summaryIconCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: hp(0.6),
+  },
+  summaryLabel: {
+    color: '#888',
+    fontSize: getFontSize(10),
+    marginBottom: hp(0.2),
+  },
+  summaryValue: {
+    fontWeight: '800',
+    fontSize: getFontSize(15),
+  },
+  // Transaction History Preview
+  txPreviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: hp(0.8),
+  },
+  txViewAllLink: {
+    color: colors.primary,
+    fontWeight: '700',
+    fontSize: getFontSize(12),
+  },
+  txPreviewCard: {
+    backgroundColor: colors.white,
+    borderRadius: 14,
+    padding: wp(3.5),
+    marginBottom: hp(2),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  txPreviewRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: hp(1),
+  },
+  txPreviewBorder: {
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#F3F3F3',
+  },
+  txPreviewName: {
+    color: '#333',
+    fontWeight: '600',
+    fontSize: getFontSize(12),
+  },
+  txPreviewDate: {
+    color: '#999',
+    fontSize: getFontSize(10),
+    marginTop: hp(0.15),
+  },
+  txPreviewAmount: {
+    fontWeight: '700',
+    fontSize: getFontSize(13),
+  },
+  txPreviewStatusBadge: {
+    borderRadius: 5,
+    paddingHorizontal: wp(1.5),
+    paddingVertical: hp(0.1),
+    marginTop: hp(0.2),
+    borderWidth: 1,
+  },
+  txPreviewStatusText: {
+    fontSize: getFontSize(8),
+    fontWeight: '700',
+  },
+  // Referral & Rewards
+  referralCard: {
+    flexDirection: 'row',
+    backgroundColor: colors.white,
+    borderRadius: 14,
+    marginBottom: hp(1.5),
+    marginHorizontal: wp(4),
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  referralLeftAccent: {
+    width: 5,
+    backgroundColor: '#6366F1',
+  },
+  referralContent: {
+    flex: 1,
+    paddingVertical: hp(1.2),
+    paddingHorizontal: wp(3),
+  },
+  referralTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  referralTitle: {
+    color: '#111',
+    fontWeight: '700',
+    fontSize: getFontSize(14),
+    marginBottom: hp(0.3),
+  },
+  referralCodeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1.5),
+    marginBottom: hp(0.3),
+  },
+  referralCodeLabel: {
+    color: '#888',
+    fontSize: getFontSize(11),
+  },
+  referralCode: {
+    color: '#111',
+    fontWeight: '800',
+    fontSize: getFontSize(12),
+  },
+  referralEarnedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1),
+  },
+  referralEarnedIcon: {
+    fontSize: getFontSize(11),
+  },
+  referralEarned: {
+    color: '#16A34A',
+    fontWeight: '600',
+    fontSize: getFontSize(11),
+  },
+  referNowBtn: {
+    backgroundColor: '#6366F1',
+    borderRadius: 20,
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(1),
+  },
+  referNowText: {
+    color: colors.white,
+    fontWeight: '700',
+    fontSize: getFontSize(12),
+  },
+  // Security & Support Banner
+  securityBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0EDFF',
+    borderRadius: 10,
+    paddingVertical: hp(1),
+    paddingHorizontal: wp(3),
+    marginBottom: hp(2),
+    marginHorizontal: wp(4),
+    gap: wp(1.5),
+    flexWrap: 'wrap',
+  },
+  securityText: {
+    color: '#555',
+    fontSize: getFontSize(10),
+    flex: 1,
+  },
+  securityLink: {
+    color: '#6366F1',
+    fontWeight: '700',
+    fontSize: getFontSize(10),
+    textDecorationLine: 'underline',
   },
 })

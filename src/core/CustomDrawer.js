@@ -54,7 +54,7 @@ const CustomDrawer = ({
           iconLib: iconLibName.Ionicons,
           expandable: true,
           subItems: [
-          { key: 'quick-search', title: 'Quick Search', icon: 'search-outline', route: screenNames.QUICK_SEARCH_STACK },
+            { key: 'quick-search', title: 'Quick Search', icon: 'search-outline', route: screenNames.QUICK_SEARCH_STACK },
             { key: 'manual-search', title: 'Manual Search', icon: 'search-circle-outline', route: screenNames.MANUAL_SEARCH },
           ],
         },
@@ -71,56 +71,14 @@ const CustomDrawer = ({
             { key: 'employees', title: 'Employees', icon: 'person-outline', route: screenNames.EMPLOYEES },
           ],
         },
-        {
-          key: 'current-offers',
-          title: 'Current Offers',
-          icon: 'pricetags-outline',
-          iconLib: iconLibName.Ionicons,
-          expandable: true,
-          subItems: [
-            {
-              key: 'active-offers',
-              title: 'Active',
-              icon: 'checkmark-circle-outline',
-              route: screenNames.ACTIVE_OFFERS,
-              params: { fromDrawer: true, headerTitle: 'Active Offers' },
-            },
-            {
-              key: 'completed-offers',
-              title: 'Completed',
-              icon: 'checkmark-done-outline',
-              route: screenNames.COMPLETED_OFFERS,
-              params: { fromDrawer: true, headerTitle: 'Completed Offers' },
-            },
-            {
-              key: 'expired-offers',
-              title: 'Expired',
-              icon: 'time-outline',
-              route: screenNames.EXPIRED_OFFERS,
-              params: { fromDrawer: true, headerTitle: 'Expired Offers' },
-            },
-            {
-              key: 'drafted-offers',
-              title: 'Drafted',
-              icon: 'document-outline',
-              route: screenNames.DRAFTED_OFFERS,
-              params: { fromDrawer: true, headerTitle: 'Drafted Offers' },
-            },
-          ],
-        },
+        // Current Offers removed — handled by Dashboard per client request
+
         {
           key: 'settings',
           title: 'Settings',
           icon: 'settings-outline',
           iconLib: iconLibName.Ionicons,
-          expandable: true,
-          subItems: [
-            { key: 'job-settings', title: 'Job Settings', icon: 'briefcase-outline', route: screenNames.JOB_SETTINGS },
-            { key: 'staff-preferences', title: 'Staff Preferences', icon: 'options-outline', route: screenNames.STAFF_PREFERENCES },
-            { key: 'app-settings', title: 'App Settings', icon: 'phone-portrait-outline', route: screenNames.APP_SETTINGS },
-            { key: 'squad-settings', title: 'Squad Settings', icon: 'people-outline', route: screenNames.SQUAD_SETTINGS },
-            // { key: 'account-settings', title: 'Account Settings', icon: 'person-circle-outline', route: 'AccountSettings' },
-          ],
+          route: screenNames.APP_SETTINGS,
         },
         {
           key: 'account-upgrades',
@@ -202,7 +160,6 @@ const CustomDrawer = ({
           subItems: [
             { key: 'job-settings', title: 'Job Settings', icon: 'briefcase-outline', route: screenNames.JOB_SETTINGS },
             { key: 'app-settings', title: 'App Settings', icon: 'phone-portrait-outline', route: screenNames.APP_SETTINGS },
-            { key: 'squad-settings', title: 'Squad Settings', icon: 'people-outline', route: screenNames.SQUAD_SETTINGS },
           ],
         },
         {
@@ -299,12 +256,12 @@ const CustomDrawer = ({
     <View style={styles.profileSection}>
       <View style={styles.profileContainer}>
         <TouchableOpacity onPress={() => navigation.navigate(screenNames.PROFILE)} style={styles.avatarContainer}>
-      
-            <FastImageView
-              source={userInfo?.profile_picture ? { uri: userInfo?.profile_picture } : Images.logo}
-              style={styles.avatar}
-              resizeMode={'cover'}
-            />
+
+          <FastImageView
+            source={userInfo?.profile_picture ? { uri: userInfo?.profile_picture } : Images.logo}
+            style={styles.avatar}
+            resizeMode={'cover'}
+          />
           {userInfo?.isVerified && (
             <View style={styles.verificationBadge}>
               <VectorIcons

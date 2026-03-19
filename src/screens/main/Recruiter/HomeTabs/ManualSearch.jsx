@@ -20,7 +20,7 @@ import globalStyles from '@/styles/globalStyles'
 import BottomDataSheet from '@/components/Recruiter/JobBottomSheet'
 import JobCategorySelector from '@/components/JobCategorySelector'
 import { screenNames } from '@/navigation/screenNames'
-import { INDUSTRY_OPTIONS, JOB_TYPE_OPTIONS } from '@/constants/recruiterOptions'
+import { JOB_TYPE_OPTIONS } from '@/constants/recruiterOptions'
 
 const ManualSearch = ({ navigation, route }) => {
   // Draft edit mode params
@@ -42,8 +42,8 @@ const ManualSearch = ({ navigation, route }) => {
   const [jobCategory, setJobCategory] = useState(draftJob?.jobCategory || null)
   const [jobSubCategory, setJobSubCategory] = useState(draftJob?.jobSubCategory || null)
   
+  
   const jobTypeSheetRef = useRef(null)
-  const industrySheetRef = useRef(null)
   
   const methods = useForm({
     mode: 'onChange',
@@ -52,7 +52,6 @@ const ManualSearch = ({ navigation, route }) => {
       staffNumber: draftJob?.staffNumber ? String(draftJob.staffNumber) : '5',
       jobTitle: draftJob?.title || draftJob?.jobTitle || '',
       jobType: draftJob?.type || draftJob?.jobType || '',
-      industry: draftJob?.industry || '',
     }
   })
 
@@ -64,7 +63,6 @@ const ManualSearch = ({ navigation, route }) => {
         staffNumber: draftJob.staffNumber ? String(draftJob.staffNumber) : '5',
         jobTitle: draftJob.title || draftJob.jobTitle || '',
         jobType: draftJob.type || draftJob.jobType || '',
-        industry: draftJob.industry || '',
       })
       if (draftJob.rangeKm) setRangeKm(draftJob.rangeKm)
       if (draftJob.jobCategory) setJobCategory(draftJob.jobCategory)
@@ -83,7 +81,6 @@ const ManualSearch = ({ navigation, route }) => {
       staffNumber: s1.staffNumber ? String(s1.staffNumber) : '1',
       jobTitle: s1.jobTitle || '',
       jobType: s1.jobType || '',
-      industry: s1.industry || '',
     })
     if (typeof s1.rangeKm === 'number') setRangeKm(s1.rangeKm)
     if (s1.jobCategory) setJobCategory(s1.jobCategory)
@@ -93,7 +90,6 @@ const ManualSearch = ({ navigation, route }) => {
   const { watch, setValue } = methods
 
   const jobTypeOptions = JOB_TYPE_OPTIONS
-  const industryOptions = INDUSTRY_OPTIONS
 
   const handleJobCategorySelect = (data) => {
     setJobCategory(data.category)
@@ -109,13 +105,6 @@ const ManualSearch = ({ navigation, route }) => {
     jobTypeSheetRef.current?.close()
   }
 
-  const handleIndustrySelect = (item) => {
-    if (item?.title) {
-      setValue('industry', item.title, { shouldValidate: true, shouldDirty: true })
-    }
-    industrySheetRef.current?.close()
-  }
-
   const handleNext = methods.handleSubmit((data) => {
     // Require either category/subcategory or a typed job title
     const hasCategoryTitle = !!(jobCategory || jobSubCategory)
@@ -125,18 +114,12 @@ const ManualSearch = ({ navigation, route }) => {
       return
     }
 
-    if (!data.industry || !String(data.industry).trim()) {
-      Alert.alert('Industry required', 'Please select an industry.')
-      return
-    }
-
     const searchData = {
       jobTitle: data.jobTitle,
       jobType: data.jobType,
       workLocation: data.workLocation,
       rangeKm,
       staffNumber: data.staffNumber,
-      industry: data.industry,
       jobCategory: jobCategory,
       jobSubCategory: jobSubCategory,
       jobReferenceId: jobReferenceId,
@@ -198,13 +181,12 @@ const ManualSearch = ({ navigation, route }) => {
           />
         </View>
 
-        {/* Job Title (Auto-filled from sub-category) */}
+        {/* Job Title */}
         <View style={styles.formGroup}>
           <FormField
             name="jobTitle"
             label="Job title"
-            placeholder="Auto-filled from sub-category"
-            disabled
+            placeholder="Enter job title"
           />
         </View>
 
@@ -216,17 +198,6 @@ const ManualSearch = ({ navigation, route }) => {
             label="Job type"
             value={watch('jobType')} 
             placeholder="Enter job type"
-          />
-        </View>
-
-        {/* Industry */}
-        <View style={styles.formGroup}>
-          <FormField
-            name="industry"
-            onPressField={() => industrySheetRef.current?.open()}
-            label="Industry"
-            value={watch('industry')}
-            placeholder="Select industry"
           />
         </View>
 
@@ -332,18 +303,6 @@ const ManualSearch = ({ navigation, route }) => {
         />
       </RbSheetComponent>
 
-      <RbSheetComponent
-        ref={industrySheetRef}
-        height={hp(60)}
-        bgColor={colors.white}
-        containerStyle={styles.sheetContainer}
-      >
-        <BottomDataSheet
-          onSelect={handleIndustrySelect}
-          optionsData={industryOptions}
-          onClose={() => industrySheetRef.current?.close()}
-        />
-      </RbSheetComponent>
     </FormProvider>
   )
 }

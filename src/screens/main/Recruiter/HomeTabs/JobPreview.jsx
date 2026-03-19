@@ -79,14 +79,12 @@ const JobPreview = ({ navigation, route }) => {
 
     const jobTitle = step1Data?.jobTitle
     const jobType = step1Data?.jobType
-    const industry = step1Data?.industry
     const workLocation = step4Data?.workLocation || step1Data?.workLocation
     const rangeKm = step4Data?.rangeKm ?? step1Data?.rangeKm
     const staffNumber = step1Data?.staffNumber
 
     if (isEmptyValue(jobTitle)) missing.push('Job title')
     if (isEmptyValue(jobType)) missing.push('Job type')
-    if (isEmptyValue(industry)) missing.push('Industry')
     if (isEmptyValue(workLocation)) missing.push('Work location')
     if (rangeKm === null || rangeKm === undefined) missing.push('Range from location')
     if (isEmptyValue(staffNumber)) missing.push('Positions')
@@ -144,7 +142,6 @@ const JobPreview = ({ navigation, route }) => {
       location: step4Data?.workLocation || step1Data?.workLocation || draftJob?.location || '',
       rangeKm: step4Data?.rangeKm ?? step1Data?.rangeKm ?? draftJob?.rangeKm ?? 0,
       staffNumber: step1Data?.staffNumber ?? draftJob?.staffNumber ?? '',
-      industry: step1Data?.industry || draftJob?.industry || '',
       jobReferenceId: step1Data?.jobReferenceId || draftJob?.jobReferenceId,
       experience: draftJob?.experience || '',
       salaryRange,
@@ -234,7 +231,6 @@ const JobPreview = ({ navigation, route }) => {
       location: step4Data?.workLocation || step1Data?.workLocation,
       rangeKm: step4Data?.rangeKm ?? (step1Data?.rangeKm || 0),
       staffNumber: step1Data?.staffNumber,
-      industry: step1Data?.industry,
       jobReferenceId: step1Data?.jobReferenceId,
       experience: step2Data ? (() => {
         // Extract numbers from strings like "2 Years" or "2 Months"
@@ -465,12 +461,6 @@ const JobPreview = ({ navigation, route }) => {
         <DetailRow 
           label="Job type:" 
           value={step1Data?.jobType}
-          hideIfEmpty={false}
-        />
-
-        <DetailRow 
-          label="Industry:" 
-          value={step1Data?.industry}
           hideIfEmpty={false}
         />
         

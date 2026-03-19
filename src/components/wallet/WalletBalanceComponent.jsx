@@ -33,21 +33,21 @@ const WalletBalanceComponent = ({
       <View style={styles.buttonsContainer}>
         <View style={styles.buttonWrapper}>
           <AppButton
-            onPress={() => navigation.navigate(screenNames.PURCHASE_COINS)}
+            onPress={() => navigation.navigate(screenNames.TOP_UP)}
             text="Purchase Coin"
             bgColor={colors.primary}
             textColor="#FFFFFF"
-            // style={styles.button}
+          // style={styles.button}
           />
         </View>
-        
+
         <View style={styles.buttonWrapper}>
           <AppButton
             text="Withdraw Coin"
             onPress={() => navigation.navigate(screenNames.WITHDRAW_COINS)}
             bgColor={colors.secondary}
             textColor="#FFFFFF"
-            // style={styles.button}
+          // style={styles.button}
           />
         </View>
       </View>

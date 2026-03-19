@@ -23,6 +23,16 @@ import AccountDetails from './main/wallet/AccountDetails';
 import BankDetails from './main/wallet/BankDetails';
 import FormSummary from './main/wallet/FormSummary';
 import PurchaseCoins from './main/wallet/PurchaseCoins';
+import TopUp from './main/wallet/TopUp';
+import PayIDDeposit from './main/wallet/PayIDDeposit';
+import ManageBankAccounts from './main/wallet/ManageBankAccounts';
+import EscrowHolds from './main/wallet/EscrowHolds';
+import ActiveHoldsViewAll from './main/wallet/ActiveHoldsViewAll';
+import JobTimeline from './main/wallet/JobTimeline';
+import OpenDispute from './main/wallet/OpenDispute';
+import CompletedHoldsViewAll from './main/wallet/CompletedHoldsViewAll';
+import TransactionHistory from './main/wallet/TransactionHistory';
+import RatingsReports from './main/wallet/RatingsReports';
 import WithdrawCoins from './main/wallet/WithdrawCoins';
 import WalletStack from '@/navigation/WalletStack';
 import Messages from './main/chat/Messages';
@@ -60,10 +70,27 @@ import StepFourQuickSearch from './main/Recruiter/QuickSearch/StepFour';
 import JobSettings from './main/Recruiter/Settings/JobSettings';
 import AppSettings from './main/Recruiter/Settings/AppSettings';
 import SquadSettings from './main/Recruiter/Settings/SquadSettings';
+import NotificationPreferences from './main/Recruiter/Settings/NotificationPreferences';
+import SecurityPassword from './main/Recruiter/Settings/SecurityPassword';
+import PasswordManagement from './main/Recruiter/Settings/PasswordManagement';
+import TwoFactorAuth from './main/Recruiter/Settings/TwoFactorAuth';
+import PrivacyControls from './main/Recruiter/Settings/PrivacyControls';
+import SecurityAlerts from './main/Recruiter/Settings/SecurityAlerts';
+import AccountRecovery from './main/Recruiter/Settings/AccountRecovery';
+import OtherSecurityFeatures from './main/Recruiter/Settings/OtherSecurityFeatures';
+import LegalCompliance from './main/Recruiter/Settings/LegalCompliance';
+import DeleteAccount from './main/Recruiter/Settings/DeleteAccount';
+import SwitchProfile from './main/Recruiter/Settings/SwitchProfile';
+import LiveChat from './main/Recruiter/LiveChat';
+import RequestCallback from './main/Recruiter/RequestCallback';
+import MyCallbackRequests from './main/Recruiter/MyCallbackRequests';
 import AccountUpgrade from './main/Recruiter/AccountUpgrade';
 import Support from './main/Recruiter/Support';
 import SupportFAQ from './main/Recruiter/SupportFAQ';
 import SupportTickets from './main/Recruiter/SupportTickets';
+import CreateTicket from './main/Recruiter/CreateTicket';
+import MyTickets from './main/Recruiter/MyTickets';
+import TicketDetails from './main/Recruiter/TicketDetails';
 
 import Profile from './main/Recruiter/profile/Profile';
 import BasicDetails from './main/Recruiter/profile/BasicDetails';
@@ -170,6 +197,16 @@ export {
   BankDetails,
   FormSummary,
   PurchaseCoins,
+  TopUp,
+  PayIDDeposit,
+  ManageBankAccounts,
+  EscrowHolds,
+  ActiveHoldsViewAll,
+  JobTimeline,
+  OpenDispute,
+  CompletedHoldsViewAll,
+  TransactionHistory,
+  RatingsReports,
   WithdrawCoins,
   WalletStack,
   Messages,
@@ -206,10 +243,27 @@ export {
   JobSettings,
   AppSettings,
   SquadSettings,
+  NotificationPreferences,
+  SecurityPassword,
+  PasswordManagement,
+  TwoFactorAuth,
+  PrivacyControls,
+  SecurityAlerts,
+  AccountRecovery,
+  OtherSecurityFeatures,
+  LegalCompliance,
+  DeleteAccount,
+  SwitchProfile,
+  LiveChat,
+  RequestCallback,
+  MyCallbackRequests,
   AccountUpgrade,
   Support,
   SupportFAQ,
   SupportTickets,
+  CreateTicket,
+  MyTickets,
+  TicketDetails,
   Profile,
   BasicDetails,
   Address,

@@ -1,106 +1,118 @@
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
-import AppHeader from '@/core/AppHeader';
-import Scrollable from '@/core/Scrollable';
-import AppText, {Variant} from '@/core/AppText';
-import {colors, hp, wp} from '@/theme';
-import {defaultTickets} from './supportData';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { colors, hp, wp, getFontSize } from '@/theme';
+import AppText, { Variant } from '@/core/AppText';
+import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
+import PoolHeader from '@/core/PoolHeader';
+import { useNavigation } from '@react-navigation/native';
+import { screenNames } from '@/navigation/screenNames';
+import LinearGradient from 'react-native-linear-gradient';
 
-const SupportTickets = ({route}) => {
-  const tickets =
-    route?.params?.tickets?.length > 0 ? route.params.tickets : defaultTickets;
+const SupportTickets = () => {
+  const navigation = useNavigation();
 
   return (
-    <>
-      <AppHeader title="Support Tickets" showTopIcons={false} />
-      <Scrollable>
-        <View style={styles.container}>
-          <AppText variant={Variant.bodybold} style={styles.introTitle}>
-            Recent Tickets
-          </AppText>
-          <AppText variant={Variant.caption} style={styles.introSubtitle}>
-            Track your existing requests and their current status.
-          </AppText>
+    <View style={styles.screen}>
+      <PoolHeader title="Support Tickets" />
 
-          {tickets.map(ticket => (
-            <View key={ticket.id} style={styles.ticketCard}>
-              <View style={styles.ticketHeader}>
-                <AppText variant={Variant.bodybold} style={styles.ticketTitle}>
-                  {ticket.subject}
-                </AppText>
-                <View
-                  style={[
-                    styles.badge,
-                    ticket.status === 'Resolved' && styles.resolvedBadge,
-                    ticket.status === 'In Progress' && styles.progressBadge,
-                  ]}>
-                  <AppText style={styles.badgeText}>{ticket.status}</AppText>
-                </View>
-              </View>
-              <AppText variant={Variant.caption} style={styles.ticketMeta}>
-                Ticket #{ticket.id} • Priority: {ticket.priority}
-              </AppText>
-              <AppText variant={Variant.caption} style={styles.ticketMeta}>
-                Last updated {ticket.lastUpdated}
-              </AppText>
-            </View>
-          ))}
-        </View>
-      </Scrollable>
-    </>
+      <View style={styles.content}>
+        {/* Option 1: Create New Ticket */}
+        <TouchableOpacity
+          style={styles.optionCard}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate(screenNames.CREATE_TICKET)}
+        >
+          <LinearGradient
+            colors={['#7C3AED', '#A78BFA']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.optionIconCircle}
+          >
+            <VectorIcons name={iconLibName.Ionicons} iconName="create-outline" size={24} color={colors.white} />
+          </LinearGradient>
+          <View style={styles.optionContent}>
+            <AppText variant={Variant.bodyMedium} style={styles.optionTitle}>
+              Create New Ticket
+            </AppText>
+            <AppText variant={Variant.caption} style={styles.optionSubtitle}>
+              Submit a new support request
+            </AppText>
+          </View>
+          <VectorIcons name={iconLibName.Ionicons} iconName="chevron-forward" size={18} color="#C4C4C4" />
+        </TouchableOpacity>
+
+        {/* Option 2: My Tickets */}
+        <TouchableOpacity
+          style={styles.optionCard}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate(screenNames.MY_TICKETS)}
+        >
+          <LinearGradient
+            colors={['#2563EB', '#60A5FA']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.optionIconCircle}
+          >
+            <VectorIcons name={iconLibName.Ionicons} iconName="list-outline" size={24} color={colors.white} />
+          </LinearGradient>
+          <View style={styles.optionContent}>
+            <AppText variant={Variant.bodyMedium} style={styles.optionTitle}>
+              My Tickets
+            </AppText>
+            <AppText variant={Variant.caption} style={styles.optionSubtitle}>
+              View all your support tickets
+            </AppText>
+          </View>
+          <VectorIcons name={iconLibName.Ionicons} iconName="chevron-forward" size={18} color="#C4C4C4" />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
 
 export default SupportTickets;
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-  },
-  introTitle: {
-    marginTop: 4,
-    color: colors.black,
-  },
-  introSubtitle: {
-    color: colors.text,
-    marginBottom: 16,
-  },
-  ticketCard: {
-    borderWidth: 1,
-    borderColor: colors.borderGray,
-    borderRadius: wp(2),
-    padding: 14,
-    marginBottom: 12,
-    backgroundColor: colors.white,
-  },
-  ticketHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  ticketTitle: {
+  screen: {
     flex: 1,
-    marginRight: 12,
+    backgroundColor: '#F4F2F9',
   },
-  badge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20,
-    backgroundColor: colors.yellowBg,
+  content: {
+    padding: wp(5),
+    gap: hp(1.2),
   },
-  resolvedBadge: {
-    backgroundColor: colors.greenBg,
+  optionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    paddingVertical: hp(2),
+    paddingHorizontal: wp(4),
+    gap: wp(3.5),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  progressBadge: {
-    backgroundColor: colors.orange,
+  optionIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  badgeText: {
-    fontSize: 12,
-    color: colors.black,
+  optionContent: {
+    flex: 1,
   },
-  ticketMeta: {
-    color: colors.text,
-    marginTop: 4,
+  optionTitle: {
+    color: '#111',
+    fontWeight: '700',
+    fontSize: getFontSize(15),
+  },
+  optionSubtitle: {
+    color: '#888',
+    fontSize: getFontSize(12),
+    marginTop: hp(0.2),
   },
 });
-

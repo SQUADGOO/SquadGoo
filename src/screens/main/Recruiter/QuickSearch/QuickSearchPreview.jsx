@@ -67,7 +67,6 @@ const QuickSearchPreview = ({ navigation, route }) => {
     const missing = []
     if (isEmptyValue(quickSearchStep1Data?.jobTitle)) missing.push('Job title')
     if (isEmptyValue(quickSearchStep1Data?.jobType)) missing.push('Job type')
-    if (isEmptyValue(quickSearchStep1Data?.industry)) missing.push('Industry')
     if (isEmptyValue(quickSearchStep1Data?.staffCount)) missing.push('Positions')
     if (isEmptyValue(quickSearchStep1Data?.rolesAndResponsibilities))
       missing.push('Roles and responsibilities')
@@ -124,7 +123,6 @@ const QuickSearchPreview = ({ navigation, route }) => {
       jobCategory: quickSearchStep1Data?.jobCategory,
       jobSubCategory: quickSearchStep1Data?.jobSubCategory,
       jobTitle: quickSearchStep1Data?.jobTitle,
-      industry: quickSearchStep1Data?.industry,
       staffCount: quickSearchStep1Data?.staffCount,
       jobType: quickSearchStep1Data?.jobType,
       freshersCanApply: !!quickSearchStep1Data?.freshersCanApply,
@@ -246,7 +244,6 @@ const QuickSearchPreview = ({ navigation, route }) => {
       id: draftId,
       title,
       type: draftJob?.type || 'Contract',
-      industry: quickSearchStep1Data?.industry || draftJob?.industry || '',
       experience: draftJob?.experience || '',
       staffNumber:
         quickSearchStep1Data?.staffCount ??
@@ -333,7 +330,6 @@ const QuickSearchPreview = ({ navigation, route }) => {
       id: jobId, // keep same ID across slices for easier tracking
       title: quickSearchStep1Data?.jobTitle,
       type: 'Contract', // Default for quick search jobs
-      industry: quickSearchStep1Data?.industry,
       experience: (() => {
         // Extract numbers from strings like "2 Years" or "2 Months"
         const extractNumber = (str) => {
@@ -375,7 +371,6 @@ const QuickSearchPreview = ({ navigation, route }) => {
     const quickJobData = {
       id: jobId,
       jobTitle: quickSearchStep1Data?.jobTitle,
-      industry: quickSearchStep1Data?.industry,
       experienceYear: quickSearchStep1Data?.experienceYear,
       experienceMonth: quickSearchStep1Data?.experienceMonth,
       staffCount: quickSearchStep1Data?.staffCount,
@@ -512,10 +507,6 @@ const QuickSearchPreview = ({ navigation, route }) => {
         <DetailRow
           label="Job type:"
           value={quickSearchStep1Data?.jobType}
-        />
-        <DetailRow 
-          label="Industry:" 
-          value={quickSearchStep1Data?.industry}
         />
         <DetailRow 
           label="Experience:" 

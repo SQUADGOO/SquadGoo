@@ -1,10 +1,10 @@
-import {StyleSheet} from 'react-native';
+import { StyleSheet } from 'react-native';
 import React from 'react';
-import {createDrawerNavigator} from '@react-navigation/drawer';
+import { createDrawerNavigator } from '@react-navigation/drawer';
 import CustomDrawer from '@/core/CustomDrawer';
 import TabNavigator from './TabNavigator';
-import {screenNames} from './screenNames';
-import {JobPreview} from '@/screens';
+import { screenNames } from './screenNames';
+import { JobPreview } from '@/screens';
 import * as ui from '@/screens';
 import SupportStack from './SupportStack';
 import ManualSearchStack from './ManualSearchStack';
@@ -273,8 +273,60 @@ const DrawerNavigator = () => {
         component={ui.AppSettings}
       />
       <Drawer.Screen
-        name={screenNames.SQUAD_SETTINGS}
-        component={ui.SquadSettings}
+        name={screenNames.NOTIFICATION_PREFERENCES}
+        component={ui.NotificationPreferences}
+      />
+      <Drawer.Screen
+        name={screenNames.SECURITY_PASSWORD}
+        component={ui.SecurityPassword}
+      />
+      <Drawer.Screen
+        name={screenNames.PASSWORD_MANAGEMENT}
+        component={ui.PasswordManagement}
+      />
+      <Drawer.Screen
+        name={screenNames.TWO_FACTOR_AUTH}
+        component={ui.TwoFactorAuth}
+      />
+      <Drawer.Screen
+        name={screenNames.PRIVACY_CONTROLS}
+        component={ui.PrivacyControls}
+      />
+      <Drawer.Screen
+        name={screenNames.SECURITY_ALERTS}
+        component={ui.SecurityAlerts}
+      />
+      <Drawer.Screen
+        name={screenNames.ACCOUNT_RECOVERY}
+        component={ui.AccountRecovery}
+      />
+      <Drawer.Screen
+        name={screenNames.OTHER_SECURITY_FEATURES}
+        component={ui.OtherSecurityFeatures}
+      />
+      <Drawer.Screen
+        name={screenNames.LEGAL_COMPLIANCE}
+        component={ui.LegalCompliance}
+      />
+      <Drawer.Screen
+        name={screenNames.DELETE_ACCOUNT}
+        component={ui.DeleteAccount}
+      />
+      <Drawer.Screen
+        name={screenNames.SWITCH_PROFILE}
+        component={ui.SwitchProfile}
+      />
+      <Drawer.Screen
+        name={screenNames.LIVE_CHAT}
+        component={ui.LiveChat}
+      />
+      <Drawer.Screen
+        name={screenNames.REQUEST_CALLBACK}
+        component={ui.RequestCallback}
+      />
+      <Drawer.Screen
+        name={screenNames.MY_CALLBACK_REQUESTS}
+        component={ui.MyCallbackRequests}
       />
 
       <Drawer.Screen

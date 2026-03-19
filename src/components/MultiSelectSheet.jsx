@@ -204,7 +204,19 @@ const MultiSelectSheet = ({
                 keyExtractor={(item) => item.key}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
+                style={{ maxHeight: hp(58) }}
+                contentContainerStyle={{ paddingBottom: hp(2) }}
               />
+
+              <TouchableOpacity
+                style={styles.doneBtn}
+                activeOpacity={0.8}
+                onPress={close}
+              >
+                <AppText variant={Variant.bodyMedium} style={styles.doneText}>
+                  {selectedItems.length > 0 ? `Done (${selectedItems.length} selected)` : 'Done'}
+                </AppText>
+              </TouchableOpacity>
             </>
           ) : (
             <>
@@ -289,6 +301,18 @@ const styles = StyleSheet.create({
   confirmText: {
     color: colors.white,
     fontWeight: '700',
+  },
+  doneBtn: {
+    backgroundColor: colors.primary,
+    paddingVertical: hp(1.6),
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: hp(3),
+  },
+  doneText: {
+    color: colors.white,
+    fontWeight: '700',
+    fontSize: getFontSize(16),
   },
 })
 
