@@ -14,7 +14,6 @@ import JobCategorySelector from '@/components/JobCategorySelector'
 import EducationSelector from '@/components/EducationSelector'
 import MultiSelectSheet from '@/components/MultiSelectSheet'
 import { screenNames } from '@/navigation/screenNames'
-import { INDUSTRY_OPTIONS } from '@/constants/recruiterOptions'
 
 const JOB_TYPE_OPTIONS = [
   'Casual',
@@ -136,6 +135,7 @@ const QuickSearchStepOne = ({ navigation, route }) => {
 
   const [jobCategory, setJobCategory] = useState(draftJob?.jobCategory || null)
   const [jobSubCategory, setJobSubCategory] = useState(draftJob?.jobSubCategory || null)
+  const [jobTitle, setJobTitle] = useState(step1Draft?.jobTitle || draftJob?.jobTitle || draftJob?.jobSubCategory || '')
   const [jobType, setJobType] = useState(step1Draft?.jobType || draftJob?.jobType || '')
   const [requiredEducation, setRequiredEducation] = useState(
     step1Draft?.requiredEducation || draftJob?.requiredEducation || null,
@@ -150,7 +150,6 @@ const QuickSearchStepOne = ({ navigation, route }) => {
   const methods = useForm({
     mode: 'onChange',
     defaultValues: {
-      industry: draftJob?.industry || '',
       freshersCanApply: !!(step1Draft?.freshersCanApply ?? draftJob?.freshersCanApply),
       experienceYear: step1Draft?.experienceYear ?? draftJob?.experienceYear ?? '0 Year',
       experienceMonth: step1Draft?.experienceMonth ?? draftJob?.experienceMonth ?? '0 Month',
@@ -165,7 +164,6 @@ const QuickSearchStepOne = ({ navigation, route }) => {
   useEffect(() => {
     if (editMode && draftJob) {
       methods.reset({
-        industry: draftJob.industry || '',
         freshersCanApply: !!(step1Draft?.freshersCanApply ?? draftJob?.freshersCanApply),
         experienceYear: step1Draft?.experienceYear ?? draftJob?.experienceYear ?? '0 Year',
         experienceMonth: step1Draft?.experienceMonth ?? draftJob?.experienceMonth ?? '0 Month',
@@ -189,21 +187,20 @@ const QuickSearchStepOne = ({ navigation, route }) => {
 
   const { watch, setValue, handleSubmit } = methods
 
-  const industry = watch('industry')
   const experienceYear = watch('experienceYear')
   const experienceMonth = watch('experienceMonth')
   const freshersCanApply = watch('freshersCanApply')
 
-  const industrySheetRef = useRef(null)
   const yearSheetRef = useRef(null)
   const monthSheetRef = useRef(null)
   const jobTypeSheetRef = useRef(null)
 
-  const industryOptions = INDUSTRY_OPTIONS
-
   const handleJobCategorySelect = (data) => {
     setJobCategory(data.category)
     setJobSubCategory(data.subCategory)
+    if (data.subCategory) {
+      setJobTitle(data.subCategory)
+    }
   }
 
   const experienceYearOptions = [
@@ -245,18 +242,13 @@ const QuickSearchStepOne = ({ navigation, route }) => {
 
   const handleNext = () => {
     handleSubmit((data) => {
-      if (!jobCategory && !jobSubCategory) {
-        Alert.alert('Job category required', 'Please select a job category and sub category.')
+      if (!jobTitle.trim()) {
+        Alert.alert('Job title required', 'Please enter a job title or select a job category.')
         return
       }
 
       if (!jobType) {
         Alert.alert('Job type required', 'Please select a job type.')
-        return
-      }
-
-      if (!data.industry) {
-        Alert.alert('Industry required', 'Please select an industry.')
         return
       }
 
@@ -297,11 +289,10 @@ const QuickSearchStepOne = ({ navigation, route }) => {
       }
 
       const quickSearchStep1Data = {
-        jobTitle: jobSubCategory || jobCategory,
+        jobTitle: jobTitle.trim(),
         jobCategory: jobCategory,
         jobSubCategory: jobSubCategory,
         jobType,
-        industry: data.industry,
         freshersCanApply: !!data.freshersCanApply,
         experienceYear: data.freshersCanApply ? null : data.experienceYear,
         experienceMonth: data.freshersCanApply ? null : data.experienceMonth,
@@ -350,12 +341,12 @@ const QuickSearchStepOne = ({ navigation, route }) => {
             />
 
             <AppText variant={Variant.bodyMedium} style={styles.label}>
-              Job title
+              Job title*
             </AppText>
             <AppInputField
-              placeholder="Auto-filled from sub-category"
-              value={jobSubCategory || ''}
-              editable={false}
+              placeholder="Enter job title"
+              value={jobTitle}
+              onChangeText={setJobTitle}
             />
 
             {/* Job Type */}
@@ -372,19 +363,6 @@ const QuickSearchStepOne = ({ navigation, route }) => {
               </View>
             </TouchableOpacity>
 
-            {/* Industry */}
-            <AppText variant={Variant.bodyMedium} style={styles.label}>
-              Industry*
-            </AppText>
-            <TouchableOpacity onPress={() => industrySheetRef.current?.open()} activeOpacity={0.7}>
-              <View pointerEvents="none">
-                <AppInputField
-                  placeholder="Search"
-                  value={industry}
-                  editable={false}
-                />
-              </View>
-            </TouchableOpacity>
 
             {/* Total Experience */}
             <AppText variant={Variant.bodyMedium} style={styles.label}>
@@ -500,6 +478,7 @@ const QuickSearchStepOne = ({ navigation, route }) => {
               selectedEducation={requiredEducation}
               onSelect={setRequiredEducation}
               placeholder="Select education level"
+              courseOnly
             />
 
             {/* Preferred languages */}
@@ -527,17 +506,6 @@ const QuickSearchStepOne = ({ navigation, route }) => {
         </View>
 
         {/* Bottom Sheets */}
-        <RbSheetComponent ref={industrySheetRef} height={hp(60)}>
-          <BottomDataSheet
-            optionsData={industryOptions}
-            onClose={() => industrySheetRef.current?.close()}
-            onSelect={(item) => {
-              setValue('industry', item.title, { shouldValidate: true })
-              industrySheetRef.current?.close()
-            }}
-          />
-        </RbSheetComponent>
-
         <RbSheetComponent ref={yearSheetRef} height={hp(50)}>
           <BottomDataSheet
             optionsData={experienceYearOptions}

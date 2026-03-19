@@ -681,7 +681,6 @@ const OfferDetailModal = ({ visible, offer, onClose }) => {
                 <View style={styles.detailModalSection}>
                   <DetailRow label="Job Title" value={job.title} />
                   <DetailRow label="Job Type" value={job.type} />
-                  <DetailRow label="Industry" value={job.industry} />
                   <DetailRow label="Location" value={job.location} />
                   {job.rangeKm && <DetailRow label="Range" value={`${job.rangeKm} km`} />}
                   <DetailRow label="Staff Needed" value={job.staffNumber} />
