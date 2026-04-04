@@ -736,7 +736,7 @@ const quickSearchSlice = createSlice({
         matchPercentage: candidate.matchPercentage,
         acceptanceRating: candidate.acceptanceRating,
         status: 'pending',
-        expiresAt: expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days default
+        expiresAt: expiresAt || new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 hours default
         message: message || 'You have a new quick search job offer!',
         autoSent,
         createdAt: new Date().toISOString(),

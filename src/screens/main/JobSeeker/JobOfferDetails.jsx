@@ -4,7 +4,6 @@ import {
   StyleSheet,
   ScrollView,
   StatusBar,
-  TouchableOpacity,
   Alert,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
@@ -88,10 +87,13 @@ const JobOfferDetails = () => {
     }
     if (typeof availability === 'object') {
       return Object.entries(availability)
+        .filter(([, slot]) => slot?.enabled)
         .map(([day, slot]) => {
           if (!slot) return null;
           if (typeof slot === 'string') return `${day}: ${slot}`;
-          if (slot?.start && slot?.end) return `${day}: ${slot.start} - ${slot.end}`;
+          const from = slot?.from || slot?.start;
+          const to = slot?.to || slot?.end;
+          if (from && to) return `${day}: ${from} – ${to}`;
           return `${day}: Available`;
         })
         .filter(Boolean)
@@ -217,9 +219,41 @@ const JobOfferDetails = () => {
           value={job.rangeKm ? `${job.rangeKm} km` : 'Not specified'}
         />
         
-        <DetailRow 
-          label="Staff needed:" 
+        <DetailRow
+          label="Staff needed:"
           value={job.staffNumber}
+        />
+
+        {/* Requirements */}
+        <SectionTitle title="Requirements" />
+        <DetailRow
+          label="Education required:"
+          value={job.educationalQualification}
+        />
+        <DetailRow
+          label="Extra qualifications:"
+          value={job.extraQualification}
+        />
+        <DetailRow
+          label="Required uniforms:"
+          value={job.requiredUniforms}
+        />
+        <DetailRow
+          label="Preferred languages:"
+          value={job.preferredLanguages}
+        />
+        {(job.rolesAndResponsibilities) && (
+          <>
+            <DetailRow
+              label="Roles & responsibilities:"
+              value={job.rolesAndResponsibilities}
+            />
+          </>
+        )}
+        <DetailRow
+          label="Freshers can apply:"
+          value={job.freshersCanApply ? 'Yes' : 'No'}
+          valueStyle={job.freshersCanApply && styles.yesValue}
         />
 
         {/* Experience & Salary */}
@@ -262,42 +296,68 @@ const JobOfferDetails = () => {
           value={job.expireDate}
         />
 
-        {/* Extra Pay Section */}
-        {job.extraPay && Object.keys(job.extraPay).length > 0 && (
+        {/* Extra Pay Section - only show items the recruiter selected */}
+        {(job.extraPay?.publicHolidays || job.extraPay?.weekend || job.extraPay?.shiftLoading || job.extraPay?.bonuses || job.extraPay?.overtime || job.weekendSatExtraPay || job.weekendSunExtraPay) ? (
           <>
             <SectionTitle title="Extra Pay Offered:" />
-            
-            <DetailRow 
-              label="Public holidays:" 
-              value={job.extraPay.publicHolidays ? 'Yes' : 'No'}
-              valueStyle={job.extraPay.publicHolidays && styles.yesValue}
-            />
-            
-            <DetailRow 
-              label="Weekend:" 
-              value={job.extraPay.weekend ? 'Yes' : 'No'}
-              valueStyle={job.extraPay.weekend && styles.yesValue}
-            />
-            
-            <DetailRow 
-              label="Shift loading:" 
-              value={job.extraPay.shiftLoading ? 'Yes' : 'No'}
-              valueStyle={job.extraPay.shiftLoading && styles.yesValue}
-            />
-            
-            <DetailRow 
-              label="Bonuses:" 
-              value={job.extraPay.bonuses ? 'Yes' : 'No'}
-              valueStyle={job.extraPay.bonuses && styles.yesValue}
-            />
-            
-            <DetailRow 
-              label="Overtime:" 
-              value={job.extraPay.overtime ? 'Yes' : 'No'}
-              valueStyle={job.extraPay.overtime && styles.yesValue}
-            />
+
+            {job.extraPay?.publicHolidays ? (
+              <DetailRow
+                label="Public holidays:"
+                value={job.extraPayRates?.publicHolidays ? `$${job.extraPayRates.publicHolidays}` : 'Yes'}
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+
+            {job.extraPay?.weekend ? (
+              <DetailRow
+                label="Weekend:"
+                value={job.extraPayRates?.weekend ? `$${job.extraPayRates.weekend}` : 'Yes'}
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+
+            {job.extraPay?.shiftLoading ? (
+              <DetailRow
+                label="Shift loading:"
+                value={job.extraPayRates?.shiftLoading ? `$${job.extraPayRates.shiftLoading}` : 'Yes'}
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+
+            {job.extraPay?.bonuses ? (
+              <DetailRow
+                label="Bonuses:"
+                value={job.extraPayRates?.bonuses ? `$${job.extraPayRates.bonuses}` : 'Yes'}
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+
+            {job.extraPay?.overtime ? (
+              <DetailRow
+                label="Overtime:"
+                value={job.overtimeRate || job.extraPayRates?.overtime ? `$${job.overtimeRate || job.extraPayRates.overtime}` : 'Yes'}
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+
+            {job.weekendSatExtraPay ? (
+              <DetailRow
+                label="Saturday extra pay:"
+                value={job.weekendSatRate ? `$${job.weekendSatRate}` : 'Yes'}
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+
+            {job.weekendSunExtraPay ? (
+              <DetailRow
+                label="Sunday extra pay:"
+                value={job.weekendSunRate ? `$${job.weekendSunRate}` : 'Yes'}
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
           </>
-        )}
+        ) : null}
 
         {/* Availability */}
         {job.availability && (

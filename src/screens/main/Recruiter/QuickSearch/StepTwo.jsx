@@ -20,7 +20,7 @@ import { screenNames } from '@/navigation/screenNames'
 
 const QuickSearchStepTwo = ({ navigation, route }) => {
   // Get data from Step 1
-  const { quickSearchStep1Data, editMode, draftJob, jobId } = route.params || {}
+  const { quickSearchStep1Data, editMode, draftJob, jobId, returnToPreview, previewData } = route.params || {}
 
   const step2Draft = draftJob?.rawData?.step2 || {}
   const [rangeKm, setRangeKm] = useState(
@@ -73,6 +73,21 @@ const QuickSearchStepTwo = ({ navigation, route }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editMode, draftJob])
 
+  // Pre-fill from previewData when returning from preview edit
+  useEffect(() => {
+    if (returnToPreview && previewData?.quickSearchStep2Data) {
+      const s2 = previewData.quickSearchStep2Data
+      methods.reset({
+        workLocation: s2.workLocation ?? '',
+        jobStartDate: s2.jobStartDate ?? '',
+        jobEndDate: s2.jobEndDate ?? '',
+      })
+      if (typeof s2.rangeKm === 'number') {
+        setRangeKm(s2.rangeKm)
+      }
+    }
+  }, [returnToPreview, previewData])
+
   const onSubmit = (data) => {
     const quickSearchStep2Data = {
       ...data,
@@ -123,6 +138,19 @@ const QuickSearchStepTwo = ({ navigation, route }) => {
     console.log('Quick Search Step 2 Data:', quickSearchStep2Data)
 
     // Pass both step1 and step2 data forward
+    if (returnToPreview) {
+      navigation.navigate(screenNames.QUICK_SEARCH_PREVIEW, {
+        quickSearchStep1Data: previewData?.quickSearchStep1Data || quickSearchStep1Data,
+        quickSearchStep2Data,
+        quickSearchStep3Data: previewData?.quickSearchStep3Data,
+        quickSearchStep4Data: previewData?.quickSearchStep4Data,
+        editMode: previewData?.editMode,
+        draftJob: previewData?.draftJob,
+        jobId: previewData?.jobId,
+      })
+      return
+    }
+
     navigation.navigate(screenNames.QUICK_SEARCH_STEPTHREE, { 
       quickSearchStep1Data,
       quickSearchStep2Data,

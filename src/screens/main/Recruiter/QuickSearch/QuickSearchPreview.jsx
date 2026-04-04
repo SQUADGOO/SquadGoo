@@ -1,14 +1,16 @@
 // QuickSearchPreview.js - Display all collected data
-import React from 'react'
-import { 
-  View, 
-  StyleSheet, 
+import React, { useState } from 'react'
+import {
+  View,
+  StyleSheet,
   ScrollView,
+  TouchableOpacity,
   StatusBar,
   Alert
 } from 'react-native'
 import { useDispatch, useSelector } from 'react-redux'
 import { colors, hp, wp, getFontSize } from '@/theme'
+import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
 import AppText, { Variant } from '@/core/AppText'
 import AppHeader from '@/core/AppHeader'
 import AppButton from '@/core/AppButton'
@@ -26,17 +28,19 @@ const QuickSearchPreview = ({ navigation, route }) => {
   const quickFillSendMode = useSelector(
     state => state.recruiterSettings?.quickFillSendMode || 'auto',
   )
-  
+
   // Get all data from all 4 steps
-  const { 
-    quickSearchStep1Data, 
-    quickSearchStep2Data, 
+  const {
+    quickSearchStep1Data,
+    quickSearchStep2Data,
     quickSearchStep3Data,
     quickSearchStep4Data,
     editMode,
     draftJob,
     jobId: existingJobId,
   } = route.params || {}
+
+  const [offerExpiryHours, setOfferExpiryHours] = useState(2)
 
   const isEmptyValue = (value) => {
     if (value === null || value === undefined) return true
@@ -162,14 +166,14 @@ const QuickSearchPreview = ({ navigation, route }) => {
   const DetailRow = ({ label, value, valueStyle, hideIfEmpty = true }) => {
     if (hideIfEmpty && isEmptyValue(value)) return null
     return (
-    <View style={styles.detailRow}>
-      <AppText variant={Variant.body} style={styles.detailLabel}>
-        {label}
-      </AppText>
-      <AppText variant={Variant.bodyMedium} style={[styles.detailValue, valueStyle]}>
-        {value}
-      </AppText>
-    </View>
+      <View style={styles.detailRow}>
+        <AppText variant={Variant.body} style={styles.detailLabel}>
+          {label}
+        </AppText>
+        <AppText variant={Variant.bodyMedium} style={[styles.detailValue, valueStyle]}>
+          {value}
+        </AppText>
+      </View>
     )
   }
 
@@ -179,10 +183,88 @@ const QuickSearchPreview = ({ navigation, route }) => {
     </AppText>
   )
 
+  const previewData = {
+    quickSearchStep1Data,
+    quickSearchStep2Data,
+    quickSearchStep3Data,
+    quickSearchStep4Data,
+    editMode: !!editMode,
+    draftJob,
+    jobId: existingJobId,
+  }
+
+  const StepSectionHeader = ({ title, onEdit }) => (
+    <View style={styles.stepHeader}>
+      <AppText variant={Variant.bodyMedium} style={styles.stepHeaderTitle}>
+        {title}
+      </AppText>
+      <TouchableOpacity
+        onPress={onEdit}
+        activeOpacity={0.8}
+        style={styles.stepHeaderEdit}
+      >
+        <VectorIcons
+          name={iconLibName.Feather}
+          iconName="edit-2"
+          size={18}
+          color={colors.primary}
+        />
+      </TouchableOpacity>
+    </View>
+  )
+
+  const openEditStep = (step) => {
+    if (step === 1) {
+      navigation.navigate(screenNames.QUICK_SEARCH_STEPONE, {
+        returnToPreview: true,
+        previewData,
+        editMode: true,
+        draftJob,
+        jobId: existingJobId,
+      })
+      return
+    }
+    if (step === 2) {
+      navigation.navigate(screenNames.QUICK_SEARCH_STEPTWO, {
+        returnToPreview: true,
+        previewData,
+        quickSearchStep1Data,
+        editMode: true,
+        draftJob,
+        jobId: existingJobId,
+      })
+      return
+    }
+    if (step === 3) {
+      navigation.navigate(screenNames.QUICK_SEARCH_STEPTHREE, {
+        returnToPreview: true,
+        previewData,
+        quickSearchStep1Data,
+        quickSearchStep2Data,
+        editMode: true,
+        draftJob,
+        jobId: existingJobId,
+      })
+      return
+    }
+    if (step === 4) {
+      navigation.navigate(screenNames.QUICK_SEARCH_STEPFOUR, {
+        returnToPreview: true,
+        previewData,
+        quickSearchStep1Data,
+        quickSearchStep2Data,
+        quickSearchStep3Data,
+        editMode: true,
+        draftJob,
+        jobId: existingJobId,
+      })
+    }
+  }
+
   // Format time string (HH:MM) to readable format (e.g., "09:00" -> "9:00 AM")
   const formatTimeString = (timeString) => {
     if (!timeString || typeof timeString !== 'string') return ''
-    
+
     // Check if it's already in HH:MM format
     const timeMatch = timeString.match(/^(\d{1,2}):(\d{2})$/)
     if (timeMatch) {
@@ -192,19 +274,19 @@ const QuickSearchPreview = ({ navigation, route }) => {
       const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours
       return `${displayHours}:${minutes} ${period}`
     }
-    
+
     // If it's not a simple time string, try formatTime (for Date objects)
     return formatTime(timeString) || ''
   }
 
   const AvailabilityRow = ({ day, timeData }) => {
     if (!timeData?.enabled) return null
-    
+
     // Validate that times exist
     if (!timeData.from || !timeData.to) {
       return null
     }
-    
+
     return (
       <View style={styles.availabilityRow}>
         <AppText variant={Variant.body} style={styles.dayLabel}>
@@ -242,6 +324,7 @@ const QuickSearchPreview = ({ navigation, route }) => {
 
     return {
       id: draftId,
+      jobReferenceId: quickSearchStep1Data?.jobReferenceId || draftJob?.jobReferenceId || '',
       title,
       type: draftJob?.type || 'Contract',
       experience: draftJob?.experience || '',
@@ -267,13 +350,44 @@ const QuickSearchPreview = ({ navigation, route }) => {
         '',
       expireDate: draftJob?.expireDate || 'Not set',
       extraPay: quickSearchStep3Data?.extraPay || draftJob?.extraPay || {},
+      overtimeRate: quickSearchStep3Data?.overtimeRate || draftJob?.overtimeRate || '',
       availability:
         quickSearchStep4Data?.availability || draftJob?.availability || {},
       jobDescription:
         quickSearchStep4Data?.jobDescription || draftJob?.jobDescription || '',
       description:
         quickSearchStep4Data?.jobDescription || draftJob?.description || '',
+      rolesAndResponsibilities:
+        quickSearchStep1Data?.rolesAndResponsibilities || draftJob?.rolesAndResponsibilities || '',
+      requiredUniforms:
+        quickSearchStep1Data?.requiredUniforms || draftJob?.requiredUniforms || '',
+      educationalQualification: (() => {
+        const ed = quickSearchStep1Data?.requiredEducation || draftJob?.requiredEducation
+        if (!ed) return draftJob?.educationalQualification || ''
+        return ed.customValue || ed.level || (typeof ed === 'string' ? ed : '')
+      })(),
+      extraQualification: Array.isArray(quickSearchStep1Data?.extraQualifications)
+        ? quickSearchStep1Data.extraQualifications
+            .map((q) => (q?.specifyText ? `${q.title}: ${q.specifyText}` : q?.title))
+            .filter(Boolean)
+            .join(', ')
+        : (draftJob?.extraQualification || ''),
+      preferredLanguages: Array.isArray(quickSearchStep1Data?.preferredLanguages)
+        ? quickSearchStep1Data.preferredLanguages
+            .map((l) => (l?.specifyText ? `${l.title}: ${l.specifyText}` : l?.title))
+            .filter(Boolean)
+            .join(', ')
+        : (draftJob?.preferredLanguages || ''),
+      freshersCanApply: !!quickSearchStep1Data?.freshersCanApply,
+      jobCategory: quickSearchStep1Data?.jobCategory || draftJob?.jobCategory || '',
+      jobSubCategory: quickSearchStep1Data?.jobSubCategory || draftJob?.jobSubCategory || '',
       taxType: quickSearchStep4Data?.taxType || draftJob?.taxType || '',
+      weekendSatExtraPay: !!quickSearchStep4Data?.weekendSatExtraPay,
+      weekendSatRate: quickSearchStep4Data?.weekendSatRate || draftJob?.weekendSatRate || '',
+      weekendSunExtraPay: !!quickSearchStep4Data?.weekendSunExtraPay,
+      weekendSunRate: quickSearchStep4Data?.weekendSunRate || draftJob?.weekendSunRate || '',
+      paidThroughWallet: !!quickSearchStep4Data?.paidThroughWallet,
+      hireSquadPairs: !!quickSearchStep4Data?.hireSquadPairs,
       searchType: 'quick',
       rawData: allData,
     }
@@ -318,16 +432,17 @@ const QuickSearchPreview = ({ navigation, route }) => {
       step3: quickSearchStep3Data,
       step4: quickSearchStep4Data
     }
-    
+
     // Calculate expiry date (30 days from now) - preserve existing when editing if available
     const expiryDate = new Date()
     expiryDate.setDate(expiryDate.getDate() + 30)
     const existingExpireDate = draftJob?.expireDate
-    
+
     // Format job data for both old jobsSlice (backward compatibility) and new quickSearchSlice
     const salarySuffix = getSalarySuffix(quickSearchStep3Data?.salaryType || 'Hourly')
     const jobData = {
       id: jobId, // keep same ID across slices for easier tracking
+      jobReferenceId: quickSearchStep1Data?.jobReferenceId || '',
       title: quickSearchStep1Data?.jobTitle,
       type: 'Contract', // Default for quick search jobs
       experience: (() => {
@@ -345,7 +460,7 @@ const QuickSearchPreview = ({ navigation, route }) => {
       staffNumber: quickSearchStep1Data?.staffCount,
       location: quickSearchStep2Data?.workLocation,
       rangeKm: quickSearchStep2Data?.rangeKm ?? 0,
-      salaryRange: quickSearchStep3Data 
+      salaryRange: quickSearchStep3Data
         ? `$${quickSearchStep3Data.salaryMin} to $${quickSearchStep3Data.salaryMax}${salarySuffix}`
         : '',
       salaryMin: quickSearchStep3Data?.salaryMin,
@@ -359,17 +474,47 @@ const QuickSearchPreview = ({ navigation, route }) => {
         year: 'numeric',
       }),
       extraPay: quickSearchStep3Data?.extraPay || {},
+      overtimeRate: quickSearchStep3Data?.overtimeRate || '',
       availability: quickSearchStep4Data?.availability || {},
-      jobDescription: quickSearchStep4Data?.jobDescription || '',
-      description: quickSearchStep4Data?.jobDescription || '',
+      jobDescription: quickSearchStep4Data?.jobDescription || quickSearchStep1Data?.rolesAndResponsibilities || '',
+      description: quickSearchStep4Data?.jobDescription || quickSearchStep1Data?.rolesAndResponsibilities || '',
+      rolesAndResponsibilities: quickSearchStep1Data?.rolesAndResponsibilities || '',
+      requiredUniforms: quickSearchStep1Data?.requiredUniforms || '',
+      educationalQualification: (() => {
+        const ed = quickSearchStep1Data?.requiredEducation
+        if (!ed) return ''
+        return ed.customValue || ed.level || (typeof ed === 'string' ? ed : '')
+      })(),
+      extraQualification: Array.isArray(quickSearchStep1Data?.extraQualifications)
+        ? quickSearchStep1Data.extraQualifications
+            .map((q) => (q?.specifyText ? `${q.title}: ${q.specifyText}` : q?.title))
+            .filter(Boolean)
+            .join(', ')
+        : '',
+      preferredLanguages: Array.isArray(quickSearchStep1Data?.preferredLanguages)
+        ? quickSearchStep1Data.preferredLanguages
+            .map((l) => (l?.specifyText ? `${l.title}: ${l.specifyText}` : l?.title))
+            .filter(Boolean)
+            .join(', ')
+        : '',
+      freshersCanApply: !!quickSearchStep1Data?.freshersCanApply,
+      jobCategory: quickSearchStep1Data?.jobCategory || '',
+      jobSubCategory: quickSearchStep1Data?.jobSubCategory || '',
       taxType: quickSearchStep4Data?.taxType,
+      weekendSatExtraPay: !!quickSearchStep4Data?.weekendSatExtraPay,
+      weekendSatRate: quickSearchStep4Data?.weekendSatRate || '',
+      weekendSunExtraPay: !!quickSearchStep4Data?.weekendSunExtraPay,
+      weekendSunRate: quickSearchStep4Data?.weekendSunRate || '',
+      paidThroughWallet: !!quickSearchStep4Data?.paidThroughWallet,
+      hireSquadPairs: !!quickSearchStep4Data?.hireSquadPairs,
       searchType: 'quick',
       rawData: allData, // Store complete data for future reference
     }
-    
+
     // Format for quick search slice
     const quickJobData = {
       id: jobId,
+      jobReferenceId: quickSearchStep1Data?.jobReferenceId || '',
       jobTitle: quickSearchStep1Data?.jobTitle,
       experienceYear: quickSearchStep1Data?.experienceYear,
       experienceMonth: quickSearchStep1Data?.experienceMonth,
@@ -380,16 +525,16 @@ const QuickSearchPreview = ({ navigation, route }) => {
       salaryMax: quickSearchStep3Data?.salaryMax,
       jobStartDate: quickSearchStep2Data?.jobStartDate,
       jobEndDate: quickSearchStep2Data?.jobEndDate,
-      offerExpiryTimer: quickSearchStep4Data?.offerExpiryTimer || 30, // days
+      offerExpiryHours: offerExpiryHours || 2, // hours
       extraPay: quickSearchStep3Data?.extraPay || {},
       availability: quickSearchStep4Data?.availability || {},
       taxType: quickSearchStep4Data?.taxType || 'ABN',
       jobDescription: quickSearchStep4Data?.jobDescription || '',
       additionalRequirements: quickSearchStep4Data?.additionalRequirements || '',
     }
-    
+
     console.log('Posting Quick Search Job:', jobData)
-    
+
     if (isEdit) {
       // Update existing job(s)
       const jobUpdates = { ...jobData }
@@ -420,7 +565,7 @@ const QuickSearchPreview = ({ navigation, route }) => {
     // 1) Dispatch to both slices for backward compatibility
     dispatch(addJob(jobData))
     dispatch(createQuickJob(quickJobData))
-    
+
     // 2) Generate / cache matches for this quick job
     dispatch(autoMatchCandidates({ jobId, settings: {} }))
 
@@ -471,7 +616,7 @@ const QuickSearchPreview = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-      
+
       <AppHeader
         title="Quick Search Preview"
         showTopIcons={false}
@@ -483,14 +628,22 @@ const QuickSearchPreview = ({ navigation, route }) => {
         }
       />
 
-      <ScrollView 
+      <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        
+
         {/* Step 1 Data - Job Requirements */}
-        <SectionTitle title="Job Requirements" />
+        <StepSectionHeader
+          title="Step 1: Job Requirements"
+          onEdit={() => openEditStep(1)}
+        />
+        <DetailRow
+          label="Job reference ID:"
+          value={quickSearchStep1Data?.jobReferenceId}
+          valueStyle={styles.highlightValue}
+        />
         <DetailRow
           label="Job category:"
           value={quickSearchStep1Data?.jobCategory}
@@ -508,8 +661,8 @@ const QuickSearchPreview = ({ navigation, route }) => {
           label="Job type:"
           value={quickSearchStep1Data?.jobType}
         />
-        <DetailRow 
-          label="Experience:" 
+        <DetailRow
+          label="Experience:"
           value={
             quickSearchStep1Data?.freshersCanApply
               ? 'Freshers can also apply'
@@ -517,8 +670,8 @@ const QuickSearchPreview = ({ navigation, route }) => {
           }
           hideIfEmpty={false}
         />
-        <DetailRow 
-          label="Positions:" 
+        <DetailRow
+          label="Positions:"
           value={quickSearchStep1Data?.staffCount}
           hideIfEmpty={false}
         />
@@ -546,9 +699,9 @@ const QuickSearchPreview = ({ navigation, route }) => {
           value={
             Array.isArray(quickSearchStep1Data?.preferredLanguages)
               ? quickSearchStep1Data.preferredLanguages
-                  .map((l) => (l?.specifyText ? `${l.title}: ${l.specifyText}` : l?.title))
-                  .filter(Boolean)
-                  .join(', ')
+                .map((l) => (l?.specifyText ? `${l.title}: ${l.specifyText}` : l?.title))
+                .filter(Boolean)
+                .join(', ')
               : ''
           }
         />
@@ -557,109 +710,105 @@ const QuickSearchPreview = ({ navigation, route }) => {
           value={
             Array.isArray(quickSearchStep1Data?.extraQualifications)
               ? quickSearchStep1Data.extraQualifications
-                  .map((q) => (q?.specifyText ? `${q.title}: ${q.specifyText}` : q?.title))
-                  .filter(Boolean)
-                  .join(', ')
+                .map((q) => (q?.specifyText ? `${q.title}: ${q.specifyText}` : q?.title))
+                .filter(Boolean)
+                .join(', ')
               : ''
           }
         />
 
         {/* Step 2 Data - Work Location */}
-        <SectionTitle title="Work Location & Dates" />
-        <DetailRow 
-          label="Work location:" 
+        <StepSectionHeader
+          title="Step 2: Work Location & Dates"
+          onEdit={() => openEditStep(2)}
+        />
+        <DetailRow
+          label="Work location:"
           value={quickSearchStep2Data?.workLocation}
         />
-        <DetailRow 
-          label="Range from location:" 
+        <DetailRow
+          label="Range from location:"
           value={typeof quickSearchStep2Data?.rangeKm === 'number' ? `${quickSearchStep2Data.rangeKm} km` : ''}
           hideIfEmpty={false}
         />
-        <DetailRow 
-          label="Job start date:" 
+        <DetailRow
+          label="Job start date:"
           value={formatDate(quickSearchStep2Data?.jobStartDate)}
         />
-        <DetailRow 
-          label="Job end date:" 
+        <DetailRow
+          label="Job end date:"
           value={formatDate(quickSearchStep2Data?.jobEndDate)}
         />
 
         {/* Step 3 Data - Salary & Benefits */}
-        <SectionTitle title="Salary & Benefits" />
-        <DetailRow 
-          label="Fixed rate:" 
+        <StepSectionHeader
+          title="Step 3: Salary & Benefits"
+          onEdit={() => openEditStep(3)}
+        />
+        <DetailRow
+          label="Fixed rate:"
           value={
             quickSearchStep3Data
               ? `$${quickSearchStep3Data.fixedRate ?? quickSearchStep3Data.salaryMin}${getSalarySuffix(
-                  quickSearchStep3Data?.salaryType,
-                )}`
+                quickSearchStep3Data?.salaryType,
+              )}`
               : ''
           }
           valueStyle={styles.salaryValue}
           hideIfEmpty={false}
         />
 
-        <SectionTitle title="Extra Pay" />
-        <DetailRow 
-          label="Overtime:" 
-          value={quickSearchStep3Data?.extraPay?.overtime ? 'Yes' : 'No'}
-          valueStyle={quickSearchStep3Data?.extraPay?.overtime && styles.yesValue}
-        />
-        {quickSearchStep3Data?.extraPay?.overtime ? (
-          <DetailRow
-            label="Overtime rate:"
-            value={
-              quickSearchStep3Data?.overtimeRate
-                ? `$${quickSearchStep3Data.overtimeRate}`
-                : ''
-            }
-            hideIfEmpty={false}
-          />
+        {(quickSearchStep3Data?.extraPay?.overtime || quickSearchStep4Data?.weekendSatExtraPay || quickSearchStep4Data?.weekendSunExtraPay) ? (
+          <>
+            <SectionTitle title="Extra Pay" />
+            {quickSearchStep3Data?.extraPay?.overtime ? (
+              <DetailRow
+                label="Overtime:"
+                value={
+                  quickSearchStep3Data?.overtimeRate
+                    ? `$${quickSearchStep3Data.overtimeRate}`
+                    : 'Yes'
+                }
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+            {quickSearchStep4Data?.weekendSatExtraPay ? (
+              <DetailRow
+                label="Saturday extra pay:"
+                value={
+                  quickSearchStep4Data?.weekendSatRate
+                    ? `$${quickSearchStep4Data.weekendSatRate}`
+                    : 'Yes'
+                }
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+            {quickSearchStep4Data?.weekendSunExtraPay ? (
+              <DetailRow
+                label="Sunday extra pay:"
+                value={
+                  quickSearchStep4Data?.weekendSunRate
+                    ? `$${quickSearchStep4Data.weekendSunRate}`
+                    : 'Yes'
+                }
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+          </>
         ) : null}
 
         {/* Step 4 Data - Availability */}
-        <SectionTitle title="Availability to Work:" />
+        <StepSectionHeader
+          title="Step 4: Availability & Tax"
+          onEdit={() => openEditStep(4)}
+        />
         <View style={styles.availabilityContainer}>
-          {quickSearchStep4Data?.availability && 
+          {quickSearchStep4Data?.availability &&
             Object.entries(quickSearchStep4Data.availability).map(([day, timeData]) => (
               <AvailabilityRow key={day} day={day} timeData={timeData} />
             ))
           }
         </View>
-
-        <SectionTitle title="Weekend extra pay" />
-        <DetailRow
-          label="Saturday extra pay:"
-          value={quickSearchStep4Data?.weekendSatExtraPay ? 'Yes' : 'No'}
-          valueStyle={quickSearchStep4Data?.weekendSatExtraPay && styles.yesValue}
-        />
-        {quickSearchStep4Data?.weekendSatExtraPay ? (
-          <DetailRow
-            label="Saturday rate:"
-            value={
-              quickSearchStep4Data?.weekendSatRate
-                ? `$${quickSearchStep4Data.weekendSatRate}`
-                : ''
-            }
-            hideIfEmpty={false}
-          />
-        ) : null}
-        <DetailRow
-          label="Sunday extra pay:"
-          value={quickSearchStep4Data?.weekendSunExtraPay ? 'Yes' : 'No'}
-          valueStyle={quickSearchStep4Data?.weekendSunExtraPay && styles.yesValue}
-        />
-        {quickSearchStep4Data?.weekendSunExtraPay ? (
-          <DetailRow
-            label="Sunday rate:"
-            value={
-              quickSearchStep4Data?.weekendSunRate
-                ? `$${quickSearchStep4Data.weekendSunRate}`
-                : ''
-            }
-            hideIfEmpty={false}
-          />
-        ) : null}
 
         <SectionTitle title="Tax type & hiring" />
         <DetailRow
@@ -667,8 +816,8 @@ const QuickSearchPreview = ({ navigation, route }) => {
           value={quickSearchStep4Data?.paidThroughWallet ? 'Yes' : 'No'}
           valueStyle={quickSearchStep4Data?.paidThroughWallet && styles.yesValue}
         />
-        <DetailRow 
-          label="Required Tax type:" 
+        <DetailRow
+          label="Required Tax type:"
           value={quickSearchStep4Data?.taxType}
           valueStyle={styles.highlightValue}
         />
@@ -677,6 +826,41 @@ const QuickSearchPreview = ({ navigation, route }) => {
           value={quickSearchStep4Data?.hireSquadPairs ? 'Yes' : 'No'}
           valueStyle={quickSearchStep4Data?.hireSquadPairs && styles.yesValue}
         />
+
+        {/* Offer Expiry */}
+        <SectionTitle title="Offer Expires" />
+        <AppText variant={Variant.body} style={styles.detailLabel}>
+          How long should the offer remain open?
+        </AppText>
+        <View style={styles.sliderContainer}>
+          <View style={styles.sliderRow}>
+            <TouchableOpacity
+              onPress={() => setOfferExpiryHours(Math.max(1, offerExpiryHours - 1))}
+              activeOpacity={0.7}
+              style={styles.sliderBtn}
+            >
+              <AppText variant={Variant.bodyMedium} style={styles.sliderBtnText}>−</AppText>
+            </TouchableOpacity>
+            <View style={styles.sliderValueBox}>
+              <AppText variant={Variant.h2} style={styles.sliderValue}>
+                {offerExpiryHours}
+              </AppText>
+              <AppText variant={Variant.body} style={styles.sliderUnit}>
+                {offerExpiryHours === 1 ? 'hour' : 'hours'}
+              </AppText>
+            </View>
+            <TouchableOpacity
+              onPress={() => setOfferExpiryHours(Math.min(24, offerExpiryHours + 1))}
+              activeOpacity={0.7}
+              style={styles.sliderBtn}
+            >
+              <AppText variant={Variant.bodyMedium} style={styles.sliderBtnText}>+</AppText>
+            </TouchableOpacity>
+          </View>
+          <AppText variant={Variant.caption} style={styles.sliderHint}>
+            Min: 1 hour  •  Max: 24 hours
+          </AppText>
+        </View>
 
         {/* Actions */}
         {isEditingActive ? (
@@ -759,6 +943,22 @@ const styles = StyleSheet.create({
     marginTop: hp(3),
     marginBottom: hp(1.5),
   },
+  stepHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: hp(2.5),
+    marginBottom: hp(1.2),
+    paddingBottom: hp(1),
+    borderBottomWidth: 1,
+    borderBottomColor: colors.grayE8 || '#E5E7EB',
+  },
+  stepHeaderTitle: {
+    fontWeight: '800',
+  },
+  stepHeaderEdit: {
+    padding: wp(1),
+  },
   detailRow: {
     marginBottom: hp(1.5),
   },
@@ -796,6 +996,50 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.black,
     flex: 1,
+  },
+  sliderContainer: {
+    marginTop: hp(1),
+    marginBottom: hp(2),
+    alignItems: 'center',
+  },
+  sliderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: wp(4),
+  },
+  sliderBtn: {
+    width: wp(10),
+    height: wp(10),
+    borderRadius: wp(5),
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sliderBtnText: {
+    fontSize: getFontSize(20),
+    color: colors.primary,
+    fontWeight: '700',
+  },
+  sliderValueBox: {
+    alignItems: 'center',
+    minWidth: wp(20),
+  },
+  sliderValue: {
+    color: colors.primary,
+    fontWeight: '800',
+    fontSize: getFontSize(28),
+  },
+  sliderUnit: {
+    color: colors.gray,
+    fontSize: getFontSize(12),
+    marginTop: -hp(0.5),
+  },
+  sliderHint: {
+    color: colors.gray,
+    marginTop: hp(1),
+    fontSize: getFontSize(11),
   },
   buttonContainer: {
     marginTop: hp(3),

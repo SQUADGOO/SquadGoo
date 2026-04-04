@@ -26,6 +26,8 @@ const QuickSearchStepFour = ({ navigation, route }) => {
     editMode,
     draftJob,
     jobId,
+    returnToPreview,
+    previewData,
   } = route.params || {}
 
   const step4Draft = draftJob?.rawData?.step4 || {}
@@ -139,6 +141,21 @@ const QuickSearchStepFour = ({ navigation, route }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editMode, draftJob])
+
+  // Pre-fill from previewData when returning from preview edit
+  useEffect(() => {
+    if (returnToPreview && previewData?.quickSearchStep4Data) {
+      const s4 = previewData.quickSearchStep4Data
+      if (s4.availability) setValue('availability', s4.availability)
+      if (typeof s4.paidThroughWallet === 'boolean') setValue('paidThroughWallet', s4.paidThroughWallet)
+      if (typeof s4.hireSquadPairs === 'boolean') setValue('hireSquadPairs', s4.hireSquadPairs)
+      if (typeof s4.weekendSatExtraPay === 'boolean') setValue('weekendSatExtraPay', s4.weekendSatExtraPay)
+      if (typeof s4.weekendSunExtraPay === 'boolean') setValue('weekendSunExtraPay', s4.weekendSunExtraPay)
+      if (typeof s4.weekendSatRate === 'string') setValue('weekendSatRate', s4.weekendSatRate)
+      if (typeof s4.weekendSunRate === 'string') setValue('weekendSunRate', s4.weekendSunRate)
+      if (s4.taxType) setValue('taxType', s4.taxType)
+    }
+  }, [returnToPreview, previewData])
 
   useEffect(() => {
     // Wallet payment forces ABN
@@ -259,6 +276,19 @@ const QuickSearchStepFour = ({ navigation, route }) => {
     console.log('Quick Search Step 4 Data:', quickSearchStep4Data)
     
     // Navigate to preview with ALL data from all 4 steps
+    if (returnToPreview) {
+      navigation.navigate(screenNames.QUICK_SEARCH_PREVIEW, {
+        quickSearchStep1Data: previewData?.quickSearchStep1Data || quickSearchStep1Data,
+        quickSearchStep2Data: previewData?.quickSearchStep2Data || quickSearchStep2Data,
+        quickSearchStep3Data: previewData?.quickSearchStep3Data || quickSearchStep3Data,
+        quickSearchStep4Data,
+        editMode: previewData?.editMode,
+        draftJob: previewData?.draftJob,
+        jobId: previewData?.jobId,
+      })
+      return
+    }
+
     navigation.navigate(screenNames.QUICK_SEARCH_PREVIEW, { 
       quickSearchStep1Data,
       quickSearchStep2Data,

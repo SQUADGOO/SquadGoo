@@ -35,9 +35,14 @@ export const EXPERIENCE_MONTH_OPTIONS = [
   { id: 2, title: '1 Month' },
   { id: 3, title: '2 Months' },
   { id: 4, title: '3 Months' },
-  { id: 5, title: '6 Months' },
-  { id: 6, title: '9 Months' },
-  { id: 7, title: '11 Months' },
+  { id: 5, title: '4 Months' },
+  { id: 6, title: '5 Months' },
+  { id: 7, title: '6 Months' },
+  { id: 8, title: '7 Months' },
+  { id: 9, title: '8 Months' },
+  { id: 10, title: '9 Months' },
+  { id: 11, title: '10 Months' },
+  { id: 12, title: '11 Months' },
 ]
 
 export const SALARY_TYPE_OPTIONS = [

@@ -28,9 +28,9 @@ export const autoSendOffers = (
   const staffCount = parseInt(job.staffCount || job.staffNumber || '1');
   const topMatches = matches.slice(0, staffCount);
 
-  // Calculate expiry date
-  const expiryDays = job.offerExpiryTimer || 30;
-  const expiresAt = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000);
+  // Calculate expiry date (hours-based)
+  const expiryHours = job.offerExpiryHours || 2;
+  const expiresAt = new Date(Date.now() + expiryHours * 60 * 60 * 1000);
 
   // Send offers
   const offers = topMatches.map(candidate => {
@@ -92,9 +92,9 @@ export const resendOfferToNextMatch = (
     return null; // No more matches available
   }
 
-  // Calculate expiry date
-  const expiryDays = job.offerExpiryTimer || 30;
-  const expiresAt = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000);
+  // Calculate expiry date (hours-based)
+  const expiryHours = job.offerExpiryHours || 2;
+  const expiresAt = new Date(Date.now() + expiryHours * 60 * 60 * 1000);
 
   const offer = {
     jobId: job.id,

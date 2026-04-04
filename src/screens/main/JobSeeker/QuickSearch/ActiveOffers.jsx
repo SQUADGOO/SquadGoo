@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { colors, hp, wp, getFontSize } from '@/theme';
@@ -165,6 +165,58 @@ const ActiveOffers = ({ navigation }) => {
     return `${diff} days left`;
   };
 
+  // Live countdown component for each offer card
+  const CountdownTimer = ({ expiresAt }) => {
+    const [display, setDisplay] = useState('')
+    const [urgent, setUrgent] = useState(false)
+    const intervalRef = useRef(null)
+
+    useEffect(() => {
+      const tick = () => {
+        const now = Date.now()
+        const expiry = new Date(expiresAt).getTime()
+        const diff = expiry - now
+
+        if (diff <= 0) {
+          setDisplay('0:00:00')
+          setUrgent(true)
+          return
+        }
+
+        const totalSeconds = Math.floor(diff / 1000)
+        const hours = Math.floor(totalSeconds / 3600)
+        const minutes = Math.floor((totalSeconds % 3600) / 60)
+        const seconds = totalSeconds % 60
+        setDisplay(`${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`)
+        setUrgent(diff < 30 * 60 * 1000)
+      }
+
+      tick()
+      intervalRef.current = setInterval(tick, 1000)
+      return () => clearInterval(intervalRef.current)
+    }, [expiresAt])
+
+    return (
+      <View style={[styles.countdownRow, urgent && styles.countdownUrgentBg]}>
+        <VectorIcons
+          name={iconLibName.Ionicons}
+          iconName="timer-outline"
+          size={16}
+          color={urgent ? '#EF4444' : colors.primary}
+        />
+        <AppText
+          variant={Variant.bodyMedium}
+          style={[styles.countdownValue, urgent && styles.countdownUrgentText]}
+        >
+          {display}
+        </AppText>
+        <AppText variant={Variant.caption} style={[styles.countdownLabel, urgent && { color: '#EF4444' }]}>
+          {display === '0:00:00' ? 'Expired' : ' remaining'}
+        </AppText>
+      </View>
+    )
+  }
+
   const OfferCard = ({ offer }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
@@ -181,6 +233,9 @@ const ActiveOffers = ({ navigation }) => {
         <AppText variant={Variant.caption} style={styles.expiryText}>
           {formatExpiryTime(offer.expiresAt)}
         </AppText>
+        {offer.expiresAt && (
+          <CountdownTimer expiresAt={offer.expiresAt} />
+        )}
       </View>
 
       <View style={styles.detailsRow}>
@@ -360,6 +415,31 @@ const styles = StyleSheet.create({
     fontSize: getFontSize(14),
     textAlign: 'center',
     lineHeight: 20,
+  },
+  countdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1.5),
+    marginTop: hp(0.5),
+  },
+  countdownUrgentBg: {
+    backgroundColor: '#FEF2F2',
+    paddingHorizontal: wp(2),
+    paddingVertical: hp(0.4),
+    borderRadius: hp(1),
+  },
+  countdownValue: {
+    color: colors.primary,
+    fontSize: getFontSize(14),
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+  },
+  countdownUrgentText: {
+    color: '#EF4444',
+  },
+  countdownLabel: {
+    color: colors.gray,
+    fontSize: getFontSize(11),
   },
 });
 

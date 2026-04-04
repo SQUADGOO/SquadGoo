@@ -22,6 +22,7 @@ import SendManualOfferModal from '@/components/Recruiter/ManualSearch/SendManual
 import { showToast, toastTypes } from '@/utilities/toastConfig';
 import { screenNames } from '@/navigation/screenNames';
 import { scoreJobPostSuspicion } from '@/utilities/mediaModeration';
+import CandidateProfileView from '@/components/Recruiter/CandidateProfileView';
 
 const QuickSearchCandidateProfile = ({ route, navigation }) => {
   const { jobId, candidateId, squadId, mode } = route.params || {};
@@ -389,7 +390,26 @@ const QuickSearchCandidateProfile = ({ route, navigation }) => {
           </View>
         ) : null}
 
-        {/* Profile Header Card */}
+        {/* Profile – use shared component for individual candidates */}
+        {!candidate.isSquad ? (
+          <CandidateProfileView candidate={candidate}>
+            <View style={styles.footerActions}>
+              {isDeclinedReview || isExpiredReview ? (
+                <AppButton text="Back" onPress={() => navigation.goBack()} bgColor="#FFFFFF" textStyle={{color: colors.primary}} style={styles.secondaryButton} />
+              ) : isWorkCoordination ? (
+                <>
+                  <AppButton text="Message" onPress={handleMessage} bgColor={colors.primary} textColor="#FFF" style={styles.primaryButton} />
+                  <AppButton text="Track Hours" onPress={handleTrackHours} bgColor="#FFFFFF" textStyle={{color: colors.primary}} style={styles.secondaryButton} />
+                </>
+              ) : (
+                <>
+                  <AppButton text="Send Offer" onPress={() => setOfferModal(true)} bgColor={colors.primary} textColor="#FFF" style={styles.primaryButton} />
+                  <AppButton text="Back to Matches" onPress={() => navigation.goBack()} bgColor="#FFFFFF" textStyle={{color: colors.primary}} style={styles.secondaryButton} />
+                </>
+              )}
+            </View>
+          </CandidateProfileView>
+        ) : (
         <View style={styles.profileCard}>
           <View style={styles.profileHeader}>
             {candidate.avatar ? (
@@ -433,20 +453,7 @@ const QuickSearchCandidateProfile = ({ route, navigation }) => {
             </View>
           </View>
           <View style={styles.statsRow}>
-            {!candidate.isSquad && (
-              <View style={styles.statBadge}>
-                <VectorIcons
-                  name={iconLibName.Ionicons}
-                  iconName="stats-chart"
-                  size={16}
-                  color="#F59E0B"
-                />
-                <AppText variant={Variant.bodyMedium} style={styles.statText}>
-                  {candidate.matchPercentage}% Match
-                </AppText>
-              </View>
-            )}
-            {candidate.isSquad && candidate.squad && (
+            {candidate.squad && (
               <View style={styles.statBadge}>
                 <VectorIcons
                   name={iconLibName.Ionicons}
@@ -470,7 +477,7 @@ const QuickSearchCandidateProfile = ({ route, navigation }) => {
                 {candidate.acceptanceRating}% Rating
               </AppText>
             </View>
-            {candidate.isSquad && candidate.squad && (
+            {candidate.squad && (
               <View style={styles.statBadge}>
                 <VectorIcons
                   name={iconLibName.Ionicons}
@@ -485,6 +492,7 @@ const QuickSearchCandidateProfile = ({ route, navigation }) => {
             )}
           </View>
         </View>
+        )}
 
         {/* Squad Members Section */}
         {candidate.isSquad && candidate.squad?.members?.length > 0 && (
@@ -562,6 +570,9 @@ const QuickSearchCandidateProfile = ({ route, navigation }) => {
           </View>
         )}
 
+        {/* Squad-only: detail sections (non-squad uses CandidateProfileView above) */}
+        {candidate.isSquad ? (
+        <>
         <View style={styles.card}>
           <View style={styles.sectionHeader}>
             <VectorIcons
@@ -571,35 +582,21 @@ const QuickSearchCandidateProfile = ({ route, navigation }) => {
               color={colors.primary}
             />
             <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
-              {candidate.isSquad ? 'Squad Details' : 'Experience & Skills'}
+              Squad Details
             </AppText>
           </View>
           <View style={styles.divider} />
-          {candidate.isSquad ? (
-            <View style={styles.infoRow}>
-              <VectorIcons
-                name={iconLibName.Ionicons}
-                iconName="time-outline"
-                size={16}
-                color={colors.gray}
-              />
-              <AppText variant={Variant.body} style={styles.infoText}>
-                {candidate.squad?.experience || 'N/A'}
+          <View style={styles.infoRow}>
+            <VectorIcons
+              name={iconLibName.Ionicons}
+              iconName="time-outline"
+              size={16}
+              color={colors.gray}
+            />
+            <AppText variant={Variant.body} style={styles.infoText}>
+              {candidate.squad?.experience || 'N/A'}
               </AppText>
-            </View>
-          ) : (
-            <View style={styles.infoRow}>
-              <VectorIcons
-                name={iconLibName.Ionicons}
-                iconName="time-outline"
-                size={16}
-                color={colors.gray}
-              />
-              <AppText variant={Variant.body} style={styles.infoText}>
-                {candidate.experienceYears}+ years experience
-              </AppText>
-            </View>
-          )}
+          </View>
           {candidate.industries?.length ? (
             <View style={[styles.infoRow, styles.infoRowSpacing]}>
               <VectorIcons
@@ -1082,6 +1079,8 @@ const QuickSearchCandidateProfile = ({ route, navigation }) => {
             </>
           )}
         </View>
+        </>
+        ) : null}
           </>
         ) : activeTab === 'media' ? (
           <>

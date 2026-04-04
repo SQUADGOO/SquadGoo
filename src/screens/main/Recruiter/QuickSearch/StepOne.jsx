@@ -1,5 +1,5 @@
 // QuickSearchStepOne.js - Job Requirements
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native'
 import { useForm, FormProvider } from 'react-hook-form'
 import { colors, hp, wp, getFontSize } from '@/theme'
@@ -130,6 +130,8 @@ const QuickSearchStepOne = ({ navigation, route }) => {
   const editMode = route?.params?.editMode
   const draftJob = route?.params?.draftJob
   const existingJobId = route?.params?.jobId || draftJob?.id
+  const returnToPreview = route?.params?.returnToPreview
+  const previewData = route?.params?.previewData
 
   const step1Draft = draftJob?.rawData?.step1 || {}
 
@@ -146,6 +148,14 @@ const QuickSearchStepOne = ({ navigation, route }) => {
   const [extraQualifications, setExtraQualifications] = useState(
     step1Draft?.extraQualifications || draftJob?.extraQualifications || [],
   )
+
+  const jobReferenceId = useMemo(() => {
+    if (previewData?.quickSearchStep1Data?.jobReferenceId) return previewData.quickSearchStep1Data.jobReferenceId
+    if (draftJob?.jobReferenceId) return draftJob.jobReferenceId
+    if (draftJob?.id) return `JOB-${String(draftJob.id).slice(-6).toUpperCase()}`
+    const random = Math.random().toString(36).slice(2, 8).toUpperCase()
+    return `JOB-${random}`
+  }, [draftJob, previewData])
 
   const methods = useForm({
     mode: 'onChange',
@@ -185,6 +195,28 @@ const QuickSearchStepOne = ({ navigation, route }) => {
     }
   }, [editMode, draftJob])
 
+  // Pre-fill from previewData when returning from preview edit
+  useEffect(() => {
+    if (returnToPreview && previewData?.quickSearchStep1Data) {
+      const s1 = previewData.quickSearchStep1Data
+      if (s1.jobCategory) setJobCategory(s1.jobCategory)
+      if (s1.jobSubCategory) setJobSubCategory(s1.jobSubCategory)
+      if (s1.jobTitle) setJobTitle(s1.jobTitle)
+      if (s1.jobType) setJobType(s1.jobType)
+      if (s1.requiredEducation) setRequiredEducation(s1.requiredEducation)
+      if (s1.preferredLanguages) setPreferredLanguages(s1.preferredLanguages)
+      if (s1.extraQualifications) setExtraQualifications(s1.extraQualifications)
+      methods.reset({
+        freshersCanApply: !!s1.freshersCanApply,
+        experienceYear: s1.experienceYear ?? '0 Year',
+        experienceMonth: s1.experienceMonth ?? '0 Month',
+        staffCount: s1.staffCount ? String(s1.staffCount) : '',
+        rolesAndResponsibilities: s1.rolesAndResponsibilities ?? '',
+        requiredUniforms: s1.requiredUniforms ?? '',
+      })
+    }
+  }, [returnToPreview, previewData])
+
   const { watch, setValue, handleSubmit } = methods
 
   const experienceYear = watch('experienceYear')
@@ -217,9 +249,14 @@ const QuickSearchStepOne = ({ navigation, route }) => {
     { id: 2, title: '1 Month' },
     { id: 3, title: '2 Months' },
     { id: 4, title: '3 Months' },
-    { id: 5, title: '6 Months' },
-    { id: 6, title: '9 Months' },
-    { id: 7, title: '11 Months' }
+    { id: 5, title: '4 Months' },
+    { id: 6, title: '5 Months' },
+    { id: 7, title: '6 Months' },
+    { id: 8, title: '7 Months' },
+    { id: 9, title: '8 Months' },
+    { id: 10, title: '9 Months' },
+    { id: 11, title: '10 Months' },
+    { id: 12, title: '11 Months' },
   ]
 
   const jobTypeOptions = JOB_TYPE_OPTIONS.map((t, idx) => ({ id: idx + 1, title: t }))
@@ -289,6 +326,7 @@ const QuickSearchStepOne = ({ navigation, route }) => {
       }
 
       const quickSearchStep1Data = {
+        jobReferenceId,
         jobTitle: jobTitle.trim(),
         jobCategory: jobCategory,
         jobSubCategory: jobSubCategory,
@@ -305,6 +343,20 @@ const QuickSearchStepOne = ({ navigation, route }) => {
       }
 
       console.log('Quick Search Step 1 Data:', quickSearchStep1Data)
+
+      if (returnToPreview) {
+        navigation.navigate(screenNames.QUICK_SEARCH_PREVIEW, {
+          quickSearchStep1Data,
+          quickSearchStep2Data: previewData?.quickSearchStep2Data,
+          quickSearchStep3Data: previewData?.quickSearchStep3Data,
+          quickSearchStep4Data: previewData?.quickSearchStep4Data,
+          editMode: previewData?.editMode,
+          draftJob: previewData?.draftJob,
+          jobId: previewData?.jobId,
+        })
+        return
+      }
+
       navigation.navigate(screenNames.QUICK_SEARCH_STEPTWO, {
         quickSearchStep1Data,
         editMode: !!editMode,
