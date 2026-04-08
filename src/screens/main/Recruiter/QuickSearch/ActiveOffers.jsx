@@ -31,7 +31,6 @@ const tabs = [
   { id: 'pending', label: 'Pending' },
   { id: 'accepted', label: 'Accepted' },
   { id: 'declined', label: 'Declined' },
-  { id: 'modification_requested', label: 'Modifications' },
   { id: 'expired', label: 'Expired' },
 ];
 
@@ -95,9 +94,12 @@ const ActiveOffers = ({ navigation, route }) => {
 
   const filteredOffers = useMemo(() => {
     return allOffers.filter(offer => {
-      if (offer.status !== currentTab) return false;
       if (jobIdFromRoute && offer.jobId !== jobIdFromRoute) return false;
-      return true;
+      // Modification requests show within Pending tab with badge
+      if (currentTab === 'pending') {
+        return offer.status === 'pending' || offer.status === 'modification_requested';
+      }
+      return offer.status === currentTab;
     });
   }, [allOffers, currentTab, jobIdFromRoute]);
 
@@ -242,7 +244,7 @@ const ActiveOffers = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <AppHeader
-        title="Quick Search Offers"
+        title="Quick Fill Offers"
         showBackButton
         onBackPress={() => navigation.goBack()}
       />

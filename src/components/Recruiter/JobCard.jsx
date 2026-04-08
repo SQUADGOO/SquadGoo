@@ -209,7 +209,7 @@ const JobCard = ({
                 : styles.manualSearchBadge,
             ]}>
             <AppText variant={Variant.caption} style={styles.searchTypeText}>
-              {searchType === 'quick' ? 'Quick Search' : 'Manual Search'}
+              {searchType === 'quick' ? 'Quick Fill' : 'Manual Fill'}
             </AppText>
           </View>
         </View>

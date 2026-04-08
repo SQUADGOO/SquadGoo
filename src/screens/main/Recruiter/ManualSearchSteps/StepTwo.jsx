@@ -354,7 +354,7 @@ const StepTwo = ({ navigation, route }) => {
   return (
     <FormProvider {...methods}>
       <AppHeader
-        title="Manual Search"
+        title="Manual Fill"
         showTopIcons={false}
         rightComponent={
           <TouchableOpacity activeOpacity={0.7}>

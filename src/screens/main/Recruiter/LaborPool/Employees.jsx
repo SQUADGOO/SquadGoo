@@ -26,6 +26,10 @@ const Employees = ({ navigation }) => {
   const [badge, setBadge] = useState('all');
   const [radius, setRadius] = useState('all');
   const [sort, setSort] = useState('rating_desc');
+  const [jobType, setJobType] = useState('any');
+  const [acceptanceRating, setAcceptanceRating] = useState('any');
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [poolStatus, setPoolStatus] = useState('any');
 
   const locationOptions = useMemo(() => getLocationOptions(DUMMY_EMPLOYEES), []);
   const roleOptions = useMemo(() => getPreferredRoleOptions(DUMMY_EMPLOYEES), []);
@@ -43,6 +47,10 @@ const Employees = ({ navigation }) => {
     setBadge('all');
     setRadius('all');
     setSort('rating_desc');
+    setJobType('any');
+    setAcceptanceRating('any');
+    setVerifiedOnly(false);
+    setPoolStatus('any');
   };
 
   const employees = useMemo(() => {

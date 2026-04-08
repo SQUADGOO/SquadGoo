@@ -45,13 +45,31 @@ const Profile = () => {
 
   const [isActive, setIsActive] = useState(true);
 
+  // Calculate dynamic profile completion percentage
+  const profileFields = [
+    userInfo?.firstName,
+    userInfo?.lastName,
+    userInfo?.email,
+    phoneValue,
+    userInfo?.dateOfBirth,
+    userInfo?.homeAddress,
+    userInfo?.bio,
+    userInfo?.profile_picture,
+    businessName,
+    abnOrAcn,
+    userInfo?.kycVerified,
+    userInfo?.linkedinProfile || userInfo?.facebookProfile || userInfo?.instagramProfile,
+  ];
+  const filledFields = profileFields.filter(Boolean).length;
+  const profileCompletion = Math.round((filledFields / profileFields.length) * 100);
+
   const kycVerified = !!userInfo?.kycVerified;
   const kybVerified = !!userInfo?.kybVerified;
   const hasSubmitted = !!userInfo?.kycKyb?.submittedAt;
   const verificationStatus = kycVerified && (isRecruiter ? kybVerified : true)
     ? 'Verified'
     : hasSubmitted
-    ? 'Pending'
+    ? 'In Review'
     : 'Not started';
   const verificationColor =
     verificationStatus === 'Verified'
@@ -215,10 +233,10 @@ const Profile = () => {
             <View style={styles.completionRow}>
               <View style={{ flex: 1 }}>
                 <AppText variant={Variant.caption} style={styles.infoText}>
-                  Profile <Text style={{ fontFamily: fonts.poppinsSemiBold }}>80% Complete</Text>
+                  Profile <Text style={{ fontFamily: fonts.poppinsSemiBold }}>{profileCompletion}% Complete</Text>
                 </AppText>
                 <View style={styles.progressBarBg}>
-                  <View style={[styles.progressBarFill, { width: '80%' }]} />
+                  <View style={[styles.progressBarFill, { width: `${profileCompletion}%` }]} />
                 </View>
               </View>
               <TouchableOpacity

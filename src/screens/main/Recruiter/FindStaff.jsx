@@ -108,15 +108,15 @@ const FindStaff = ({ navigation }) => {
         <View style={styles.searchOptionsContainer}>
           
           <SearchOption
-            title="Manual Search"
-            description="Browse all candidates, filter by skills/location, and send offers directly."
+            title="Manual Fill"
+            description="Find and connect with staff directly. Browse all candidates, filter by skills/location, and send offers directly."
             onPress={handleManualSearch}
           />
 
-            <View style={{height: 0.5, backgroundColor: colors.textPrimary}} />            
+            <View style={{height: 0.5, backgroundColor: colors.textPrimary}} />
           <SearchOption
-            title="Quick Search"
-            description="Enter job details, system auto-matches and sends offers instantly to best candidates."
+            title="Quick Fill"
+            description="Let us match you instantly. Enter job details, system auto-matches and sends offers instantly to best candidates."
             onPress={handleQuickSearch}
           />
 

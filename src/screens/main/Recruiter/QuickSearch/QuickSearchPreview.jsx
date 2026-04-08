@@ -6,7 +6,9 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
-  Alert
+  Alert,
+  ActivityIndicator,
+  Modal,
 } from 'react-native'
 import { useDispatch, useSelector } from 'react-redux'
 import { colors, hp, wp, getFontSize } from '@/theme'
@@ -39,6 +41,8 @@ const QuickSearchPreview = ({ navigation, route }) => {
     draftJob,
     jobId: existingJobId,
   } = route.params || {}
+
+  const [isSending, setIsSending] = useState(false)
 
   const [offerExpiryHours, setOfferExpiryHours] = useState(2)
 
@@ -562,6 +566,9 @@ const QuickSearchPreview = ({ navigation, route }) => {
       return
     }
 
+    // Show sending progress
+    setIsSending(true)
+
     // 1) Dispatch to both slices for backward compatibility
     dispatch(addJob(jobData))
     dispatch(createQuickJob(quickJobData))
@@ -570,6 +577,7 @@ const QuickSearchPreview = ({ navigation, route }) => {
     dispatch(autoMatchCandidates({ jobId, settings: {} }))
 
     if (quickFillSendMode === 'manual') {
+      setIsSending(false)
       Alert.alert(
         'Job Posted Successfully!',
         'Matches are ready. Please review candidates and send offers manually.',
@@ -596,21 +604,25 @@ const QuickSearchPreview = ({ navigation, route }) => {
       sendQuickOffer                       // action creator
     )
 
-    Alert.alert(
-      'Job Posted Successfully!',
-      'Your job offer has been posted, matches found, and offers sent automatically.',
-      [
-        {
-          text: 'View Quick Search Offers',
-          onPress: () => {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: screenNames.QUICK_SEARCH_ACTIVE_OFFERS_RECRUITER }],
-            })
+    // Brief delay to show progress indicator
+    setTimeout(() => {
+      setIsSending(false)
+      Alert.alert(
+        'Job Posted Successfully!',
+        'Your job offer has been posted, matches found, and offers sent automatically.',
+        [
+          {
+            text: 'View Candidates who Received Offers',
+            onPress: () => {
+              navigation.reset({
+                index: 0,
+                routes: [{ name: screenNames.QUICK_SEARCH_ACTIVE_OFFERS_RECRUITER }],
+              })
+            },
           },
-        },
-      ]
-    )
+        ]
+      )
+    }, 1500)
   }
 
   return (
@@ -618,7 +630,7 @@ const QuickSearchPreview = ({ navigation, route }) => {
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
       <AppHeader
-        title="Quick Search Preview"
+        title="Quick Fill Preview"
         showTopIcons={false}
         height={hp(14)}
         rightComponent={
@@ -758,43 +770,45 @@ const QuickSearchPreview = ({ navigation, route }) => {
           hideIfEmpty={false}
         />
 
-        {(quickSearchStep3Data?.extraPay?.overtime || quickSearchStep4Data?.weekendSatExtraPay || quickSearchStep4Data?.weekendSunExtraPay) ? (
-          <>
-            <SectionTitle title="Extra Pay" />
-            {quickSearchStep3Data?.extraPay?.overtime ? (
-              <DetailRow
-                label="Overtime:"
-                value={
-                  quickSearchStep3Data?.overtimeRate
-                    ? `$${quickSearchStep3Data.overtimeRate}`
-                    : 'Yes'
-                }
-                valueStyle={styles.yesValue}
-              />
-            ) : null}
-            {quickSearchStep4Data?.weekendSatExtraPay ? (
-              <DetailRow
-                label="Saturday extra pay:"
-                value={
-                  quickSearchStep4Data?.weekendSatRate
-                    ? `$${quickSearchStep4Data.weekendSatRate}`
-                    : 'Yes'
-                }
-                valueStyle={styles.yesValue}
-              />
-            ) : null}
-            {quickSearchStep4Data?.weekendSunExtraPay ? (
-              <DetailRow
-                label="Sunday extra pay:"
-                value={
-                  quickSearchStep4Data?.weekendSunRate
-                    ? `$${quickSearchStep4Data.weekendSunRate}`
-                    : 'Yes'
-                }
-                valueStyle={styles.yesValue}
-              />
-            ) : null}
-          </>
+        <SectionTitle title="Extra Pay" />
+        {quickSearchStep3Data?.extraPay?.overtime ? (
+          <DetailRow
+            label="Overtime:"
+            value={
+              quickSearchStep3Data?.overtimeRate
+                ? `$${quickSearchStep3Data.overtimeRate}`
+                : 'Yes'
+            }
+            valueStyle={styles.yesValue}
+          />
+        ) : null}
+        {quickSearchStep4Data?.weekendSatExtraPay ? (
+          <DetailRow
+            label="Saturday extra pay:"
+            value={
+              quickSearchStep4Data?.weekendSatRate
+                ? `$${quickSearchStep4Data.weekendSatRate}`
+                : 'Yes'
+            }
+            valueStyle={styles.yesValue}
+          />
+        ) : null}
+        {quickSearchStep4Data?.weekendSunExtraPay ? (
+          <DetailRow
+            label="Sunday extra pay:"
+            value={
+              quickSearchStep4Data?.weekendSunRate
+                ? `$${quickSearchStep4Data.weekendSunRate}`
+                : 'Yes'
+            }
+            valueStyle={styles.yesValue}
+          />
+        ) : null}
+        {!quickSearchStep4Data?.weekendSatExtraPay && !quickSearchStep4Data?.weekendSunExtraPay ? (
+          <DetailRow
+            label="Weekend Extra Pay:"
+            value="Not Applicable"
+          />
         ) : null}
 
         {/* Step 4 Data - Availability */}
@@ -913,6 +927,21 @@ const QuickSearchPreview = ({ navigation, route }) => {
         )}
 
       </ScrollView>
+
+      {/* Sending Offers Progress Modal */}
+      <Modal visible={isSending} transparent animationType="fade">
+        <View style={styles.sendingOverlay}>
+          <View style={styles.sendingModal}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <AppText variant={Variant.subTitle} style={styles.sendingTitle}>
+              Sending Offers
+            </AppText>
+            <AppText variant={Variant.body} style={styles.sendingText}>
+              This may take a few seconds...
+            </AppText>
+          </View>
+        </View>
+      </Modal>
     </View>
   )
 }
@@ -1057,5 +1086,28 @@ const styles = StyleSheet.create({
   buttonFull: {
     width: '100%',
     marginBottom: hp(2),
+  },
+  sendingOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sendingModal: {
+    backgroundColor: colors.white,
+    borderRadius: hp(2),
+    padding: wp(8),
+    alignItems: 'center',
+    width: wp(70),
+  },
+  sendingTitle: {
+    marginTop: hp(2),
+    color: colors.black,
+    fontWeight: 'bold',
+  },
+  sendingText: {
+    marginTop: hp(1),
+    color: colors.gray,
+    textAlign: 'center',
   },
 })

@@ -8,7 +8,7 @@ import VectorIcons from '@/theme/vectorIcon'
 import { screenNames } from '@/navigation/screenNames'
 import { useSelector } from 'react-redux'
 import { selectAllNotifications } from '@/store/notificationsSlice'
-import Svg, { Polyline } from 'react-native-svg'
+import Svg, { Polyline, Rect } from 'react-native-svg'
 
 const StatCard = ({ title, value, subtitle }) => (
     <View style={styles.statCard}>
@@ -23,28 +23,29 @@ const Sparkline = ({ series = [], color = '#41D761' }) => {
     const width = wp(18)
     const height = hp(3.2)
     const padding = 2
-    const min = Math.min(...series)
-    const max = Math.max(...series)
-    const range = max - min || 1
-    const step = (width - padding * 2) / (series.length - 1)
-    const points = series
-        .map((v, i) => {
-            const x = padding + i * step
-            const y = padding + (height - padding * 2) * (1 - (v - min) / range)
-            return `${x},${y}`
-        })
-        .join(' ')
+    const max = Math.max(...series) || 1
+    const barWidth = (width - padding * 2) / series.length - 1
+    const gap = 1
 
     return (
         <Svg width={width} height={height}>
-            <Polyline
-                points={points}
-                fill="none"
-                stroke={color}
-                strokeWidth="2"
-                strokeLinejoin="round"
-                strokeLinecap="round"
-            />
+            {series.map((v, i) => {
+                const barHeight = ((v / max) * (height - padding * 2)) || 1
+                const x = padding + i * (barWidth + gap)
+                const y = height - padding - barHeight
+                return (
+                    <Rect
+                        key={i}
+                        x={x}
+                        y={y}
+                        width={barWidth}
+                        height={barHeight}
+                        rx={1}
+                        fill={color}
+                        opacity={0.85}
+                    />
+                )
+            })}
         </Svg>
     )
 }
@@ -310,7 +311,7 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.container}>
 
             <AppHeader
-                title="Home"
+                title="Dashboard"
                 rightIcons={[
                     { name: 'Feather', iconName: 'message-circle', onPress: handleMessages },
                     { name: 'Feather', iconName: 'bell', onPress: handleNotifications },

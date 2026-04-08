@@ -36,14 +36,14 @@ const CustomDrawer = ({
       return [
         {
           key: 'home',
-          title: 'Dashboard',
+          title: 'Home',
           icon: 'home-outline',
           iconLib: iconLibName.Ionicons,
           route: screenNames.Tab_NAVIGATION,
         },
         {
           key: 'dashboard',
-          title: 'Home',
+          title: 'Dashboard',
           iconImage: icons.menu,
           route: screenNames.MAIN_DASHBOARD, // unified route
         },
@@ -54,8 +54,8 @@ const CustomDrawer = ({
           iconLib: iconLibName.Ionicons,
           expandable: true,
           subItems: [
-            { key: 'quick-search', title: 'Quick Search', icon: 'search-outline', route: screenNames.QUICK_SEARCH_STACK },
-            { key: 'manual-search', title: 'Manual Search', icon: 'search-circle-outline', route: screenNames.MANUAL_SEARCH_STACK },
+            { key: 'quick-search', title: 'Quick Fill', icon: 'search-outline', route: screenNames.QUICK_SEARCH_STACK },
+            { key: 'manual-search', title: 'Manual Fill', icon: 'search-circle-outline', route: screenNames.MANUAL_SEARCH_STACK },
           ],
         },
         {

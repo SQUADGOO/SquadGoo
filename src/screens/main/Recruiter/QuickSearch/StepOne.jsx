@@ -421,21 +421,17 @@ const QuickSearchStepOne = ({ navigation, route }) => {
               Total experience needed
             </AppText>
 
-            {/* Freshers can also apply */}
-            {(freshersCanApply ||
-              (String(experienceYear) === '0 Year' &&
-                String(experienceMonth) === '0 Month')) ? (
-              <TouchableOpacity
-                activeOpacity={0.8}
-                style={styles.fresherRow}
-                onPress={() => setValue('freshersCanApply', !freshersCanApply, { shouldValidate: true })}
-              >
-                <View style={[styles.fresherCheckbox, freshersCanApply && styles.fresherCheckboxActive]} />
-                <AppText variant={Variant.body} style={styles.fresherLabel}>
-                  Freshers can also apply
-                </AppText>
-              </TouchableOpacity>
-            ) : null}
+            {/* Freshers can also apply - always visible */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.fresherRow}
+              onPress={() => setValue('freshersCanApply', !freshersCanApply, { shouldValidate: true })}
+            >
+              <View style={[styles.fresherCheckbox, freshersCanApply && styles.fresherCheckboxActive]} />
+              <AppText variant={Variant.body} style={styles.fresherLabel}>
+                Freshers can also apply
+              </AppText>
+            </TouchableOpacity>
 
             {!freshersCanApply ? (
               <View style={styles.experienceRow}>
@@ -470,7 +466,7 @@ const QuickSearchStepOne = ({ navigation, route }) => {
 
             {/* Staff Count */}
             <AppText variant={Variant.bodyMedium} style={styles.label}>
-              How many staff looking for*
+              Required Number of Position*
             </AppText>
             <FormField
               name="staffCount"

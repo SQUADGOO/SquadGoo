@@ -13,7 +13,7 @@ const Tab = createBottomTabNavigator();
 const tabItems = [
   {
     name: screenNames.HOME,
-    label: 'Dashboard',
+    label: 'Home',
     activeIcon: Icons.homeActive,
     inactiveIcon: Icons.home,
     component: ui.Dashboard,

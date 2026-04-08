@@ -180,7 +180,7 @@ const KycDocument = () => {
           Mandatory Documents
         </AppText>
         <AppText variant={Variant.body} style={styles.sectionSubtitle}>
-          Upload clear and readable documents.
+          Upload clear and readable documents. Accepts PDF, PNG and JPG format.
         </AppText>
 
         {isRecruiter && (

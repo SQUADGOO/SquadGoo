@@ -33,6 +33,13 @@ const SquadPoolScreen = ({ navigation }) => {
   const [minRating, setMinRating] = useState('all');
   const [language, setLanguage] = useState('all');
 
+  const [jobType, setJobType] = useState('any');
+  const [availability, setAvailability] = useState([]);
+  const [squadSize, setSquadSize] = useState('any');
+  const [acceptanceRating, setAcceptanceRating] = useState('any');
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [poolStatus, setPoolStatus] = useState('any');
+
   const [moreVisible, setMoreVisible] = useState(false);
   const [isRatingVisible, setIsRatingVisible] = useState(false);
   const [isLanguageVisible, setIsLanguageVisible] = useState(false);
@@ -77,6 +84,12 @@ const SquadPoolScreen = ({ navigation }) => {
     setSort('rating_desc');
     setMinRating('all');
     setLanguage('all');
+    setJobType('any');
+    setAvailability([]);
+    setSquadSize('any');
+    setAcceptanceRating('any');
+    setVerifiedOnly(false);
+    setPoolStatus('any');
   };
 
   // Filter + sort + transform dummy squads data to match WorkerCard props

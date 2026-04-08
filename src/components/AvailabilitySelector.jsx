@@ -17,7 +17,7 @@ export const WEEKEND_DAYS = ['Saturday', 'Sunday']
 export const DAYS_OF_WEEK = [...WEEKDAYS, ...WEEKEND_DAYS]
 
 // Time Picker Field Component using AppDatePickerModal
-export const TimePickerField = ({ label, value, onChange, disabled }) => {
+export const TimePickerField = ({ label, value, onChange, disabled, minimumDate }) => {
   // Convert string time (HH:MM) to Date object
   const parseTimeString = (timeString) => {
     if (!timeString || typeof timeString !== 'string' || timeString.trim() === '') return null;
@@ -51,6 +51,7 @@ export const TimePickerField = ({ label, value, onChange, disabled }) => {
       onChange={handleTimeChange}
       placeholder={label}
       mode="time"
+      minimumDate={minimumDate}
     />
   );
 }
