@@ -15,8 +15,9 @@ import PoolHeader from '@/core/PoolHeader';
 import LinearGradient from 'react-native-linear-gradient';
 import { screenNames } from '@/navigation/screenNames';
 import AppButton from '@/core/AppButton';
+import { useSelector } from 'react-redux';
 
-const SUBJECT_OPTIONS = [
+const RECRUITER_SUBJECT_OPTIONS = [
     'Top-up SG Coins Issues',
     'Job Offer Issues',
     'KYC/KYB Verification',
@@ -25,7 +26,19 @@ const SUBJECT_OPTIONS = [
     'Other',
 ];
 
+const JOBSEEKER_SUBJECT_OPTIONS = [
+    'Offer Issue',
+    'Payment/Wallet Issue',
+    'KYC/Verification Issue',
+    'Profile/Document Issue',
+    'Technical/App Issue',
+    'Account/Login Issue',
+    'Other (please specify)',
+];
+
 const RequestCallback = ({ navigation }) => {
+    const role = useSelector((state) => state.auth?.role);
+    const SUBJECT_OPTIONS = role?.toLowerCase() === 'jobseeker' ? JOBSEEKER_SUBJECT_OPTIONS : RECRUITER_SUBJECT_OPTIONS;
     // Form state
     const [name, setName] = useState('John Smith');
     const [phone, setPhone] = useState('+61 412 345 678');

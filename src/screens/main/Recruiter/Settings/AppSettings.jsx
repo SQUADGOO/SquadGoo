@@ -6,9 +6,14 @@ import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
 import { colors, hp, wp, getFontSize } from '@/theme';
 import { ScrollView } from 'react-native-gesture-handler';
 import { screenNames } from '@/navigation/screenNames';
+import { useSelector } from 'react-redux';
 
 const ApplicationSettings = ({ navigation }) => {
-
+  const { userInfo, role } = useSelector(state => state.auth);
+  const isJobseeker = role?.toLowerCase() === 'jobseeker';
+  const userName = userInfo?.name || userInfo?.firstName || 'User';
+  const userEmail = userInfo?.email || 'user@example.com';
+  const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   // Handlers
   const handleProfile = () => {
@@ -106,11 +111,11 @@ const ApplicationSettings = ({ navigation }) => {
         <View style={styles.card}>
           <TouchableOpacity style={styles.profileRow} activeOpacity={0.7} onPress={handleProfile}>
             <View style={styles.profileAvatar}>
-              <AppText variant={Variant.subTitle} style={styles.profileAvatarText}>JD</AppText>
+              <AppText variant={Variant.subTitle} style={styles.profileAvatarText}>{userInitials}</AppText>
             </View>
             <View style={styles.profileInfo}>
-              <AppText variant={Variant.bodyMedium} style={styles.profileName}>John Recruiter</AppText>
-              <AppText variant={Variant.caption} style={styles.profileEmail}>john@company.com.au</AppText>
+              <AppText variant={Variant.bodyMedium} style={styles.profileName}>{userName}</AppText>
+              <AppText variant={Variant.caption} style={styles.profileEmail}>{userEmail}</AppText>
             </View>
             <VectorIcons name={iconLibName.Ionicons} iconName="chevron-forward" size={18} color={colors.gray} />
           </TouchableOpacity>
@@ -118,14 +123,25 @@ const ApplicationSettings = ({ navigation }) => {
 
         {/* Settings rows */}
         <View style={[styles.card, { marginTop: hp(2) }]}>
-          <SettingsRow
-            iconName="options-outline"
-            iconBg="#EEF4FF"
-            iconColor={colors.primary}
-            title="Staff Preference"
-            subtitle="Quick Fill • AI Auto Hiring ON"
-            onPress={handleStaffPreference}
-          />
+          {isJobseeker ? (
+            <SettingsRow
+              iconName="briefcase-outline"
+              iconBg="#EEF4FF"
+              iconColor={colors.primary}
+              title="Job Preferences"
+              subtitle="Offer types, availability, locations"
+              onPress={handleStaffPreference}
+            />
+          ) : (
+            <SettingsRow
+              iconName="options-outline"
+              iconBg="#EEF4FF"
+              iconColor={colors.primary}
+              title="Staff Preference"
+              subtitle="Quick Fill • AI Auto Hiring ON"
+              onPress={handleStaffPreference}
+            />
+          )}
           <View style={styles.divider} />
           <SettingsRow
             iconName="notifications-outline"
@@ -140,8 +156,8 @@ const ApplicationSettings = ({ navigation }) => {
             iconName="lock-closed-outline"
             iconBg="#F3F1FF"
             iconColor="#5E35B1"
-            title="Security & Password"
-            subtitle="2FA enabled • Last changed 2w ago"
+            title="Security & Privacy"
+            subtitle="Password, 2FA, session management"
             onPress={handleSecurityPasswords}
           />
           <View style={styles.divider} />
@@ -150,7 +166,7 @@ const ApplicationSettings = ({ navigation }) => {
             iconBg="#EAF7F7"
             iconColor="#00796B"
             title="Switch Profile"
-            subtitle="Currently: Recruiter"
+            subtitle={`Currently: ${isJobseeker ? 'Jobseeker' : 'Recruiter'}`}
             onPress={handleSwitchProfile}
           />
           <View style={styles.divider} />
@@ -158,8 +174,8 @@ const ApplicationSettings = ({ navigation }) => {
             iconName="settings-outline"
             iconBg="#F0F0F0"
             iconColor="#555"
-            title="App Settings"
-            subtitle="Language, Region, Currency"
+            title="App & Device"
+            subtitle="Language, Region, Theme"
             onPress={handleAppSettings}
           />
           <View style={styles.divider} />
@@ -167,7 +183,7 @@ const ApplicationSettings = ({ navigation }) => {
             iconName="help-circle-outline"
             iconBg="#E8F5E9"
             iconColor="#2E7D32"
-            title="Help & Support"
+            title="Support"
             subtitle="FAQ, Contact, Feedback"
             onPress={handleHelpSupport}
           />

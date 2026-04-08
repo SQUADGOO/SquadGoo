@@ -46,7 +46,7 @@ const JobSeekerHomeTopTabNavigator = () => {
         options={{
           tabBarLabel: ({ focused }) => (
             <CustomTabLabel focused={focused}>
-              Active job offers
+              Active Offers
             </CustomTabLabel>
           ),
         }}
@@ -57,7 +57,7 @@ const JobSeekerHomeTopTabNavigator = () => {
         options={{
           tabBarLabel: ({ focused }) => (
             <CustomTabLabel focused={focused}>
-              My Current Jobs
+              Current Jobs
             </CustomTabLabel>
           ),
         }}
@@ -69,7 +69,7 @@ const JobSeekerHomeTopTabNavigator = () => {
         options={{
           tabBarLabel: ({ focused }) => (
             <CustomTabLabel focused={focused}>
-              Completed offers
+              Completed Jobs
             </CustomTabLabel>
           ),
         }}

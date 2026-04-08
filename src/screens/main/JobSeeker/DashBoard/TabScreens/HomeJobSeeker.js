@@ -10,7 +10,7 @@ const JobSeekerHome = () => {
   return (
     <View style={styles.container}>
       <AppHeader
-        title='Dashboard'
+        title='Home'
       />
       <JobSeekerHomeTopTabNavigator 
         activeTab={activeTab}

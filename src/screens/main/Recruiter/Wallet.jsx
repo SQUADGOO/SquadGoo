@@ -29,14 +29,22 @@ import Share from 'react-native-share'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { showToast, toastTypes } from '@/utilities/toastConfig'
 import { Platform } from 'react-native'
-import { TRANSACTION_SUMMARY, transactionHistory } from '@/screens/main/wallet/transactionData'
+import {
+  TRANSACTION_SUMMARY as RECRUITER_TRANSACTION_SUMMARY,
+  JOBSEEKER_TRANSACTION_SUMMARY,
+  transactionHistory as recruiterTransactionHistory,
+  jobseekerTransactionHistory,
+} from '@/screens/main/wallet/transactionData'
 import Clipboard from '@react-native-clipboard/clipboard'
 import CodeExchangeModal from '@/screens/main/wallet/CodeExchangeModal'
 import LiveShiftTracker from '@/screens/main/wallet/LiveShiftTracker'
 
 const Wallet = ({ navigation }) => {
   const { coins, transactions = [], withdrawRequests = [] } = useSelector((state) => state.wallet)
-  const { userInfo } = useSelector((state) => state.auth)
+  const { userInfo, role } = useSelector((state) => state.auth)
+  const isJobseeker = role?.toLowerCase() === 'jobseeker'
+  const TRANSACTION_SUMMARY = isJobseeker ? JOBSEEKER_TRANSACTION_SUMMARY : RECRUITER_TRANSACTION_SUMMARY
+  const transactionHistory = isJobseeker ? jobseekerTransactionHistory : recruiterTransactionHistory
   const bankAccounts = useSelector((state) => state.bank.accounts)
   const selectedAccount = bankAccounts.find(acc => acc.isSelected)
 
@@ -1000,7 +1008,7 @@ const Wallet = ({ navigation }) => {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(2) }}>
             <VectorIcons name={iconLibName.Ionicons} iconName="shield-checkmark-outline" size={20} color={colors.secondary} />
             <AppText variant={Variant.bodyMedium} style={{ color: '#333', fontWeight: '700', fontSize: getFontSize(14) }}>
-              Escrow & Holds
+              {isJobseeker ? 'Job Escrows' : 'Escrow & Holds'}
             </AppText>
           </View>
           <VectorIcons name={iconLibName.Ionicons} iconName="chevron-forward" size={18} color="#999" />

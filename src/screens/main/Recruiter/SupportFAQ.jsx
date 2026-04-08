@@ -5,12 +5,16 @@ import Scrollable from '@/core/Scrollable';
 import AppText, { Variant } from '@/core/AppText';
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
 import { colors, hp, wp, getFontSize } from '@/theme';
-import { supportFaqs as defaultFaqs, supportAgentProfile } from './supportData';
+import { supportFaqs as recruiterFaqs, supportAgentProfile } from './supportData';
+import { supportFaqs as jobseekerFaqs } from '../JobSeeker/supportData';
 import { useNavigation } from '@react-navigation/native';
 import { screenNames } from '@/navigation/screenNames';
+import { useSelector } from 'react-redux';
 
 const SupportFAQ = ({ route }) => {
   const navigation = useNavigation();
+  const role = useSelector((state) => state.auth?.role);
+  const defaultFaqs = role?.toLowerCase() === 'jobseeker' ? jobseekerFaqs : recruiterFaqs;
   const faqs = route?.params?.faqs?.length ? route.params.faqs : defaultFaqs;
   const [expandedId, setExpandedId] = useState(faqs?.[0]?.id ?? null);
 
@@ -32,8 +36,9 @@ const SupportFAQ = ({ route }) => {
       <Scrollable>
         <View style={styles.container}>
           <AppText variant={Variant.bodybold} style={styles.introText}>
-            Browse our most common recruiter questions. Tap a question to view
-            the answer.
+            {role?.toLowerCase() === 'jobseeker'
+              ? 'Browse our most common questions. Tap a question to view the answer.'
+              : 'Browse our most common recruiter questions. Tap a question to view the answer.'}
           </AppText>
 
           {faqs.map(faq => {

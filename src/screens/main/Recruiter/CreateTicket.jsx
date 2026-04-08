@@ -14,14 +14,18 @@ import AppText, { Variant } from '@/core/AppText';
 import PoolHeader from '@/core/PoolHeader';
 import LinearGradient from 'react-native-linear-gradient';
 import AppButton from '@/core/AppButton';
-import { ticketCategories } from './supportData';
+import { ticketCategories as recruiterCategories } from './supportData';
+import { ticketCategories as jobseekerCategories } from '../JobSeeker/supportData';
 import { useNavigation } from '@react-navigation/native';
 import { screenNames } from '@/navigation/screenNames';
+import { useSelector } from 'react-redux';
 
 const PRIORITY_OPTIONS = ['Low', 'Normal', 'High'];
 
 const CreateTicket = () => {
     const navigation = useNavigation();
+    const role = useSelector((state) => state.auth?.role);
+    const ticketCategories = role?.toLowerCase() === 'jobseeker' ? jobseekerCategories : recruiterCategories;
     const [subject, setSubject] = useState('');
     const [category, setCategory] = useState('');
     const [selectedIssueTypes, setSelectedIssueTypes] = useState([]);

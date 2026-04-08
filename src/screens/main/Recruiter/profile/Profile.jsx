@@ -1,5 +1,5 @@
 // screens/Profile.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ImageBackground,
   Text,
+  Switch,
 } from 'react-native';
 import AppText, { Variant } from '@/core/AppText';
 import { colors, getFontSize, hp, wp } from '@/theme';
@@ -41,6 +42,8 @@ const Profile = () => {
     '';
   const phoneValue = userInfo?.contactNumber || userInfo?.phone || '';
   const idValue = userInfo?._id || userInfo?.id || '';
+
+  const [isActive, setIsActive] = useState(true);
 
   const kycVerified = !!userInfo?.kycVerified;
   const kybVerified = !!userInfo?.kybVerified;
@@ -186,15 +189,41 @@ const Profile = () => {
             </View>
 
 
-            <View style={styles.infoRow}>
-              <Image resizeMode='contain' source={icons.pf} style={{ height: 18, width: 18 }} />
-              <AppText variant={Variant.caption} style={styles.infoText}>
-                Profile Status:{' '}
-                <Text style={{ fontFamily: fonts.poppinsSemiBold }}>Incomplete</Text>
-              </AppText>
+            {/* Active/Inactive Toggle (Jobseeker only) */}
+            {!isRecruiter ? (
+              <View style={styles.toggleRow}>
+                <View style={{ flex: 1 }}>
+                  <AppText variant={Variant.caption} style={[styles.infoText, { fontFamily: fonts.poppinsSemiBold }]}>
+                    {isActive ? 'Active – Receiving Offers' : 'Inactive – Not Receiving Offers'}
+                  </AppText>
+                  {!isActive ? (
+                    <AppText variant={Variant.caption} style={[styles.infoText, { fontSize: getFontSize(10), marginTop: 2 }]}>
+                      You won't receive new job offers.
+                    </AppText>
+                  ) : null}
+                </View>
+                <Switch
+                  value={isActive}
+                  onValueChange={setIsActive}
+                  trackColor={{ false: '#9CA3AF', true: '#4ADE80' }}
+                  thumbColor="#FFFFFF"
+                />
+              </View>
+            ) : null}
+
+            {/* Profile Completion Bar */}
+            <View style={styles.completionRow}>
+              <View style={{ flex: 1 }}>
+                <AppText variant={Variant.caption} style={styles.infoText}>
+                  Profile <Text style={{ fontFamily: fonts.poppinsSemiBold }}>80% Complete</Text>
+                </AppText>
+                <View style={styles.progressBarBg}>
+                  <View style={[styles.progressBarFill, { width: '80%' }]} />
+                </View>
+              </View>
               <TouchableOpacity
                 onPress={() => navigation.navigate(screenNames.EDIT_PROFILE)}
-                style={{ marginLeft: 'auto' }}>
+                style={{ marginLeft: wp(3) }}>
                 <Image resizeMode='contain' source={icons.edit} style={{ height: 22, width: 22 }} />
               </TouchableOpacity>
             </View>
@@ -262,5 +291,35 @@ const styles = StyleSheet.create({
   infoText: {
     marginLeft: wp(3),
     color: colors.white,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: hp(0.8),
+    marginLeft: wp(2),
+    paddingTop: hp(1),
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.15)',
+  },
+  completionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: hp(0.5),
+    marginLeft: wp(2),
+    paddingTop: hp(1),
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.15)',
+  },
+  progressBarBg: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    marginTop: hp(0.5),
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 3,
+    backgroundColor: '#4ADE80',
   },
 });
