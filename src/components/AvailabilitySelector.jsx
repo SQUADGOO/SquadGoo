@@ -12,9 +12,9 @@ import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
 import AppText, { Variant } from '@/core/AppText'
 import { showToast, toastTypes } from '@/utilities/toastConfig'
 
-export const DAYS_OF_WEEK = [
-  'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-]
+export const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+export const WEEKEND_DAYS = ['Saturday', 'Sunday']
+export const DAYS_OF_WEEK = [...WEEKDAYS, ...WEEKEND_DAYS]
 
 // Time Picker Field Component using AppDatePickerModal
 export const TimePickerField = ({ label, value, onChange, disabled }) => {
@@ -400,17 +400,42 @@ const AvailabilitySelector = ({
       )}
 
       {/* Days List */}
-      <ScrollView 
-        style={[styles.scrollView, scrollViewStyle]} 
+      <ScrollView
+        style={[styles.scrollView, scrollViewStyle]}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Weekdays Section */}
         <View style={styles.daysSection}>
           <AppText variant={Variant.bodyMedium} style={styles.daysSectionTitle}>
-            Select Days ({selectedDaysCount} selected)
+            Weekdays (Mon – Fri)
           </AppText>
-          
-          {DAYS_OF_WEEK.map((day) => {
+
+          {WEEKDAYS.map((day) => {
+            const dayData = availabilityData[day] || { enabled: false, from: defaultStartTime, to: defaultEndTime }
+            return (
+              <DayRow
+                key={day}
+                day={day}
+                isSelected={dayData.enabled === true}
+                onToggle={() => toggleDay(day)}
+                startTime={dayData.from || defaultStartTime}
+                endTime={dayData.to || defaultEndTime}
+                onStartTimeChange={(timeString) => handleDayTimeChange(day, 'from', timeString)}
+                onEndTimeChange={(timeString) => handleDayTimeChange(day, 'to', timeString)}
+              />
+            )
+          })}
+        </View>
+
+        {/* Weekend Section */}
+        <View style={styles.daysSection}>
+          <View style={styles.weekendDivider} />
+          <AppText variant={Variant.bodyMedium} style={styles.daysSectionTitle}>
+            Weekend (Sat – Sun)
+          </AppText>
+
+          {WEEKEND_DAYS.map((day) => {
             const dayData = availabilityData[day] || { enabled: false, from: defaultStartTime, to: defaultEndTime }
             return (
               <DayRow
@@ -442,6 +467,12 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: hp(2),
+  },
+  weekendDivider: {
+    height: 1,
+    backgroundColor: '#E5E7EB',
+    marginBottom: hp(1.5),
+    marginTop: hp(0.5),
   },
   daysSection: {
     paddingHorizontal: wp(4),

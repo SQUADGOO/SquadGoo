@@ -248,6 +248,28 @@ const JobSeekerDrawerNavigator = () => {
         name={screenNames.JOBSEEKER_PERFORMANCE_ANALYTICS}
         component={ui.JobSeekerPerformanceAnalytics}
       />
+
+      <Drawer.Screen
+        name={screenNames.EDUCATION}
+        component={ui.Education}
+      />
+      <Drawer.Screen
+        name={screenNames.SKILLS_LANGUAGES}
+        component={ui.SkillsLanguages}
+      />
+
+      <Drawer.Screen
+        name={screenNames.ACTIVE_OFFERS_POOL}
+        component={ui.ActiveOffersPool}
+      />
+      <Drawer.Screen
+        name={screenNames.COMPLETED_OFFERS_POOL}
+        component={ui.CompletedOffersPool}
+      />
+      <Drawer.Screen
+        name={screenNames.EXPIRED_DECLINED_POOL}
+        component={ui.ExpiredDeclinedPool}
+      />
     </Drawer.Navigator>
   );
 };

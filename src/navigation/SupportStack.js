@@ -29,6 +29,18 @@ const SupportStack = () => {
         name={screenNames.TICKET_DETAILS}
         component={ui.TicketDetails}
       />
+      <Stack.Screen
+        name={screenNames.LIVE_CHAT}
+        component={ui.LiveChat}
+      />
+      <Stack.Screen
+        name={screenNames.REQUEST_CALLBACK}
+        component={ui.RequestCallback}
+      />
+      <Stack.Screen
+        name={screenNames.MY_CALLBACK_REQUESTS}
+        component={ui.MyCallbackRequests}
+      />
     </Stack.Navigator>
   );
 };

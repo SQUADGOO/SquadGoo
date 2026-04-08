@@ -235,9 +235,11 @@ export default MyCurrentJobs;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: '#F5F7FA',
   },
   listContainer: {
+    paddingHorizontal: wp(4),
+    paddingTop: hp(1.5),
     paddingBottom: hp(5),
   },
   emptyContainer: {

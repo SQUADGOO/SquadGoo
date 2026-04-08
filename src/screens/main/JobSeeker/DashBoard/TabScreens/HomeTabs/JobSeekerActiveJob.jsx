@@ -353,6 +353,7 @@ const JobSeekerActiveJob = () => {
         maxToRenderPerBatch={5}
         windowSize={10}
         removeClippedSubviews={true}
+        ListFooterComponent={<View style={{ height: hp(4) }} />}
       />
 
       {/* Filter Sheet */}
@@ -455,8 +456,10 @@ const JobSeekerActiveJob = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#F5F7FA' },
   listContainer: {
+    paddingHorizontal: wp(4),
+    paddingTop: hp(1),
     paddingBottom: hp(5),
   },
   emptyContainer: {
@@ -465,10 +468,15 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 15,
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.5),
     alignItems: 'center',
   },
-  headerText: { fontWeight: '700', fontSize: 16 },
+  headerText: {
+    fontWeight: '700',
+    fontSize: getFontSize(15),
+    color: '#374151',
+  },
   dropdown: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -477,8 +485,8 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     paddingHorizontal: 15,
     paddingVertical: 10,
-    marginHorizontal: 15,
-    marginBottom: 15,
+    marginHorizontal: wp(4),
+    marginBottom: hp(1.5),
   },
   dropdownText: { color: '#aaa', flex: 1 },
   emptyState: {
@@ -499,17 +507,6 @@ const styles = StyleSheet.create({
     fontSize: getFontSize(14),
     textAlign: 'center',
   },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    borderTopWidth: 0.8,
-    borderColor: '#eee',
-    paddingVertical: 10,
-    backgroundColor: '#fff',
-  },
-  navItem: { alignItems: 'center' },
-  navText: { fontSize: 12, color: '#aaa', marginTop: 3 },
-  navActive: { fontSize: 12, color: '#FF9800', marginTop: 3, fontWeight: '600' },
 });
 
 export default JobSeekerActiveJob;

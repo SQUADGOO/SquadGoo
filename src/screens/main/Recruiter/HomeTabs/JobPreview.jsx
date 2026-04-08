@@ -176,11 +176,14 @@ const JobPreview = ({ navigation, route }) => {
       requiredUniforms:
         step3Data?.requiredUniforms || draftJob?.requiredUniforms || '',
       description: step3Data?.jobDescription || draftJob?.description || '',
+      rolesAndResponsibilities: step3Data?.jobDescription || draftJob?.rolesAndResponsibilities || '',
       taxType: step3Data?.taxType || draftJob?.taxType || '',
       interestedInSquadPairs:
         step3Data?.interestedInSquadPairs ??
         draftJob?.interestedInSquadPairs ??
         false,
+      jobCategory: step1Data?.jobCategory || draftJob?.jobCategory || '',
+      jobSubCategory: step1Data?.jobSubCategory || draftJob?.jobSubCategory || '',
       searchType: 'manual',
       rawData: { step1Data, step2Data, step3Data, step4Data },
     }
@@ -271,10 +274,13 @@ const JobPreview = ({ navigation, route }) => {
       jobDescription: step3Data?.jobDescription,
       requiredUniforms: step3Data?.requiredUniforms,
       description: step3Data?.jobDescription,
+      rolesAndResponsibilities: step3Data?.jobDescription || '',
       taxType: step3Data?.taxType,
       interestedInSquadPairs: step3Data?.interestedInSquadPairs || false,
+      jobCategory: step1Data?.jobCategory || '',
+      jobSubCategory: step1Data?.jobSubCategory || '',
       searchType: 'manual',
-      rawData: { step1Data, step2Data, step3Data }, // Store complete data for future reference
+      rawData: { step1Data, step2Data, step3Data, step4Data }, // Store complete data for future reference
     }
     
    
@@ -344,18 +350,6 @@ const JobPreview = ({ navigation, route }) => {
     </View>
     )
   }
-
-  const AvailabilityRow = ({ day, hours }) => (
-    !hours ? null :
-    <View style={styles.availabilityRow}>
-      <AppText variant={Variant.body} style={styles.dayLabel}>
-        {day}:
-      </AppText>
-      <AppText variant={Variant.bodyMedium} style={styles.hoursText}>
-        {hours}
-      </AppText>
-    </View>
-  )
 
   const SectionTitle = ({ title }) => (
     <AppText variant={Variant.bodyMedium} style={styles.sectionTitle}>
@@ -533,72 +527,51 @@ const JobPreview = ({ navigation, route }) => {
           )
         })()}
         
-        {/* Extra pay you are offering */}
-        <SectionTitle title="Extra pay you are offering:" />
-        
-        <DetailRow 
-          label="Public holidays:" 
-          value={step2Data?.extraPay?.publicHolidays ? 'Yes' : 'No'}
-          valueStyle={step2Data?.extraPay?.publicHolidays && styles.yesValue}
-        />
-        {step2Data?.extraPay?.publicHolidays && step2Data?.extraPayRates?.publicHolidays ? (
-          <DetailRow
-            label="Public holidays rate:"
-            value={`$${step2Data.extraPayRates.publicHolidays}`}
-            hideIfEmpty={false}
-          />
-        ) : null}
-        
-        <DetailRow 
-          label="Weekend:" 
-          value={step2Data?.extraPay?.weekend ? 'Yes' : 'No'}
-          valueStyle={step2Data?.extraPay?.weekend && styles.yesValue}
-        />
-        {step2Data?.extraPay?.weekend && step2Data?.extraPayRates?.weekend ? (
-          <DetailRow
-            label="Weekend rate:"
-            value={`$${step2Data.extraPayRates.weekend}`}
-            hideIfEmpty={false}
-          />
-        ) : null}
-        
-        <DetailRow 
-          label="Shift loading:" 
-          value={step2Data?.extraPay?.shiftLoading ? 'Yes' : 'No'}
-          valueStyle={step2Data?.extraPay?.shiftLoading && styles.yesValue}
-        />
-        {step2Data?.extraPay?.shiftLoading && step2Data?.extraPayRates?.shiftLoading ? (
-          <DetailRow
-            label="Shift loading rate:"
-            value={`$${step2Data.extraPayRates.shiftLoading}`}
-            hideIfEmpty={false}
-          />
-        ) : null}
+        {/* Extra pay you are offering - only show selected items */}
+        {(step2Data?.extraPay?.publicHolidays || step2Data?.extraPay?.weekend || step2Data?.extraPay?.shiftLoading || step2Data?.extraPay?.bonuses || step2Data?.extraPay?.overtime) ? (
+          <>
+            <SectionTitle title="Extra pay you are offering:" />
 
-        <DetailRow 
-          label="Bonuses:" 
-          value={step2Data?.extraPay?.bonuses ? 'Yes' : 'No'}
-          valueStyle={step2Data?.extraPay?.bonuses && styles.yesValue}
-        />
-        {step2Data?.extraPay?.bonuses && step2Data?.extraPayRates?.bonuses ? (
-          <DetailRow
-            label="Bonuses rate:"
-            value={`$${step2Data.extraPayRates.bonuses}`}
-            hideIfEmpty={false}
-          />
-        ) : null}
-        
-        <DetailRow 
-          label="Overtime:" 
-          value={step2Data?.extraPay?.overtime ? 'Yes' : 'No'}
-          valueStyle={step2Data?.extraPay?.overtime && styles.yesValue}
-        />
-        {step2Data?.extraPay?.overtime && step2Data?.extraPayRates?.overtime ? (
-          <DetailRow
-            label="Overtime rate:"
-            value={`$${step2Data.extraPayRates.overtime}`}
-            hideIfEmpty={false}
-          />
+            {step2Data?.extraPay?.publicHolidays ? (
+              <DetailRow
+                label="Public holidays:"
+                value={step2Data?.extraPayRates?.publicHolidays ? `$${step2Data.extraPayRates.publicHolidays}` : 'Yes'}
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+
+            {step2Data?.extraPay?.weekend ? (
+              <DetailRow
+                label="Weekend:"
+                value={step2Data?.extraPayRates?.weekend ? `$${step2Data.extraPayRates.weekend}` : 'Yes'}
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+
+            {step2Data?.extraPay?.shiftLoading ? (
+              <DetailRow
+                label="Shift loading:"
+                value={step2Data?.extraPayRates?.shiftLoading ? `$${step2Data.extraPayRates.shiftLoading}` : 'Yes'}
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+
+            {step2Data?.extraPay?.bonuses ? (
+              <DetailRow
+                label="Bonuses:"
+                value={step2Data?.extraPayRates?.bonuses ? `$${step2Data.extraPayRates.bonuses}` : 'Yes'}
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+
+            {step2Data?.extraPay?.overtime ? (
+              <DetailRow
+                label="Overtime:"
+                value={step2Data?.extraPayRates?.overtime ? `$${step2Data.extraPayRates.overtime}` : 'Yes'}
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+          </>
         ) : null}
 
         {/* Availability Section - Step 2 Data */}
@@ -659,6 +632,17 @@ const JobPreview = ({ navigation, route }) => {
           </View>
         ) : null}
 
+        {step3Data?.jobStartTime ? (
+          <View style={styles.requirementSection}>
+            <AppText variant={Variant.body} style={styles.requirementLabel}>
+              Job start time:
+            </AppText>
+            <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
+              {moment(step3Data?.jobStartTime).format('hh:mm A')}
+            </AppText>
+          </View>
+        ) : null}
+
         {step3Data?.jobEndDate ? (
           <View style={styles.requirementSection}>
             <AppText variant={Variant.body} style={styles.requirementLabel}>
@@ -666,6 +650,17 @@ const JobPreview = ({ navigation, route }) => {
             </AppText>
             <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
               {moment(step3Data?.jobEndDate).format('DD MMM YYYY')}
+            </AppText>
+          </View>
+        ) : null}
+
+        {step3Data?.jobEndTime ? (
+          <View style={styles.requirementSection}>
+            <AppText variant={Variant.body} style={styles.requirementLabel}>
+              Job end time:
+            </AppText>
+            <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
+              {moment(step3Data?.jobEndTime).format('hh:mm A')}
             </AppText>
           </View>
         ) : null}

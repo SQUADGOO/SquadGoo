@@ -12,9 +12,12 @@ import PoolHeader from '@/core/PoolHeader';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { screenNames } from '@/navigation/screenNames';
+import { useSelector } from 'react-redux';
 
 const TopUp = () => {
     const navigation = useNavigation();
+    const role = useSelector((state) => state.auth?.role);
+    const isJobseeker = role?.toLowerCase() === 'jobseeker';
 
     return (
         <View style={styles.screen}>
@@ -79,7 +82,9 @@ const TopUp = () => {
                 <View style={styles.infoCard}>
                     <VectorIcons name={iconLibName.Ionicons} iconName="information-circle-outline" size={18} color={colors.primary} />
                     <AppText variant={Variant.caption} style={styles.infoText}>
-                        1 SG Coin = 1 AUD. Minimum top-up: $15. No purchase fee. $1 withdrawal fee.
+                        {isJobseeker
+                            ? '1 SG Coin = 1 AUD. Minimum purchase: $15. Minimum withdrawal: $15. $1 withdrawal fee.'
+                            : '1 SG Coin = 1 AUD. Minimum top-up: $15. No purchase fee. $1 withdrawal fee.'}
                     </AppText>
                 </View>
             </ScrollView>

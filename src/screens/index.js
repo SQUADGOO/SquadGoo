@@ -166,6 +166,11 @@ import QuickSearchActiveJobsRecruiter from './main/Recruiter/QuickSearch/ActiveJ
 import LiveTracking from './main/Recruiter/QuickSearch/LiveTracking';
 import TimerManagement from './main/Recruiter/QuickSearch/TimerManagement';
 import CandidateHours from './main/Recruiter/QuickSearch/CandidateHours';
+import Education from './main/JobSeeker/Profile/Education';
+import SkillsLanguages from './main/JobSeeker/Profile/SkillsLanguages';
+import ActiveOffersPool from './main/JobSeeker/JobPool/ActiveOffersPool';
+import CompletedOffersPool from './main/JobSeeker/JobPool/CompletedOffersPool';
+import ExpiredDeclinedPool from './main/JobSeeker/JobPool/ExpiredDeclinedPool';
 import JobSeekerEarningReports from './main/JobSeeker/Reports/JobSeekerEarningReports';
 import RecruiterBillingReports from './main/Recruiter/Reports/RecruiterBillingReports';
 import JobSeekerJobReports from './main/JobSeeker/Reports/JobSeekerJobReports';
@@ -331,6 +336,11 @@ export {
   JobSeekerEarningReports,
   JobSeekerJobReports,
   JobSeekerPerformanceAnalytics,
+  Education,
+  SkillsLanguages,
+  ActiveOffersPool,
+  CompletedOffersPool,
+  ExpiredDeclinedPool,
   RecruiterBillingReports,
 
   // Manual Search Screens (Job Seeker)

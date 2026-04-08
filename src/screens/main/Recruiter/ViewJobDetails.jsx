@@ -204,10 +204,23 @@ const ViewJobDetails = ({navigation, route}) => {
     );
   };
 
-  const AvailabilityRow = ({day, timeData}) => {
-    console.log('timeData', timeData);
+  // Format time string (HH:MM) to readable format (e.g., "09:00" -> "9:00 AM")
+  const formatTimeString = (timeString) => {
+    if (!timeString || typeof timeString !== 'string') return '';
+    const timeMatch = timeString.match(/^(\d{1,2}):(\d{2})$/);
+    if (timeMatch) {
+      const hours = parseInt(timeMatch[1], 10);
+      const minutes = timeMatch[2];
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+      return `${displayHours}:${minutes} ${period}`;
+    }
+    return formatTime(timeString) || '';
+  };
 
+  const AvailabilityRow = ({day, timeData}) => {
     if (!timeData?.enabled) return null;
+    if (!timeData.from || !timeData.to) return null;
 
     return (
       <View style={styles.availabilityRow}>
@@ -215,7 +228,7 @@ const ViewJobDetails = ({navigation, route}) => {
           {day}:
         </AppText>
         <AppText variant={Variant.bodyMedium} style={styles.hoursText}>
-          {formatTime(timeData.from)} - {formatTime(timeData.to)}
+          {formatTimeString(timeData.from)} - {formatTimeString(timeData.to)}
         </AppText>
       </View>
     );
@@ -403,8 +416,15 @@ const ViewJobDetails = ({navigation, route}) => {
           <InfoRow
             iconName="pricetag-outline"
             label="Industry"
-            value={job.industry}
+            value={job.industry || job.jobCategory}
           />
+          {job.jobSubCategory ? (
+            <InfoRow
+              iconName="pricetags-outline"
+              label="Sub category"
+              value={job.jobSubCategory}
+            />
+          ) : null}
           <InfoRow
             iconName="ribbon-outline"
             label="Key qualifications"
@@ -474,6 +494,21 @@ const ViewJobDetails = ({navigation, route}) => {
             label="Freshers can apply"
             value={job.freshersCanApply ? 'Yes' : ''}
             valueStyle={styles.yesValue}
+          />
+          <InfoRow
+            iconName="shirt-outline"
+            label="Required uniforms"
+            value={job.requiredUniforms}
+          />
+          <InfoRow
+            iconName="language-outline"
+            label="Preferred languages"
+            value={job.preferredLanguages}
+          />
+          <InfoRow
+            iconName="clipboard-outline"
+            label="Roles & responsibilities"
+            value={job.rolesAndResponsibilities}
           />
         </Card>
 
@@ -553,46 +588,69 @@ const ViewJobDetails = ({navigation, route}) => {
           )}
         </Card>
 
-        {/* Extra pay */}
-        <Card>
-          <SectionHeader iconName="sparkles-outline" title="Extra pay offered" />
-          <View style={styles.divider} />
-          <InfoRow
-            iconName="calendar-outline"
-            label="Public holidays"
-            value={job?.extraPay?.publicHolidays ? 'Yes' : 'No'}
-            valueStyle={job?.extraPay?.publicHolidays && styles.yesValue}
-            hideIfEmpty={false}
-          />
-          <InfoRow
-            iconName="sunny-outline"
-            label="Weekend"
-            value={job?.extraPay?.weekend ? 'Yes' : 'No'}
-            valueStyle={job?.extraPay?.weekend && styles.yesValue}
-            hideIfEmpty={false}
-          />
-          <InfoRow
-            iconName="time-outline"
-            label="Shift loading"
-            value={job?.extraPay?.shiftLoading ? 'Yes' : 'No'}
-            valueStyle={job?.extraPay?.shiftLoading && styles.yesValue}
-            hideIfEmpty={false}
-          />
-          <InfoRow
-            iconName="gift-outline"
-            label="Bonuses"
-            value={job?.extraPay?.bonuses ? 'Yes' : 'No'}
-            valueStyle={job?.extraPay?.bonuses && styles.yesValue}
-            hideIfEmpty={false}
-          />
-          <InfoRow
-            iconName="add-circle-outline"
-            label="Overtime"
-            value={job?.extraPay?.overtime ? 'Yes' : 'No'}
-            valueStyle={job?.extraPay?.overtime && styles.yesValue}
-            hideIfEmpty={false}
-          />
-        </Card>
+        {/* Extra pay - only show items the recruiter selected */}
+        {(job?.extraPay?.publicHolidays || job?.extraPay?.weekend || job?.extraPay?.shiftLoading || job?.extraPay?.bonuses || job?.extraPay?.overtime || job?.weekendSatExtraPay || job?.weekendSunExtraPay) ? (
+          <Card>
+            <SectionHeader iconName="sparkles-outline" title="Extra pay offered" />
+            <View style={styles.divider} />
+            {job?.extraPay?.publicHolidays ? (
+              <InfoRow
+                iconName="calendar-outline"
+                label="Public holidays"
+                value={job?.extraPayRates?.publicHolidays ? `$${job.extraPayRates.publicHolidays}` : 'Yes'}
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+            {job?.extraPay?.weekend ? (
+              <InfoRow
+                iconName="sunny-outline"
+                label="Weekend"
+                value={job?.extraPayRates?.weekend ? `$${job.extraPayRates.weekend}` : 'Yes'}
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+            {job?.extraPay?.shiftLoading ? (
+              <InfoRow
+                iconName="time-outline"
+                label="Shift loading"
+                value={job?.extraPayRates?.shiftLoading ? `$${job.extraPayRates.shiftLoading}` : 'Yes'}
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+            {job?.extraPay?.bonuses ? (
+              <InfoRow
+                iconName="gift-outline"
+                label="Bonuses"
+                value={job?.extraPayRates?.bonuses ? `$${job.extraPayRates.bonuses}` : 'Yes'}
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+            {job?.extraPay?.overtime ? (
+              <InfoRow
+                iconName="add-circle-outline"
+                label="Overtime"
+                value={job?.overtimeRate || job?.extraPayRates?.overtime ? `$${job.overtimeRate || job.extraPayRates.overtime}` : 'Yes'}
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+            {job?.weekendSatExtraPay ? (
+              <InfoRow
+                iconName="sunny-outline"
+                label="Saturday extra pay"
+                value={job?.weekendSatRate ? `$${job.weekendSatRate}` : 'Yes'}
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+            {job?.weekendSunExtraPay ? (
+              <InfoRow
+                iconName="sunny-outline"
+                label="Sunday extra pay"
+                value={job?.weekendSunRate ? `$${job.weekendSunRate}` : 'Yes'}
+                valueStyle={styles.yesValue}
+              />
+            ) : null}
+          </Card>
+        ) : null}
 
         {/* Availability */}
         <Card>

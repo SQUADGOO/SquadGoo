@@ -32,12 +32,12 @@ const DEVICES = [
 
 const visibilityOptions = [
     { label: 'Public', value: 'public' },
-    { label: 'Recruiters only', value: 'recruiters' },
+    { label: 'Jobseekers', value: 'jobseekers' },
     { label: 'Private', value: 'private' },
 ];
 
 const PrivacyControls = ({ navigation }) => {
-    const [visibility, setVisibility] = useState('recruiters');
+    const [visibility, setVisibility] = useState('jobseekers');
     const [isDropdownVisible, setDropdownVisible] = useState(false);
     const [maskingEnabled, setMaskingEnabled] = useState(true);
     const [sessions, setSessions] = useState(DEVICES);

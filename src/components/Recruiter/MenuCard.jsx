@@ -44,9 +44,13 @@ const MenuCard = () => {
       { label: 'Password', key: 'password', route: screenNames.PASSWORD },
     ];
 
-    // Recruiters should not see "Extra job qualifications"
+    // Jobseeker-specific items
     if (!isRecruiter) {
-      items.splice(6, 0, { label: 'Extra job qualifications', key: 'extra', route: screenNames.EXTRA_QUALIFICATIONS });
+      items.splice(6, 0,
+        { label: 'Extra job qualifications', key: 'extra', route: screenNames.EXTRA_QUALIFICATIONS },
+        { label: 'Education', key: 'education', route: screenNames.EDUCATION },
+        { label: 'Skills & Languages', key: 'skills', route: screenNames.SKILLS_LANGUAGES },
+      );
     }
 
     return items;
@@ -73,6 +77,10 @@ const MenuCard = () => {
       navigation.navigate(screenNames.SOCIAL_MEDIA)
     } else if(item.key === 'password') {
       navigation.navigate(screenNames.PASSWORD)
+    } else if(item.key === 'education') {
+      navigation.navigate(screenNames.EDUCATION)
+    } else if(item.key === 'skills') {
+      navigation.navigate(screenNames.SKILLS_LANGUAGES)
     }
 
    

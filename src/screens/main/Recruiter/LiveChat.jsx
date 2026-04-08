@@ -15,20 +15,25 @@ import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
 import AppText, { Variant } from '@/core/AppText';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-    QUICK_ACTIONS,
-    MORE_TOPICS,
-    AUTO_REPLIES,
-    WELCOME_MESSAGE,
-    AGENT_ESCALATION_MESSAGE,
-    RATING_CONFIRMATION,
-    QUICK_REPLY_SUGGESTIONS,
-} from './liveChatData';
+import { useSelector } from 'react-redux';
+import * as recruiterChat from './liveChatData';
+import * as jobseekerChat from '../JobSeeker/liveChatData';
 
 const AGENT_AVATAR =
     'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=120&h=120&fit=crop&crop=faces';
 
 const LiveChat = ({ navigation }) => {
+    const role = useSelector((state) => state.auth?.role);
+    const chatData = role?.toLowerCase() === 'jobseeker' ? jobseekerChat : recruiterChat;
+    const {
+        QUICK_ACTIONS,
+        MORE_TOPICS,
+        AUTO_REPLIES,
+        WELCOME_MESSAGE,
+        AGENT_ESCALATION_MESSAGE,
+        RATING_CONFIRMATION,
+        QUICK_REPLY_SUGGESTIONS,
+    } = chatData;
     const insets = useSafeAreaInsets();
     const flatListRef = useRef(null);
     const [messages, setMessages] = useState([]);

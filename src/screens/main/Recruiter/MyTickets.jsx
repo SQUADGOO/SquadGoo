@@ -11,7 +11,9 @@ import AppText, { Variant } from '@/core/AppText';
 import PoolHeader from '@/core/PoolHeader';
 import { useNavigation } from '@react-navigation/native';
 import { screenNames } from '@/navigation/screenNames';
-import { defaultTickets } from './supportData';
+import { useSelector } from 'react-redux';
+import { defaultTickets as recruiterTickets } from './supportData';
+import { defaultTickets as jobseekerTickets } from '../JobSeeker/supportData';
 
 const getStatusStyle = (status) => {
     switch (status) {
@@ -39,6 +41,8 @@ const getPriorityDot = (priority) => {
 
 const MyTickets = () => {
     const navigation = useNavigation();
+    const role = useSelector((state) => state.auth?.role);
+    const defaultTickets = role?.toLowerCase() === 'jobseeker' ? jobseekerTickets : recruiterTickets;
     const [tickets] = useState(defaultTickets);
 
     return (

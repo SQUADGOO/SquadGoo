@@ -17,15 +17,22 @@ import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import {
-    transactionHistory,
-    TRANSACTION_CATEGORIES,
+    transactionHistory as recruiterTransactionHistory,
+    jobseekerTransactionHistory,
+    TRANSACTION_CATEGORIES as RECRUITER_CATEGORIES,
+    JOBSEEKER_TRANSACTION_CATEGORIES,
     DATE_FILTERS,
     STATUS_FILTERS,
 } from './transactionData';
+import { useSelector } from 'react-redux';
 
 const PAGE_SIZE = 10;
 
 const TransactionHistory = ({ navigation }) => {
+    const role = useSelector((state) => state.auth?.role);
+    const isJobseeker = role?.toLowerCase() === 'jobseeker';
+    const transactionHistory = isJobseeker ? jobseekerTransactionHistory : recruiterTransactionHistory;
+    const TRANSACTION_CATEGORIES = isJobseeker ? JOBSEEKER_TRANSACTION_CATEGORIES : RECRUITER_CATEGORIES;
     const [dateFilter, setDateFilter] = useState('Daily');
     const [categoryFilter, setCategoryFilter] = useState('All Transactions');
     const [statusFilter, setStatusFilter] = useState('All');

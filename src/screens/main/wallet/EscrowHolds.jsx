@@ -15,6 +15,7 @@ import { screenNames } from '@/navigation/screenNames';
 import { activeHoldsData, completedHoldsData, ESCROW_STAGES } from './escrowData';
 import { showToast, toastTypes } from '@/utilities/toastConfig';
 import AppButton from '@/core/AppButton';
+import { useSelector } from 'react-redux';
 
 const STAGE_COLORS = {
     3: '#F59E0B',
@@ -30,6 +31,8 @@ const getStageLabel = (stage) => ESCROW_STAGES.find(s => s.key === stage)?.label
 const getStageColor = (stage) => STAGE_COLORS[stage] || '#6366F1';
 
 const EscrowHolds = ({ navigation }) => {
+    const role = useSelector((state) => state.auth?.role);
+    const isJobseeker = role?.toLowerCase() === 'jobseeker';
     const [activeTab, setActiveTab] = useState('active');
 
     const copyCode = (code) => {
@@ -233,7 +236,7 @@ const EscrowHolds = ({ navigation }) => {
 
     return (
         <View style={styles.screen}>
-            <PoolHeader title="Escrow & Holds" />
+            <PoolHeader title={isJobseeker ? "Job Escrows" : "Escrow & Holds"} />
 
             {/* Tabs */}
             <View style={styles.tabBar}>

@@ -60,6 +60,8 @@ const RootNavigator = () => {
               <Stack.Screen name={screenNames.KYC_KYB_DOC} component={KycDocument} />
               <Stack.Screen name={screenNames.KYC_KYB_SUBMIT} component={KycSubmit} />
               <Stack.Screen name={screenNames.KYC_BUSINESS} component={KycBusiness} />
+              <Stack.Screen name={screenNames.EDUCATION} component={ui.Education} />
+              <Stack.Screen name={screenNames.SKILLS_LANGUAGES} component={ui.SkillsLanguages} />
 
     </Stack.Navigator>
   );

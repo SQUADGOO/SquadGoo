@@ -137,6 +137,33 @@ const QuickSearchMatchList = ({ route, navigation }) => {
       style={styles.card}
       onPress={() => handleViewProfile(item)}
     >
+      {/* Badges row — above the profile so it doesn't squeeze the name */}
+      <View style={styles.rightBadges}>
+        <View style={styles.rightBadgesRow}>
+          <View style={[
+            styles.matchBadge,
+            item.matchPercentage >= 90 && styles.matchBadgeExcellent,
+            item.matchPercentage >= 80 && item.matchPercentage < 90 && styles.matchBadgeGood,
+            item.matchPercentage >= 70 && item.matchPercentage < 80 && styles.matchBadgeFair,
+          ]}>
+            <AppText variant={Variant.caption} style={styles.matchBadgeText}>
+              {Math.round(item.matchPercentage || 0)}% Match
+            </AppText>
+          </View>
+          <View style={styles.ratingBadge}>
+            <VectorIcons
+              name={iconLibName.Ionicons}
+              iconName="star"
+              size={14}
+              color="#F59E0B"
+            />
+            <AppText variant={Variant.caption} style={styles.ratingBadgeText}>
+              {item.acceptanceRating ?? 0}% Acceptance
+            </AppText>
+          </View>
+        </View>
+      </View>
+
       {/* Header */}
       <View style={styles.cardHeader}>
         <View style={styles.profileSection}>
@@ -195,32 +222,6 @@ const QuickSearchMatchList = ({ route, navigation }) => {
                 </AppText>
               </View>
             ) : null}
-          </View>
-        </View>
-
-        <View style={styles.rightBadges}>
-          <View style={styles.rightBadgesRow}>
-            <View style={[
-              styles.matchBadge,
-              item.matchPercentage >= 90 && styles.matchBadgeExcellent,
-              item.matchPercentage >= 80 && item.matchPercentage < 90 && styles.matchBadgeGood,
-              item.matchPercentage >= 70 && item.matchPercentage < 80 && styles.matchBadgeFair,
-            ]}>
-              <AppText variant={Variant.caption} style={styles.matchBadgeText}>
-                {Math.round(item.matchPercentage || 0)}% Match
-              </AppText>
-            </View>
-            <View style={styles.ratingBadge}>
-              <VectorIcons
-                name={iconLibName.Ionicons}
-                iconName="star"
-                size={14}
-                color="#F59E0B"
-              />
-              <AppText variant={Variant.caption} style={styles.ratingBadgeText}>
-                {item.acceptanceRating ?? 0}% Acceptance
-              </AppText>
-            </View>
           </View>
         </View>
       </View>
@@ -753,7 +754,7 @@ const styles = StyleSheet.create({
   },
   rightBadges: {
     alignItems: 'flex-end',
-    marginLeft: wp(2),
+    marginBottom: hp(1),
   },
   rightBadgesRow: {
     flexDirection: 'row',

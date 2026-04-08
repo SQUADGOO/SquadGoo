@@ -12,7 +12,7 @@ import { screenNames } from '@/navigation/screenNames'
 
 const QuickSearchStepThree = ({ navigation, route }) => {
   // Get data from Step 1 and Step 2
-  const { quickSearchStep1Data, quickSearchStep2Data, editMode, draftJob, jobId } = route.params || {}
+  const { quickSearchStep1Data, quickSearchStep2Data, editMode, draftJob, jobId, returnToPreview, previewData } = route.params || {}
 
   const step3Draft = draftJob?.rawData?.step3 || {}
 
@@ -66,6 +66,19 @@ const QuickSearchStepThree = ({ navigation, route }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editMode, draftJob])
 
+  // Pre-fill from previewData when returning from preview edit
+  useEffect(() => {
+    if (returnToPreview && previewData?.quickSearchStep3Data) {
+      const s3 = previewData.quickSearchStep3Data
+      setSalaryType(s3.salaryType ?? 'Hourly')
+      setOvertimeEnabled(!!(s3.overtimeEnabled ?? s3.extraPay?.overtime))
+      methods.reset({
+        fixedRate: String(s3.fixedRate ?? s3.salaryMin ?? ''),
+        overtimeRate: String(s3.overtimeRate ?? ''),
+      })
+    }
+  }, [returnToPreview, previewData])
+
   const onSubmit = (data) => {
     const fixed = Number(data.fixedRate)
 
@@ -100,6 +113,19 @@ const QuickSearchStepThree = ({ navigation, route }) => {
     console.log('Quick Search Step 3 Data:', quickSearchStep3Data)
 
     // Pass all three steps' data forward
+    if (returnToPreview) {
+      navigation.navigate(screenNames.QUICK_SEARCH_PREVIEW, {
+        quickSearchStep1Data: previewData?.quickSearchStep1Data || quickSearchStep1Data,
+        quickSearchStep2Data: previewData?.quickSearchStep2Data || quickSearchStep2Data,
+        quickSearchStep3Data,
+        quickSearchStep4Data: previewData?.quickSearchStep4Data,
+        editMode: previewData?.editMode,
+        draftJob: previewData?.draftJob,
+        jobId: previewData?.jobId,
+      })
+      return
+    }
+
     navigation.navigate(screenNames.QUICK_SEARCH_STEPFOUR, {
       quickSearchStep1Data,
       quickSearchStep2Data,

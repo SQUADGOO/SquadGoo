@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native'
+import { View, StyleSheet, ScrollView, TouchableOpacity, Image, Switch } from 'react-native'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
 import AppText, { Variant } from '@/core/AppText'
@@ -55,7 +55,7 @@ const CustomDrawer = ({
           expandable: true,
           subItems: [
             { key: 'quick-search', title: 'Quick Search', icon: 'search-outline', route: screenNames.QUICK_SEARCH_STACK },
-            { key: 'manual-search', title: 'Manual Search', icon: 'search-circle-outline', route: screenNames.MANUAL_SEARCH },
+            { key: 'manual-search', title: 'Manual Search', icon: 'search-circle-outline', route: screenNames.MANUAL_SEARCH_STACK },
           ],
         },
         {
@@ -152,20 +152,16 @@ const CustomDrawer = ({
     if (role?.toLowerCase() === 'jobseeker') {
       return [
         {
-          key: 'settings',
-          title: 'Settings',
-          icon: 'settings-outline',
+          key: 'home',
+          title: 'Home',
+          icon: 'home-outline',
           iconLib: iconLibName.Ionicons,
-          expandable: true,
-          subItems: [
-            { key: 'job-settings', title: 'Job Settings', icon: 'briefcase-outline', route: screenNames.JOB_SETTINGS },
-            { key: 'app-settings', title: 'App Settings', icon: 'phone-portrait-outline', route: screenNames.APP_SETTINGS },
-          ],
+          route: screenNames.JOBSEEKER_TAB,
         },
         {
           key: 'dashboard',
-          title: 'Home',
-          icon: 'apps-outline',
+          title: 'Dashboard',
+          icon: 'grid-outline',
           iconLib: iconLibName.Ionicons,
           route: screenNames.JOB_SEEKER_DASHBOARD,
         },
@@ -174,7 +170,7 @@ const CustomDrawer = ({
           title: 'Account Upgrades',
           icon: 'diamond-outline',
           iconLib: iconLibName.Ionicons,
-          route: screenNames.ACCOUNT_UPGRADE,
+          comingSoon: true,
         },
         {
           key: 'support',
@@ -184,46 +180,25 @@ const CustomDrawer = ({
           route: screenNames.SUPPORT,
         },
         {
-          key: 'notifications',
-          title: 'Notifications',
-          icon: 'notifications-outline',
-          iconLib: iconLibName.Ionicons,
-          route: screenNames.NOTICATIONS,
-        },
-        {
-          key: 'chat',
-          title: 'Chat',
-          icon: 'chatbubble-outline',
-          iconLib: iconLibName.Ionicons,
-          route: screenNames.CHAT,
-        },
-        {
-          key: 'wallet',
-          title: 'Wallet',
-          icon: 'wallet-outline',
-          iconLib: iconLibName.Ionicons,
-          route: screenNames.Wallet,
-        },
-        {
           key: 'job-pool',
           title: 'Job Pool',
-          icon: 'mail-outline',
+          icon: 'briefcase-outline',
           iconLib: iconLibName.Ionicons,
           expandable: true,
           subItems: [
-            { key: 'active-jobs', title: 'Active Jobs', icon: 'checkmark-circle-outline', route: screenNames.ACTIVE_OFFERS },
-            { key: 'completed-jobs', title: 'Completed Jobs', icon: 'checkmark-done-outline', route: screenNames.COMPLETED_OFFERS },
-            { key: 'draft-jobs', title: 'Draft Jobs', icon: 'document-outline', route: screenNames.DRAFTED_OFFERS },
+            { key: 'active-offers', title: 'Active Offers', icon: 'checkmark-circle-outline', route: screenNames.ACTIVE_OFFERS_POOL },
+            { key: 'completed-offers', title: 'Completed Offers', icon: 'checkmark-done-outline', route: screenNames.COMPLETED_OFFERS_POOL },
+            { key: 'expired-declined', title: 'Expired/Declined Offers', icon: 'close-circle-outline', route: screenNames.EXPIRED_DECLINED_POOL },
           ],
         },
         {
           key: 'reports',
-          title: 'Reports & Statics',
+          title: 'Reports & Stats',
           icon: 'bar-chart-outline',
           iconLib: iconLibName.Ionicons,
           expandable: true,
           subItems: [
-            { key: 'job-reports', title: 'Job Reports', icon: 'document-text-outline', route: screenNames.JOBSEEKER_JOB_REPORTS },
+            { key: 'offer-reports', title: 'Offer Reports', icon: 'document-text-outline', route: screenNames.JOBSEEKER_JOB_REPORTS },
             { key: 'earnings-report', title: 'Earnings Report', icon: 'cash-outline', route: screenNames.JOBSEEKER_EARNING_REPORTS },
             { key: 'performance', title: 'Performance Analytics', icon: 'analytics-outline', route: screenNames.JOBSEEKER_PERFORMANCE_ANALYTICS },
           ],
@@ -235,13 +210,13 @@ const CustomDrawer = ({
           iconLib: iconLibName.Ionicons,
           route: screenNames.MARKETPLACE_STACK,
         },
-        // {
-        //   key: 'orders',
-        //   title: 'My Orders',
-        //   icon: 'receipt-outline',
-        //   iconLib: iconLibName.Ionicons,
-        //   route: screenNames.MARKETPLACE_ORDERS,
-        // },
+        {
+          key: 'settings',
+          title: 'Settings',
+          icon: 'settings-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.APP_SETTINGS,
+        },
       ]
     }
 
@@ -250,18 +225,40 @@ const CustomDrawer = ({
   }
 
 
+  const isJobseeker = role?.toLowerCase() === 'jobseeker'
+  const [isActive, setIsActive] = useState(true)
+
   const menuItems = getMenuItemsByRole(role)
+
+  // Build initials from name
+  const userName = userInfo?.name || userInfo?.firstName || ''
+  const initials = userName.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U'
+  const hasPhoto = !!userInfo?.profile_picture
 
   const renderUserProfile = () => (
     <View style={styles.profileSection}>
       <View style={styles.profileContainer}>
         <TouchableOpacity onPress={() => navigation.navigate(screenNames.PROFILE)} style={styles.avatarContainer}>
-
-          <FastImageView
-            source={userInfo?.profile_picture ? { uri: userInfo?.profile_picture } : Images.logo}
-            style={styles.avatar}
-            resizeMode={'cover'}
-          />
+          {hasPhoto ? (
+            <FastImageView
+              source={{ uri: userInfo.profile_picture }}
+              style={styles.avatar}
+              resizeMode={'cover'}
+            />
+          ) : (
+            <View style={[styles.avatar, styles.initialsAvatar]}>
+              <AppText variant={Variant.subTitle} style={styles.initialsText}>{initials}</AppText>
+            </View>
+          )}
+          {/* Camera icon overlay */}
+          <View style={styles.cameraOverlay}>
+            <VectorIcons
+              name={iconLibName.Ionicons}
+              iconName="camera"
+              size={12}
+              color="#FFFFFF"
+            />
+          </View>
           {userInfo?.isVerified && (
             <View style={styles.verificationBadge}>
               <VectorIcons
@@ -276,30 +273,61 @@ const CustomDrawer = ({
 
         <View style={styles.userInfo}>
           <AppText variant={Variant.subTitle} style={styles.userName}>
-            {userInfo?.name}
+            {userName || 'User'}
           </AppText>
           <AppText variant={Variant.bodySmall} style={styles.userRole}>
-            {role}
+            {isJobseeker ? 'jobseeker' : role}
           </AppText>
         </View>
 
-        <TouchableOpacity style={styles.toggleSwitch}>
-          <View style={styles.switchTrack}>
-            <View style={styles.switchThumb} />
-          </View>
-        </TouchableOpacity>
+        {isJobseeker ? (
+          <Switch
+            value={isActive}
+            // onValueChange={setIsActive}
+            trackColor={{ false: '#D1D5DB', true: '#4ADE80' }}
+            thumbColor="#FFFFFF"
+          />
+        ) : (
+          <TouchableOpacity style={styles.toggleSwitch}>
+            <View style={styles.switchTrack}>
+              <View style={styles.switchThumb} />
+            </View>
+          </TouchableOpacity>
+        )}
       </View>
+
+      {/* Active/Inactive label for jobseeker */}
+      {isJobseeker ? (
+        <View style={styles.activeStatusRow}>
+          <View style={[styles.activeStatusDot, { backgroundColor: isActive ? '#4ADE80' : '#9CA3AF' }]} />
+          <AppText variant={Variant.caption} style={[styles.activeStatusText, { color: isActive ? '#16A34A' : '#6B7280' }]}>
+            {isActive ? 'Active – Receiving Offers' : 'Inactive – Not Receiving Offers'}
+          </AppText>
+        </View>
+      ) : null}
+
+      {/* Warning when inactive */}
+      {isJobseeker && !isActive ? (
+        <View style={styles.warningBanner}>
+          <VectorIcons name={iconLibName.Ionicons} iconName="warning-outline" size={14} color="#D97706" />
+          <AppText variant={Variant.caption} style={styles.warningText}>
+            You won't receive new job offers.
+          </AppText>
+        </View>
+      ) : null}
     </View>
   )
 
   const renderMenuItem = (item) => {
     const isExpanded = expandedSections[item.key]
+    const isDisabled = item.comingSoon
 
     return (
       <View key={item.key} style={styles.menuItemContainer}>
         <TouchableOpacity
-          style={styles.menuItem}
+          style={[styles.menuItem, isDisabled && styles.menuItemDisabled]}
           onPress={() => {
+            if (isDisabled) return
             if (item.expandable) {
               toggleSection(item.key)
             } else if (item.route) {
@@ -318,14 +346,14 @@ const CustomDrawer = ({
               }
             }
           }}
-          activeOpacity={0.7}
+          activeOpacity={isDisabled ? 1 : 0.7}
         >
           <View style={styles.menuItemLeft}>
             <View style={styles.iconContainer}>
               {item.iconImage ? (
                 <Image
                   source={item.iconImage}
-                  style={styles.menuIconImage}
+                  style={[styles.menuIconImage, isDisabled && { tintColor: '#D1D5DB' }]}
                   resizeMode="contain"
                 />
               ) : (
@@ -333,14 +361,22 @@ const CustomDrawer = ({
                   name={item.iconLib || iconLibName.Ionicons}
                   iconName={item.icon}
                   size={20}
-                  color={colors.primary || '#6B7280'}
+                  color={isDisabled ? '#D1D5DB' : (colors.primary || '#6B7280')}
                 />
               )}
             </View>
-            <AppText variant={Variant.body} style={styles.menuItemText}>
+            <AppText variant={Variant.body} style={[styles.menuItemText, isDisabled && styles.menuItemTextDisabled]}>
               {item.title}
             </AppText>
           </View>
+
+          {item.comingSoon && (
+            <View style={styles.comingSoonBadge}>
+              <AppText variant={Variant.caption} style={styles.comingSoonText}>
+                Coming Soon
+              </AppText>
+            </View>
+          )}
 
           {item.expandable && (
             <VectorIcons
@@ -567,5 +603,76 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(6),
     paddingVertical: hp(2),
     marginBottom: hp(2),
+  },
+  menuItemDisabled: {
+    opacity: 0.6,
+  },
+  menuItemTextDisabled: {
+    color: '#9CA3AF',
+  },
+  initialsAvatar: {
+    backgroundColor: colors.primary || '#FF6B35',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  initialsText: {
+    color: '#FFFFFF',
+    fontSize: getFontSize(18),
+    fontWeight: '700',
+  },
+  cameraOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: wp(5.5),
+    height: wp(5.5),
+    borderRadius: wp(2.75),
+    backgroundColor: colors.gray || '#6B7280',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.white,
+  },
+  activeStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: hp(1),
+    gap: wp(2),
+    paddingLeft: wp(1),
+  },
+  activeStatusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  activeStatusText: {
+    fontSize: getFontSize(12),
+    fontWeight: '600',
+  },
+  warningBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+    marginTop: hp(0.8),
+    backgroundColor: '#FFFBEB',
+    borderRadius: hp(1),
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.5),
+  },
+  warningText: {
+    color: '#D97706',
+    fontSize: getFontSize(11),
+    fontWeight: '500',
+  },
+  comingSoonBadge: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: hp(1),
+    paddingHorizontal: wp(2.5),
+    paddingVertical: hp(0.3),
+  },
+  comingSoonText: {
+    color: '#9CA3AF',
+    fontSize: getFontSize(10),
+    fontWeight: '600',
   },
 })

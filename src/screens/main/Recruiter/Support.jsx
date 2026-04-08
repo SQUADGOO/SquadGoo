@@ -12,9 +12,13 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { screenNames } from '@/navigation/screenNames';
 import GradientHeader from '@/core/GradientHeader';
+import { useSelector } from 'react-redux';
 import {
-  supportFaqs,
+  supportFaqs as recruiterFaqs,
 } from './supportData';
+import {
+  supportFaqs as jobseekerFaqs,
+} from '../JobSeeker/supportData';
 import LinearGradient from 'react-native-linear-gradient';
 
 const SUPPORT_CARDS = [
@@ -49,7 +53,7 @@ const SUPPORT_CARDS = [
 ];
 
 // Search topics for autocomplete
-const SEARCH_TOPICS = [
+const RECRUITER_SEARCH_TOPICS = [
   'How to post a job',
   'How to manage offers',
   'Payment methods',
@@ -68,17 +72,40 @@ const SEARCH_TOPICS = [
   'Terms of service',
 ];
 
+const JOBSEEKER_SEARCH_TOPICS = [
+  'How to accept a job offer',
+  'How to decline an offer',
+  'Request modification',
+  'Cancel a job',
+  'Wallet withdrawal',
+  'Payment status',
+  'KYC verification',
+  'Update profile',
+  'Upload qualifications',
+  'Change password',
+  'Account recovery',
+  'Contact support',
+  'Report a bug',
+  'Escrow and holds',
+  'Acceptance rating',
+  'Privacy policy',
+];
+
 const Support = () => {
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
+  const role = useSelector((state) => state.auth?.role);
+  const isJobseeker = role?.toLowerCase() === 'jobseeker';
+  const supportFaqs = isJobseeker ? jobseekerFaqs : recruiterFaqs;
+  const SEARCH_TOPICS = isJobseeker ? JOBSEEKER_SEARCH_TOPICS : RECRUITER_SEARCH_TOPICS;
 
   const filteredTopics = useMemo(() => {
     if (!searchQuery.trim()) return [];
     return SEARCH_TOPICS.filter((topic) =>
       topic.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery]);
+  }, [searchQuery, SEARCH_TOPICS]);
 
   const handleSupportAction = (action) => {
     switch (action) {

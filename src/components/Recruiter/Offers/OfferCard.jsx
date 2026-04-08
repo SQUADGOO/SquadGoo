@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { colors, hp, wp, getFontSize } from '@/theme';
 import AppText, { Variant } from '@/core/AppText';
@@ -79,6 +79,40 @@ const OfferCard = ({
   experienceSummary,
   qualificationsSummary,
 }) => {
+  // Live countdown timer for pending offers
+  const [countdown, setCountdown] = useState('')
+  const [isUrgent, setIsUrgent] = useState(false)
+  const [isExpiredNow, setIsExpiredNow] = useState(false)
+
+  useEffect(() => {
+    if (status !== 'pending' || !expiresAt) return
+
+    const tick = () => {
+      const now = Date.now()
+      const expiry = new Date(expiresAt).getTime()
+      const diff = expiry - now
+
+      if (diff <= 0) {
+        setCountdown('0:00:00')
+        setIsExpiredNow(true)
+        setIsUrgent(true)
+        return
+      }
+
+      const totalSeconds = Math.floor(diff / 1000)
+      const hours = Math.floor(totalSeconds / 3600)
+      const minutes = Math.floor((totalSeconds % 3600) / 60)
+      const seconds = totalSeconds % 60
+      setCountdown(`${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`)
+      setIsUrgent(diff < 30 * 60 * 1000) // < 30 min
+      setIsExpiredNow(false)
+    }
+
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [status, expiresAt])
+
   const safeText = (value) => {
     if (value == null) return '';
     if (typeof value === 'string') return value;
@@ -364,18 +398,41 @@ const OfferCard = ({
         </View>
       </View>
 
-      {/* Expiry */}
-      <View style={styles.expiryContainer}>
-        <VectorIcons
-          name={iconLibName.Ionicons}
-          iconName="time-outline"
-          size={14}
-          color={colors.gray}
-        />
-        <AppText variant={Variant.caption} style={styles.expiryText}>
-          Expires: {expiresLabel || 'N/A'}
-        </AppText>
-      </View>
+      {/* Expiry / Countdown */}
+      {status === 'pending' && expiresAt ? (
+        <View style={[styles.expiryContainer, isUrgent && styles.expiryUrgent]}>
+          <VectorIcons
+            name={iconLibName.Ionicons}
+            iconName="timer-outline"
+            size={16}
+            color={isUrgent ? '#EF4444' : colors.primary}
+          />
+          <AppText
+            variant={Variant.bodyMedium}
+            style={[
+              styles.countdownText,
+              isUrgent && styles.countdownUrgent,
+            ]}
+          >
+            {isExpiredNow ? 'Expired' : countdown}
+          </AppText>
+          <AppText variant={Variant.caption} style={[styles.expiryText, isUrgent && { color: '#EF4444' }]}>
+            {isExpiredNow ? '' : ' remaining'}
+          </AppText>
+        </View>
+      ) : (
+        <View style={styles.expiryContainer}>
+          <VectorIcons
+            name={iconLibName.Ionicons}
+            iconName="time-outline"
+            size={14}
+            color={colors.gray}
+          />
+          <AppText variant={Variant.caption} style={styles.expiryText}>
+            Expires: {expiresLabel || 'N/A'}
+          </AppText>
+        </View>
+      )}
 
       {/* Accepted summary (Scenario 3) */}
       {showAccepted && (experienceSummary || qualificationsSummary) ? (
@@ -1049,6 +1106,23 @@ const styles = StyleSheet.create({
   expiryText: {
     color: colors.gray,
     fontSize: getFontSize(12),
+  },
+  expiryUrgent: {
+    backgroundColor: '#FEF2F2',
+    paddingHorizontal: wp(2),
+    paddingVertical: hp(0.5),
+    borderRadius: hp(1),
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  countdownText: {
+    color: colors.primary,
+    fontSize: getFontSize(14),
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+  },
+  countdownUrgent: {
+    color: '#EF4444',
   },
   scenarioBox: {
     backgroundColor: '#F9FAFB',

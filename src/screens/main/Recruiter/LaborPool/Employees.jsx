@@ -8,6 +8,7 @@ import { DUMMY_EMPLOYEES } from '@/utilities/dummyEmployees';
 import PoolFilters from '@/components/Recruiter/LaborPool/PoolFilters';
 import AppText, { Variant } from '@/core/AppText';
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
+import InfoTooltip from '@/components/InfoTooltip';
 import {
   getBadgeOptions,
   getLocationOptions,
@@ -100,14 +101,13 @@ const Employees = ({ navigation }) => {
   const renderInfoBanner = () => (
     <View style={styles.infoBanner}>
       <VectorIcons name={iconLibName.Ionicons} iconName="shield-checkmark" size={20} color="#0D9488" />
-      <View style={styles.infoBannerContent}>
-        <AppText variant={Variant.bodyMedium} style={styles.infoBannerTitle}>
-          TFN Verified Employees
-        </AppText>
-        <AppText variant={Variant.caption} style={styles.infoBannerDesc}>
-          Full-time, part-time, and casual employees with verified Tax File Numbers
-        </AppText>
-      </View>
+      <AppText variant={Variant.bodyMedium} style={styles.infoBannerTitle}>
+        TFN Verified Employees
+      </AppText>
+      <InfoTooltip
+        message="Full-time, part-time, and casual employees with verified Tax File Numbers."
+        iconColor="#0D9488"
+      />
     </View>
   );
 
@@ -217,20 +217,12 @@ const styles = StyleSheet.create({
     borderRadius: hp(1.6),
     padding: wp(3.5),
     marginBottom: hp(2),
-    gap: wp(3),
-  },
-  infoBannerContent: {
-    flex: 1,
+    gap: wp(2),
   },
   infoBannerTitle: {
     color: '#115E59',
     fontWeight: '700',
     fontSize: getFontSize(14),
-  },
-  infoBannerDesc: {
-    color: '#0F766E',
-    fontSize: getFontSize(11),
-    marginTop: hp(0.2),
   },
   emptyState: {
     alignItems: 'center',

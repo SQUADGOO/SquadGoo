@@ -172,6 +172,15 @@ export const screenNames = {
   CANDIDATE_HOURS: 'candidate_hours',
   JOB_COMPLETE: 'job_complete',
 
+  // Jobseeker Profile
+  EDUCATION: 'education',
+  SKILLS_LANGUAGES: 'skills_languages',
+
+  // Jobseeker Job Pool
+  ACTIVE_OFFERS_POOL: 'active_offers_pool',
+  COMPLETED_OFFERS_POOL: 'completed_offers_pool',
+  EXPIRED_DECLINED_POOL: 'expired_declined_pool',
+
   // Jobseeker Reports
   JOBSEEKER_EARNING_REPORTS: 'jobseeker-earning-reports',
   JOBSEEKER_JOB_REPORTS: 'jobseeker-job-reports',

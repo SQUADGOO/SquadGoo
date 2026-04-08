@@ -92,7 +92,13 @@ export const downloadAndOpenFile = async (uri, suggestedName = 'document') => {
 
 export const formatTime = (value) => {
   if (!value) return '';
-  
+
+  // Handle "HH:MM" time strings directly
+  if (typeof value === 'string' && /^\d{1,2}:\d{2}$/.test(value)) {
+    return value;
+  }
+
   const date = new Date(value);
-  return date.toTimeString().slice(0, 5); 
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toTimeString().slice(0, 5);
 }
