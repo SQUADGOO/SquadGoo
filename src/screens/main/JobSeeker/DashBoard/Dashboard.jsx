@@ -285,6 +285,12 @@ const JobSeekerDashboard = () => {
             </View>
             <AppText variant={Variant.caption} style={styles.quickActionText}>Profile</AppText>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.quickAction} onPress={() => navigation.navigate(screenNames.ANNOUNCEMENTS)} activeOpacity={0.7}>
+            <View style={[styles.quickActionIcon, { backgroundColor: '#F3E8FF' }]}>
+              <VectorIcons name={iconLibName.Ionicons} iconName="megaphone-outline" size={20} color="#7C3AED" />
+            </View>
+            <AppText variant={Variant.caption} style={styles.quickActionText}>Media</AppText>
+          </TouchableOpacity>
         </View>
 
       </ScrollView>

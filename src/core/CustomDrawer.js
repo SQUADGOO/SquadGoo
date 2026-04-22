@@ -95,6 +95,13 @@ const CustomDrawer = ({
           route: screenNames.SUPPORT,
         },
         {
+          key: 'announcements',
+          title: 'Announcements',
+          icon: 'megaphone-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.ANNOUNCEMENTS,
+        },
+        {
           key: 'notifications',
           title: 'Notifications',
           icon: 'notifications-outline',
@@ -122,6 +129,8 @@ const CustomDrawer = ({
           iconLib: iconLibName.Ionicons,
           expandable: true,
           subItems: [
+            { key: 'my-reviews', title: 'My Reviews', icon: 'star-outline', route: screenNames.MY_REVIEWS, params: { audience: 'recruiter' } },
+            { key: 'written-reviews', title: "Reviews I've Written", icon: 'create-outline', route: screenNames.WRITTEN_REVIEWS, params: { audience: 'recruiter' } },
             { key: 'billing-spend-summary', title: 'Billing & Spend Summary', icon: 'receipt-outline', route: screenNames.RECRUITER_BILLING_REPORTS },
           ],
         },
@@ -198,6 +207,8 @@ const CustomDrawer = ({
           iconLib: iconLibName.Ionicons,
           expandable: true,
           subItems: [
+            { key: 'my-reviews', title: 'My Reviews', icon: 'star-outline', route: screenNames.MY_REVIEWS, params: { audience: 'jobseeker' } },
+            { key: 'written-reviews', title: "Reviews I've Written", icon: 'create-outline', route: screenNames.WRITTEN_REVIEWS, params: { audience: 'jobseeker' } },
             { key: 'offer-reports', title: 'Offer Reports', icon: 'document-text-outline', route: screenNames.JOBSEEKER_JOB_REPORTS },
             { key: 'earnings-report', title: 'Earnings Report', icon: 'cash-outline', route: screenNames.JOBSEEKER_EARNING_REPORTS },
             { key: 'performance', title: 'Performance Analytics', icon: 'analytics-outline', route: screenNames.JOBSEEKER_PERFORMANCE_ANALYTICS },
@@ -209,6 +220,13 @@ const CustomDrawer = ({
           icon: 'storefront-outline',
           iconLib: iconLibName.Ionicons,
           route: screenNames.MARKETPLACE_STACK,
+        },
+        {
+          key: 'announcements',
+          title: 'Announcements',
+          icon: 'megaphone-outline',
+          iconLib: iconLibName.Ionicons,
+          route: screenNames.ANNOUNCEMENTS,
         },
         {
           key: 'settings',

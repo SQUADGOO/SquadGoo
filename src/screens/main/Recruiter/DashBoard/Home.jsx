@@ -293,6 +293,10 @@ const HomeScreen = ({ navigation }) => {
         })
     }
 
+    const handleMedia = () => {
+        navigation.navigate(screenNames.ANNOUNCEMENTS)
+    }
+
     const handleMessages = () => {
         navigation.navigate(screenNames.MESSAGES)
     }
@@ -368,18 +372,27 @@ const HomeScreen = ({ navigation }) => {
                     />
                 </View>
                 <View style={styles.quickActionsRow}>
-                    <QuickAction 
-                        iconLib="Feather" 
-                        iconName="file-text" 
-                        label="Manage Offers" 
+                    <QuickAction
+                        iconLib="Feather"
+                        iconName="file-text"
+                        label="Manage Offers"
                         onPress={handleManageOffers}
                     />
-                    <QuickAction 
-                        iconLib="Feather" 
-                        iconName="send" 
-                        label="Messages" 
+                    <QuickAction
+                        iconLib="Feather"
+                        iconName="send"
+                        label="Messages"
                         onPress={handleMessages}
                     />
+                </View>
+                <View style={styles.quickActionsRow}>
+                    <QuickAction
+                        iconLib="Feather"
+                        iconName="radio"
+                        label="Media"
+                        onPress={handleMedia}
+                    />
+                    <View style={{flex: 1, marginHorizontal: 4}} />
                 </View>
 
                 <AppText variant={Variant.subTitle} style={styles.sectionTitle}>

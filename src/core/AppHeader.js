@@ -9,6 +9,7 @@ import globalStyles from '@/styles/globalStyles'
 import { Icons, Images } from '@/assets'
 import { useNavigation } from '@react-navigation/native'
 import { screenNames } from '@/navigation/screenNames'
+import { useSelector } from 'react-redux'
 
 const AppHeader = ({
   title = '',
@@ -31,6 +32,8 @@ const AppHeader = ({
 }) => {
   const insets = useSafeAreaInsets()
   const navigation = useNavigation()
+  const role = useSelector((state) => state?.auth?.role)
+  const isJobseeker = role?.toLowerCase() === 'jobseeker'
 
   const handleBackPress = () => {
     if (onBackPress) {
@@ -53,8 +56,24 @@ const AppHeader = ({
             <Image source={Icons.menu} style={styles.iconStyle} />
           </TouchableOpacity>
 
-          {/* Right Side - Notification & Search Icons */}
+          {/* Right Side - Chat (jobseeker only) + Notification & Search Icons */}
           <View style={globalStyles.flexRow}>
+            {isJobseeker && (
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={() => navigation.navigate(screenNames.CHAT)}
+                activeOpacity={0.7}
+                accessibilityLabel="Open chat inbox"
+              >
+                <VectorIcons
+                  name={iconLibName.Ionicons}
+                  iconName="chatbubble-outline"
+                  size={wp(6)}
+                  color="#FFFFFF"
+                />
+              </TouchableOpacity>
+            )}
+
             <TouchableOpacity
               style={styles.iconButton}
               onPress={() => navigation.navigate(screenNames.NOTICATIONS)}
