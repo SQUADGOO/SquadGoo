@@ -11,7 +11,6 @@ import AppHeader from '@/core/AppHeader'
 import RbSheetComponent from '@/core/RbSheetComponent'
 import BottomDataSheet from '@/components/Recruiter/JobBottomSheet'
 import JobCategorySelector from '@/components/JobCategorySelector'
-import EducationSelector from '@/components/EducationSelector'
 import MultiSelectSheet from '@/components/MultiSelectSheet'
 import { screenNames } from '@/navigation/screenNames'
 
@@ -139,9 +138,6 @@ const QuickSearchStepOne = ({ navigation, route }) => {
   const [jobSubCategory, setJobSubCategory] = useState(draftJob?.jobSubCategory || null)
   const [jobTitle, setJobTitle] = useState(step1Draft?.jobTitle || draftJob?.jobTitle || draftJob?.jobSubCategory || '')
   const [jobType, setJobType] = useState(step1Draft?.jobType || draftJob?.jobType || '')
-  const [requiredEducation, setRequiredEducation] = useState(
-    step1Draft?.requiredEducation || draftJob?.requiredEducation || null,
-  )
   const [preferredLanguages, setPreferredLanguages] = useState(
     step1Draft?.preferredLanguages || draftJob?.preferredLanguages || [{ key: 'english', title: 'English' }],
   )
@@ -185,7 +181,6 @@ const QuickSearchStepOne = ({ navigation, route }) => {
       if (draftJob.jobCategory) setJobCategory(draftJob.jobCategory)
       if (draftJob.jobSubCategory) setJobSubCategory(draftJob.jobSubCategory)
       setJobType(step1Draft?.jobType || draftJob?.jobType || '')
-      setRequiredEducation(step1Draft?.requiredEducation || draftJob?.requiredEducation || null)
       setPreferredLanguages(
         step1Draft?.preferredLanguages ||
           draftJob?.preferredLanguages ||
@@ -203,7 +198,6 @@ const QuickSearchStepOne = ({ navigation, route }) => {
       if (s1.jobSubCategory) setJobSubCategory(s1.jobSubCategory)
       if (s1.jobTitle) setJobTitle(s1.jobTitle)
       if (s1.jobType) setJobType(s1.jobType)
-      if (s1.requiredEducation) setRequiredEducation(s1.requiredEducation)
       if (s1.preferredLanguages) setPreferredLanguages(s1.preferredLanguages)
       if (s1.extraQualifications) setExtraQualifications(s1.extraQualifications)
       methods.reset({
@@ -320,11 +314,6 @@ const QuickSearchStepOne = ({ navigation, route }) => {
         return
       }
 
-      if (!requiredEducation) {
-        Alert.alert('Required', 'Please select required education qualification.')
-        return
-      }
-
       const quickSearchStep1Data = {
         jobReferenceId,
         jobTitle: jobTitle.trim(),
@@ -337,7 +326,6 @@ const QuickSearchStepOne = ({ navigation, route }) => {
         staffCount: staffNumber,
         rolesAndResponsibilities: data.rolesAndResponsibilities,
         requiredUniforms: data.requiredUniforms,
-        requiredEducation,
         preferredLanguages,
         extraQualifications,
       }
@@ -516,17 +504,6 @@ const QuickSearchStepOne = ({ navigation, route }) => {
               options={EXTRA_QUALIFICATIONS_OPTIONS}
               selectedItems={extraQualifications}
               onChange={setExtraQualifications}
-            />
-
-            {/* Required education */}
-            <AppText variant={Variant.bodyMedium} style={styles.label}>
-              Required education qualification*
-            </AppText>
-            <EducationSelector
-              selectedEducation={requiredEducation}
-              onSelect={setRequiredEducation}
-              placeholder="Select education level"
-              courseOnly
             />
 
             {/* Preferred languages */}

@@ -174,10 +174,10 @@ const JobOfferDetails = () => {
                 <VectorIcons name={iconLibName.Ionicons} iconName="location-outline" size={14} color={colors.gray} />
                 <AppText variant={Variant.bodySmall} style={styles.summaryMetaText}>{job.location || 'Location not specified'}</AppText>
               </View>
-              {job.industry ? (
+              {job.jobCategory || job.industry ? (
                 <View style={styles.summaryMetaRow}>
                   <VectorIcons name={iconLibName.Ionicons} iconName="pricetag-outline" size={14} color={colors.gray} />
-                  <AppText variant={Variant.bodySmall} style={styles.summaryMetaText}>{job.industry}</AppText>
+                  <AppText variant={Variant.bodySmall} style={styles.summaryMetaText}>{job.jobCategory || job.industry}</AppText>
                 </View>
               ) : null}
             </View>
@@ -224,7 +224,7 @@ const JobOfferDetails = () => {
           <SectionHeader iconName="information-circle-outline" title="Job Information" />
           <View style={styles.divider} />
           <InfoRow iconName="briefcase-outline" label="Job type" value={job.type} />
-          <InfoRow iconName="pricetag-outline" label="Industry" value={job.industry || job.jobCategory} />
+          <InfoRow iconName="pricetag-outline" label="Job category" value={job.jobCategory || job.industry} />
           <InfoRow iconName="pricetags-outline" label="Sub category" value={job.jobSubCategory} />
           <InfoRow iconName="navigate-outline" label="Work location" value={job.location} />
           <InfoRow iconName="compass-outline" label="Range from location" value={job.rangeKm ? `${job.rangeKm} km` : null} />
@@ -235,7 +235,6 @@ const JobOfferDetails = () => {
         <Card>
           <SectionHeader iconName="ribbon-outline" title="Requirements" />
           <View style={styles.divider} />
-          <InfoRow iconName="school-outline" label="Education required" value={job.educationalQualification} />
           <InfoRow iconName="medal-outline" label="Extra qualifications" value={job.extraQualification} />
           <InfoRow iconName="shirt-outline" label="Required uniforms" value={job.requiredUniforms} />
           <InfoRow iconName="language-outline" label="Preferred languages" value={job.preferredLanguages} />

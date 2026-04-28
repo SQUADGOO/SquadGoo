@@ -1,6 +1,6 @@
 # SquadGoo — Work Status & Continuation Notes
 
-_Last updated: 2026-04-22_
+_Last updated: 2026-04-28 (post Phase 1-3 + 6 execution)_
 
 This file tracks work in progress against the client's **Recruiter Notes S25 Ultra 2.docx** (located at `doc_by_ramp/Recruiter Notes S25 Ultra 2.docx`) and recent UX additions. Pick it up from the "Resume here" section at the bottom.
 
@@ -72,6 +72,61 @@ Fix:
 - Per-section edit icons in `QuickSearchPreview.jsx:200-212`
 - Basic pool filters in `YourPool.jsx:13,362-367`
 
+### Salary & Benefits restructure (Manual Fill) ✓
+`ManualSearchSteps/StepTwo.jsx:55-142` — full restructure done:
+- Salary Type dropdown: Hourly / Daily / Weekly / Annual / Other
+- Salary Range From / To with correct unit label
+- Extra Pay toggles: Public Holidays, Weekend, Shift Loading, Bonuses, Overtime
+- Validation gates rate fields on toggle state
+
+### Weekend Extra Pay conditional logic ✓
+`QuickSearch/StepFour.jsx:347-450` — Saturday/Sunday rate fields render only when the corresponding day is selected (`isSaturdaySelected` / `isSundaySelected`). Validation at `:243-256` matches.
+
+### "Required Number of Positions" rename ✓
+`QuickSearch/StepOne.jsx:469` — label now reads "Required Number of Position*" (internal field still `staffCount`).
+
+### Same-day end date ✓
+`QuickSearch/StepFour.jsx:62-63` — `isMultiDay` is `false` when start === end; no validator blocks same-day.
+
+### Social media single-link save ✓
+`Recruiter/profile/SocialMedia.jsx:38-147` — `activeFields` toggle gates each social row; non-"Other" fields aren't required, so saving a single link works.
+
+### Industry removal — Jobseeker side ✓ (2026-04-28)
+- `AddJobStep1.jsx` — dropped Preferred Industry selector, `industryOptions`, sheet ref, and `preferredIndustry` form field; `JobCategorySelector` now drives Job Category + Sub Category alone (label "Job Category & Sub Category")
+- `PreferredJobs.jsx` — derives `jobCategory` + `subCategory` from `preferredJobTitle`; renders both rows when sub-category is present
+- `WorkExperience.jsx` — `formatIndustry` renamed to `formatJobCategory`; label was already "Job Category"
+- `JobOfferDetails.jsx` — chip and InfoRow now read `jobCategory || industry` (legacy fallback); InfoRow label "Job category"
+- `MyCurrentJobs.jsx` — emits `jobCategory` (was `industry`)
+- `CompletedOffers.jsx`, `AcceptedOffers.jsx` — display `jobCategory || industry`
+- `JobPool/{ActiveOffersPool,ExpiredDeclinedPool,CompletedOffersPool}.jsx` — search filters and Employer rows updated
+
+### Industry removal — Recruiter side ✓ (2026-04-28)
+- `dummyEmployees.js` — `getEmployeesByIndustry` renamed to `getEmployeesByJobCategory` (parameter renamed)
+- `dummyContractors.js` — `getContractorsByIndustry` renamed to `getContractorsByJobCategory` (parameter renamed)
+- `CandidateProfile.jsx` (QuickSearch) — "Industries" label → "Job Categories"
+- `CandidateProfileView.jsx` — `InfoField label="Industries"` → `"Job Categories"`
+- No user-facing "Industry" / "Industries" labels remain in recruiter UI
+
+### Required Education / Faculty removal ✓ (2026-04-28)
+- `ManualSearchSteps/StepThree.jsx` — removed Educational Qualification section (EducationSelector + LanguageTag display + state + handlers + form field + `educationalQualifications` payload key); also removed orphaned `LanguageTag` component, `EducationSelector` import
+- `QuickSearch/StepOne.jsx` — removed Required Education label/field, `requiredEducation` state, `setRequiredEducation` calls in 3 places (init, edit-mode prefill, returnToPreview prefill), validation, payload key
+- `QuickSearch/QuickSearchPreview.jsx` — removed Required Education DetailRow, validation, payload propagation in 2 places
+- `HomeTabs/JobPreview.jsx` — removed Required education preview row, validation, and `educationalQualification(s)` propagation in 2 places
+- `ViewJobDetails.jsx` — removed `keyQualificationsValue` education entry and the "Education required" InfoRow
+- `EducationSelector` component left in place (unused; safe for jobseeker profile reuse)
+
+### Hygiene pass ✓ (2026-04-28)
+- Removed `console.log('value', value);` from `src/core/AppInputField.js:41`
+- Stripped stale PoolHeader props (`leftIcon`/`rightIcon`/`containerStyle`/`titleStyle`) from 7 screens: LaborPool/{Contractors, SquadReviews, Employees, YourPool, SquadPool}.jsx, MyReviews.jsx, WrittenReviews.jsx — replaced with `showBackButton` + `onBackPress`
+
+### Freshers can also apply — visual checkbox ✓ (2026-04-28)
+- `QuickSearchPreview.jsx:679` — replaced plain-text "Freshers can also apply" value with a separate row containing a filled checkbox icon + label; experience years/months always shown
+
+### KYC Proof of Business Address PDF upload ✓ (2026-04-28)
+- `ImagePickerSheet.jsx` — added optional `allowPdf` prop showing a third "Choose PDF" option (stub asset for UI/dummy; reachable from camera/gallery sheet)
+- `KycDocument.jsx` — passes `allowPdf` so both ABN/ACN Certificate and Proof of Business Address can be uploaded as PDF (per docx p.234 item 2)
+- KycVerification (personal ID + selfie) intentionally NOT extended — those remain image-only per scope
+
 ---
 
 ## 🐛 Known bugs / tech debt
@@ -102,30 +157,12 @@ Screens passing bogus props (back button still works via default `showBackButton
 
 ## 📋 Client items still outstanding (from the docx)
 
-Ranked by impact. Grep targets in parentheses where useful.
+_All unblocked items completed 2026-04-28. Remaining 4 are blocked on client clarification._
 
-1. **Industry removal — incomplete.** Client wants Industry gone globally; replaced by Job Category + Sub Category. Still present in:
-   - `src/screens/main/JobSeeker/JobOfferDetails.jsx`
-   - `src/screens/main/JobSeeker/DashBoard/TabScreens/WorkExperience.jsx`
-   - `src/screens/main/JobSeeker/DashBoard/TabScreens/PreferredJobs.jsx`
-   - `src/screens/main/JobSeeker/DashBoard/TabScreens/AddExperince/AddJobStep1.jsx`
-   - `src/utilities/dummyEmployees.js`
-   - `src/utilities/dummyContractors.js`
-2. **Info icon pattern not systematized.** Only 2 instances (`CompletedWorkerProfile.jsx`). Client wants helper/disclaimer text hidden behind info icons everywhere: Quick Search steps, Manual Fill steps, salary/benefits, profile sections, KYC, etc.
-3. **Salary & Benefits restructure.** `src/screens/main/Recruiter/ManualSearchSteps/StepThree.jsx` has flat `fixedRate` / `overtimeRate`. Client wants:
-   - Salary Type dropdown (Hourly / Daily / Weekly / Annually)
-   - Salary Range (From / To) with correct unit label
-   - Extra Pay toggles: Public holidays, Weekend, Shift loading, Bonuses, Overtime
-4. **Weekend Extra Pay conditional logic.** `StepFour.jsx:243-253` currently shows both Saturday and Sunday rate fields unconditionally; should hide / mark "Not Applicable" based on availability.
-5. **"How many staff Looking For" → "Required Number of Positions"** rename — not verified in Quick Search step forms.
-6. **"In Review" / "Pending Verification"** status labels for submitted profile sections — not implemented.
-7. **Same-day end date** — `StepFour.jsx:62` computes `isMultiDay` but doesn't explicitly allow same-day end date per client item 11.
-8. **Required Education / Faculty removal** from Update screens — not audited/done.
-9. **KYC Proof of Business Address PDF upload** — not verified.
-10. **Social media single-link save** without filling all fields — profile form not audited.
-11. **"Freshers can also apply"** has no visual checkbox indicator — `QuickSearchPreview.jsx:679` renders as plain text.
-12. **Modification Request flow** — `ManualOffers.jsx:583` shows badge + inline; client wants a separate page treatment (Scenario 2).
-13. **Standalone Matches page** for Quick Fill offers — not present; candidates only accessible via MatchList → CandidateProfile.
+1. **Modification Request flow — needs client wireframe.** `ManualOffers.jsx:186-189,322` still inline badge; client docx mentions "Scenario 2" but no UI spec; awaiting wireframe before extracting standalone page.
+2. **Standalone Matches page** for Quick Fill offers — current flow `QuickSearchPreview → MatchList → CandidateProfile`. Client to confirm whether `MatchList` should be folded in or kept as inner sub-view of new Matches screen.
+3. **Info icon rollout** — only 6 `<InfoTooltip>` instances. Tooltip *copy* for each location needs client doc as source of truth before mass rollout. Special case: "Contact details and chat are disabled after 1 month" must move behind info icon (docx p.98).
+4. **Per-section "In Review" / "Pending Verification" badges.** `Profile.jsx:72` has a top-level status, but the trigger condition for "Pending Verification" (vs. "In Review") isn't defined; needs client clarification on the state machine.
 
 ---
 
@@ -148,24 +185,14 @@ Ranked by impact. Grep targets in parentheses where useful.
 
 ## 🚀 Resume here
 
-Recommended order when picking this back up:
+All unblocked work landed 2026-04-28. Remaining 4 items need client input first — see "Client items still outstanding" above. Once spec is in hand, recommended order:
 
-1. **Quick hygiene pass (~30 min)** — low risk, high signal:
-   - Remove `AppInputField.js:41` console.log
-   - Strip stale `PoolHeader` props from the 7 flagged screens
-   - Add visual checkbox to "Freshers can also apply" in `QuickSearchPreview.jsx:679`
+1. **Modification Request standalone page** — once Scenario 2 wireframe arrives, extract from `ManualOffers.jsx:186-189,322` into a new screen + drawer entry.
+2. **Standalone Matches page for Quick Fill** — once MatchList retention decision is in, build new screen between `QuickSearchPreview` and `CandidateProfile`.
+3. **Info icon rollout** — once tooltip copy is provided, wrap helper text across Manual Fill, salary/benefits, KYC, jobseeker profile sections; relocate the "Contact details and chat are disabled after 1 month" message into the info icon.
+4. **Per-section "In Review" / "Pending Verification" badges** — once state-machine is defined, add `SectionStatusBadge` to recruiter + jobseeker profile/KYC sections.
 
-2. **Industry removal sweep (~2 hours)** — grep-driven, surgical:
-   ```
-   grep -rn "Industry\|industry\b" src/
-   ```
-   Replace with Job Category + Sub Category where it's a form/select; delete where it's just a display. Update `dummyEmployees.js` / `dummyContractors.js` shapes accordingly.
-
-3. **Info icon rollout (~half day)** — wrap helper text in `InfoTooltip` across Quick Search, Manual Fill, salary/benefits, profile sections.
-
-4. **Salary & Benefits restructure (~1 day)** — `StepThree.jsx` form model + validation + preview rendering. Check `StepFour.jsx` weekend logic as part of the same pass.
-
-5. **Verify on device** — walk through Reviews (My / Written / Squad), Announcements (feed / detail / reactions / comments / report), Chat icon from every jobseeker entry point.
+**Verify on device** — walk through Reviews (My / Written / Squad), Announcements (feed / detail / reactions / comments / report), Chat icon from every jobseeker entry point, salary restructure end-to-end, and the new KYC PDF upload option.
 
 ---
 

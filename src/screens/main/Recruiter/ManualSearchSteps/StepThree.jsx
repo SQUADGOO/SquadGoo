@@ -13,7 +13,6 @@ import AppButton from '@/core/AppButton'
 import FormField from '@/core/FormField'
 import RbSheetComponent from '@/core/RbSheetComponent'
 import BottomDataSheet from '@/components/Recruiter/JobBottomSheet'
-import EducationSelector from '@/components/EducationSelector'
 import MultiSelectSheet from '@/components/MultiSelectSheet'
 import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
@@ -27,23 +26,6 @@ const dateFromMaybeIso = (value) => {
   const d = value instanceof Date ? value : new Date(value)
   return Number.isNaN(d.getTime()) ? null : d
 }
-
-// Small badge for selected languages
-const LanguageTag = ({ language, onRemove }) => (
-  <View style={styles.languageTag}>
-    <AppText variant={Variant.bodySmall} style={styles.languageTagText}>
-      {language}
-    </AppText>
-    <TouchableOpacity onPress={onRemove} style={styles.removeTagButton}>
-      <VectorIcons
-        name={iconLibName.Ionicons}
-        iconName="close"
-        size={14}
-        color="#FFFFFF"
-      />
-    </TouchableOpacity>
-  </View>
-)
 
 // Simple toggle row for tax type
 const TaxTypeSelector = ({ selectedType, onSelect }) => {
@@ -78,7 +60,6 @@ const TaxTypeSelector = ({ selectedType, onSelect }) => {
 
 const StepThree = ({ navigation, route }) => {
   const [selectedTaxType, setSelectedTaxType] = useState('ABN')
-  const [selectedEducations, setSelectedEducations] = useState([])
   const [selectedQualifications, setSelectedQualifications] = useState([])
   const [selectedLanguageItems, setSelectedLanguageItems] = useState([
     { key: 'english', title: 'English' },
@@ -94,7 +75,6 @@ const StepThree = ({ navigation, route }) => {
   const methods = useForm({
     mode: 'onChange',
     defaultValues: {
-      educationalQualification: '',
       extraQualification: '',
       jobStartDate: null,
       jobStartTime: null,
@@ -118,15 +98,11 @@ const StepThree = ({ navigation, route }) => {
       if (typeof s3.interestedInSquadPairs === 'boolean') {
         setInterestedInSquadPairs(s3.interestedInSquadPairs)
       }
-      if (Array.isArray(s3.educationalQualifications)) {
-        setSelectedEducations(s3.educationalQualifications)
-      }
       if (Array.isArray(s3.extraQualificationItems)) {
         setSelectedQualifications(s3.extraQualificationItems)
       }
 
       methods.reset({
-        educationalQualification: '',
         extraQualification: s3.extraQualification || '',
         jobStartDate: s3.jobStartDate || null,
         jobStartTime: s3.jobStartTime || null,
@@ -152,15 +128,7 @@ const StepThree = ({ navigation, route }) => {
       if (typeof draftJob.interestedInSquadPairs === 'boolean') {
         setInterestedInSquadPairs(draftJob.interestedInSquadPairs)
       }
-      if (draftJob.educationalQualifications && Array.isArray(draftJob.educationalQualifications)) {
-        setSelectedEducations(draftJob.educationalQualifications)
-      } else if (draftJob.educationalQualification && draftJob.educationalQualification !== 'Not specified') {
-        // fallback to a single string entry
-        setSelectedEducations([{ id: `edu-${Date.now()}`, label: draftJob.educationalQualification }])
-      }
-
       methods.reset({
-        educationalQualification: '', // derived from selectedEducations
         extraQualification:
           draftJob.extraQualification && draftJob.extraQualification !== 'Not specified'
             ? draftJob.extraQualification
@@ -181,30 +149,6 @@ const StepThree = ({ navigation, route }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editMode, draftJob])
-
-  const handleEducationSelect = (education) => {
-    const label =
-      education?.customValue ||
-      (education?.course ? `${education.level} - ${education.course}` : education?.level) ||
-      ''
-
-    if (!label) return
-
-    setSelectedEducations((prev) => {
-      const exists = prev.some((e) => e.label === label)
-      const next = exists ? prev : [...prev, { ...education, label }]
-      methods.setValue('educationalQualification', next.map(e => e.label).join(', '))
-      return next
-    })
-  }
-
-  const handleEducationRemove = (label) => {
-    setSelectedEducations((prev) => {
-      const next = prev.filter((e) => e.label !== label)
-      methods.setValue('educationalQualification', next.map(e => e.label).join(', '))
-      return next
-    })
-  }
 
   const toDisplayString = (item) =>
     item?.specifyText ? `${item.title}: ${item.specifyText}` : item?.title
@@ -227,7 +171,6 @@ const StepThree = ({ navigation, route }) => {
 
     const formData = {
       ...formValues,
-      educationalQualifications: selectedEducations,
       preferredLanguageItems: selectedLanguageItems,
       preferredLanguages: selectedLanguageItems.map(toDisplayString).filter(Boolean),
       taxType: selectedTaxType,
@@ -279,31 +222,6 @@ const StepThree = ({ navigation, route }) => {
       />
 
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Educational Qualification */}
-        <View style={styles.section}>
-          <AppText variant={Variant.boldCaption} style={styles.label}>
-            Required educational qualification
-          </AppText>
-          <EducationSelector
-            onSelect={handleEducationSelect}
-            selectedEducation={selectedEducations[selectedEducations.length - 1] || null}
-            placeholder="Select education level"
-            courseOnly
-          />
-
-          {selectedEducations.length > 0 && (
-            <View style={styles.languageTagsContainer}>
-              {selectedEducations.map((edu) => (
-                <LanguageTag
-                  key={edu.label}
-                  language={edu.label}
-                  onRemove={() => handleEducationRemove(edu.label)}
-                />
-              ))}
-            </View>
-          )}
-        </View>
-
         {/* Extra Qualification */}
         <View style={styles.section}>
           <AppText variant={Variant.boldCaption} style={styles.label}>

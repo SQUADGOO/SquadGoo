@@ -123,9 +123,8 @@ const Employees = ({ navigation }) => {
     <View style={styles.container}>
       <PoolHeader
         title="Employee Pool"
-        leftIcon={{ name: 'Feather', iconName: 'arrow-left', onPress: () => navigation.goBack() }}
-        containerStyle={{ backgroundColor: 'transparent' }}
-        titleStyle={{ color: '#fff' }}
+        showBackButton
+        onBackPress={() => navigation.goBack()}
       />
 
       <PoolFilters

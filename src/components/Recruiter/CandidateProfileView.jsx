@@ -119,7 +119,7 @@ const CandidateProfileView = ({
           </AppText>
         </View>
         {candidate.industries?.length ? (
-          <InfoField label="Industries" value={candidate.industries.join(', ')} icon="business-outline" />
+          <InfoField label="Job Categories" value={candidate.industries.join(', ')} icon="business-outline" />
         ) : null}
         {candidate.preferredRoles?.length ? (
           <InfoField label="Preferred Roles" value={candidate.preferredRoles.join(', ')} icon="person-outline" />

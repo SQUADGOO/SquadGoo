@@ -246,13 +246,8 @@ const MyReviews = ({navigation, route}) => {
     <View style={styles.container}>
       <PoolHeader
         title="My Reviews"
-        leftIcon={{
-          name: 'Feather',
-          iconName: 'arrow-left',
-          onPress: () => navigation.goBack(),
-        }}
-        containerStyle={{backgroundColor: 'transparent'}}
-        titleStyle={{color: '#fff'}}
+        showBackButton
+        onBackPress={() => navigation.goBack()}
       />
 
       <View style={styles.summaryCard}>

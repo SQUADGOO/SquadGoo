@@ -80,8 +80,6 @@ const QuickSearchPreview = ({ navigation, route }) => {
       missing.push('Roles and responsibilities')
     if (isEmptyValue(quickSearchStep1Data?.requiredUniforms))
       missing.push('Required uniforms')
-    if (!quickSearchStep1Data?.requiredEducation)
-      missing.push('Required education')
 
     if (!quickSearchStep1Data?.freshersCanApply) {
       const y = parseNumberFromText(quickSearchStep1Data?.experienceYear)
@@ -138,7 +136,6 @@ const QuickSearchPreview = ({ navigation, route }) => {
       experienceMonth: quickSearchStep1Data?.experienceMonth,
       rolesAndResponsibilities: quickSearchStep1Data?.rolesAndResponsibilities,
       requiredUniforms: quickSearchStep1Data?.requiredUniforms,
-      requiredEducation: quickSearchStep1Data?.requiredEducation,
       preferredLanguages: quickSearchStep1Data?.preferredLanguages,
       extraQualifications: quickSearchStep1Data?.extraQualifications,
       rawData: {
@@ -365,11 +362,6 @@ const QuickSearchPreview = ({ navigation, route }) => {
         quickSearchStep1Data?.rolesAndResponsibilities || draftJob?.rolesAndResponsibilities || '',
       requiredUniforms:
         quickSearchStep1Data?.requiredUniforms || draftJob?.requiredUniforms || '',
-      educationalQualification: (() => {
-        const ed = quickSearchStep1Data?.requiredEducation || draftJob?.requiredEducation
-        if (!ed) return draftJob?.educationalQualification || ''
-        return ed.customValue || ed.level || (typeof ed === 'string' ? ed : '')
-      })(),
       extraQualification: Array.isArray(quickSearchStep1Data?.extraQualifications)
         ? quickSearchStep1Data.extraQualifications
             .map((q) => (q?.specifyText ? `${q.title}: ${q.specifyText}` : q?.title))
@@ -484,11 +476,6 @@ const QuickSearchPreview = ({ navigation, route }) => {
       description: quickSearchStep4Data?.jobDescription || quickSearchStep1Data?.rolesAndResponsibilities || '',
       rolesAndResponsibilities: quickSearchStep1Data?.rolesAndResponsibilities || '',
       requiredUniforms: quickSearchStep1Data?.requiredUniforms || '',
-      educationalQualification: (() => {
-        const ed = quickSearchStep1Data?.requiredEducation
-        if (!ed) return ''
-        return ed.customValue || ed.level || (typeof ed === 'string' ? ed : '')
-      })(),
       extraQualification: Array.isArray(quickSearchStep1Data?.extraQualifications)
         ? quickSearchStep1Data.extraQualifications
             .map((q) => (q?.specifyText ? `${q.title}: ${q.specifyText}` : q?.title))
@@ -675,13 +662,24 @@ const QuickSearchPreview = ({ navigation, route }) => {
         />
         <DetailRow
           label="Experience:"
-          value={
-            quickSearchStep1Data?.freshersCanApply
-              ? 'Freshers can also apply'
-              : `${experienceYears} Years ${experienceMonths} Months`
-          }
+          value={`${experienceYears} Years ${experienceMonths} Months`}
           hideIfEmpty={false}
         />
+        {quickSearchStep1Data?.freshersCanApply ? (
+          <View style={styles.checkboxRow}>
+            <View style={styles.checkboxFilled}>
+              <VectorIcons
+                name={iconLibName.Ionicons}
+                iconName="checkmark"
+                size={14}
+                color={colors.white}
+              />
+            </View>
+            <AppText variant={Variant.bodyMedium} style={styles.checkboxLabel}>
+              Freshers can also apply
+            </AppText>
+          </View>
+        ) : null}
         <DetailRow
           label="Positions:"
           value={quickSearchStep1Data?.staffCount}
@@ -697,14 +695,6 @@ const QuickSearchPreview = ({ navigation, route }) => {
           label="Required uniforms:"
           value={quickSearchStep1Data?.requiredUniforms}
           hideIfEmpty={false}
-        />
-        <DetailRow
-          label="Required education:"
-          value={
-            quickSearchStep1Data?.requiredEducation?.customValue ||
-            quickSearchStep1Data?.requiredEducation?.level ||
-            ''
-          }
         />
         <DetailRow
           label="Preferred languages:"
@@ -998,6 +988,25 @@ const styles = StyleSheet.create({
   detailValue: {
     fontWeight: 'bold',
     color: colors.black,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+    marginBottom: hp(1.5),
+    marginTop: hp(-0.5),
+  },
+  checkboxFilled: {
+    width: wp(5),
+    height: wp(5),
+    borderRadius: 4,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxLabel: {
+    color: colors.black,
+    fontWeight: '600',
   },
   highlightValue: {
     fontSize: getFontSize(16),

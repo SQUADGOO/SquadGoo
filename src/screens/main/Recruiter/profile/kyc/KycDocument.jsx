@@ -327,7 +327,7 @@ const KycDocument = () => {
         </View>
       </ScrollView>
 
-      <ImagePickerSheet ref={sheetRef} onSelect={handleUploadSelect} />
+      <ImagePickerSheet ref={sheetRef} onSelect={handleUploadSelect} allowPdf />
     </>
   );
 };

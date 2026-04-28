@@ -417,13 +417,13 @@ export const getEmployeeById = (employeeId) => {
 };
 
 /**
- * Get all employees filtered by industry
- * @param {string} industry - The industry to filter by
- * @returns {Array} Array of employees in the specified industry
+ * Get all employees filtered by job category
+ * @param {string} jobCategory - The job category to filter by
+ * @returns {Array} Array of employees in the specified job category
  */
-export const getEmployeesByIndustry = (industry) => {
+export const getEmployeesByJobCategory = (jobCategory) => {
   return DUMMY_EMPLOYEES.filter(employee =>
-    employee.industries.includes(industry)
+    employee.industries.includes(jobCategory)
   );
 };
 

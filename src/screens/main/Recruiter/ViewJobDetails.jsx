@@ -259,9 +259,6 @@ const ViewJobDetails = ({navigation, route}) => {
   const keyQualificationsValue = (() => {
     const parts = [];
 
-    if (job?.educationalQualification)
-      parts.push(String(job.educationalQualification));
-
     if (job?.extraQualification) parts.push(String(job.extraQualification));
 
     return parts.length > 0 ? parts.join(' • ') : '';
@@ -478,11 +475,6 @@ const ViewJobDetails = ({navigation, route}) => {
             iconName="medal-outline"
             label="Experience required"
             value={experienceValue}
-          />
-          <InfoRow
-            iconName="school-outline"
-            label="Education required"
-            value={job.educationalQualification}
           />
           <InfoRow
             iconName="checkmark-done-outline"

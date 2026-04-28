@@ -50,7 +50,7 @@ const ActiveOffersPool = ({ navigation }) => {
       const q = query.toLowerCase();
       jobs = jobs.filter(j =>
         (j.title || '').toLowerCase().includes(q) ||
-        (j.industry || '').toLowerCase().includes(q) ||
+        (j.jobCategory || j.industry || '').toLowerCase().includes(q) ||
         (j.location || '').toLowerCase().includes(q)
       );
     }

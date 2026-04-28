@@ -152,9 +152,8 @@ const SquadPoolScreen = ({ navigation }) => {
     <View style={styles.container}>
       <PoolHeader
         title="Squad Pool"
-        leftIcon={{ name: 'Feather', iconName: 'arrow-left', onPress: () => navigation.goBack() }}
-        containerStyle={{ backgroundColor: 'transparent' }}
-        titleStyle={{ color: '#fff' }}
+        showBackButton
+        onBackPress={() => navigation.goBack()}
       />
 
       {/* Keep existing search UI, but add horizontal chip bar per doc */}

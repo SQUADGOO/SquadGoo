@@ -607,7 +607,7 @@ const QuickSearchCandidateProfile = ({ route, navigation }) => {
               />
               <View style={styles.infoContent}>
                 <AppText variant={Variant.caption} style={styles.infoLabel}>
-                  Industries
+                  Job Categories
                 </AppText>
                 <AppText variant={Variant.body} style={styles.infoValue}>
                   {candidate.industries.join(', ')}
