@@ -22,6 +22,7 @@ const StaffPreferences = () => {
   const [isDropdownVisibleManual, setDropdownVisibleManual] = useState(false)
 
   const badgeOptions = [
+    { label: 'Any', value: 'any' },
     { label: 'None', value: 'none' },
     { label: 'Bronze', value: 'bronze' },
     { label: 'Silver', value: 'silver' },

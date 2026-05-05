@@ -189,6 +189,18 @@ export const screenNames = {
   // Recruiter Reports
   RECRUITER_BILLING_REPORTS: 'recruiter-billing-reports',
 
+  // Received reviews (shared — recruiter & jobseeker)
+  MY_REVIEWS: 'my_reviews',
+  // Outgoing reviews written by the current user
+  WRITTEN_REVIEWS: 'written_reviews',
+
+  // Announcements feed (shared — recruiter & jobseeker)
+  ANNOUNCEMENTS: 'announcements',
+  ANNOUNCEMENT_DETAILS: 'announcement_details',
+
+  // Jobseeker bottom tab
+  PREFERRED_JOBS: 'preferred_jobs',
+
   // FORGOT_PASSWORD: 'forgot_password',
   // CHECK_EMAIL: 'check_email',
   // CREATE_PASSWORD: 'create_password',

@@ -104,7 +104,7 @@ const navigation = useNavigation();
         </View>
 
         {/* Staff input */}
-        <Text style={styles.inputLabel}>How many staff looking for</Text>
+        <Text style={styles.inputLabel}>Required Number of Position</Text>
         <TextInput
           value={staffCount}
           onChangeText={setStaffCount}

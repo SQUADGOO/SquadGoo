@@ -104,8 +104,8 @@ const JobSeekerJobCard = ({
 
         {/* Job Details */}
         <View style={styles.detailsContainer}>
-          {job?.industry || job?.companyName ? (
-            <JobDetailRow iconName="business-outline" label="Employer" value={job.industry || job.companyName} />
+          {job?.companyName || job?.jobCategory ? (
+            <JobDetailRow iconName="business-outline" label="Employer" value={job.companyName || job.jobCategory} />
           ) : null}
           {job?.location ? (
             <JobDetailRow iconName="location-outline" label="Location" value={job.location} />

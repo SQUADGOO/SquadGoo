@@ -16,6 +16,7 @@ import { screenNames } from '@/navigation/screenNames'
 import AvailabilitySelector, { DAYS_OF_WEEK } from '@/components/AvailabilitySelector'
 import { showToast, toastTypes } from '@/utilities/toastConfig'
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
+import InfoTooltip from '@/components/InfoTooltip'
 
 const QuickSearchStepFour = ({ navigation, route }) => {
   // Get data from all previous steps
@@ -169,8 +170,8 @@ const QuickSearchStepFour = ({ navigation, route }) => {
     let nextAvailability = { ...(data.availability || {}) }
     let selectedDaysList = DAYS_OF_WEEK.filter(day => nextAvailability[day]?.enabled)
 
-    // If single-day job, selecting days is optional. If none selected, auto-enable the start day.
-    if (selectedDaysList.length === 0 && !isMultiDay) {
+    // Selecting other days is optional in Quick Fill. If none selected, auto-enable the start day.
+    if (selectedDaysList.length === 0) {
       const startDayName = weekdayFromDate(startDateOnly) || 'Monday'
       const common = data.commonTimeRange || { start: '09:00', end: '17:00' }
       nextAvailability[startDayName] = {
@@ -223,19 +224,19 @@ const QuickSearchStepFour = ({ navigation, route }) => {
       const minMinutes = minStart.getHours() * 60 + minStart.getMinutes()
       const startDayName = weekdayFromDate(startDateOnly)
 
-      // if (startDayName && nextAvailability?.[startDayName]?.enabled) {
-      //   const from = nextAvailability[startDayName]?.from
-      //   const [h, m] = String(from || '').split(':').map(Number)
-      //   const fromMinutes = (h || 0) * 60 + (m || 0)
-      //   if (fromMinutes < minMinutes) {
-      //     showToast(
-      //       'Start time must be after 3 hours gap of current time.',
-      //       'Info',
-      //       toastTypes.warning,
-      //     )
-      //     return
-      //   }
-      // }
+      if (startDayName && nextAvailability?.[startDayName]?.enabled) {
+        const from = nextAvailability[startDayName]?.from
+        const [h, m] = String(from || '').split(':').map(Number)
+        const fromMinutes = (h || 0) * 60 + (m || 0)
+        if (fromMinutes < minMinutes) {
+          showToast(
+            'Start time must be at least 3 hours from now.',
+            'Info',
+            toastTypes.warning,
+          )
+          return
+        }
+      }
     }
 
     // Weekend extra pay validation
@@ -476,8 +477,9 @@ const QuickSearchStepFour = ({ navigation, route }) => {
               ) : null}
             </View>
             <AppText variant={Variant.body} style={styles.checkboxLabel}>
-              Paid through SquadGoo wallet (forces ABN)
+              Hire through SquadGoo Wallet
             </AppText>
+            <InfoTooltip text="You must have enough balance in your SquadGoo Wallet to pay candidates. SG coins will be deducted once workers arrive, based on hourly rate × total hours." />
           </TouchableOpacity>
 
           {staffCountValue >= 2 ? (
@@ -499,6 +501,7 @@ const QuickSearchStepFour = ({ navigation, route }) => {
               <AppText variant={Variant.body} style={styles.checkboxLabel}>
                 Hire SquadPairs
               </AppText>
+              <InfoTooltip text="Your job offer will be sent to members who are looking to work as pairs." />
             </TouchableOpacity>
           ) : null}
         </View>

@@ -16,7 +16,7 @@ const EducationSelector = ({
   const sheetRef = useRef(null);
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [courseValue, setCourseValue] = useState('');
-  const [facultyValue, setFacultyValue] = useState('');
+  const [facultyValue, setFacultyValue] = useState(''); // kept for backward compat
   const [searchQuery, setSearchQuery] = useState('');
   const [otherValue, setOtherValue] = useState('');
 
@@ -64,21 +64,12 @@ const EducationSelector = ({
         faculty: null,
       });
       sheetRef.current?.close();
-    } else if (levelConfig.requiresCourse && levelConfig.requiresFaculty) {
-      if (courseOnly) {
-        if (courseValue.trim()) {
-          onSelect && onSelect({
-            level: selectedLevel,
-            course: courseValue.trim(),
-            faculty: null,
-          });
-          sheetRef.current?.close();
-        }
-      } else if (courseValue.trim() && facultyValue.trim()) {
+    } else if (levelConfig.requiresCourse) {
+      if (courseValue.trim()) {
         onSelect && onSelect({
           level: selectedLevel,
           course: courseValue.trim(),
-          faculty: facultyValue.trim(),
+          faculty: null,
         });
         sheetRef.current?.close();
       }
@@ -94,9 +85,7 @@ const EducationSelector = ({
       if (selectedEducation.course) {
         display += ` - ${selectedEducation.course}`;
       }
-      if (selectedEducation.faculty) {
-        display += ` (${selectedEducation.faculty})`;
-      }
+      // Faculty display removed per client request
       return display;
     }
     return placeholder;
@@ -104,17 +93,13 @@ const EducationSelector = ({
 
   const levelConfig = selectedLevel ? EDUCATION_LEVELS[selectedLevel] : null;
   const showCourseInput = selectedLevel && levelConfig?.requiresCourse && selectedLevel !== 'OTHERS';
-  const showFacultyInput =
-    selectedLevel && levelConfig?.requiresFaculty && selectedLevel !== 'OTHERS' && !courseOnly;
   const showOtherInput = selectedLevel === 'OTHERS';
   const canConfirm = showOtherInput
     ? otherValue.trim()
     : selectedLevel === '<_10th'
     ? true
-    : showCourseInput && (courseOnly ? true : showFacultyInput)
-    ? courseOnly
-      ? courseValue.trim()
-      : courseValue.trim() && facultyValue.trim()
+    : showCourseInput
+    ? courseValue.trim()
     : false;
 
   return (
@@ -236,24 +221,15 @@ const EducationSelector = ({
             </View>
           )}
 
-          {showCourseInput && (courseOnly || showFacultyInput) && (
+          {showCourseInput && (
             <View style={styles.inputContainer}>
               <AppInputField
-                label="Which course"
+                label="Course Name"
                 placeholder="Enter course name"
                 value={courseValue}
                 onChangeText={setCourseValue}
                 style={styles.courseInput}
               />
-              {!courseOnly ? (
-                <AppInputField
-                  label="In which faculty"
-                  placeholder="Enter faculty name"
-                  value={facultyValue}
-                  onChangeText={setFacultyValue}
-                  style={styles.facultyInput}
-                />
-              ) : null}
               <TouchableOpacity
                 style={[
                   styles.confirmButton,

@@ -259,9 +259,6 @@ const ViewJobDetails = ({navigation, route}) => {
   const keyQualificationsValue = (() => {
     const parts = [];
 
-    if (job?.educationalQualification)
-      parts.push(String(job.educationalQualification));
-
     if (job?.extraQualification) parts.push(String(job.extraQualification));
 
     return parts.length > 0 ? parts.join(' • ') : '';
@@ -327,7 +324,7 @@ const ViewJobDetails = ({navigation, route}) => {
                   {job.location || 'Location not specified'}
                 </AppText>
               </View>
-              {job.industry ? (
+              {job.jobCategory ? (
                 <View style={styles.summaryMetaRow}>
                   <VectorIcons
                     name={iconLibName.Ionicons}
@@ -338,7 +335,7 @@ const ViewJobDetails = ({navigation, route}) => {
                   <AppText
                     variant={Variant.bodySmall}
                     style={styles.summaryMetaText}>
-                    {job.industry}
+                    {job.jobCategory}
                   </AppText>
                 </View>
               ) : null}
@@ -367,8 +364,8 @@ const ViewJobDetails = ({navigation, route}) => {
               ]}>
               <AppText variant={Variant.caption} style={styles.chipText}>
                 {searchType === 'quick'
-                  ? '⚡ Quick Search'
-                  : '📝 Manual Search'}
+                  ? '⚡ Quick Fill'
+                  : '📝 Manual Fill'}
               </AppText>
             </View>
           </View>
@@ -415,13 +412,13 @@ const ViewJobDetails = ({navigation, route}) => {
           />
           <InfoRow
             iconName="pricetag-outline"
-            label="Industry"
-            value={job.industry || job.jobCategory}
+            label="Job Category"
+            value={job.jobCategory}
           />
           {job.jobSubCategory ? (
             <InfoRow
               iconName="pricetags-outline"
-              label="Sub category"
+              label="Job Title"
               value={job.jobSubCategory}
             />
           ) : null}
@@ -478,11 +475,6 @@ const ViewJobDetails = ({navigation, route}) => {
             iconName="medal-outline"
             label="Experience required"
             value={experienceValue}
-          />
-          <InfoRow
-            iconName="school-outline"
-            label="Education required"
-            value={job.educationalQualification}
           />
           <InfoRow
             iconName="checkmark-done-outline"

@@ -38,7 +38,6 @@ const AppInputField = ({
     textAlign: 'left',
     flexDirection: 'row',
   };
-  console.log('value', value);
 
   const handlePress = () => {
     if (onPressField) onPressField?.();

@@ -42,7 +42,7 @@ const ExpiredDeclinedPool = ({ navigation }) => {
       const q = query.toLowerCase();
       jobs = jobs.filter(j =>
         (j.title || '').toLowerCase().includes(q) ||
-        (j.industry || '').toLowerCase().includes(q) ||
+        (j.jobCategory || j.industry || '').toLowerCase().includes(q) ||
         (j.location || '').toLowerCase().includes(q)
       );
     }
@@ -80,10 +80,10 @@ const ExpiredDeclinedPool = ({ navigation }) => {
           <AppText variant={Variant.bodyMedium} style={styles.salaryText}>{item.salaryRange || 'Not specified'}</AppText>
 
           <View style={styles.detailsContainer}>
-            {item.industry || item.companyName ? (
+            {item.jobCategory || item.industry || item.companyName ? (
               <View style={styles.detailRow}>
                 <VectorIcons name={iconLibName.Ionicons} iconName="business-outline" size={18} color={colors.gray} />
-                <AppText variant={Variant.body} style={styles.detailText}>Employer: <AppText variant={Variant.bodyMedium} style={styles.detailValue}>{item.industry || item.companyName}</AppText></AppText>
+                <AppText variant={Variant.body} style={styles.detailText}>Employer: <AppText variant={Variant.bodyMedium} style={styles.detailValue}>{item.jobCategory || item.industry || item.companyName}</AppText></AppText>
               </View>
             ) : null}
             <View style={styles.detailRow}>

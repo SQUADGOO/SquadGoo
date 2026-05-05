@@ -270,6 +270,22 @@ const JobSeekerDrawerNavigator = () => {
         name={screenNames.EXPIRED_DECLINED_POOL}
         component={ui.ExpiredDeclinedPool}
       />
+      <Drawer.Screen
+        name={screenNames.MY_REVIEWS}
+        component={ui.MyReviews}
+      />
+      <Drawer.Screen
+        name={screenNames.WRITTEN_REVIEWS}
+        component={ui.WrittenReviews}
+      />
+      <Drawer.Screen
+        name={screenNames.ANNOUNCEMENTS}
+        component={ui.Announcements}
+      />
+      <Drawer.Screen
+        name={screenNames.ANNOUNCEMENT_DETAILS}
+        component={ui.AnnouncementDetails}
+      />
     </Drawer.Navigator>
   );
 };

@@ -23,7 +23,7 @@ const Dashboard = () => {
   return (
     <View style={styles.container}>
       <AppHeader
-        title='Dashboard'
+        title='Home'
       />
       <HomeTopTabNavigator 
         activeTab={activeTab}

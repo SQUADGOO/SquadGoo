@@ -55,7 +55,7 @@ const CompletedOffers = () => {
                   <View style={[styles.logo, { backgroundColor: '#E0E0E0' }]} />
                 )}
                 <View style={styles.companyInfo}>
-                  <Text style={styles.companyName}>{job.industry}</Text>
+                  <Text style={styles.companyName}>{job.jobCategory || job.industry}</Text>
                   <View style={styles.locationRow}>
                     <Icon name="location-outline" size={14} color="#4F5D75" />
                     <Text style={styles.location}>{job.location}</Text>

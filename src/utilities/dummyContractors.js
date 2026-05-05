@@ -406,13 +406,13 @@ export const getContractorById = (contractorId) => {
 };
 
 /**
- * Get all contractors filtered by industry
- * @param {string} industry - The industry to filter by
- * @returns {Array} Array of contractors in the specified industry
+ * Get all contractors filtered by job category
+ * @param {string} jobCategory - The job category to filter by
+ * @returns {Array} Array of contractors in the specified job category
  */
-export const getContractorsByIndustry = (industry) => {
-  return DUMMY_CONTRACTORS.filter(contractor => 
-    contractor.industries.includes(industry)
+export const getContractorsByJobCategory = (jobCategory) => {
+  return DUMMY_CONTRACTORS.filter(contractor =>
+    contractor.industries.includes(jobCategory)
   );
 };
 

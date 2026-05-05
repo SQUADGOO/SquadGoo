@@ -99,9 +99,6 @@ const JobPreview = ({ navigation, route }) => {
     const availabilityText = formatAvailability(step2Data?.availability)
     if (isEmptyValue(availabilityText)) missing.push('Availability')
 
-    const educational = step3Data?.educationalQualification || (Array.isArray(step3Data?.educationalQualifications) ? step3Data.educationalQualifications.join(', ') : '')
-    if (isEmptyValue(educational)) missing.push('Required education')
-
     const taxType = step3Data?.taxType
     if (isEmptyValue(taxType)) missing.push('Required tax type')
 
@@ -160,8 +157,6 @@ const JobPreview = ({ navigation, route }) => {
       extraPayRates: step2Data?.extraPayRates || draftJob?.extraPayRates || {},
       availability: step2Data?.availability || draftJob?.availability || '',
       freshersCanApply: step2Data?.freshersCanApply ?? draftJob?.freshersCanApply ?? false,
-      educationalQualification: step3Data?.educationalQualification || draftJob?.educationalQualification || '',
-      educationalQualifications: step3Data?.educationalQualifications || draftJob?.educationalQualifications || [],
       extraQualification: step3Data?.extraQualification || draftJob?.extraQualification || '',
       extraQualificationItems:
         step3Data?.extraQualificationItems || draftJob?.extraQualificationItems || [],
@@ -261,8 +256,6 @@ const JobPreview = ({ navigation, route }) => {
       extraPayRates: step2Data?.extraPayRates || {},
       availability: step2Data?.availability,
       freshersCanApply: step2Data?.freshersCanApply || false,
-      educationalQualification: step3Data?.educationalQualification,
-      educationalQualifications: step3Data?.educationalQualifications || [],
       extraQualification: step3Data?.extraQualification,
       extraQualificationItems: step3Data?.extraQualificationItems || [],
       preferredLanguages: step3Data?.preferredLanguages || [],
@@ -590,15 +583,6 @@ const JobPreview = ({ navigation, route }) => {
           title="Step 3: Requirements, Dates & Tax"
           onEdit={() => openEditStep(3)}
         />
-        <View style={styles.requirementSection}>
-          <AppText variant={Variant.body} style={styles.requirementLabel}>
-            Required education:
-          </AppText>
-          <AppText variant={Variant.bodyMedium} style={styles.requirementValue}>
-            {step3Data?.educationalQualification || (Array.isArray(step3Data?.educationalQualifications) ? step3Data.educationalQualifications.join(', ') : '')}
-          </AppText>
-        </View>
-
         {!isEmptyValue(step3Data?.extraQualification) ? (
           <View style={styles.requirementSection}>
             <AppText variant={Variant.body} style={styles.requirementLabel}>

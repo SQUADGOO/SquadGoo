@@ -350,13 +350,8 @@ const YourPool = ({ navigation }) => {
     <View style={styles.container}>
       <PoolHeader
         title="Your Pool"
-        leftIcon={{
-          name: 'Feather',
-          iconName: 'arrow-left',
-          onPress: () => navigation.goBack(),
-        }}
-        containerStyle={{ backgroundColor: 'transparent' }}
-        titleStyle={{ color: '#fff' }}
+        showBackButton
+        onBackPress={() => navigation.goBack()}
       />
 
       <PoolFilters

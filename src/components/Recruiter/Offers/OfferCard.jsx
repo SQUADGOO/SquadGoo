@@ -393,7 +393,7 @@ const OfferCard = ({
             color="#F59E0B"
           />
           <AppText variant={Variant.caption} style={styles.statText}>
-            Rating: {acceptanceRating ?? 'N/A'}%
+            Acceptance Rate: {acceptanceRating ?? 'N/A'}%
           </AppText>
         </View>
       </View>
@@ -435,22 +435,34 @@ const OfferCard = ({
       )}
 
       {/* Accepted summary (Scenario 3) */}
-      {showAccepted && (experienceSummary || qualificationsSummary) ? (
-        <View style={styles.scenarioBox}>
-          <AppText variant={Variant.caption} style={styles.scenarioTitle}>
-            Candidate summary
-          </AppText>
-          {experienceSummary ? (
-            <AppText variant={Variant.caption} style={styles.scenarioValue}>
-              Experience: {experienceSummary}
-            </AppText>
+      {showAccepted ? (
+        <>
+          {(experienceSummary || qualificationsSummary) ? (
+            <View style={styles.scenarioBox}>
+              <AppText variant={Variant.caption} style={styles.scenarioTitle}>
+                Candidate summary
+              </AppText>
+              {experienceSummary ? (
+                <AppText variant={Variant.caption} style={styles.scenarioValue}>
+                  Experience: {experienceSummary}
+                </AppText>
+              ) : null}
+              {qualificationsSummary ? (
+                <AppText variant={Variant.caption} style={styles.scenarioValue}>
+                  Qualifications: {qualificationsSummary}
+                </AppText>
+              ) : null}
+            </View>
           ) : null}
-          {qualificationsSummary ? (
-            <AppText variant={Variant.caption} style={styles.scenarioValue}>
-              Qualifications: {qualificationsSummary}
+          <View style={styles.scenarioBox}>
+            <AppText variant={Variant.caption} style={styles.scenarioTitle}>
+              Contact Information
             </AppText>
-          ) : null}
-        </View>
+            <AppText variant={Variant.caption} style={styles.scenarioValue}>
+              Contact details are available for 30 days after offer acceptance.
+            </AppText>
+          </View>
+        </>
       ) : null}
 
       {/* Declined details */}

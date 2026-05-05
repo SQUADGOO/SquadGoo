@@ -3,9 +3,10 @@ import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "rea
 import { colors, wp } from "@/theme";
 import VectorIcons, { iconLibName } from "@/theme/vectorIcon";
 import { openCamera, openGallery } from "@/utilities/helperFunctions";
+import { showToast, toastTypes } from "@/utilities/toastConfig";
 import RbSheetComponent from "@/core/RbSheetComponent";
 
-const ImagePickerSheet = forwardRef(({ onSelect }, ref) => {
+const ImagePickerSheet = forwardRef(({ onSelect, allowPdf = false }, ref) => {
   const [loading, setLoading] = useState(false);
 
   const handleCamera = async () => {
@@ -34,8 +35,20 @@ const ImagePickerSheet = forwardRef(({ onSelect }, ref) => {
     }
   };
 
+  const handlePdfPick = () => {
+    const stub = {
+      fileName: `Document_${Date.now()}.pdf`,
+      uri: `file://demo/${Date.now()}.pdf`,
+      type: "application/pdf",
+      fileSize: 256000,
+    };
+    onSelect?.(stub);
+    ref.current?.close();
+    showToast("PDF selected (demo)", "Document picked", toastTypes.success);
+  };
+
   return (
-    <RbSheetComponent ref={ref} height={220} bgColor={colors.white}>
+    <RbSheetComponent ref={ref} height={allowPdf ? 280 : 220} bgColor={colors.white}>
       <View style={styles.container}>
         <TouchableOpacity onPress={() => ref.current?.close()} style={{ position: "absolute", top: 15, right: 10 }}>
           <VectorIcons name={iconLibName.Ionicons} iconName="close-circle" size={wp(7)} color={colors.primary} />
@@ -61,6 +74,18 @@ const ImagePickerSheet = forwardRef(({ onSelect }, ref) => {
           />
           <Text style={styles.buttonText}>Open Gallery</Text>
         </TouchableOpacity>
+
+        {allowPdf ? (
+          <TouchableOpacity style={styles.button} onPress={handlePdfPick}>
+            <VectorIcons
+              name={iconLibName.Ionicons}
+              iconName="document-text-outline"
+              size={20}
+              color={colors.primaryDark}
+            />
+            <Text style={styles.buttonText}>Choose PDF</Text>
+          </TouchableOpacity>
+        ) : null}
 
         {loading && (
           <ActivityIndicator

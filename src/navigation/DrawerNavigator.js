@@ -344,6 +344,22 @@ const DrawerNavigator = () => {
         name={screenNames.RECRUITER_BILLING_REPORTS}
         component={ui.RecruiterBillingReports}
       />
+      <Drawer.Screen
+        name={screenNames.MY_REVIEWS}
+        component={ui.MyReviews}
+      />
+      <Drawer.Screen
+        name={screenNames.WRITTEN_REVIEWS}
+        component={ui.WrittenReviews}
+      />
+      <Drawer.Screen
+        name={screenNames.ANNOUNCEMENTS}
+        component={ui.Announcements}
+      />
+      <Drawer.Screen
+        name={screenNames.ANNOUNCEMENT_DETAILS}
+        component={ui.AnnouncementDetails}
+      />
     </Drawer.Navigator>
   );
 };

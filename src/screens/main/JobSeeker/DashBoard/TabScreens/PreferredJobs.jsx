@@ -15,10 +15,16 @@ const formatJobTitle = (value) => {
   return value?.subCategory || value?.title || value?.category || '—';
 };
 
-const formatIndustry = (value) => {
+const formatJobCategory = (value) => {
   if (!value) return '—';
   if (typeof value === 'string') return value;
-  return value?.title || value?.name || value?.category || '—';
+  return value?.category || value?.title || value?.name || '—';
+};
+
+const formatSubCategory = (value) => {
+  if (!value) return '';
+  if (typeof value === 'object') return value?.subCategory || '';
+  return '';
 };
 
 const InfoRow = ({ icon, label, value }) => (
@@ -55,7 +61,8 @@ const PreferredJobs = ({ navigation }) => {
         ) : (
           preferredJobs.map((job) => {
             const title = formatJobTitle(job.preferredJobTitle);
-            const industry = formatIndustry(job.preferredIndustry);
+            const jobCategory = formatJobCategory(job.preferredJobTitle);
+            const subCategory = formatSubCategory(job.preferredJobTitle);
             const enabledDays = new Set((job.daysAvailable || '').split(',').map(s => s.trim()).filter(Boolean));
             const salaryDisplay = (job.expectedPayMin && job.expectedPayMax)
               ? `$${job.expectedPayMin}/hr – $${job.expectedPayMax}/hr`
@@ -70,7 +77,7 @@ const PreferredJobs = ({ navigation }) => {
                   </View>
                   <View style={{ flex: 1 }}>
                     <AppText variant={Variant.bodyMedium} style={styles.cardTitle} numberOfLines={2}>
-                      {title !== '—' ? title : industry}
+                      {title !== '—' ? title : jobCategory}
                     </AppText>
                     {job.jobType ? (
                       <View style={styles.typeBadge}>
@@ -89,7 +96,8 @@ const PreferredJobs = ({ navigation }) => {
                 <View style={styles.divider} />
 
                 {/* Details */}
-                <InfoRow icon="pricetag-outline" label="Job Category" value={industry} />
+                <InfoRow icon="pricetag-outline" label="Job Category" value={jobCategory} />
+                {subCategory ? <InfoRow icon="pricetags-outline" label="Sub Category" value={subCategory} /> : null}
                 <InfoRow icon="cash-outline" label="Expected Salary" value={salaryDisplay} />
                 <InfoRow icon="star-outline" label="Experience" value={job.totalExperience} />
 

@@ -32,7 +32,6 @@ const tabs = [
   { id: 'pending', label: 'Pending' },
   { id: 'accepted', label: 'Accepted' },
   { id: 'declined', label: 'Declined' },
-  { id: 'modification_requested', label: 'Modifications' },
   { id: 'expired', label: 'Expired' },
 ];
 
@@ -70,9 +69,14 @@ const ManualOffers = ({ navigation, route }) => {
 
   const filteredOffers = useMemo(
     () =>
-      offers.filter(offer =>
-        (!jobId || offer.jobId === jobId) && offer.status === currentTab
-      ),
+      offers.filter(offer => {
+        if (jobId && offer.jobId !== jobId) return false;
+        // Modification requests show within Pending tab with badge
+        if (currentTab === 'pending') {
+          return offer.status === 'pending' || offer.status === 'modification_requested';
+        }
+        return offer.status === currentTab;
+      }),
     [offers, currentTab, jobId],
   );
 
@@ -130,7 +134,21 @@ const ManualOffers = ({ navigation, route }) => {
       status: 'accepted',
       response: { type: 'accepted' },
     }));
-    showToast('Marked as accepted', 'Success', toastTypes.success);
+    showToast('Offer accepted', 'Success', toastTypes.success);
+  };
+
+  const handleDeclineModification = (offerId) => {
+    // When recruiter declines modification, revert to pending with original offer
+    dispatch(updateManualOfferStatus({
+      offerId,
+      status: 'pending',
+      response: { type: 'modification_declined' },
+    }));
+    showToast(
+      'Modification Request Declined. Original offer sent to Jobseeker.',
+      'Info',
+      toastTypes.info,
+    );
   };
 
   const openDeclineModal = (offer) => {
@@ -343,7 +361,7 @@ const ManualOffers = ({ navigation, route }) => {
       }
       onDeclineModification={
         item.status === 'modification_requested'
-          ? () => openDeclineModal(item)
+          ? () => handleDeclineModification(item.id)
           : undefined
       }
     />

@@ -25,6 +25,10 @@ const Contractors = ({ navigation }) => {
   const [badge, setBadge] = useState('all');
   const [radius, setRadius] = useState('all');
   const [sort, setSort] = useState('rating_desc');
+  const [jobType, setJobType] = useState('any');
+  const [acceptanceRating, setAcceptanceRating] = useState('any');
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [poolStatus, setPoolStatus] = useState('any');
 
   const locationOptions = useMemo(() => getLocationOptions(DUMMY_CONTRACTORS), []);
   const roleOptions = useMemo(() => getPreferredRoleOptions(DUMMY_CONTRACTORS), []);
@@ -42,6 +46,10 @@ const Contractors = ({ navigation }) => {
     setBadge('all');
     setRadius('all');
     setSort('rating_desc');
+    setJobType('any');
+    setAcceptanceRating('any');
+    setVerifiedOnly(false);
+    setPoolStatus('any');
   };
 
   const contractors = useMemo(() => {
@@ -117,9 +125,8 @@ const Contractors = ({ navigation }) => {
     <View style={styles.container}>
       <PoolHeader
         title="Contractors Pool"
-        leftIcon={{ name: 'Feather', iconName: 'arrow-left', onPress: () => navigation.goBack() }}
-        containerStyle={{ backgroundColor: 'transparent' }}
-        titleStyle={{ color: '#fff' }}
+        showBackButton
+        onBackPress={() => navigation.goBack()}
       />
 
       <PoolFilters

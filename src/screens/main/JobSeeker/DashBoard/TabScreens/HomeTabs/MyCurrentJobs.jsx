@@ -57,7 +57,7 @@ const MyCurrentJobs = () => {
             ? `$${job.salaryMin}/hr to $${job.salaryMax}/hr`
             : 'Salary not specified',
           location: job.workLocation || job.location || 'Location not specified',
-          industry: job.industry || 'General Services',
+          jobCategory: job.jobCategory || job.industry || 'General Services',
           experience: job.experienceYear && job.experienceMonth
             ? `${job.experienceYear} Year${job.experienceYear !== 1 ? 's' : ''} ${job.experienceMonth} Month${job.experienceMonth !== 1 ? 's' : ''}`
             : 'Not specified',

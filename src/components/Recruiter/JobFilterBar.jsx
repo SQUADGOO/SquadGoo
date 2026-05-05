@@ -29,8 +29,8 @@ const JobFiltersBar = ({
 
     const searchTypeOptions = [
         { label: 'All', value: '' },
-        { label: 'Manual Search', value: 'manual' },
-        { label: 'Quick Search', value: 'quick' },
+        { label: 'Manual Fill', value: 'manual' },
+        { label: 'Quick Fill', value: 'quick' },
     ]
 
     const handlePostFilterChange = (value) => {

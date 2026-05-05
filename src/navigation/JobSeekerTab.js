@@ -7,6 +7,7 @@ import {screenNames} from './screenNames';
 import {Icons} from '@/assets';
 import globalStyles from '@/styles/globalStyles';
 import AppText, { Variant } from '@/core/AppText';
+import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
 import WorkExperienceScreen from '@/screens/main/JobSeeker/DashBoard/TabScreens/WorkExperience';
 import PreferredJobs from '@/screens/main/JobSeeker/DashBoard/TabScreens/PreferredJobs';
 import JobSeekerHome from '@/screens/main/JobSeeker/DashBoard/TabScreens/HomeJobSeeker';
@@ -30,10 +31,10 @@ const tabItems = [
   },
 
   {
-    name: screenNames.CHAT,
+    name: screenNames.PREFERRED_JOBS,
     label: 'Preferred Jobs',
-    activeIcon: Icons.chatActive,
-    inactiveIcon: Icons.chat,
+    vectorIcon: 'heart-outline',
+    vectorIconActive: 'heart',
     component: PreferredJobs,
   },
     {
@@ -46,25 +47,34 @@ const tabItems = [
   
 ];
 
-const TabIcon = ({focused, label, activeIcon, inactiveIcon}) => (
-  <View style={[globalStyles.centerContent, {gap: 5}]}>
-    <Image
-      source={focused ? activeIcon : inactiveIcon}
-      style={styles.imageStyle}
-    />
+const TabIcon = ({focused, label, activeIcon, inactiveIcon, vectorIcon, vectorIconActive}) => {
+  const tint = focused ? (colors.primary || '#FF6B35') : (colors.gray || '#9CA3AF');
+  return (
+    <View style={[globalStyles.centerContent, {gap: 5}]}>
+      {vectorIcon ? (
+        <VectorIcons
+          name={iconLibName.Ionicons}
+          iconName={focused ? (vectorIconActive || vectorIcon) : vectorIcon}
+          size={wp(6)}
+          color={tint}
+        />
+      ) : (
+        <Image
+          source={focused ? activeIcon : inactiveIcon}
+          style={styles.imageStyle}
+        />
+      )}
 
-     <AppText 
-      variant={Variant.smallCaption}
-      style={[
-        styles.tabLabel,
-        { color: focused ? colors.primary || '#FF6B35' : colors.gray || '#9CA3AF' }
-      ]}
-    >
-      {label}
-    </AppText>
-   
-  </View>
-);
+       <AppText
+        variant={Variant.smallCaption}
+        style={[styles.tabLabel, { color: tint }]}
+      >
+        {label}
+      </AppText>
+
+    </View>
+  );
+};
 
 const JobSeekerTabNavigator = () => (
   <Tab.Navigator
@@ -74,7 +84,7 @@ const JobSeekerTabNavigator = () => (
       tabBarShowLabel: false,
       tabBarStyle: styles.tabBarStyle,
     }}>
-    {tabItems.map(({name, label, activeIcon, inactiveIcon, component}) => (
+    {tabItems.map(({name, label, activeIcon, inactiveIcon, vectorIcon, vectorIconActive, component}) => (
       <Tab.Screen
         key={name}
         name={name}
@@ -86,6 +96,8 @@ const JobSeekerTabNavigator = () => (
               label={label}
               activeIcon={activeIcon}
               inactiveIcon={inactiveIcon}
+              vectorIcon={vectorIcon}
+              vectorIconActive={vectorIconActive}
             />
           ),
         }}

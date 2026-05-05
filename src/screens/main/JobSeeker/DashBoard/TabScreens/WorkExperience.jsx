@@ -16,10 +16,10 @@ const formatJobTitle = (value) => {
   return '—';
 };
 
-const formatIndustry = (value) => {
+const formatJobCategory = (value) => {
   if (!value) return '—';
   if (typeof value === 'string') return value;
-  if (typeof value === 'object') return value?.title || value?.name || value?.category || '—';
+  if (typeof value === 'object') return value?.category || value?.title || value?.name || '—';
   return '—';
 };
 
@@ -103,7 +103,7 @@ const WorkExperienceScreen = ({ navigation }) => {
                 <View style={styles.divider} />
 
                 {/* Details */}
-                {exp.industry ? <InfoRow icon="pricetag-outline" label="Job Category" value={formatIndustry(exp.industry)} /> : null}
+                {exp.industry ? <InfoRow icon="pricetag-outline" label="Job Category" value={formatJobCategory(exp.industry)} /> : null}
                 <InfoRow icon="business-outline" label="Company" value={exp.companyName} />
                 <InfoRow icon="globe-outline" label="Country" value={exp.country} />
                 <InfoRow icon="calendar-outline" label="Duration" value={duration} />

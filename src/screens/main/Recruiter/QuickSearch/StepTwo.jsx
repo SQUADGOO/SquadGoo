@@ -49,13 +49,7 @@ const QuickSearchStepTwo = ({ navigation, route }) => {
     if (Number.isNaN(d.getTime())) return null
     const start = new Date(d)
     start.setHours(0, 0, 0, 0)
-
-    const isStartToday = start.getTime() === todayStart.getTime()
-    if (isStartToday) {
-      const tomorrow = new Date(todayStart)
-      tomorrow.setDate(tomorrow.getDate() + 1)
-      return tomorrow
-    }
+    // Allow same-day end date (client requirement)
     return start
   }, [startDateValue, todayStart])
 
@@ -168,7 +162,7 @@ const QuickSearchStepTwo = ({ navigation, route }) => {
     <FormProvider {...methods}>
       <AppHeader
         showTopIcons={false}
-        title="Work Location"
+        title="Work Location and Dates"
         rightComponent={
           <TouchableOpacity activeOpacity={0.7}>
             <AppText variant={Variant.body} style={styles.stepText}>

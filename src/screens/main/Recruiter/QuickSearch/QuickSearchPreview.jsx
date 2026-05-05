@@ -6,7 +6,9 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
-  Alert
+  Alert,
+  ActivityIndicator,
+  Modal,
 } from 'react-native'
 import { useDispatch, useSelector } from 'react-redux'
 import { colors, hp, wp, getFontSize } from '@/theme'
@@ -39,6 +41,8 @@ const QuickSearchPreview = ({ navigation, route }) => {
     draftJob,
     jobId: existingJobId,
   } = route.params || {}
+
+  const [isSending, setIsSending] = useState(false)
 
   const [offerExpiryHours, setOfferExpiryHours] = useState(2)
 
@@ -76,8 +80,6 @@ const QuickSearchPreview = ({ navigation, route }) => {
       missing.push('Roles and responsibilities')
     if (isEmptyValue(quickSearchStep1Data?.requiredUniforms))
       missing.push('Required uniforms')
-    if (!quickSearchStep1Data?.requiredEducation)
-      missing.push('Required education')
 
     if (!quickSearchStep1Data?.freshersCanApply) {
       const y = parseNumberFromText(quickSearchStep1Data?.experienceYear)
@@ -134,7 +136,6 @@ const QuickSearchPreview = ({ navigation, route }) => {
       experienceMonth: quickSearchStep1Data?.experienceMonth,
       rolesAndResponsibilities: quickSearchStep1Data?.rolesAndResponsibilities,
       requiredUniforms: quickSearchStep1Data?.requiredUniforms,
-      requiredEducation: quickSearchStep1Data?.requiredEducation,
       preferredLanguages: quickSearchStep1Data?.preferredLanguages,
       extraQualifications: quickSearchStep1Data?.extraQualifications,
       rawData: {
@@ -361,11 +362,6 @@ const QuickSearchPreview = ({ navigation, route }) => {
         quickSearchStep1Data?.rolesAndResponsibilities || draftJob?.rolesAndResponsibilities || '',
       requiredUniforms:
         quickSearchStep1Data?.requiredUniforms || draftJob?.requiredUniforms || '',
-      educationalQualification: (() => {
-        const ed = quickSearchStep1Data?.requiredEducation || draftJob?.requiredEducation
-        if (!ed) return draftJob?.educationalQualification || ''
-        return ed.customValue || ed.level || (typeof ed === 'string' ? ed : '')
-      })(),
       extraQualification: Array.isArray(quickSearchStep1Data?.extraQualifications)
         ? quickSearchStep1Data.extraQualifications
             .map((q) => (q?.specifyText ? `${q.title}: ${q.specifyText}` : q?.title))
@@ -480,11 +476,6 @@ const QuickSearchPreview = ({ navigation, route }) => {
       description: quickSearchStep4Data?.jobDescription || quickSearchStep1Data?.rolesAndResponsibilities || '',
       rolesAndResponsibilities: quickSearchStep1Data?.rolesAndResponsibilities || '',
       requiredUniforms: quickSearchStep1Data?.requiredUniforms || '',
-      educationalQualification: (() => {
-        const ed = quickSearchStep1Data?.requiredEducation
-        if (!ed) return ''
-        return ed.customValue || ed.level || (typeof ed === 'string' ? ed : '')
-      })(),
       extraQualification: Array.isArray(quickSearchStep1Data?.extraQualifications)
         ? quickSearchStep1Data.extraQualifications
             .map((q) => (q?.specifyText ? `${q.title}: ${q.specifyText}` : q?.title))
@@ -562,6 +553,9 @@ const QuickSearchPreview = ({ navigation, route }) => {
       return
     }
 
+    // Show sending progress
+    setIsSending(true)
+
     // 1) Dispatch to both slices for backward compatibility
     dispatch(addJob(jobData))
     dispatch(createQuickJob(quickJobData))
@@ -570,6 +564,7 @@ const QuickSearchPreview = ({ navigation, route }) => {
     dispatch(autoMatchCandidates({ jobId, settings: {} }))
 
     if (quickFillSendMode === 'manual') {
+      setIsSending(false)
       Alert.alert(
         'Job Posted Successfully!',
         'Matches are ready. Please review candidates and send offers manually.',
@@ -596,21 +591,25 @@ const QuickSearchPreview = ({ navigation, route }) => {
       sendQuickOffer                       // action creator
     )
 
-    Alert.alert(
-      'Job Posted Successfully!',
-      'Your job offer has been posted, matches found, and offers sent automatically.',
-      [
-        {
-          text: 'View Quick Search Offers',
-          onPress: () => {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: screenNames.QUICK_SEARCH_ACTIVE_OFFERS_RECRUITER }],
-            })
+    // Brief delay to show progress indicator
+    setTimeout(() => {
+      setIsSending(false)
+      Alert.alert(
+        'Job Posted Successfully!',
+        'Your job offer has been posted, matches found, and offers sent automatically.',
+        [
+          {
+            text: 'View Candidates who Received Offers',
+            onPress: () => {
+              navigation.reset({
+                index: 0,
+                routes: [{ name: screenNames.QUICK_SEARCH_ACTIVE_OFFERS_RECRUITER }],
+              })
+            },
           },
-        },
-      ]
-    )
+        ]
+      )
+    }, 1500)
   }
 
   return (
@@ -618,7 +617,7 @@ const QuickSearchPreview = ({ navigation, route }) => {
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
       <AppHeader
-        title="Quick Search Preview"
+        title="Quick Fill Preview"
         showTopIcons={false}
         height={hp(14)}
         rightComponent={
@@ -663,13 +662,24 @@ const QuickSearchPreview = ({ navigation, route }) => {
         />
         <DetailRow
           label="Experience:"
-          value={
-            quickSearchStep1Data?.freshersCanApply
-              ? 'Freshers can also apply'
-              : `${experienceYears} Years ${experienceMonths} Months`
-          }
+          value={`${experienceYears} Years ${experienceMonths} Months`}
           hideIfEmpty={false}
         />
+        {quickSearchStep1Data?.freshersCanApply ? (
+          <View style={styles.checkboxRow}>
+            <View style={styles.checkboxFilled}>
+              <VectorIcons
+                name={iconLibName.Ionicons}
+                iconName="checkmark"
+                size={14}
+                color={colors.white}
+              />
+            </View>
+            <AppText variant={Variant.bodyMedium} style={styles.checkboxLabel}>
+              Freshers can also apply
+            </AppText>
+          </View>
+        ) : null}
         <DetailRow
           label="Positions:"
           value={quickSearchStep1Data?.staffCount}
@@ -685,14 +695,6 @@ const QuickSearchPreview = ({ navigation, route }) => {
           label="Required uniforms:"
           value={quickSearchStep1Data?.requiredUniforms}
           hideIfEmpty={false}
-        />
-        <DetailRow
-          label="Required education:"
-          value={
-            quickSearchStep1Data?.requiredEducation?.customValue ||
-            quickSearchStep1Data?.requiredEducation?.level ||
-            ''
-          }
         />
         <DetailRow
           label="Preferred languages:"
@@ -758,43 +760,45 @@ const QuickSearchPreview = ({ navigation, route }) => {
           hideIfEmpty={false}
         />
 
-        {(quickSearchStep3Data?.extraPay?.overtime || quickSearchStep4Data?.weekendSatExtraPay || quickSearchStep4Data?.weekendSunExtraPay) ? (
-          <>
-            <SectionTitle title="Extra Pay" />
-            {quickSearchStep3Data?.extraPay?.overtime ? (
-              <DetailRow
-                label="Overtime:"
-                value={
-                  quickSearchStep3Data?.overtimeRate
-                    ? `$${quickSearchStep3Data.overtimeRate}`
-                    : 'Yes'
-                }
-                valueStyle={styles.yesValue}
-              />
-            ) : null}
-            {quickSearchStep4Data?.weekendSatExtraPay ? (
-              <DetailRow
-                label="Saturday extra pay:"
-                value={
-                  quickSearchStep4Data?.weekendSatRate
-                    ? `$${quickSearchStep4Data.weekendSatRate}`
-                    : 'Yes'
-                }
-                valueStyle={styles.yesValue}
-              />
-            ) : null}
-            {quickSearchStep4Data?.weekendSunExtraPay ? (
-              <DetailRow
-                label="Sunday extra pay:"
-                value={
-                  quickSearchStep4Data?.weekendSunRate
-                    ? `$${quickSearchStep4Data.weekendSunRate}`
-                    : 'Yes'
-                }
-                valueStyle={styles.yesValue}
-              />
-            ) : null}
-          </>
+        <SectionTitle title="Extra Pay" />
+        {quickSearchStep3Data?.extraPay?.overtime ? (
+          <DetailRow
+            label="Overtime:"
+            value={
+              quickSearchStep3Data?.overtimeRate
+                ? `$${quickSearchStep3Data.overtimeRate}`
+                : 'Yes'
+            }
+            valueStyle={styles.yesValue}
+          />
+        ) : null}
+        {quickSearchStep4Data?.weekendSatExtraPay ? (
+          <DetailRow
+            label="Saturday extra pay:"
+            value={
+              quickSearchStep4Data?.weekendSatRate
+                ? `$${quickSearchStep4Data.weekendSatRate}`
+                : 'Yes'
+            }
+            valueStyle={styles.yesValue}
+          />
+        ) : null}
+        {quickSearchStep4Data?.weekendSunExtraPay ? (
+          <DetailRow
+            label="Sunday extra pay:"
+            value={
+              quickSearchStep4Data?.weekendSunRate
+                ? `$${quickSearchStep4Data.weekendSunRate}`
+                : 'Yes'
+            }
+            valueStyle={styles.yesValue}
+          />
+        ) : null}
+        {!quickSearchStep4Data?.weekendSatExtraPay && !quickSearchStep4Data?.weekendSunExtraPay ? (
+          <DetailRow
+            label="Weekend Extra Pay:"
+            value="Not Applicable"
+          />
         ) : null}
 
         {/* Step 4 Data - Availability */}
@@ -913,6 +917,21 @@ const QuickSearchPreview = ({ navigation, route }) => {
         )}
 
       </ScrollView>
+
+      {/* Sending Offers Progress Modal */}
+      <Modal visible={isSending} transparent animationType="fade">
+        <View style={styles.sendingOverlay}>
+          <View style={styles.sendingModal}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <AppText variant={Variant.subTitle} style={styles.sendingTitle}>
+              Sending Offers
+            </AppText>
+            <AppText variant={Variant.body} style={styles.sendingText}>
+              This may take a few seconds...
+            </AppText>
+          </View>
+        </View>
+      </Modal>
     </View>
   )
 }
@@ -969,6 +988,25 @@ const styles = StyleSheet.create({
   detailValue: {
     fontWeight: 'bold',
     color: colors.black,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+    marginBottom: hp(1.5),
+    marginTop: hp(-0.5),
+  },
+  checkboxFilled: {
+    width: wp(5),
+    height: wp(5),
+    borderRadius: 4,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxLabel: {
+    color: colors.black,
+    fontWeight: '600',
   },
   highlightValue: {
     fontSize: getFontSize(16),
@@ -1057,5 +1095,28 @@ const styles = StyleSheet.create({
   buttonFull: {
     width: '100%',
     marginBottom: hp(2),
+  },
+  sendingOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sendingModal: {
+    backgroundColor: colors.white,
+    borderRadius: hp(2),
+    padding: wp(8),
+    alignItems: 'center',
+    width: wp(70),
+  },
+  sendingTitle: {
+    marginTop: hp(2),
+    color: colors.black,
+    fontWeight: 'bold',
+  },
+  sendingText: {
+    marginTop: hp(1),
+    color: colors.gray,
+    textAlign: 'center',
   },
 })

@@ -175,6 +175,10 @@ import JobSeekerEarningReports from './main/JobSeeker/Reports/JobSeekerEarningRe
 import RecruiterBillingReports from './main/Recruiter/Reports/RecruiterBillingReports';
 import JobSeekerJobReports from './main/JobSeeker/Reports/JobSeekerJobReports';
 import JobSeekerPerformanceAnalytics from './main/JobSeeker/Reports/JobSeekerPerformanceAnalytics';
+import MyReviews from './main/MyReviews';
+import WrittenReviews from './main/WrittenReviews';
+import Announcements from './main/Announcements';
+import AnnouncementDetails from './main/AnnouncementDetails';
 
 // Tab Screens
 
@@ -342,6 +346,10 @@ export {
   CompletedOffersPool,
   ExpiredDeclinedPool,
   RecruiterBillingReports,
+  MyReviews,
+  WrittenReviews,
+  Announcements,
+  AnnouncementDetails,
 
   // Manual Search Screens (Job Seeker)
   ManualOffersJS,
