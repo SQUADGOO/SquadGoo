@@ -18,16 +18,11 @@ import AppButton from '@/core/AppButton'
 import AppText, { Variant } from '@/core/AppText'
 import { screenNames } from '@/navigation/screenNames'
 import { useRegister } from '@/api/auth/auth.query'
-import { login as loginAction } from '@/store/authSlice'
-import { useDispatch } from 'react-redux'
-import { createDummyUser, isDummyMode } from '@/utilities/dummyData'
 
 const SignUp = ({ navigation }) => {
-  const dispatch = useDispatch();
   const [selectedUserType, setSelectedUserType] = useState('jobseeker')
   const [acceptTerms, setAcceptTerms] = useState(false)
-  const [isRegistering, setIsRegistering] = useState(false)
-  // const { mutate: register, isPending } = useRegister() // Commented out for local testing
+  const { mutate: registerUser, isPending } = useRegister()
 
   // User type options
   const userTypes = ['jobseeker', 'recruiter', 'individual']
@@ -43,7 +38,7 @@ const SignUp = ({ navigation }) => {
     }
   })
 
-  const { handleSubmit, formState: { isSubmitting }, watch } = methods
+  const { handleSubmit, watch } = methods
   const password = watch('password')
 
   // Password validation checks
@@ -96,75 +91,18 @@ const SignUp = ({ navigation }) => {
     }
   }
 
-  const handleSignUp = async (data) => {
-
+  const handleSignUp = (data) => {
     if (!acceptTerms) {
       Alert.alert('Terms Required', 'Please accept the Terms and Conditions to continue.')
       return
     }
-    
-
-    try {
-      setIsRegistering(true);
-      
-      // === DUMMY SIGNUP (FOR LOCAL TESTING) ===
-      if (isDummyMode()) {
-        const signupData = {
-          ...data,
-          role: selectedUserType,
-          acceptedTerms: acceptTerms,
-        };
-
-        const dummyUserData = createDummyUser(signupData);
-
-        // Simulate successful registration
-        console.log('Dummy signup successful:', dummyUserData);
-        
-        // Show success message
-        Alert.alert(
-          'Success', 
-          'Account created successfully! You can now login with your credentials.',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                setIsRegistering(false);
-                // Navigate to sign in screen
-                navigation.navigate(screenNames.SIGN_IN);
-              }
-            }
-          ]
-        );
-        return;
-      }
-      
-      // === FOR API INTEGRATION ===
-      /*
-      const signupData = {
-        ...data,
-        role: selectedUserType,
-        acceptedTerms: acceptTerms
-      }
-
-      register(signupData, {
-        onSuccess: (response) => {
-          Alert.alert('Success', 'Account created successfully!')
-          navigation.navigate(screenNames.VERIFY_EMAIL, {
-            email: data?.email
-          })
-        },
-        onError: (error) => {
-          console.error('Signup error:', error)
-          Alert.alert('Error', error?.response?.data?.message || 'Sign up failed. Please try again.')
-        }
-      })
-      */
-      
-    } catch (error) {
-      setIsRegistering(false);
-      Alert.alert('Error', 'Sign up failed. Please try again.')
-      console.error('Signup error:', error)
-    }
+    registerUser({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      password: data.password,
+      userType: selectedUserType,
+    });
   }
 
   const handleGoogleSignUp = () => {
@@ -366,8 +304,8 @@ const SignUp = ({ navigation }) => {
                   bgColor={colors.primary || '#FF6B35'}
                   text="Join Squad Goo"
                   onPress={handleSubmit(handleSignUp)}
-                  isLoading={isRegistering}
-                  disabled={isSubmitting || isRegistering}
+                  isLoading={isPending}
+                  disabled={isPending}
                 />
               </View>
               </View>

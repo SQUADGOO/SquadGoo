@@ -19,76 +19,24 @@ import { signinRules } from '@/utilities/validationSchemas'
 import AppButton from '@/core/AppButton'
 import AppText, { Variant } from '@/core/AppText'
 import { screenNames } from '@/navigation/screenNames'
-import { store } from '@/store/store'
-import { showToast, toastTypes } from '@/utilities/toastConfig'
 import { useLogin } from '@/api/auth/auth.query'
-import { login as loginAction } from '@/store/authSlice'
-import { useDispatch } from 'react-redux'
-import { validateDummyCredentials, getDisplayCredentials, isDummyMode } from '@/utilities/dummyData'
-import { addCoins } from '@/store/walletSlice'
-import { initializeDummyExperiences } from '@/store/jobSeekerExperienceSlice'
-import { initializeDummyPreferredJobs } from '@/store/jobSeekerPreferredSlice'
 
 const SignIn = ({ navigation }) => {
-  const dispatch = useDispatch();
   const [rememberMe, setRememberMe] = useState(true);
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  // const { mutate: login, isPending, isError } = useLogin(); // Commented out for local testing
-  
-  // Initialize form methods
+  const { mutate: login, isPending } = useLogin();
+
   const methods = useForm({
     defaultValues: {
-      email: __DEV__ ? 'jobseeker@gmail.com' : '',
-      password: __DEV__ ? 'Jobseeker@123' : ''
+      email: '',
+      password: '',
     }
   })
 
-  const { handleSubmit, formState: { isSubmitting } } = methods
+  const { handleSubmit } = methods
 
-const handleLogin = async (data) => {
-  try {
-    setIsLoggingIn(true);
-    const { email, password } = data;
-    console.log('Login with:', data);
-    
-    // === DUMMY USER LOGIN (FOR LOCAL TESTING) ===
-    if (isDummyMode()) {
-      const dummyUser = validateDummyCredentials(email, password);
-      
-      if (dummyUser) {
-        dispatch(loginAction(dummyUser));
-        
-        // Initialize wallet with dummy user's wallet balance
-        if (dummyUser.wallet && dummyUser.wallet.coins > 0) {
-          dispatch(addCoins({ amount: dummyUser.wallet.coins }));
-        }
-        
-        // Initialize dummy experience and preferred jobs for job seekers
-        if (dummyUser.role === 'jobseeker') {
-          dispatch(initializeDummyExperiences());
-          dispatch(initializeDummyPreferredJobs());
-        }
-        
-        const welcomeMessage = `Welcome back, ${dummyUser.firstName}!`;
-        showToast(welcomeMessage, 'Success', toastTypes.success);
-        setIsLoggingIn(false);
-        return;
-      } else {
-        showToast('Invalid email or password', 'Error', toastTypes.error);
-        setIsLoggingIn(false);
-        return;
-      }
-    }
-    
-    // === FOR API INTEGRATION ===
-    // await login({ email, password });
-    
-  } catch (error) {
-    setIsLoggingIn(false);
-    Alert.alert('Error', 'Login failed. Please try again.');
-    console.error('Login error:', error);
-  }
-};
+  const handleLogin = (data) => {
+    login({ email: data.email, password: data.password });
+  };
 
 
   const handleSocialLogin = (provider) => {
@@ -174,7 +122,7 @@ const handleLogin = async (data) => {
               bgColor={colors.primary}
               text="Log in"
               onPress={handleSubmit(handleLogin)}
-              isLoading={isLoggingIn}
+              isLoading={isPending}
               />
               </View>
               {/* <TouchableOpacity 
@@ -228,20 +176,6 @@ const handleLogin = async (data) => {
               </TouchableOpacity>
             </View>
 
-            {/* Dummy Credentials Info (For Testing) */}
-            {isDummyMode() && (
-              <View style={styles.dummyCredentials}>
-                <Text style={styles.dummyTitle}>🔧 Test Credentials (Local Mode)</Text>
-                {getDisplayCredentials().map((cred, index) => (
-                  <View key={index} style={styles.credentialItem}>
-                    <Text style={styles.credentialRole}>{cred.role}:</Text>
-                    <Text style={styles.credentialText}>
-                      {cred.email} / {cred.password}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

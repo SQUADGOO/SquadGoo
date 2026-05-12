@@ -1,67 +1,104 @@
-// api/client.js
 import axios from 'axios';
 import { store } from '@/store/store';
-import { showToast, toastTypes } from '@/utilities/toastConfig';
 
-// baseURL: 'https://apis.squadgoo.com/',
+// ─── Base URL (change this one line when moving to a real server) ────────────
+// Android emulator  → http://10.0.2.2:5000/api/mobile-app/
+// iOS simulator     → http://localhost:5000/api/mobile-app/
+// Physical device   → http://<your-machine-local-ip>:5000/api/mobile-app/
+const BASE_URL = 'http://10.0.2.2:5000/api/mobile-app/';
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const apiClient = axios.create({
-  baseURL: 'http://192.168.1.5:6543/api/',
+  baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
     accept: '*/*',
   },
 });
 
-// 🔐 Auto-attach auth token
+// ── Attach access token to every request ────────────────────────────────────
 apiClient.interceptors.request.use((config) => {
   const token = store?.getState()?.auth?.token;
-  console.log('token', token);
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// 🚨 Global error logging
+// ── 401 handler: refresh token then retry once ──────────────────────────────
+let isRefreshing = false;
+let failedQueue = [];
+
+function processQueue(error, token = null) {
+  failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve(token)));
+  failedQueue = [];
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    console.error(
-      'API Error:',
-      error?.response?.data?.message || error.message,
-      '\nEndpoint:',
-      error?.config?.url
-    );
+  async (error) => {
+    const original = error.config;
+
+    if (error?.response?.status === 401 && !original._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then((token) => {
+          original.headers.Authorization = `Bearer ${token}`;
+          return apiClient(original);
+        });
+      }
+
+      original._retry = true;
+      isRefreshing = true;
+
+      const { refreshToken, userId } = store.getState().auth;
+
+      if (!refreshToken || !userId) {
+        const { logout } = require('@/store/authSlice');
+        store.dispatch(logout());
+        isRefreshing = false;
+        return Promise.reject(error);
+      }
+
+      try {
+        const res = await axios.post(`${BASE_URL}auth/refresh`, { refreshToken, userId });
+        const { accessToken, refreshToken: newRefreshToken } = res.data;
+
+        const { setTokens } = require('@/store/authSlice');
+        store.dispatch(setTokens({ token: accessToken, refreshToken: newRefreshToken }));
+
+        apiClient.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+        original.headers.Authorization = `Bearer ${accessToken}`;
+        processQueue(null, accessToken);
+        return apiClient(original);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        const { logout } = require('@/store/authSlice');
+        store.dispatch(logout());
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
     return Promise.reject(error);
   }
 );
 
-// 🌐 One universal request helper
+// ── Universal request helper ─────────────────────────────────────────────────
 export const request = async (endpoint, options = {}) => {
-  const {
-    method = 'get',
-    body,
-    headers = {},
-    params,
-    timeout,
-    ...rest
-  } = options;
-
+  const { method = 'get', body, headers = {}, params, timeout, ...rest } = options;
   const isFormData = body instanceof FormData;
-
-  const config = {
+  const response = await apiClient({
     url: endpoint,
     method,
     params,
     timeout,
     headers: {
-      ...(isFormData
-        ? { 'Content-Type': 'multipart/form-data' }
-        : { 'Content-Type': 'application/json' }),
+      ...(isFormData ? { 'Content-Type': 'multipart/form-data' } : { 'Content-Type': 'application/json' }),
       ...headers,
     },
-    ...(body && { data: isFormData ? body : body }), // no need to stringify, Axios does it
+    ...(body && { data: body }),
     ...rest,
-  };
-
-  const response = await apiClient(config);
+  });
   return response.data;
 };

@@ -1,82 +1,43 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { loginUser, register, logout, getCurrentUser, updateJobSeekerProfile, verifyEmail, updateProfile } from './auth.api';
+import { useMutation } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
-import { setUser, setToken, clearAuth, login, updateUserFields } from '@/store/authSlice';
-import { store } from '@/store/store';
+import { loginUser, register, logout } from './auth.api';
+import { login as loginAction, logout as logoutAction } from '@/store/authSlice';
 import { showToast, toastTypes } from '@/utilities/toastConfig';
-import { useGetUserData } from '../user/user.query';
 
 export const useLogin = () => {
   const dispatch = useDispatch();
   return useMutation({
     mutationFn: loginUser,
     onSuccess: (res) => {
-        console.log('resss', res)
-        dispatch(login(res?.data));
-            // dispatch(setToken(res?.token));
+      dispatch(loginAction(res));
+    },
+    onError: (err) => {
+      const message = err?.response?.data?.error?.message || 'Invalid email or password';
+      showToast(message, 'Error', toastTypes.error);
     },
   });
 };
 
-export const useRegister = () => useMutation({ mutationFn: register });
-
-export const useVerifyEmail = () => {
+export const useRegister = () => {
+  const dispatch = useDispatch();
   return useMutation({
-    mutationFn: verifyEmail,
+    mutationFn: register,
     onSuccess: (res) => {
-      console.log('Email verified successfully', res);
-      showToast('Email verified successfully', 'Success', toastTypes.success);
-      return res;
+      dispatch(loginAction(res));
     },
     onError: (err) => {
-      console.log('Email verification error ::: ', err?.response?.data?.message);
-      showToast(err?.response?.data?.message || 'Something went wrong', 'Error', toastTypes.error);
-      return err;
+      const message = err?.response?.data?.error?.message || 'Registration failed';
+      showToast(message, 'Error', toastTypes.error);
     },
   });
-}
+};
 
-export const useUpdateProfile = () => {
-  const getUserDataMutation = useGetUserData();
+export const useLogout = () => {
+  const dispatch = useDispatch();
   return useMutation({
-    mutationFn: updateProfile,
-    onSuccess: async (res) => {
-      console.log('Profile updated successfully', res);
-      await getUserDataMutation.mutateAsync();
-      // if(res?.user) {
-      //   store?.dispatch(setUser(res?.user));
-      //   showToast('Profile updated successfully', 'Success', toastTypes.success)
-      // }
-      return res
-    },
-    onError: (err) => {
-      console.log('updateProfile error ::: ', err)
-      showToast(err || 'Something went wrong', 'Error', toastTypes.error);
-      return err
+    mutationFn: logout,
+    onSettled: () => {
+      dispatch(logoutAction());
     },
   });
-}
-
-
-export const useLogout = () => useMutation({ mutationFn: logout });
-
-//job seeker
-export const useUpdateJobSeekerProfile = () => {
-  return useMutation({
-    mutationFn: updateJobSeekerProfile,
-    onSuccess: (res) => {
-      console.log('resss', res)
-      if(res?.jobSeeker) {
-        store?.dispatch(updateUserFields(res?.jobSeeker));
-        showToast('Profile updated successfully', 'Success', toastTypes.success)
-      }
-      return res
-    },
-    onError: (err) => {
-      console.log('updateJobSeekerProfile error ::: ', err)
-      return err
-    },
-  });
-}
-export const useCurrentUser = () =>
-  useQuery({ queryKey: ['currentUser'], queryFn: getCurrentUser });
+};

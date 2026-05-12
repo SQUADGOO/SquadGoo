@@ -1,37 +1,37 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { updateUserFields } from '@/store/authSlice';
-import { store } from '@/store/store';
 import { showToast, toastTypes } from '@/utilities/toastConfig';
-import { getUserData } from './user.api';
+import { getMe, updateMe } from './user.api';
 
-export const useGetUserData = () => {
+export const useGetMe = () => {
   const dispatch = useDispatch();
-  return useMutation({
-    mutationFn: getUserData,
-    onSuccess: (res) => {
-        // console.log('useGetUserData resss', res?.data?.profile?.basicDetails)
-        dispatch(updateUserFields(res?.data?.profile?.basicDetails));
+  return useQuery({
+    queryKey: ['me'],
+    queryFn: async () => {
+      const res = await getMe();
+      if (res?.user) dispatch(updateUserFields(res.user));
+      return res?.user ?? null;
     },
-    onError: (err) => {
-      console.log('Get user data error ::: ', err)
-      return err
-    }
   });
 };
 
-export const useVerifyEmail = () => {
+export const useUpdateMe = () => {
+  const dispatch = useDispatch();
   return useMutation({
-    mutationFn: verifyEmail,
+    mutationFn: updateMe,
     onSuccess: (res) => {
-      console.log('Email verified successfully', res);
-      showToast('Email verified successfully', 'Success', toastTypes.success);
-      return res;
+      if (res?.user) {
+        dispatch(updateUserFields(res.user));
+        showToast('Profile updated', 'Success', toastTypes.success);
+      }
     },
     onError: (err) => {
-      console.log('Email verification error ::: ', err?.response?.data?.message);
-      showToast(err?.response?.data?.message || 'Something went wrong', 'Error', toastTypes.error);
-      return err;
+      const message = err?.response?.data?.error?.message || 'Update failed';
+      showToast(message, 'Error', toastTypes.error);
     },
   });
-}
+};
+
+// Keep old name as alias so existing imports don't break during migration
+export const useGetUserData = useGetMe;
