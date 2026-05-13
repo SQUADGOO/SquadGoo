@@ -1,6 +1,6 @@
 # SquadGoo — Work Status & Continuation Notes
 
-_Last updated: 2026-04-28 (post Phase 1-3 + 6 execution)_
+_Last updated: 2026-04-29 (added admin panel audit notes)_
 
 This file tracks work in progress against the client's **Recruiter Notes S25 Ultra 2.docx** (located at `doc_by_ramp/Recruiter Notes S25 Ultra 2.docx`) and recent UX additions. Pick it up from the "Resume here" section at the bottom.
 
@@ -163,6 +163,25 @@ _All unblocked items completed 2026-04-28. Remaining 4 are blocked on client cla
 2. **Standalone Matches page** for Quick Fill offers — current flow `QuickSearchPreview → MatchList → CandidateProfile`. Client to confirm whether `MatchList` should be folded in or kept as inner sub-view of new Matches screen.
 3. **Info icon rollout** — only 6 `<InfoTooltip>` instances. Tooltip *copy* for each location needs client doc as source of truth before mass rollout. Special case: "Contact details and chat are disabled after 1 month" must move behind info icon (docx p.98).
 4. **Per-section "In Review" / "Pending Verification" badges.** `Profile.jsx:72` has a top-level status, but the trigger condition for "Pending Verification" (vs. "In Review") isn't defined; needs client clarification on the state machine.
+
+---
+
+## 🔍 Admin panel + backend audit (2026-04-29)
+
+The admin panel and its backend live in a sibling repo at `/Users/qadirali/Documents/Projects/upwork/PusparajGiri/adminpanel` (backend: `squadgoo-admin-panel-backend`, frontend: `squadgoo-admin-panel-frontend`). Owned by another developer; built with AI assistance. Audited at the user's request.
+
+**Scope clarification:** This is the admin-panel backend ONLY — it is NOT the mobile app's API backend. The mobile app's backend is separate (likely the one at `WebBackup/well-known/apis.squadgoo.com` or still pending).
+
+**Verdict:** "Needs work but salvageable." Real Mongoose models, real socket.io, dashboard route does serious aggregation — bones are competent. But wiring is dangerous and several admin-frontend screens appear to run on `localStorage` mock stores, not the backend.
+
+**Top issues to flag back to the other developer (priority order):**
+
+1. **Rotate live MongoDB Atlas password + JWT secret immediately.** Plaintext in `squadgoo-admin-panel-backend/.env`. JWT_SECRET also has fallback `"squadgoo-dev-secret-change-me"` in `lib/jwt.js:4`.
+2. **Admin authorization is broken — privilege escalation.** `routes/admin/appUsersAdminRoutes.js`, `routes/users.js`, `routes/badges.js`, admin half of `routes/supportChats.js` use bare `auth` middleware (jwt.verify only, no role/portal check). Same `JWT_SECRET` signs admin AND mobile-app JWTs (via `middleware/appUserAuth.js` falling back to `JWT_SECRET`). Net: any logged-in mobile user (e.g. via support chat) can call admin endpoints. Fix: split per-portal secrets OR add a required `aud`/`portal` JWT claim and reject mismatches.
+3. **~3,000 lines of unmounted route files** (`operationsRoutes.js` 1018L, `ownerOperationsRoutes.js` 666L, `staffAuthRoutes.js` 346L, `chatReportsAdminRoutes.js`, `staffOwnerApprovalsRoutes.js`, `app/chatReportsPublic.js`, +3 more) AND **frontend calls endpoints that don't exist** (`/owner/live-chats`, `/owner/job-chats`, `/owner/dispute-chats`, `/owner/users/:id/profile`). Need a definitive endpoint matrix saying what's actually wired end-to-end vs. what's mock-only.
+4. **Basic hardening missing:** no `helmet`, no rate-limit on login, no multer `fileFilter` (admin can upload `.html`/`.js` served from `/uploads/`), NoSQL `$regex` injection in `routes/users.js:17` and `routes/appUsers.js:36`, public unauth support-chat mutations (`/select-topic`, `/connect-human`, `/mark-solved`, `/rating`), hardcoded `admin@squadgoo.com / admin123` seed credentials, frontend dev fallback magic token `"sg-demo-admin-token"` in `Login.js:38-50`.
+
+**Implication for Qadir's work:** None directly — mobile-app integration is not against this backend. But once the mobile-app backend appears, expect the same developer to have made similar choices, so push for a security review there too.
 
 ---
 
