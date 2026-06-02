@@ -11,10 +11,10 @@ import {colors, getFontSize, hp, wp} from '@/theme';
 import AppText, {Variant} from '@/core/AppText';
 import AppHeader from '@/core/AppHeader';
 import { useDispatch, useSelector } from 'react-redux';
-import { showToast, toastTypes } from '@/utilities/toastConfig';
 import { updateUserFields } from '@/store/authSlice';
 import AppButton from '@/core/AppButton';
 import { screenNames } from '@/navigation/screenNames';
+import { useSubmitKycKyb } from '@/api/kyc/kyc.query';
 
 const KycSubmit = () => {
   const navigation = useNavigation();
@@ -25,6 +25,7 @@ const KycSubmit = () => {
   const uploads = saved?.uploads || {};
 
   const isRecruiter = ((role || '').toString().toLowerCase() === 'recruiter');
+  const { mutateAsync: submitKycKyb, isPending } = useSubmitKycKyb();
 
   const fullName = useMemo(() => {
     if (userInfo?.name) return userInfo.name;
@@ -35,11 +36,52 @@ const KycSubmit = () => {
 
   const docStatus = (val) => (val ? 'uploaded' : 'missing');
 
-  const handleSubmit = () => {
-    // This repo currently has no backend submit endpoint wired here.
-    // Store a simple flag and notify user.
+  // Map the wizard's snake_case Redux shape onto the camelCase API payload.
+  // Document files are not sent yet (deferred until storage is set up) — we only record
+  // which document keys the user attached locally so admin review knows what's coming.
+  const buildPayload = () => {
+    const personal = saved?.personal || {};
+    const business = saved?.business || {};
+    const documents = saved?.documents || {};
+    const providedDocumentKeys = Object.keys(uploads || {}).filter((key) => uploads[key]);
+
+    const payload = {
+      personal: {
+        passportOrDriverLicence: personal.passport_or_driver_licence,
+        positionInBusiness: personal.position_in_business,
+      },
+      documents: {
+        proofOfBusinessAddressType: documents.proof_of_business_address_type,
+        proofOfBusinessAddressOther: documents.proof_of_business_address_other,
+        providedDocumentKeys,
+      },
+    };
+
+    if (isRecruiter) {
+      payload.business = {
+        businessName: business.business_name,
+        abnOrAcn: business.abn_or_acn,
+        businessType: business.business_type,
+        yearsOfOperation: business.years_of_operation,
+        businessAddress: business.business_address,
+        annualRevenueAud: business.annual_revenue_aud,
+        website: business.website,
+      };
+    }
+
+    return payload;
+  };
+
+  const handleSubmit = async () => {
+    try {
+      await submitKycKyb(buildPayload());
+    } catch {
+      // useSubmitKycKyb surfaces the failure via toast — stay on the screen to retry.
+      return;
+    }
+
+    // Mark locally as submitted (success toast + status sync are handled by the hook).
     dispatch(updateUserFields({ kycKyb: { ...saved, submittedAt: new Date().toISOString() } }));
-    showToast('Verification submitted successfully', 'Success', toastTypes.success);
 
     const normalizedRole = (role || '').toString().toLowerCase();
     const baseRoute =
@@ -239,6 +281,7 @@ const KycSubmit = () => {
           text="Submit for Verification"
           bgColor={colors.primary}
           textColor="#FFFFFF"
+          isLoading={isPending}
           onPress={handleSubmit}
           style={{ marginBottom: hp(5) }}
         />

@@ -13,14 +13,12 @@ import { screenNames } from '@/navigation/screenNames';
 const ContactDetailsSheet = ({ onClose }) => {
   const navigation = useNavigation();
   const userInfo = useSelector((state) => state.auth.userInfo);
-  const addressInfo = userInfo?.contactDetails
+  const contactInfo = userInfo || {};
 
   const handleEdit = async () => {
     onClose()
     navigation.navigate(screenNames.CONTACT_DETAILS)
   }
-
-  console.log('Address Info:', addressInfo);
   return (
     <View style={styles.container}>
       {/* <AppText style={styles.title}>Address</AppText> */}
@@ -28,12 +26,12 @@ const ContactDetailsSheet = ({ onClose }) => {
 
       <View style={[styles.row]}>
         <VectorIcons name={iconLibName.MaterialIcons} iconName="email" size={wp(6)} color={colors.textPrimary} />
-        <AppText style={styles.value}>{addressInfo?.email || '-'}</AppText>
+        <AppText style={styles.value}>{contactInfo?.email || '-'}</AppText>
       </View>
 
       <View style={styles.row}>
         <VectorIcons name={iconLibName.MaterialIcons} iconName="local-phone" size={wp(6)} color={colors.textPrimary} />
-        <AppText style={styles.value}>{addressInfo?.phone || '-'}</AppText>
+        <AppText style={styles.value}>{contactInfo?.phone || '-'}</AppText>
       </View>
     
       <AppButton

@@ -1,42 +1,46 @@
 # Backend Setup
 
 ## Location
-`D:\Projects\PushpaRaj\SquadGooFiles\squadgoo-admin-panel-backend\`
+Sibling repo to the mobile app:
+
+- **macOS:** `~/Documents/Projects/upwork/PusparajGiri/adminpanel/squadgoo-admin-panel-backend/`
+- **Windows:** `D:\Projects\PushpaRaj\SquadGooFiles\squadgoo-admin-panel-backend\`
+
+Branch with mobile auth endpoints: **`mobile/auth`**.
 
 ## Stack
 Node.js + Express 4.21, MongoDB via Mongoose 8.9, Socket.IO 4.8, JWT, bcryptjs
 
 ## Prerequisites
-- Node.js installed
-- MongoDB running locally on port 27017 (already installed on this machine)
+- Node.js 20+
+- MongoDB — either local on port 27017, or MongoDB Atlas (Atlas is the current default)
 
 ## Run the backend
 
 ```bash
-cd D:\Projects\PushpaRaj\SquadGooFiles\squadgoo-admin-panel-backend
-npm install       # first time only
-node index.js
+cd <backend-folder>
+git checkout mobile/auth
+npm install       # first time, or after pulling new deps
+npm start         # runs node index.js
 ```
 
-Server starts at: `http://localhost:5000/api`
+Server starts at: `http://localhost:<PORT>/api` (PORT is whatever the `.env` says — currently `5001`).
 
-Health check: `GET http://localhost:5000/api/health`
+Health check: `GET http://localhost:5001/api/health`
 Expected response: `{ "ok": true, "service": "squadgoo-api", "db": "connected" }`
 
 ## Environment file
-Located at `squadgoo-admin-panel-backend\.env`
+Located at `<backend-folder>/.env`. Current dev values:
 
 ```
-PORT=5000
-MONGODB_URI=mongodb://127.0.0.1:27017/squadgoo
-JWT_SECRET=squadgoo-local-dev-jwt-secret-change-before-prod
-APP_USER_JWT_SECRET=squadgoo-mobile-jwt-secret-change-before-prod
-PUBLIC_ORIGIN=http://localhost:5000
-NODE_ENV=development
+PORT=5001
+PUBLIC_ORIGIN=http://localhost:5001
+MONGODB_URI=mongodb+srv://...   # MongoDB Atlas connection
+JWT_SECRET=<random hex>           # admin / staff JWTs
+APP_USER_JWT_SECRET=<random hex>  # optional: separate secret for mobile JWTs (falls back to JWT_SECRET)
 ```
 
-**When moving to production / MongoDB Atlas:**
-Replace `MONGODB_URI` with the Atlas connection string. All other code stays the same.
+For purely local dev with no internet, you can swap `MONGODB_URI` to `mongodb://127.0.0.1:27017/squadgoo` — code stays the same. The same applies in reverse when moving from local Mongo to Atlas / AWS.
 
 ## Mobile app endpoints (built so far)
 

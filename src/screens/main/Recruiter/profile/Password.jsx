@@ -1,22 +1,15 @@
 import React from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { useForm, FormProvider } from 'react-hook-form';
-import { useSelector } from 'react-redux';
 import AppHeader from '@/core/AppHeader';
 import AppText from '@/core/AppText';
 import AppButton from '@/core/AppButton';
 import FormField from '@/core/FormField';
 import { colors, hp, wp } from '@/theme';
-import { showToast, toastTypes } from '@/utilities/toastConfig';
+import { useChangePassword } from '@/api/auth/auth.query';
 
 const ChangePassword = () => {
-  const [isLoading, setIsLoading] = React.useState(false);
-  const userData = useSelector((state) => state.auth.userInfo);
-  const userId =
-    userData?.role === 'recruiter' ? userData?.recruiter?.id : userData?.job_seeker?.id;
-
-  // UI-only flow: simulate current password check
-  const DEMO_CURRENT_PASSWORD = 'Password@123';
+  const { mutateAsync: changePassword, isPending } = useChangePassword();
 
   const methods = useForm({
     defaultValues: {
@@ -30,28 +23,18 @@ const ChangePassword = () => {
   const newPassword = watch('new_password');
 
   const handleSave = async (data) => {
-    // UI-only: simulate server "current password incorrect"
-    if (data.current_password !== DEMO_CURRENT_PASSWORD) {
-      setError('current_password', { message: 'Current password is incorrect.' });
-      return;
-    }
-
-    const payload = {
-      id: userId,
-      current_password: data.current_password,
-      new_password: data.new_password,
-    };
-
-    setIsLoading(true);
-
-    setTimeout(() => {
-      showToast('Your password has been changed successfully.', 'Success', toastTypes.success);
-      setIsLoading(false);
+    try {
+      await changePassword({
+        current_password: data.current_password,
+        new_password: data.new_password,
+      });
       reset();
-    }, 2000);
-
-    console.log('🔐 Changing password:', payload);
-    // await changePassword(payload);
+    } catch (err) {
+      // Surface a wrong-current-password inline; other failures are toasted by the hook.
+      if (err?.response?.data?.error?.code === 'INVALID_CURRENT_PASSWORD') {
+        setError('current_password', { message: 'Current password is incorrect.' });
+      }
+    }
   };
 
   return (
@@ -104,7 +87,7 @@ const ChangePassword = () => {
           <AppButton
             bgColor={colors.primary}
             text="Save Changes"
-            isLoading={isLoading}
+            isLoading={isPending}
             onPress={handleSubmit(handleSave)}
             // style={styles.button}
           />

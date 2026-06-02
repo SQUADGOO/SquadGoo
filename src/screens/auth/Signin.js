@@ -27,10 +27,14 @@ const SignIn = ({ navigation }) => {
 
   const methods = useForm({
     defaultValues: {
-      email: '',
-      password: '',
+      email: 'recruiter@squadgo.com',
+      password: 'Squadgo@123',
     }
   })
+
+  //   │ Recruiter             │ recruiter@squadgo.com │ Squadgo@123 │
+// ├───────────────────────┼───────────────────────┼─────────────┤
+// │ Jobseeker (for later) │ jobseeker@squadgo.com │ Squadgo@123
 
   const { handleSubmit } = methods
 

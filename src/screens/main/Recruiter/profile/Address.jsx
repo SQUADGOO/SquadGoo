@@ -16,27 +16,28 @@ const Address = () => {
   const dispatch = useDispatch();
   const { mutateAsync: updateAddress, isPending } = useAddFullAddress();
   const userData = useSelector((state) => state.auth.userInfo);
-  console.log('🏁 User Data in Address Screen:', userData?.fullAddress);
-  const userInfo = userData
-    // userData?.role === 'recruiter' ? userData?.recruiter : userData?.job_seeker;
+  const addressInfo = userData?.address || {};
 
   const methods = useForm({
     defaultValues: {
-      fullAddress: userInfo?.address || '',
-      country: userInfo?.country || '',
-      state: userInfo?.state || '',
-      suburb: userInfo?.suburb || '',
-      unit: userInfo?.unit || '',
-      houseNumber: userInfo?.houseNumber || '',
-      streetName: userInfo?.streetName || '',
+      fullAddress: addressInfo?.fullAddress || '',
+      country: addressInfo?.country || '',
+      state: addressInfo?.state || '',
+      suburb: addressInfo?.suburb || '',
+      unit: addressInfo?.unit || '',
+      houseNumber: addressInfo?.houseNumber || '',
+      streetName: addressInfo?.streetName || '',
     },
   });
 
   const { handleSubmit } = methods;
 
   const handleSave = async (data) => {
-    let res = await updateAddress(data);
-    console.log('🏁 Address update response:', res);
+    try {
+      await updateAddress(data);
+    } catch {
+      // useAddFullAddress surfaces the error via toast.
+    }
   };
 
   return (

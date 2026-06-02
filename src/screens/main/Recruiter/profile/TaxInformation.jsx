@@ -17,7 +17,7 @@ const TaxInformation = () => {
   const { mutateAsync: updateTaxInfo, isPending } = useAddTaxInfo();
 
   const userData = useSelector((state) => state.auth.userInfo);
-  const userInfo = userData?.taxInformation || {};
+  const userInfo = userData?.tax || {};
 
   const methods = useForm({
     defaultValues: {

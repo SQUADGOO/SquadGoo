@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, ScrollView, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, ScrollView, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useForm, FormProvider } from 'react-hook-form';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import AppText, { Variant } from '@/core/AppText';
 import FormField from '@/core/FormField';
 import AppButton from '@/core/AppButton';
@@ -11,19 +11,16 @@ import ImagePickerSheet from '@/components/ImagePickerSheet';
 import VectorIcons from '@/theme/vectorIcon';
 import images from '@/assets/images';
 import FastImageView from '@/core/FastImageView';
-import { useUpdateProfile } from '@/api/auth/auth.query';
-import { showToast, toastTypes } from '@/utilities/toastConfig';
+import { useUpdateMe, useUploadProfilePicture } from '@/api/user/user.query';
 
 
 const EditProfileScreen = () => {
-  const dispatch = useDispatch();
-  const { mutateAsync: updateProfile , isPending, isSuccess} = useUpdateProfile()
+  const { mutateAsync: updateProfile, isPending } = useUpdateMe();
+  const { mutateAsync: uploadPhoto, isPending: isUploading } = useUploadProfilePicture();
   const userData = useSelector((state) => state.auth.userInfo);
-  const userInfo = userData
-  // const userInfo = userData?.role == 'recruiter' ? userData?.recruiter : userData?.job_seeker
-  // console.log('User Info:', userData?.role, userInfo);
+  const userInfo = userData;
 
-  const [profileImage, setProfileImage] = useState(userData?.profile_picture || '');
+  const [profileImage, setProfileImage] = useState(userData?.profilePhoto || '');
   const sheetRef = useRef();
 
   const methods = useForm({
@@ -31,9 +28,9 @@ const EditProfileScreen = () => {
       firstName: userInfo?.firstName || '',
       lastName: userInfo?.lastName || '',
       email: userInfo?.email || '',
-      contactNumber: userInfo?.contactNumber || '',
+      contactNumber: userInfo?.phone || '',
       dateOfBirth: userInfo?.dateOfBirth || '',
-      homeAddress: userInfo?.homeAddress || '',
+      homeAddress: userInfo?.addressLine1 || '',
       bio: userInfo?.bio || '',
     },
   });
@@ -43,21 +40,31 @@ const EditProfileScreen = () => {
 
 
   const handleSave = async (data) => {
-    console.log('Form Data:', data);
-    // setTimeout(() => {
-    //   showToast('Profile updated successfully', 'Success', 'success');
-    // }, 2000);
-    // return
-     let res = await updateProfile(data)
-     console.log("update profile res", res)
-     if(res?.status === 200){ 
-        showToast(res?.message || 'Profile updated successfully', 'Success', toastTypes.success);
-     }
-    // dispatch(updateProfile({ ...data, profileImage }));
+    // Map the form fields onto the PUT /users/me payload (contactNumber→phone,
+    // homeAddress→addressLine1). useUpdateMe syncs Redux + toasts on success/error.
+    try {
+      await updateProfile({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.contactNumber,
+        dateOfBirth: data.dateOfBirth,
+        bio: data.bio,
+        addressLine1: data.homeAddress,
+      });
+    } catch {
+      // useUpdateMe surfaces the failure via toast.
+    }
   };
 
-  const handleImageSelect = (image) => {
-    if (image?.uri) setProfileImage(image.uri);
+  const handleImageSelect = async (image) => {
+    if (!image?.uri) return;
+    setProfileImage(image.uri); // optimistic local preview
+    try {
+      const res = await uploadPhoto(image);
+      if (res?.url) setProfileImage(res.url);
+    } catch {
+      // useUploadProfilePicture surfaces the failure via toast.
+    }
   };
 
   return (
@@ -75,8 +82,13 @@ const EditProfileScreen = () => {
 
           <TouchableOpacity
             style={styles.cameraButton}
+            disabled={isUploading}
             onPress={() => sheetRef.current?.open()}>
-            <VectorIcons name="Feather" iconName="camera" size={18} color={colors.white} />
+            {isUploading ? (
+              <ActivityIndicator size="small" color={colors.white} />
+            ) : (
+              <VectorIcons name="Feather" iconName="camera" size={18} color={colors.white} />
+            )}
           </TouchableOpacity>
         </View>
 

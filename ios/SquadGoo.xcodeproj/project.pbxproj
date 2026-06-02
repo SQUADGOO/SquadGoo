@@ -13,7 +13,6 @@
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		5605A5A77E07D32BE3889F03 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		58F7CB7931B34BDAA6A93ED5 /* Lexend-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4A876F8305B748C1BB602E09 /* Lexend-Bold.ttf */; };
-		6622E376F32033D9A03A1301 /* Pods_SquadGoo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AFD8025470AB3084FD538857 /* Pods_SquadGoo.framework */; };
 		6C016852615E4A358339FCAE /* Lexend-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 79FFB695783B493BBA824E72 /* Lexend-ExtraBold.ttf */; };
 		6D36C85C247F49EC965B74A1 /* Lexend-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8D2F711F3E174033A5A32D2C /* Lexend-Light.ttf */; };
 		756A36DD97BD4B85A7946781 /* Poppins-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7A2DABDCD6B74832859E1911 /* Poppins-Regular.ttf */; };
@@ -22,8 +21,9 @@
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		832D03B0B67C4A7BA99AD75C /* Poppins-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8025573B622F45FD868D80F9 /* Poppins-SemiBold.ttf */; };
 		9BAA230C1BE540019C697A8F /* Poppins-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 043537CA07664F7A99C36C1C /* Poppins-Bold.ttf */; };
+		B09418E80876C9F270A1113A /* Pods_SquadGoo_SquadGooTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD99394DD4C255548803735F /* Pods_SquadGoo_SquadGooTests.framework */; };
 		CA3051BBEA204974BE23FD20 /* Poppins-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 103E9AD4439F4BAA88F58AE0 /* Poppins-Medium.ttf */; };
-		E33A76DCCF2760C0773BB54D /* Pods_SquadGoo_SquadGooTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FBCF0F68F53E302C4629F54D /* Pods_SquadGoo_SquadGooTests.framework */; };
+		EB76B67CF00E026C808BC6F8 /* Pods_SquadGoo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85A911BAEE45D5DBCC6D5C14 /* Pods_SquadGoo.framework */; };
 		F5110F68207241B0BCB05AA1 /* Lexend-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C7B0A58D541A4B5288D549F3 /* Lexend-Regular.ttf */; };
 /* End PBXBuildFile section */
 
@@ -50,22 +50,22 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = SquadGoo/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = SquadGoo/main.m; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = SquadGoo/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		3B4392A12AC88292D35C810B /* Pods-SquadGoo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SquadGoo.debug.xcconfig"; path = "Target Support Files/Pods-SquadGoo/Pods-SquadGoo.debug.xcconfig"; sourceTree = "<group>"; };
 		4A876F8305B748C1BB602E09 /* Lexend-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Bold.ttf"; path = "../src/assets/fonts/Lexend-Bold.ttf"; sourceTree = "<group>"; };
-		5709B34CF0A7D63546082F79 /* Pods-SquadGoo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SquadGoo.release.xcconfig"; path = "Target Support Files/Pods-SquadGoo/Pods-SquadGoo.release.xcconfig"; sourceTree = "<group>"; };
-		5B7EB9410499542E8C5724F5 /* Pods-SquadGoo-SquadGooTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SquadGoo-SquadGooTests.debug.xcconfig"; path = "Target Support Files/Pods-SquadGoo-SquadGooTests/Pods-SquadGoo-SquadGooTests.debug.xcconfig"; sourceTree = "<group>"; };
+		5C0A3BA434F94DB2AC96EF75 /* Pods-SquadGoo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SquadGoo.debug.xcconfig"; path = "Target Support Files/Pods-SquadGoo/Pods-SquadGoo.debug.xcconfig"; sourceTree = "<group>"; };
 		79FFB695783B493BBA824E72 /* Lexend-ExtraBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-ExtraBold.ttf"; path = "../src/assets/fonts/Lexend-ExtraBold.ttf"; sourceTree = "<group>"; };
 		7A2DABDCD6B74832859E1911 /* Poppins-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Regular.ttf"; path = "../src/assets/fonts/Poppins-Regular.ttf"; sourceTree = "<group>"; };
 		8025573B622F45FD868D80F9 /* Poppins-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-SemiBold.ttf"; path = "../src/assets/fonts/Poppins-SemiBold.ttf"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = SquadGoo/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		89C6BE57DB24E9ADA2F236DE /* Pods-SquadGoo-SquadGooTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SquadGoo-SquadGooTests.release.xcconfig"; path = "Target Support Files/Pods-SquadGoo-SquadGooTests/Pods-SquadGoo-SquadGooTests.release.xcconfig"; sourceTree = "<group>"; };
+		85A911BAEE45D5DBCC6D5C14 /* Pods_SquadGoo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SquadGoo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8D2F711F3E174033A5A32D2C /* Lexend-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Light.ttf"; path = "../src/assets/fonts/Lexend-Light.ttf"; sourceTree = "<group>"; };
-		AFD8025470AB3084FD538857 /* Pods_SquadGoo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SquadGoo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		90063989D20D29CCEB0E95EF /* Pods-SquadGoo-SquadGooTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SquadGoo-SquadGooTests.debug.xcconfig"; path = "Target Support Files/Pods-SquadGoo-SquadGooTests/Pods-SquadGoo-SquadGooTests.debug.xcconfig"; sourceTree = "<group>"; };
+		B22D5B7188AC31194401F2E0 /* Pods-SquadGoo-SquadGooTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SquadGoo-SquadGooTests.release.xcconfig"; path = "Target Support Files/Pods-SquadGoo-SquadGooTests/Pods-SquadGoo-SquadGooTests.release.xcconfig"; sourceTree = "<group>"; };
 		BE6DFFC5259B4C1EB77BEC83 /* Lexend-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Medium.ttf"; path = "../src/assets/fonts/Lexend-Medium.ttf"; sourceTree = "<group>"; };
 		C7B0A58D541A4B5288D549F3 /* Lexend-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Regular.ttf"; path = "../src/assets/fonts/Lexend-Regular.ttf"; sourceTree = "<group>"; };
 		D04A65B9C9C1433D9D53CA84 /* Lexend-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-SemiBold.ttf"; path = "../src/assets/fonts/Lexend-SemiBold.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		FBCF0F68F53E302C4629F54D /* Pods_SquadGoo_SquadGooTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SquadGoo_SquadGooTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FC4B9E0B03E5FE80C82DDF14 /* Pods-SquadGoo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SquadGoo.release.xcconfig"; path = "Target Support Files/Pods-SquadGoo/Pods-SquadGoo.release.xcconfig"; sourceTree = "<group>"; };
+		FD99394DD4C255548803735F /* Pods_SquadGoo_SquadGooTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SquadGoo_SquadGooTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,7 +73,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E33A76DCCF2760C0773BB54D /* Pods_SquadGoo_SquadGooTests.framework in Frameworks */,
+				B09418E80876C9F270A1113A /* Pods_SquadGoo_SquadGooTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -81,7 +81,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6622E376F32033D9A03A1301 /* Pods_SquadGoo.framework in Frameworks */,
+				EB76B67CF00E026C808BC6F8 /* Pods_SquadGoo.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -123,8 +123,8 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				AFD8025470AB3084FD538857 /* Pods_SquadGoo.framework */,
-				FBCF0F68F53E302C4629F54D /* Pods_SquadGoo_SquadGooTests.framework */,
+				85A911BAEE45D5DBCC6D5C14 /* Pods_SquadGoo.framework */,
+				FD99394DD4C255548803735F /* Pods_SquadGoo_SquadGooTests.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -164,10 +164,10 @@
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				3B4392A12AC88292D35C810B /* Pods-SquadGoo.debug.xcconfig */,
-				5709B34CF0A7D63546082F79 /* Pods-SquadGoo.release.xcconfig */,
-				5B7EB9410499542E8C5724F5 /* Pods-SquadGoo-SquadGooTests.debug.xcconfig */,
-				89C6BE57DB24E9ADA2F236DE /* Pods-SquadGoo-SquadGooTests.release.xcconfig */,
+				5C0A3BA434F94DB2AC96EF75 /* Pods-SquadGoo.debug.xcconfig */,
+				FC4B9E0B03E5FE80C82DDF14 /* Pods-SquadGoo.release.xcconfig */,
+				90063989D20D29CCEB0E95EF /* Pods-SquadGoo-SquadGooTests.debug.xcconfig */,
+				B22D5B7188AC31194401F2E0 /* Pods-SquadGoo-SquadGooTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -196,12 +196,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "SquadGooTests" */;
 			buildPhases = (
-				A55EABD7B0C7F3A422A6CC61 /* [CP] Check Pods Manifest.lock */,
+				8D35AD51A3AAB81ABAF84422 /* [CP] Check Pods Manifest.lock */,
 				00E356EA1AD99517003FC87E /* Sources */,
 				00E356EB1AD99517003FC87E /* Frameworks */,
 				00E356EC1AD99517003FC87E /* Resources */,
-				C59DA0FBD6956966B86A3779 /* [CP] Embed Pods Frameworks */,
-				F6A41C54EA430FDDC6A6ED99 /* [CP] Copy Pods Resources */,
+				DE641B0B816DCD9CC8FBCFE2 /* [CP] Embed Pods Frameworks */,
+				5882F8C4C91996AE24175FFE /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -217,13 +217,13 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "SquadGoo" */;
 			buildPhases = (
-				C38B50BA6285516D6DCD4F65 /* [CP] Check Pods Manifest.lock */,
+				C73ED255C4032ABC974AB4BC /* [CP] Check Pods Manifest.lock */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
-				00EEFC60759A1932668264C0 /* [CP] Embed Pods Frameworks */,
-				E235C05ADACE081382539298 /* [CP] Copy Pods Resources */,
+				E6133A7EC3C5E3E377A7A650 /* [CP] Embed Pods Frameworks */,
+				90BE0DBA986E0B3BFF5CC5D1 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -317,24 +317,24 @@
 			shellPath = /bin/sh;
 			shellScript = "set -e\n\nWITH_ENVIRONMENT=\"$REACT_NATIVE_PATH/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"$REACT_NATIVE_PATH/scripts/react-native-xcode.sh\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n";
 		};
-		00EEFC60759A1932668264C0 /* [CP] Embed Pods Frameworks */ = {
+		5882F8C4C91996AE24175FFE /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-SquadGoo/Pods-SquadGoo-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-SquadGoo-SquadGooTests/Pods-SquadGoo-SquadGooTests-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			name = "[CP] Embed Pods Frameworks";
+			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-SquadGoo/Pods-SquadGoo-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-SquadGoo-SquadGooTests/Pods-SquadGoo-SquadGooTests-resources-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SquadGoo/Pods-SquadGoo-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SquadGoo-SquadGooTests/Pods-SquadGoo-SquadGooTests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		A55EABD7B0C7F3A422A6CC61 /* [CP] Check Pods Manifest.lock */ = {
+		8D35AD51A3AAB81ABAF84422 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -356,7 +356,24 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		C38B50BA6285516D6DCD4F65 /* [CP] Check Pods Manifest.lock */ = {
+		90BE0DBA986E0B3BFF5CC5D1 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-SquadGoo/Pods-SquadGoo-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-SquadGoo/Pods-SquadGoo-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SquadGoo/Pods-SquadGoo-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		C73ED255C4032ABC974AB4BC /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -378,7 +395,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		C59DA0FBD6956966B86A3779 /* [CP] Embed Pods Frameworks */ = {
+		DE641B0B816DCD9CC8FBCFE2 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -395,38 +412,21 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SquadGoo-SquadGooTests/Pods-SquadGoo-SquadGooTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		E235C05ADACE081382539298 /* [CP] Copy Pods Resources */ = {
+		E6133A7EC3C5E3E377A7A650 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-SquadGoo/Pods-SquadGoo-resources-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-SquadGoo/Pods-SquadGoo-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			name = "[CP] Copy Pods Resources";
+			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-SquadGoo/Pods-SquadGoo-resources-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-SquadGoo/Pods-SquadGoo-frameworks-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SquadGoo/Pods-SquadGoo-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		F6A41C54EA430FDDC6A6ED99 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-SquadGoo-SquadGooTests/Pods-SquadGoo-SquadGooTests-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-SquadGoo-SquadGooTests/Pods-SquadGoo-SquadGooTests-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SquadGoo-SquadGooTests/Pods-SquadGoo-SquadGooTests-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SquadGoo/Pods-SquadGoo-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -462,7 +462,7 @@
 /* Begin XCBuildConfiguration section */
 		00E356F61AD99517003FC87E /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5B7EB9410499542E8C5724F5 /* Pods-SquadGoo-SquadGooTests.debug.xcconfig */;
+			baseConfigurationReference = 90063989D20D29CCEB0E95EF /* Pods-SquadGoo-SquadGooTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -489,7 +489,7 @@
 		};
 		00E356F71AD99517003FC87E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 89C6BE57DB24E9ADA2F236DE /* Pods-SquadGoo-SquadGooTests.release.xcconfig */;
+			baseConfigurationReference = B22D5B7188AC31194401F2E0 /* Pods-SquadGoo-SquadGooTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
@@ -513,7 +513,7 @@
 		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 3B4392A12AC88292D35C810B /* Pods-SquadGoo.debug.xcconfig */;
+			baseConfigurationReference = 5C0A3BA434F94DB2AC96EF75 /* Pods-SquadGoo.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -542,7 +542,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5709B34CF0A7D63546082F79 /* Pods-SquadGoo.release.xcconfig */;
+			baseConfigurationReference = FC4B9E0B03E5FE80C82DDF14 /* Pods-SquadGoo.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;

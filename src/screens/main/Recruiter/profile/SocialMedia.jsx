@@ -22,8 +22,7 @@ const defaultSocials = [
 
 const SocialMedia = () => {
   const userData = useSelector((state) => state.auth.userInfo);
-  const userInfo = userData
-   
+  const userInfo = userData?.social || {};
 
   const { mutateAsync: updateSocialLinks, isPending } = useAddSocialLinks();
 

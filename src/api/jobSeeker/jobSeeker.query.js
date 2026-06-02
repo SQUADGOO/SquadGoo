@@ -13,8 +13,7 @@ export const useAddWorkExperience = () => {
         // dispatch(updateUserFields(res?.data));
     },
     onError: (err) => {
-      console.log('Add work experience error ::: ', err)
-      return err
+      showToast(err?.response?.data?.error?.message || 'Could not save work experience', 'Error', toastTypes.error);
     }
   });
 };
@@ -29,8 +28,7 @@ export const useAddFullAddress = () => {
 
     },
     onError: (err) => {
-      console.log('Add full address error ::: ', err)
-      return err
+      showToast(err?.response?.data?.error?.message || 'Could not save address', 'Error', toastTypes.error);
     }
   });
 }
@@ -43,8 +41,7 @@ export const useAddTaxInfo = () => {
         await refreshUserData();
     },
     onError: (err) => {
-      console.log('Add tax information error ::: ', err)
-      return err
+      showToast(err?.response?.data?.error?.message || 'Could not save tax information', 'Error', toastTypes.error);
     }
   });
 }
@@ -57,8 +54,7 @@ export const useAddSocialLinks = () => {
         await refreshUserData();
     },
     onError: (err) => {
-      console.log('Add social links error ::: ', err)
-      return err
+      showToast(err?.response?.data?.error?.message || 'Could not save social links', 'Error', toastTypes.error);
     }
   });
 };
@@ -71,8 +67,7 @@ export const useAddJobPreferences = () => {
         await refreshUserData();
     },
     onError: (err) => {
-      console.log('Add job preferences error ::: ', err)
-      return err
+      showToast(err?.response?.data?.error?.message || 'Could not save preferences', 'Error', toastTypes.error);
     }
   });
 }

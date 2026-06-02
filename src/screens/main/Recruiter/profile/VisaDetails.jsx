@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import AppHeader from '@/core/AppHeader';
 import AppText, { Variant } from '@/core/AppText';
 import FormField from '@/core/FormField';
@@ -10,18 +10,13 @@ import VisaTypeSelector from '@/components/VisaTypeSelector';
 import AppInputField from '@/core/AppInputField';
 import { colors, hp, wp } from '@/theme';
 import { useUpdateJobSeekerProfile } from '@/api/auth/auth.query';
-import { showToast, toastTypes } from '@/utilities/toastConfig';
-import { updateUserFields } from '@/store/authSlice';
 
 const VisaDetails = () => {
-  const dispatch = useDispatch();
-  const [isLoading, setIsLoading] = React.useState(false);
   const [selectedVisaType, setSelectedVisaType] = useState(null);
-  const { mutate: updateJobSeekerProfile, isPending } = useUpdateJobSeekerProfile();
+  const { mutateAsync: updateJobSeekerProfile, isPending } = useUpdateJobSeekerProfile();
 
   const userData = useSelector((state) => state.auth.userInfo);
-  const userInfo = userData?.visaDetails
-    // userData?.role === 'recruiter' ? userData?.recruiter : userData?.job_seeker;
+  const userInfo = userData?.visa || {};
 
   const methods = useForm({
     defaultValues: {
@@ -126,15 +121,11 @@ const VisaDetails = () => {
   };
 
   const handleSave = async (data) => {
-    setIsLoading(true);
-    const payload = { ...data, id: userInfo?.id };
-    console.log('🛂 Updating visa details:', payload);
-    setTimeout(() => {
-              dispatch(updateUserFields({ visaDetails: payload }));
-              showToast('Visa Details updated successfully', 'Success', toastTypes.success);
-              setIsLoading(false);
-            }, 2000);
-    // await updateJobSeekerProfile(payload);
+    try {
+      await updateJobSeekerProfile(data);
+    } catch {
+      // useUpdateJobSeekerProfile surfaces the error via toast.
+    }
   };
 
   return (
@@ -208,7 +199,7 @@ const VisaDetails = () => {
             <AppButton
               bgColor={colors.primary}
               text="Save Visa Details"
-              isLoading={isLoading}
+              isLoading={isPending}
               onPress={handleSubmit(handleSave)}
               // style={styles.button}
             />

@@ -23,11 +23,19 @@ import AppHeader from '@/core/AppHeader';
 import { useSelector } from 'react-redux';
 import FastImageView from '@/core/FastImageView';
 import { screenNames } from '@/navigation/screenNames';
+import { useGetMe } from '@/api/user/user.query';
 
 const Profile = () => {
   const navigation = useNavigation();
+  // Fetch fresh user from GET /users/me; the hook syncs the result into Redux.
+  useGetMe();
   const userInfo = useSelector((state) => state.auth.userInfo);
   const role = useSelector((state) => state.auth.role);
+
+  const fullName =
+    [userInfo?.firstName, userInfo?.lastName].filter(Boolean).join(' ') ||
+    userInfo?.name ||
+    '';
 
   const isRecruiter = ((role || '').toString().toLowerCase() === 'recruiter');
   const businessName =
@@ -54,23 +62,25 @@ const Profile = () => {
     userInfo?.dateOfBirth,
     userInfo?.homeAddress,
     userInfo?.bio,
-    userInfo?.profile_picture,
+    userInfo?.profilePhoto,
     businessName,
     abnOrAcn,
-    userInfo?.kycVerified,
+    userInfo?.kycStatus === 'verified',
     userInfo?.linkedinProfile || userInfo?.facebookProfile || userInfo?.instagramProfile,
   ];
   const filledFields = profileFields.filter(Boolean).length;
   const profileCompletion = Math.round((filledFields / profileFields.length) * 100);
 
-  const kycVerified = !!userInfo?.kycVerified;
-  const kybVerified = !!userInfo?.kybVerified;
-  const hasSubmitted = !!userInfo?.kycKyb?.submittedAt;
+  // Backend (safeUser) returns kycStatus / kybStatus as 'pending' | 'verified' | 'rejected'.
+  const kycVerified = userInfo?.kycStatus === 'verified';
+  const kybVerified = userInfo?.kybStatus === 'verified';
+  const isRejected =
+    userInfo?.kycStatus === 'rejected' || (isRecruiter && userInfo?.kybStatus === 'rejected');
   const verificationStatus = kycVerified && (isRecruiter ? kybVerified : true)
     ? 'Verified'
-    : hasSubmitted
-    ? 'In Review'
-    : 'Not started';
+    : isRejected
+    ? 'Rejected'
+    : 'Pending';
   const verificationColor =
     verificationStatus === 'Verified'
       ? colors.green
@@ -104,7 +114,7 @@ const Profile = () => {
             <View style={[styles.row, { marginVertical: 15, bottom: 5 }]}>
               <View>
                 <FastImageView
-                  source={{ uri: userInfo?.companyLogo || userInfo?.profile_picture }}
+                  source={{ uri: userInfo?.companyLogo || userInfo?.profilePhoto }}
                   style={styles.avatar}
                 // resizeMode={'contain'}
                 />
@@ -128,7 +138,7 @@ const Profile = () => {
                 )}
                 <View style={{ flexDirection: 'row', width: wp(45) }}>
                   <Text style={styles.name}>
-                    {userInfo?.name || 'John Doe'}
+                    {fullName || 'John Doe'}
                   </Text>
                   <Image
                     source={icons.time}

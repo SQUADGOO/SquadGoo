@@ -15,26 +15,45 @@
 ## Start here for a new session
 
 ### 1. Start the backend
+On the **`mobile/auth`** branch of `squadgoo-admin-panel-backend`:
+
 ```bash
+# macOS
+cd ~/Documents/Projects/upwork/PusparajGiri/adminpanel/squadgoo-admin-panel-backend
+# Windows
 cd D:\Projects\PushpaRaj\SquadGooFiles\squadgoo-admin-panel-backend
-node index.js
+
+git checkout mobile/auth
+npm install     # first time only / after pulling new deps
+npm start
 ```
-Verify: `GET http://localhost:5000/api/health` → `{ "ok": true, "db": "connected" }`
+Verify: `GET http://localhost:5001/api/health` → `{ "ok": true, "db": "connected" }`
 
 ### 2. Start Metro
+On the **`feature/auth-implementation`** branch of `SquadGoo`:
+
 ```bash
-cd D:\Projects\PushpaRaj\SquadGooFiles\SquadGoo
 yarn start
 ```
 
-### 3. Run on Android emulator
+### 3. Run on Android / iOS
 ```bash
 yarn android
+# or
+yarn ios
 ```
 
-> **Base URL** is set in `src/api/apiClient.js` line ~6.
-> Android emulator uses `http://10.0.2.2:5000/api/mobile-app/`.
-> Physical device: change to `http://<your-machine-ip>:5000/api/mobile-app/`.
+> If iOS build fails on Pods (e.g. `TOCropViewController` version mismatch after a pull):
+> ```bash
+> cd ios && pod install
+> # or, if the specific pod is locked at an old version:
+> cd ios && pod update <PodName>
+> ```
+
+> **Base URL** is set in `src/api/apiClient.js`.
+> Match it to the backend's `PORT` (currently `5001`).
+> Android emulator uses `http://10.0.2.2:<PORT>/api/mobile-app/`.
+> Physical device: change to `http://<your-machine-ip>:<PORT>/api/mobile-app/`.
 
 ---
 

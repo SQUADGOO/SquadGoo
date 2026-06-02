@@ -1,43 +1,34 @@
 import React from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { useForm, FormProvider } from 'react-hook-form';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import AppHeader from '@/core/AppHeader';
 import AppText from '@/core/AppText';
 import FormField from '@/core/FormField';
 import AppButton from '@/core/AppButton';
 import { colors, hp, wp } from '@/theme';
-import { useUpdateJobSeekerProfile } from '@/api/auth/auth.query';
-import { updateUserFields } from '@/store/authSlice';
-import { showToast, toastTypes } from '@/utilities/toastConfig';
+import { useUpdateMe } from '@/api/user/user.query';
 
 const ContactDetails = () => {
-  const dispatch = useDispatch();
-  const { mutate: updateJobSeekerProfile, isPending } = useUpdateJobSeekerProfile();
-  const [isLoading, setIsLoading] = React.useState(false);
+  const { mutateAsync: updateContact, isPending } = useUpdateMe();
   const userData = useSelector((state) => state.auth.userInfo);
-  const userInfo =
-    userData?.role === 'recruiter' ? userData?.recruiter : userData?.job_seeker;
 
   const methods = useForm({
     defaultValues: {
-      email: userInfo?.email || '',
-      phone: userInfo?.phone || '',
+      email: userData?.email || '',
+      phone: userData?.phone || '',
     },
   });
 
   const { handleSubmit } = methods;
 
   const handleSave = async (data) => {
-    setIsLoading(true);
-    const payload = { ...data, id: userInfo?.id };
-    console.log('📞 Updating contact details:', payload);
-    setTimeout(() => {
-          dispatch(updateUserFields({ contactDetails: payload }));
-          showToast('Address updated successfully', 'Success', toastTypes.success);
-          setIsLoading(false);
-        }, 2000);
-    // await updateJobSeekerProfile(payload);
+    // Phone is editable via /users/me. Email is the login identity and is not changed here.
+    try {
+      await updateContact({ phone: data.phone });
+    } catch {
+      // useUpdateMe surfaces the error via toast.
+    }
   };
 
   return (
@@ -74,7 +65,7 @@ const ContactDetails = () => {
             <AppButton
               bgColor={colors.primary}
               text="Save Changes"
-              isLoading={isLoading}
+              isLoading={isPending}
               onPress={handleSubmit(handleSave)}
               // style={styles.button}
             />

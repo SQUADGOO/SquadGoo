@@ -1,11 +1,15 @@
 import axios from 'axios';
+import { Platform } from 'react-native';
 import { store } from '@/store/store';
 
-// ─── Base URL (change this one line when moving to a real server) ────────────
-// Android emulator  → http://10.0.2.2:5000/api/mobile-app/
-// iOS simulator     → http://localhost:5000/api/mobile-app/
-// Physical device   → http://<your-machine-local-ip>:5000/api/mobile-app/
-const BASE_URL = 'http://10.0.2.2:5000/api/mobile-app/';
+// ─── Base URL ────────────────────────────────────────────────────────────────
+// Local dev: Android emulator reaches the host via 10.0.2.2; iOS simulator via
+// localhost. For a physical device, set LOCAL_HOST to your machine's LAN IP.
+// (NOTE: port 5000 is used by macOS AirPlay Receiver — turn it off, or change the
+//  port here and run the backend on the same port.)
+// ─────────────────────────────────────────────────────────────────────────────
+const LOCAL_HOST = "172.20.10.2";
+const BASE_URL = `http://${LOCAL_HOST}:5001/api/mobile-app/`;
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const apiClient = axios.create({

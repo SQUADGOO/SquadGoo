@@ -12,8 +12,7 @@ import AppButton from '@/core/AppButton';
 const BasicDetailsSheet = ({onClose}) => {
   const navigation = useNavigation();
   const userInfo = useSelector((state) => state.auth.userInfo);
-  const basicInfo = userInfo
-  console.log('basic info', basicInfo)
+  const basicInfo = userInfo || {};
 
   const handleEdit = async () => {
     onClose()
