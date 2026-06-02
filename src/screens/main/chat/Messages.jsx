@@ -14,6 +14,33 @@ import ChatHeader from '@/core/ChatHeader'
 import ChatInput from '@/components/chat/ChatInput'
 import { selectContactRevealByJobId } from '@/store/contactRevealSlice'
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
+import {
+  fetchJobChatThread,
+  sendJobChatMessage,
+  upsertJobChatOnAccept,
+} from '@/api/jobChatsApi'
+
+function formatMsgTime(iso) {
+  if (!iso) return ''
+  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+function mapApiMessages(apiMessages = []) {
+  const rows = [{ id: 'date-today', type: 'date', date: 'Today' }]
+  apiMessages.forEach((m, idx) => {
+    rows.push({
+      id: m.id || `msg-${idx}`,
+      type: 'text',
+      message: m.text || '',
+      isOwn: Boolean(m.isOwn),
+      showAvatar: !m.isOwn && idx === 0,
+      timestamp: formatMsgTime(m.createdAt),
+    })
+  })
+  return rows
+}
+
+const emptyJobChat = () => [{ id: 'date-today', type: 'date', date: 'Today' }]
 
 const JOBSEEKER_QUICK_REPLIES = [
   "Thank you for the offer details.",
@@ -66,91 +93,86 @@ const Messages = ({ navigation, route }) => {
   ) : null
   const canSeeContacts = !!contactReveal
 
-  const buildInitialMessages = useMemo(() => {
-    if (chatData?.isSupport) {
-      return [
-        {
-          id: 1,
-          type: 'date',
-          date: 'Today'
-        },
-        {
-          id: 2,
-          type: 'text',
-          message: "Hi! You're connected to SquadGoo support. How can we help you today?",
-          isOwn: false,
-          showAvatar: true,
-          timestamp: '09:25 AM'
-        },
-        {
-          id: 3,
-          type: 'text',
-          message: 'Share a few more details and we will guide you through.',
-          isOwn: false,
-          showAvatar: false,
-          timestamp: '09:26 AM'
-        }
-      ]
-    }
+  const isJobOfferChat = !chatData?.isSupport
+  const [activeThreadId, setActiveThreadId] = useState(
+    () => (chatData?.threadId && String(chatData.threadId).startsWith('JCHAT') ? chatData.threadId : null)
+  )
 
-    return [
-      {
-        id: 1,
-        type: 'date',
-        date: 'Today'
-      },
+  const supportSeed = useMemo(
+    () => [
+      { id: 1, type: 'date', date: 'Today' },
       {
         id: 2,
         type: 'text',
-        message: 'Have a great working week!!',
+        message: "Hi! You're connected to SquadGoo support. How can we help you today?",
         isOwn: false,
         showAvatar: true,
-        timestamp: '09:25 AM'
+        timestamp: '09:25 AM',
       },
       {
         id: 3,
         type: 'text',
-        message: 'Hope you like it',
+        message: 'Share a few more details and we will guide you through.',
         isOwn: false,
         showAvatar: false,
-        timestamp: '09:25 AM'
+        timestamp: '09:26 AM',
       },
-      {
-        id: 4,
-        type: 'voice',
-        duration: '00:16',
-        isOwn: true,
-        showAvatar: false,
-        timestamp: '09:25 AM'
-      },
-      {
-        id: 5,
-        type: 'image',
-        message: 'Look at my work man!!',
-        images: [
-          'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=300&h=300&fit=crop',
-          'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=300&h=300&fit=crop'
-        ],
-        isOwn: false,
-        showAvatar: true,
-        timestamp: '09:25 AM'
-      },
-      {
-        id: 6,
-        type: 'text',
-        message: 'Hello! Jhon abraham',
-        isOwn: true,
-        showAvatar: false,
-        timestamp: '09:25 AM'
-      }
-    ]
-  }, [chatData])
+    ],
+    []
+  )
 
-  const [messages, setMessages] = useState(buildInitialMessages)
+  const [messages, setMessages] = useState(() => (chatData?.isSupport ? supportSeed : emptyJobChat()))
 
   useEffect(() => {
-    setMessages(buildInitialMessages)
-  }, [buildInitialMessages])
+    if (chatData?.isSupport) {
+      setMessages(supportSeed)
+      return
+    }
+
+    let cancelled = false
+
+    async function loadJobChat() {
+      let threadId = activeThreadId
+
+      if (!threadId && chatData?.jobId && chatData?.otherUserId) {
+        const upserted = await upsertJobChatOnAccept({
+          jobId: chatData.jobId,
+          otherUserId: chatData.otherUserId,
+          jobTitle: chatData.jobTitle,
+          searchType: chatData.searchType,
+        })
+        threadId = upserted?.threadId || null
+        if (threadId && !cancelled) setActiveThreadId(threadId)
+      }
+
+      if (!threadId) {
+        if (!cancelled) setMessages(emptyJobChat())
+        return
+      }
+
+      try {
+        const payload = await fetchJobChatThread(threadId)
+        if (cancelled) return
+        setMessages(mapApiMessages(payload?.messages || []))
+      } catch (err) {
+        if (__DEV__) console.warn('[Messages] load failed', err?.message)
+        if (!cancelled) setMessages(emptyJobChat())
+      }
+    }
+
+    loadJobChat()
+    return () => {
+      cancelled = true
+    }
+  }, [
+    chatData?.isSupport,
+    chatData?.jobId,
+    chatData?.otherUserId,
+    chatData?.jobTitle,
+    chatData?.searchType,
+    activeThreadId,
+    supportSeed,
+  ])
 
   const [isRecording, setIsRecording] = useState(false)
 
@@ -161,16 +183,27 @@ const Messages = ({ navigation, route }) => {
     status: chatData?.status || (chatData?.isOnline ? 'Active now' : 'Offline')
   }
 
-  const handleSendMessage = (messageText) => {
-    const newMessage = {
+  const handleSendMessage = async (messageText) => {
+    const text = String(messageText || '').trim()
+    if (!text) return
+
+    const optimistic = {
       id: Date.now(),
       type: 'text',
-      message: messageText,
+      message: text,
       isOwn: true,
       showAvatar: false,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     }
-    setMessages(prev => [...prev, newMessage])
+    setMessages(prev => [...prev, optimistic])
+
+    if (!isJobOfferChat || !activeThreadId) return
+
+    try {
+      await sendJobChatMessage(activeThreadId, { text })
+    } catch (err) {
+      if (__DEV__) console.warn('[Messages] send failed', err?.message)
+    }
   }
 
   const handleBackPress = () => {

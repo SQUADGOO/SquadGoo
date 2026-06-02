@@ -1,11 +1,10 @@
 // api/client.js
 import axios from 'axios';
 import { store } from '@/store/store';
-import { showToast, toastTypes } from '@/utilities/toastConfig';
+import { API_BASE_URL } from '@/config/apiBaseUrl';
 
-// baseURL: 'https://apis.squadgoo.com/',
 export const apiClient = axios.create({
-  baseURL: 'http://192.168.1.5:6543/api/',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
     accept: '*/*',

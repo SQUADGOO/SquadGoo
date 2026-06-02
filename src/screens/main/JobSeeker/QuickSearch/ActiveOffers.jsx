@@ -13,6 +13,7 @@ import {
   expireQuickOffers 
 } from '@/store/quickSearchSlice';
 import { createChatSession } from '@/store/chatSlice';
+import { upsertJobChatOnAccept } from '@/api/jobChatsApi';
 import { revealContacts } from '@/store/contactRevealSlice';
 import { addNotification } from '@/store/notificationsSlice';
 import { updateJobStatus, addCandidateToJob } from '@/store/jobsSlice';
@@ -101,6 +102,13 @@ const ActiveOffers = ({ navigation }) => {
                 searchType: 'quick',
                 expiresInDays: 30,
               }));
+              upsertJobChatOnAccept({
+                jobId: job.id,
+                otherUserId: recruiterId,
+                jobTitle: offer.jobTitle || job.jobTitle,
+                searchType: 'quick',
+                offerId: offer.id || offer.offerId,
+              });
               
               // Reveal contacts between job seeker and recruiter
               dispatch(revealContacts({

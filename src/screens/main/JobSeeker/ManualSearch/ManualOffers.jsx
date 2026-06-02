@@ -16,6 +16,7 @@ import {
 import { applyToOffer } from '@/store/jobSeekerOffersSlice';
 import { addJob, updateJobStatus, addCandidateToJob } from '@/store/jobsSlice';
 import { createChatSession } from '@/store/chatSlice';
+import { upsertJobChatOnAccept } from '@/api/jobChatsApi';
 import { revealContacts } from '@/store/contactRevealSlice';
 import { addNotification } from '@/store/notificationsSlice';
 import { showToast, toastTypes } from '@/utilities/toastConfig';
@@ -125,6 +126,13 @@ const ManualOffers = ({ navigation }) => {
                 searchType: 'manual',
                 expiresInDays: 30,
               }));
+              upsertJobChatOnAccept({
+                jobId: job.id,
+                otherUserId: recruiterId,
+                jobTitle: job.title || offer.jobTitle,
+                searchType: 'manual',
+                offerId: offer.id || offer.offerId,
+              });
               
               // Reveal contacts between job seeker and recruiter
               dispatch(revealContacts({
