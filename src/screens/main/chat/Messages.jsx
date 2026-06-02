@@ -19,6 +19,7 @@ import {
   sendJobChatMessage,
   upsertJobChatOnAccept,
 } from '@/api/jobChatsApi'
+import { showToast, toastTypes } from '@/utilities/toastConfig'
 
 function formatMsgTime(iso) {
   if (!iso) return ''
@@ -94,6 +95,7 @@ const Messages = ({ navigation, route }) => {
   const canSeeContacts = !!contactReveal
 
   const isJobOfferChat = !chatData?.isSupport
+  const [peerChatFrozen, setPeerChatFrozen] = useState(false)
   const [activeThreadId, setActiveThreadId] = useState(
     () => (chatData?.threadId && String(chatData.threadId).startsWith('JCHAT') ? chatData.threadId : null)
   )
@@ -153,6 +155,7 @@ const Messages = ({ navigation, route }) => {
       try {
         const payload = await fetchJobChatThread(threadId)
         if (cancelled) return
+        setPeerChatFrozen(Boolean(payload?.thread?.chatDisabled))
         setMessages(mapApiMessages(payload?.messages || []))
       } catch (err) {
         if (__DEV__) console.warn('[Messages] load failed', err?.message)
@@ -187,6 +190,15 @@ const Messages = ({ navigation, route }) => {
     const text = String(messageText || '').trim()
     if (!text) return
 
+    if (isJobOfferChat && peerChatFrozen) {
+      showToast(
+        'This chat is frozen while our team reviews it. You cannot send messages right now.',
+        'Chat frozen',
+        toastTypes.warning
+      )
+      return
+    }
+
     const optimistic = {
       id: Date.now(),
       type: 'text',
@@ -202,7 +214,19 @@ const Messages = ({ navigation, route }) => {
     try {
       await sendJobChatMessage(activeThreadId, { text })
     } catch (err) {
-      if (__DEV__) console.warn('[Messages] send failed', err?.message)
+      const code = err?.response?.data?.code
+      const msg = err?.response?.data?.message || err?.message
+      if (code === 'CHAT_DISABLED') {
+        setPeerChatFrozen(true)
+        setMessages((prev) => prev.filter((m) => m.id !== optimistic.id))
+        showToast(
+          msg || 'This chat is frozen while our team reviews it. You cannot send messages right now.',
+          'Chat frozen',
+          toastTypes.warning
+        )
+        return
+      }
+      if (__DEV__) console.warn('[Messages] send failed', msg)
     }
   }
 
@@ -364,6 +388,14 @@ const Messages = ({ navigation, route }) => {
         </View>
       ) : null}
 
+      {isJobOfferChat && peerChatFrozen ? (
+        <View style={styles.frozenBanner}>
+          <AppText variant={Variant.caption} style={styles.frozenBannerText}>
+            Chat frozen — our team is reviewing. You cannot send messages until this is cleared.
+          </AppText>
+        </View>
+      ) : null}
+
       {/* Chat Input */}
       <ChatInput
         onSendMessage={handleSendMessage}
@@ -372,6 +404,10 @@ const Messages = ({ navigation, route }) => {
         onStartRecording={handleStartRecording}
         onStopRecording={handleStopRecording}
         isRecording={isRecording}
+        disabled={isJobOfferChat && peerChatFrozen}
+        placeholder={
+          isJobOfferChat && peerChatFrozen ? 'Messaging paused while under review' : 'Write your message'
+        }
       />
     </KeyboardAvoidingView>
   )
@@ -383,6 +419,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
+  },
+  frozenBanner: {
+    backgroundColor: 'rgba(239,68,68,0.12)',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.2),
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(239,68,68,0.25)',
+  },
+  frozenBannerText: {
+    color: '#b91c1c',
+    textAlign: 'center',
+    fontWeight: '600',
   },
   jobBanner: {
     backgroundColor: colors.grayE8 || '#F3F4F6',

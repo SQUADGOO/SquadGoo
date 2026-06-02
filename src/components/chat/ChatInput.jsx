@@ -11,12 +11,14 @@ const ChatInput = ({
   onStartRecording,
   onStopRecording,
   isRecording = false,
-  placeholder = "Write your message"
+  placeholder = "Write your message",
+  disabled = false,
 }) => {
   const [message, setMessage] = useState('')
   const insets = useSafeAreaInsets()
 
   const handleSend = () => {
+    if (disabled) return
     if (message.trim()) {
       onSendMessage && onSendMessage(message.trim())
       setMessage('')
@@ -32,8 +34,8 @@ const ChatInput = ({
   }
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
-      <View style={styles.inputContainer}>
+    <View style={[styles.container, { paddingBottom: insets.bottom, opacity: disabled ? 0.55 : 1 }]}>
+      <View style={styles.inputContainer} pointerEvents={disabled ? 'none' : 'auto'}>
         {/* Attachment Button */}
         <TouchableOpacity 
           style={styles.attachButton}
