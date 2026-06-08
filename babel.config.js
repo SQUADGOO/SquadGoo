@@ -10,6 +10,15 @@ module.exports = {
         },
       },
     ],
+    [
+      'module:react-native-dotenv',
+      {
+        moduleName: '@env',
+        path: '.env',
+        safe: false,
+        allowUndefined: true, // missing keys -> undefined, handled by fallbacks in appConfig
+      },
+    ],
     'react-native-worklets/plugin', // Reanimated 4 — MUST be the last plugin
   ],
 };
