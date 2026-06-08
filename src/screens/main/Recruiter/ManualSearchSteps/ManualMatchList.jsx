@@ -1,6 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
 import AppHeader from '@/core/AppHeader';
 import AppText, { Variant } from '@/core/AppText';
 import AppDropDown from '@/core/AppDropDown';
@@ -8,12 +7,8 @@ import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
 import { colors, getFontSize, hp, wp } from '@/theme';
 import FastImageView from '@/core/FastImageView';
 import { Images } from '@/assets';
-import {
-  generateManualMatches,
-  selectManualJobById,
-  selectManualMatchesByJobId,
-  selectManualOffers,
-} from '@/store/manualOffersSlice';
+import { useJob, useJobCandidates } from '@/api/jobs/jobs.query';
+import { useSentOffers } from '@/api/offers/offers.query';
 import { screenNames } from '@/navigation/screenNames';
 
 const matchFilterOptions = [
@@ -32,20 +27,13 @@ const ratingFilterOptions = [
 
 const ManualMatchList = ({ route, navigation }) => {
   const { jobId, fromJobPost } = route.params || {};
-  const dispatch = useDispatch();
-  const job = useSelector(state => selectManualJobById(state, jobId));
-  const matches = useSelector(state => selectManualMatchesByJobId(state, jobId));
-  const offers = useSelector(selectManualOffers);
+  const { data: job } = useJob(jobId);
+  const { data: matches = [] } = useJobCandidates(jobId);
+  const { data: acceptedOffers = [] } = useSentOffers('accepted');
   const [matchThreshold, setMatchThreshold] = useState(0);
   const [ratingThreshold, setRatingThreshold] = useState(0);
   const [matchDropdownVisible, setMatchDropdownVisible] = useState(false);
   const [ratingDropdownVisible, setRatingDropdownVisible] = useState(false);
-
-  useEffect(() => {
-    if (jobId) {
-      dispatch(generateManualMatches({ jobId }));
-    }
-  }, [jobId, dispatch]);
 
   const filteredMatches = useMemo(() => {
     return matches.filter(
@@ -58,14 +46,14 @@ const ManualMatchList = ({ route, navigation }) => {
   const handleViewProfile = (candidate) => {
     navigation.navigate(screenNames.MANUAL_CANDIDATE_PROFILE, {
       jobId,
-      candidateId: candidate.id,
+      candidate,
     });
   };
 
   const canContactCandidate = (candidateId) => {
     if (!candidateId || !jobId) return false;
-    return offers.some(
-      o => o.jobId === jobId && o.candidateId === candidateId && o.status === 'accepted',
+    return acceptedOffers.some(
+      o => o.jobId === jobId && o.jobseekerId === candidateId,
     );
   };
 

@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -7,38 +7,20 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
 import AppHeader from '@/core/AppHeader';
 import AppText, { Variant } from '@/core/AppText';
-import AppButton from '@/core/AppButton';
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
 import { colors, getFontSize, hp, wp } from '@/theme';
-import {
-  selectManualOffers,
-  updateManualOfferStatus,
-  expireManualOffers,
-  selectManualJobById,
-  initializeDummyData,
-  ensureDummyOffersForJob,
-} from '@/store/manualOffersSlice';
-import { showToast, toastTypes } from '@/utilities/toastConfig';
-import FormField from '@/core/FormField';
+import { useJob } from '@/api/jobs/jobs.query';
+import { useSentOffers, useWithdrawOffer } from '@/api/offers/offers.query';
 import OfferCard from '@/components/Recruiter/Offers/OfferCard';
-import { FormProvider, useForm } from 'react-hook-form';
 import { screenNames } from '@/navigation/screenNames';
-import { DUMMY_JOB_SEEKERS } from '@/utilities/dummyJobSeekers';
 
 const tabs = [
   { id: 'pending', label: 'Pending' },
   { id: 'accepted', label: 'Accepted' },
   { id: 'declined', label: 'Declined' },
   { id: 'expired', label: 'Expired' },
-];
-
-const DECLINE_REASONS = [
-  { id: 'schedule', label: 'Schedule conflict', isValid: true },
-  { id: 'rate', label: 'Rate too low', isValid: true },
-  { id: 'other', label: 'Other / unsatisfactory', isValid: false },
 ];
 
 const pickFirstAvailabilitySlot = (availability) => {
@@ -52,32 +34,18 @@ const pickFirstAvailabilitySlot = (availability) => {
 };
 
 const ManualOffers = ({ navigation, route }) => {
-  const dispatch = useDispatch();
-  const offers = useSelector(selectManualOffers);
   const jobId = route?.params?.jobId || null;
-  const job = useSelector(state => (jobId ? selectManualJobById(state, jobId) : null));
+  const { data: job } = useJob(jobId);
   const [currentTab, setCurrentTab] = useState('pending');
-  const [declineModal, setDeclineModal] = useState(null);
-  const [modModal, setModModal] = useState(null);
   const [detailModal, setDetailModal] = useState(null);
 
-  useEffect(() => {
-    dispatch(initializeDummyData());
-    if (jobId) dispatch(ensureDummyOffersForJob({ jobId }));
-    dispatch(expireManualOffers());
-  }, [dispatch, jobId]);
+  // Backend filters by status (UI 'pending' → backend 'sent'); we only scope by job here.
+  const { data: offers = [] } = useSentOffers(currentTab);
+  const withdraw = useWithdrawOffer();
 
   const filteredOffers = useMemo(
-    () =>
-      offers.filter(offer => {
-        if (jobId && offer.jobId !== jobId) return false;
-        // Modification requests show within Pending tab with badge
-        if (currentTab === 'pending') {
-          return offer.status === 'pending' || offer.status === 'modification_requested';
-        }
-        return offer.status === currentTab;
-      }),
-    [offers, currentTab, jobId],
+    () => (jobId ? offers.filter(offer => offer.jobId === jobId) : offers),
+    [offers, jobId],
   );
 
   const formatOfferSentAt = (value) => {
@@ -128,108 +96,6 @@ const ManualOffers = ({ navigation, route }) => {
     return out;
   };
 
-  const handleAccept = (offerId) => {
-    dispatch(updateManualOfferStatus({
-      offerId,
-      status: 'accepted',
-      response: { type: 'accepted' },
-    }));
-    showToast('Offer accepted', 'Success', toastTypes.success);
-  };
-
-  const handleDeclineModification = (offerId) => {
-    // When recruiter declines modification, revert to pending with original offer
-    dispatch(updateManualOfferStatus({
-      offerId,
-      status: 'pending',
-      response: { type: 'modification_declined' },
-    }));
-    showToast(
-      'Modification Request Declined. Original offer sent to Jobseeker.',
-      'Info',
-      toastTypes.info,
-    );
-  };
-
-  const openDeclineModal = (offer) => {
-    setDeclineModal(offer);
-  };
-
-  const openModificationModal = (offer) => {
-    setModModal(offer);
-  };
-
-  const handleDeclineSubmit = ({ reasonId, note }) => {
-    if (!declineModal) return;
-    const reason = DECLINE_REASONS.find(r => r.id === reasonId);
-    dispatch(updateManualOfferStatus({
-      offerId: declineModal.id,
-      status: 'declined',
-      response: {
-        type: 'declined',
-        reason: {
-          id: reasonId,
-          label: reason?.label,
-          isValid: reason?.isValid ?? true,
-          note,
-        },
-      },
-    }));
-    showToast('Offer declined with reason', 'Success', toastTypes.success);
-    setDeclineModal(null);
-  };
-
-  const handleModificationSubmit = ({ payRate, message }) => {
-    if (!modModal) return;
-    dispatch(updateManualOfferStatus({
-      offerId: modModal.id,
-      status: 'modification_requested',
-      response: {
-        type: 'modification',
-        modification: {
-          requestedTerms: { payRate },
-          message,
-        },
-      },
-    }));
-    showToast('Modification captured', 'Success', toastTypes.success);
-    setModModal(null);
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'pending':
-        return '#F59E0B';
-      case 'accepted':
-        return '#10B981';
-      case 'declined':
-        return '#EF4444';
-      case 'modification_requested':
-        return '#3B82F6';
-      case 'expired':
-        return '#6B7280';
-      default:
-        return colors.gray;
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'pending':
-        return 'time-outline';
-      case 'accepted':
-        return 'checkmark-circle';
-      case 'declined':
-        return 'close-circle';
-      case 'modification_requested':
-        return 'create-outline';
-      case 'expired':
-        return 'hourglass-outline';
-      default:
-        return 'ellipse-outline';
-    }
-  };
-
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -244,10 +110,15 @@ const ManualOffers = ({ navigation, route }) => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  const handleViewProfile = (candidateId, jobId, meta) => {
+  const handleViewProfile = (candidateId, offerJobId, meta) => {
     navigation.navigate(screenNames.MANUAL_CANDIDATE_PROFILE, {
-      jobId,
-      candidateId,
+      jobId: offerJobId,
+      candidate: {
+        id: candidateId,
+        name: meta?.candidateName,
+        matchPercentage: meta?.matchPercentage,
+        acceptanceRating: meta?.acceptanceRating,
+      },
       mode: meta?.mode,
       offerMeta: meta || null,
     });
@@ -279,95 +150,48 @@ const ManualOffers = ({ navigation, route }) => {
     });
   };
 
-  const computeIsVerified = (candidate) => {
-    const docs = candidate?.documents;
-    if (!Array.isArray(docs)) return false;
-    return docs.some(d => (d?.type === 'ID' || d?.type === 'Photo ID') && d?.verified);
+  const renderOffer = ({ item }) => {
+    const slot = pickFirstAvailabilitySlot(job?.availability);
+    const workHours = slot
+      ? `${slot.day}: ${slot.from}–${slot.to}`
+      : (typeof job?.availability?.summary === 'string' ? job.availability.summary : '');
+
+    return (
+      <OfferCard
+        mode="manual"
+        candidateName={item.candidateName}
+        jobTitle={item.jobTitle}
+        status={item.status}
+        matchPercentage={item.matchPercentage}
+        acceptanceRating={item.acceptanceRating || 'Pending'}
+        expiresAt={item.expiresAt}
+        expiresLabel={formatDate(item.expiresAt)}
+        message={item.message}
+        response={{ declinedAt: item.declinedAt, reason: item.declineReason }}
+        candidateId={item.candidateId}
+        jobId={item.jobId}
+        avatarUri={item.candidateAvatar}
+        isVerified={false}
+        offerSentAt={formatOfferSentAt(item.createdAt)}
+        salaryOffered={getSalaryOfferedLabel()}
+        workHours={workHours}
+        otherTerms={getOtherTerms()}
+        experienceSummary={''}
+        qualificationsSummary={''}
+        onViewProfile={handleViewProfile}
+        onMessage={
+          item.status === 'accepted' ? () => handleMessage(item) : undefined
+        }
+        onTrackHours={
+          item.status === 'accepted' ? () => handleTrackHours(item) : undefined
+        }
+        onCancel={
+          item.status === 'pending' ? () => withdraw.mutate(item.id) : undefined
+        }
+        onPress={item.status === 'accepted' ? () => setDetailModal(item) : undefined}
+      />
+    );
   };
-
-  const findCandidateById = (candidateId) =>
-    DUMMY_JOB_SEEKERS.find(c => c.id === candidateId) || null;
-
-  const renderOffer = ({ item }) => (
-    (() => {
-      const baseCandidate = findCandidateById(item.candidateId);
-      const isVerified = computeIsVerified(baseCandidate);
-      const experienceSummary =
-        typeof baseCandidate?.experienceYears === 'number'
-          ? `${baseCandidate.experienceYears} years`
-          : '';
-      const qualificationsSummary = Array.isArray(baseCandidate?.qualifications)
-        ? baseCandidate.qualifications.slice(0, 2).join(', ')
-        : '';
-
-      const slot = pickFirstAvailabilitySlot(job?.availability);
-      const workHours =
-        slot
-          ? `${slot.day}: ${slot.from}–${slot.to}`
-          : (typeof job?.availability?.summary === 'string' ? job.availability.summary : '');
-
-      return (
-    <OfferCard
-      mode="manual"
-      candidateName={item.candidateName}
-      jobTitle={item.jobTitle}
-      status={item.status}
-      matchPercentage={item.matchPercentage}
-      acceptanceRating={item.acceptanceRating || 'Pending'}
-      expiresAt={item.expiresAt}
-      expiresLabel={formatDate(item.expiresAt)}
-      message={item.message}
-      response={item.response}
-      originalTerms={item.originalTerms}
-      modificationRequestedAt={formatDate(item.updatedAt)}
-      candidateId={item.candidateId}
-      jobId={item.jobId}
-      avatarUri={baseCandidate?.avatar}
-      isVerified={isVerified}
-      offerSentAt={formatOfferSentAt(item.createdAt)}
-      salaryOffered={getSalaryOfferedLabel()}
-      workHours={workHours}
-      otherTerms={getOtherTerms()}
-      experienceSummary={experienceSummary}
-      qualificationsSummary={qualificationsSummary}
-      onViewProfile={handleViewProfile}
-      onMessage={
-        item.status === 'accepted'
-          ? () => handleMessage(item)
-          : undefined
-      }
-      onTrackHours={
-        item.status === 'accepted'
-          ? () => handleTrackHours(item)
-          : undefined
-      }
-      onCancel={
-        item.status === 'pending'
-          ? () => {
-              dispatch(updateManualOfferStatus({
-                offerId: item.id,
-                status: 'cancelled',
-                response: { type: 'cancelled', cancelledAt: new Date().toISOString() },
-              }));
-              showToast('Offer withdrawn', 'Success', toastTypes.success);
-            }
-          : undefined
-      }
-      onPress={item.status === 'accepted' ? () => setDetailModal(item) : undefined}
-      onAcceptModification={
-        item.status === 'modification_requested'
-          ? () => handleAccept(item.id)
-          : undefined
-      }
-      onDeclineModification={
-        item.status === 'modification_requested'
-          ? () => handleDeclineModification(item.id)
-          : undefined
-      }
-    />
-      );
-    })()
-  );
 
   return (
     <View style={styles.container}>
@@ -432,20 +256,8 @@ const ManualOffers = ({ navigation, route }) => {
             </AppText>
           </View>
         }
-      />  
+      />
       </View>
-
-      <DeclineModal
-        visible={Boolean(declineModal)}
-        onClose={() => setDeclineModal(null)}
-        onSubmit={handleDeclineSubmit}
-      />
-
-      <ModificationModal
-        visible={Boolean(modModal)}
-        onClose={() => setModModal(null)}
-        onSubmit={handleModificationSubmit}
-      />
 
       <OfferDetailModal
         visible={Boolean(detailModal)}
@@ -458,188 +270,8 @@ const ManualOffers = ({ navigation, route }) => {
 
 export default ManualOffers;
 
-const DeclineModal = ({ visible, onClose, onSubmit }) => {
-  const methods = useForm({
-    mode: 'onSubmit',
-    defaultValues: {
-      reasonId: DECLINE_REASONS[0].id,
-      note: '',
-    },
-  });
-
-  const handleSend = methods.handleSubmit(values => {
-    onSubmit(values);
-    methods.reset();
-  });
-
-  return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.modalBackdrop}>
-        <View style={styles.modalCard}>
-          <View style={styles.modalHeader}>
-            <AppText variant={Variant.subTitle} style={styles.modalTitle}>
-              Decline Reason
-            </AppText>
-            <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
-              <VectorIcons
-                name={iconLibName.Ionicons}
-                iconName="close"
-                size={24}
-                color={colors.gray}
-              />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <FormProvider {...methods}>
-              <View style={styles.modalContent}>
-                {DECLINE_REASONS.map(reason => (
-                  <TouchableOpacity
-                    key={reason.id}
-                    style={[
-                      styles.radioRow,
-                      methods.watch('reasonId') === reason.id && styles.radioRowActive,
-                    ]}
-                    onPress={() => methods.setValue('reasonId', reason.id)}
-                    activeOpacity={0.7}
-                  >
-                    <View
-                      style={[
-                        styles.radioOuter,
-                        methods.watch('reasonId') === reason.id && styles.radioOuterActive,
-                      ]}
-                    >
-                      {methods.watch('reasonId') === reason.id ? <View style={styles.radioInner} /> : null}
-                    </View>
-                    <AppText 
-                      variant={Variant.body} 
-                      style={[
-                        styles.radioLabel,
-                        methods.watch('reasonId') === reason.id && styles.radioLabelActive,
-                      ]}
-                    >
-                      {reason.label}
-                    </AppText>
-                  </TouchableOpacity>
-                ))}
-                <View style={styles.formFieldContainer}>
-                  <FormField
-                    name="note"
-                    label="Notes (optional)"
-                    multiline
-                    placeholder="Add detail if needed"
-                  />
-                </View>
-              </View>
-            </FormProvider>
-          </ScrollView>
-
-          <View style={styles.modalActions}>
-            <TouchableOpacity
-              style={styles.modalCancelButton}
-              onPress={onClose}
-              activeOpacity={0.8}
-            >
-              <AppText variant={Variant.bodyMedium} style={styles.modalCancelText}>
-                Cancel
-              </AppText>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalSubmitButton}
-              onPress={handleSend}
-              activeOpacity={0.8}
-            >
-              <AppText variant={Variant.bodyMedium} style={styles.modalSubmitText}>
-                Submit
-              </AppText>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-};
-
-const ModificationModal = ({ visible, onClose, onSubmit }) => {
-  const methods = useForm({
-    mode: 'onSubmit',
-    defaultValues: {
-      payRate: '',
-      message: '',
-    },
-  });
-
-  const handleSend = methods.handleSubmit(values => {
-    onSubmit(values);
-    methods.reset();
-  });
-
-  return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.modalBackdrop}>
-        <View style={styles.modalCard}>
-          <View style={styles.modalHeader}>
-            <AppText variant={Variant.subTitle} style={styles.modalTitle}>
-              Modification Request
-            </AppText>
-            <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
-              <VectorIcons
-                name={iconLibName.Ionicons}
-                iconName="close"
-                size={24}
-                color={colors.gray}
-              />
-            </TouchableOpacity>
-          </View>
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <FormProvider {...methods}>
-              <View style={styles.modalContent}>
-                <View style={styles.formFieldContainer}>
-                  <FormField
-                    name="payRate"
-                    label="Requested pay rate"
-                    placeholder="$35/hr"
-                  />
-                </View>
-                <View style={styles.formFieldContainer}>
-                  <FormField
-                    name="message"
-                    label="Message"
-                    multiline
-                    placeholder="Describe requested changes"
-                  />
-                </View>
-              </View>
-            </FormProvider>
-          </ScrollView>
-          <View style={styles.modalActions}>
-            <TouchableOpacity
-              style={styles.modalCancelButton}
-              onPress={onClose}
-              activeOpacity={0.8}
-            >
-              <AppText variant={Variant.bodyMedium} style={styles.modalCancelText}>
-                Cancel
-              </AppText>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalSubmitButton}
-              onPress={handleSend}
-              activeOpacity={0.8}
-            >
-              <AppText variant={Variant.bodyMedium} style={styles.modalSubmitText}>
-                Submit
-              </AppText>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-};
-
 const OfferDetailModal = ({ visible, offer, onClose }) => {
-  const job = useSelector(state => offer ? selectManualJobById(state, offer.jobId) : null);
+  const { data: job } = useJob(offer?.jobId);
 
   if (!offer) return null;
 

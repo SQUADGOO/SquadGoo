@@ -6,18 +6,24 @@ import {
   RefreshControl,
   Alert
 } from 'react-native'
-import { useSelector, useDispatch } from 'react-redux'
 import { colors, hp, wp } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import JobCard from '@/components/Recruiter/JobCard'
 import JobFiltersBar from '@/components/Recruiter/JobFilterBar'
 import AppHeader from '@/core/AppHeader'
 import { screenNames } from '@/navigation/screenNames'
-import { closeJob } from '@/store/jobsSlice'
+import { useMyJobs, useCloseJob } from '@/api/jobs/jobs.query'
+
+// Statuses that no longer belong on the active list (drafts/terminal states).
+const INACTIVE_JOB_STATUSES = ['draft', 'completed', 'expired', 'cancelled']
 
 const ActiveJobOffersScreen = ({ navigation, route }) => {
-  const dispatch = useDispatch()
-  const activeJobs = useSelector((state) => state.jobs?.activeJobs || [])
+  const { data: allJobs = [], refetch } = useMyJobs()
+  const closeJobMutation = useCloseJob()
+  const activeJobs = React.useMemo(
+    () => allJobs.filter((job) => !INACTIVE_JOB_STATUSES.includes(job.status)),
+    [allJobs],
+  )
   const fromDrawer = route?.params?.fromDrawer
   const headerTitle = route?.params?.headerTitle || 'Active Offers'
   
@@ -74,10 +80,8 @@ const ActiveJobOffersScreen = ({ navigation, route }) => {
 
   const handleRefresh = async () => {
     setRefreshing(true)
-    // Simulate refresh - in production this would call API
-    setTimeout(() => {
-      setRefreshing(false)
-    }, 500)
+    await refetch()
+    setRefreshing(false)
   }
 
   // Job Card Action Handlers
@@ -177,12 +181,10 @@ const ActiveJobOffersScreen = ({ navigation, route }) => {
 
   const confirmCloseJob = async (job) => {
     try {
-      // Dispatch Redux action to close job
-      dispatch(closeJob(job.id))
+      await closeJobMutation.mutateAsync(job.id)
       Alert.alert('Success', `"${job.title}" has been closed`)
-    } catch (error) {
-      console.error('Error closing job:', error)
-      Alert.alert('Error', 'Failed to close job')
+    } catch {
+      // hook surfaces the error toast
     }
   }
 

@@ -33,9 +33,9 @@ const SendManualOfferModal = ({ visible, onClose, candidate, onSubmit }) => {
   const handleSend = methods.handleSubmit(values => {
     const hours = parseInt(values.expiryHours, 10);
     const expiryHours = Number.isNaN(hours) ? 24 : Math.max(1, hours);
-    const expiresAt = new Date(Date.now() + expiryHours * 60 * 60 * 1000).toISOString();
+    // Send hours; the backend computes the absolute expiry (avoids client clock drift).
     onSubmit?.({
-      expiresAt,
+      expiryHours,
       message: values.message,
     });
     handleClose();

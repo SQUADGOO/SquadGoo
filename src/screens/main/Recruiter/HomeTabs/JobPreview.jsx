@@ -7,7 +7,6 @@ import {
   StatusBar,
   Alert
 } from 'react-native'
-import { useDispatch } from 'react-redux'
 import { CommonActions } from '@react-navigation/native'
 import { colors, hp, wp, getFontSize } from '@/theme'
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon'
@@ -15,14 +14,15 @@ import AppText, { Variant } from '@/core/AppText'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import AppHeader from '@/core/AppHeader'
 import AppButton from '@/core/AppButton'
-import { addJob, saveDraftJob, updateJob } from '@/store/jobsSlice'
-import { createManualJob, updateManualJob, generateManualMatches } from '@/store/manualOffersSlice'
+import { useCreateJob, useUpdateJobDraft, usePublishJob } from '@/api/jobs/jobs.query'
 import { screenNames } from '@/navigation/screenNames'
 import moment from 'moment'
 
 const JobPreview = ({ navigation, route }) => {
   const insets = useSafeAreaInsets()
-  const dispatch = useDispatch()
+  const createJob = useCreateJob()
+  const updateDraft = useUpdateJobDraft()
+  const publishJob = usePublishJob()
   
   // Get data from all three steps
   const { step1Data, step2Data, step3Data, step4Data, editMode, draftJob, jobId: existingJobId } = route.params || {}
@@ -184,10 +184,17 @@ const JobPreview = ({ navigation, route }) => {
     }
   }
 
-  const handleSaveAsDraft = () => {
-    const draftId = existingJobId || `manual-job-${Date.now()}`
-    const draftData = buildManualDraftJobData(draftId)
-    dispatch(saveDraftJob(draftData))
+  const handleSaveAsDraft = async () => {
+    const draftData = buildManualDraftJobData(existingJobId)
+    try {
+      if (isDraftEdit && existingJobId) {
+        await updateDraft.mutateAsync({ id: existingJobId, data: draftData })
+      } else {
+        await createJob.mutateAsync({ ...draftData, status: 'draft' })
+      }
+    } catch {
+      return // hook surfaces the error toast
+    }
 
     Alert.alert(
       'Saved to drafts',
@@ -205,7 +212,7 @@ const JobPreview = ({ navigation, route }) => {
     )
   }
 
-  const handlePostJob = () => {
+  const handlePostJob = async () => {
     if (!canSave) {
       Alert.alert(
         'Missing required fields',
@@ -276,53 +283,39 @@ const JobPreview = ({ navigation, route }) => {
       rawData: { step1Data, step2Data, step3Data, step4Data }, // Store complete data for future reference
     }
     
-   
-    console.log('Posting Manual Search Job:', jobData)
-    
-    if (isEdit) {
-      const jobUpdates = { ...jobData }
-      delete jobUpdates.id
-
-      dispatch(updateJob({ jobId, updates: jobUpdates }))
-      dispatch(updateManualJob({ jobId, updates: jobUpdates }))
-      dispatch(generateManualMatches({ jobId }))
-
-      Alert.alert(
-        'Job Updated Successfully!',
-        'Your job offer has been updated.',
-        [
-          {
-            text: 'View Matches',
-            onPress: () => {
-              navigation.navigate(screenNames.MANUAL_MATCH_LIST, {
-                jobId,
-                fromJobPost: true,
-              })
-            },
-          },
-        ]
-      )
-      return
+    let savedJob
+    try {
+      if (isDraftEdit && existingJobId) {
+        // Editing an existing draft → save the changes, then publish it in place
+        // (flip draft → posted) so we don't create a duplicate job.
+        await updateDraft.mutateAsync({ id: existingJobId, data: jobData })
+        savedJob = await publishJob.mutateAsync(existingJobId)
+      } else if (isEdit && existingJobId) {
+        // Backend only allows editing draft jobs; a posted-job edit is rejected (409)
+        // and the hook surfaces that message. Posted-job editing is out of scope this phase.
+        savedJob = await updateDraft.mutateAsync({ id: existingJobId, data: jobData })
+      } else {
+        savedJob = await createJob.mutateAsync({ ...jobData, status: 'posted' })
+      }
+    } catch {
+      return // hook surfaces the error toast
     }
 
-    // Dispatch to Redux
-    dispatch(addJob(jobData))
-    dispatch(createManualJob(jobData))
-    dispatch(generateManualMatches({ jobId }))
-    
+    const savedJobId = savedJob?.id || existingJobId
+
     // Show success alert and navigate to match list
-    // Reset navigation stack to prevent going back to posting steps
     Alert.alert(
-      'Job Posted Successfully!',
-      'Candidates have been matched based on your criteria.',
+      isEdit ? 'Job Updated Successfully!' : 'Job Posted Successfully!',
+      isEdit
+        ? 'Your job offer has been updated.'
+        : 'Candidates have been matched based on your criteria.',
       [
         {
           text: 'View Matches',
           onPress: () => {
-            // Navigate directly to MANUAL_MATCH_LIST
-            navigation.navigate(screenNames.MANUAL_MATCH_LIST, { 
-              jobId, 
-              fromJobPost: true 
+            navigation.navigate(screenNames.MANUAL_MATCH_LIST, {
+              jobId: savedJobId,
+              fromJobPost: true,
             })
           },
         },
@@ -702,7 +695,8 @@ const JobPreview = ({ navigation, route }) => {
               text="Save"
               onPress={handlePostJob}
               bgColor={colors.primary}
-              disabled={!canSave}
+              isLoading={createJob.isPending || updateDraft.isPending || publishJob.isPending}
+              disabled={!canSave || createJob.isPending || updateDraft.isPending || publishJob.isPending}
               style={styles.buttonHalf}
             />
           </View>
@@ -719,7 +713,8 @@ const JobPreview = ({ navigation, route }) => {
               text="Find candidates"
               onPress={handlePostJob}
               bgColor={colors.primary}
-              disabled={!canSave}
+              isLoading={createJob.isPending || updateDraft.isPending || publishJob.isPending}
+              disabled={!canSave || createJob.isPending || updateDraft.isPending || publishJob.isPending}
               style={styles.buttonHalf}
             />
           </View>

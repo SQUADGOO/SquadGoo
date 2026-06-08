@@ -1,23 +1,12 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, Modal, Alert } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
 import { colors, hp, wp, getFontSize } from '@/theme';
 import AppText, { Variant } from '@/core/AppText';
 import AppHeader from '@/core/AppHeader';
 import AppButton from '@/core/AppButton';
 import AppInputField from '@/core/AppInputField';
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
-import { 
-  selectManualOffers, 
-  selectManualJobById,
-  updateManualOfferStatus,
-  expireManualOffers 
-} from '@/store/manualOffersSlice';
-import { applyToOffer } from '@/store/jobSeekerOffersSlice';
-import { addJob, updateJobStatus, addCandidateToJob } from '@/store/jobsSlice';
-import { createChatSession } from '@/store/chatSlice';
-import { revealContacts } from '@/store/contactRevealSlice';
-import { addNotification } from '@/store/notificationsSlice';
+import { useReceivedOffers, useAcceptOffer, useDeclineOffer } from '@/api/offers/offers.query';
 import { showToast, toastTypes } from '@/utilities/toastConfig';
 import { screenNames } from '@/navigation/screenNames';
 import CustomCheckBox from '@/core/CustomCheckBox';
@@ -31,29 +20,12 @@ const DECLINE_REASONS = [
 ];
 
 const ManualOffers = ({ navigation }) => {
-  const dispatch = useDispatch();
-  const allOffers = useSelector(selectManualOffers);
-  const userInfo = useSelector(state => state?.auth?.userInfo || {});
-  const manualJobs = useSelector(state => state?.manualOffers?.jobs || []);
-  const [offers, setOffers] = useState([]);
+  const { data: offers = [] } = useReceivedOffers('pending');
+  const acceptOffer = useAcceptOffer();
+  const declineOffer = useDeclineOffer();
   const [declineModal, setDeclineModal] = useState(null);
   const [selectedReason, setSelectedReason] = useState(null);
   const [otherReason, setOtherReason] = useState('');
-
-  // Get current job seeker's candidate ID and user ID
-  const currentCandidateId = userInfo?.candidateId || userInfo?._id || 'js-001';
-  const currentUserId = userInfo?._id || userInfo?.id || 'js-001';
-
-  useEffect(() => {
-    // Filter offers for current job seeker
-    const myOffers = allOffers.filter(
-      offer => offer.candidateId === currentCandidateId
-    );
-    setOffers(myOffers);
-
-    // Expire old offers
-    dispatch(expireManualOffers());
-  }, [allOffers, dispatch, currentCandidateId]);
 
   const formatExpiryTime = (expiresAt) => {
     if (!expiresAt) return 'No expiry';
@@ -73,9 +45,6 @@ const ManualOffers = ({ navigation }) => {
   };
 
   const handleAccept = (offerId) => {
-    const offer = offers.find(o => o.id === offerId);
-    if (!offer) return;
-
     Alert.alert(
       'Accept Offer',
       'Are you sure you want to accept this job offer? Once accepted, you\'ll be matched with the recruiter.',
@@ -83,71 +52,15 @@ const ManualOffers = ({ navigation }) => {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Accept',
-          onPress: () => {
-            // Update offer status
-            dispatch(updateManualOfferStatus({
-              offerId,
-              status: 'accepted',
-              response: { type: 'accepted' },
-            }));
-
-            // Get full job details and add to active jobs
-            const job = manualJobs.find(j => j.id === offer.jobId);
-            if (job) {
-              // Create candidate object
-              const candidate = {
-                id: currentCandidateId,
-                name: userInfo.name || (userInfo.firstName && userInfo.lastName ? `${userInfo.firstName} ${userInfo.lastName}` : 'Job Seeker'),
-                email: userInfo.email || '',
-                phone: userInfo.phone || '',
-                experience: userInfo.experience || 'Not specified',
-                location: userInfo.location || userInfo.address || 'Not specified',
-                status: 'accepted', // Job seeker accepted
-                appliedAt: new Date().toISOString(),
-              };
-              
-              // Add candidate to recruiter's job with autoAccept flag
-              dispatch(addCandidateToJob({ jobId: job.id, candidate, autoAccept: true }));
-              
-              // Update job status to matched (match making is complete)
-              dispatch(updateJobStatus({ jobId: job.id, status: 'matched' }));
-              
-              // Add to job seeker's accepted offers
-              dispatch(applyToOffer(job));
-              
-              // Create chat session (30 days expiration)
-              const recruiterId = job.recruiterId || 'recruiter-001'; // In real app, get from job
-              dispatch(createChatSession({
-                jobId: job.id,
-                userId: currentUserId,
-                otherUserId: recruiterId,
-                jobTitle: job.title || offer.jobTitle,
-                searchType: 'manual',
-                expiresInDays: 30,
-              }));
-              
-              // Reveal contacts between job seeker and recruiter
-              dispatch(revealContacts({
-                jobId: job.id,
-                userId1: currentUserId,
-                userId2: recruiterId,
-                expiresInDays: 30,
-              }));
-              
-              // Create notification for recruiter
-              dispatch(addNotification({
-                type: 'offer_accepted',
-                title: 'Offer Accepted',
-                message: `${userInfo.name || 'A job seeker'} has accepted your offer for "${job.title || offer.jobTitle}"`,
-                jobId: job.id,
-                candidateId: currentCandidateId,
-                userId: recruiterId,
-              }));
+          onPress: async () => {
+            try {
+              // Backend flips the offer to accepted, charges the match fee, and opens the
+              // recruiter↔jobseeker chat thread.
+              await acceptOffer.mutateAsync(offerId);
+              navigation.navigate(screenNames.ACTIVE_JOB_OFFERS);
+            } catch {
+              // hook surfaces the error toast
             }
-
-            showToast('Offer accepted successfully! Chat is now enabled.', 'Success', toastTypes.success);
-            // Navigate to active jobs
-            navigation.navigate(screenNames.ACTIVE_JOB_OFFERS);
           },
         },
       ]
@@ -160,12 +73,12 @@ const ManualOffers = ({ navigation }) => {
     setOtherReason('');
   };
 
-  const handleDecline = () => {
+  const handleDecline = async () => {
     if (!declineModal) return;
 
     // Check if reason is required (match >= 70%)
-    const requiresReason = declineModal.matchPercentage >= 70;
-    
+    const requiresReason = (declineModal.matchPercentage || 0) >= 70;
+
     if (requiresReason && !selectedReason) {
       showToast('Please select a reason for declining', 'Warning', toastTypes.warning);
       return;
@@ -177,30 +90,23 @@ const ManualOffers = ({ navigation }) => {
     }
 
     const reason = DECLINE_REASONS.find(r => r.id === selectedReason);
-    dispatch(updateManualOfferStatus({
-      offerId: declineModal.id,
-      status: 'declined',
-      response: {
-        type: 'declined',
-        reason: {
-          id: selectedReason,
-          label: reason?.label || 'Other',
-          isValid: reason?.isValid ?? true,
-          note: selectedReason === 'other' ? otherReason : '',
-        },
-      },
-    }));
-    
-    showToast('Offer declined', 'Success', toastTypes.success);
-    setDeclineModal(null);
-    setSelectedReason(null);
-    setOtherReason('');
+    const reasonText =
+      selectedReason === 'other'
+        ? otherReason.trim()
+        : (reason?.label || '');
+
+    try {
+      await declineOffer.mutateAsync({ id: declineModal.id, reason: reasonText });
+      setDeclineModal(null);
+      setSelectedReason(null);
+      setOtherReason('');
+    } catch {
+      // hook surfaces the error toast
+    }
   };
 
-  const pendingOffers = useMemo(() => 
-    offers.filter(offer => offer.status === 'pending'),
-    [offers]
-  );
+  // Backend already scopes to this jobseeker's pending (sent) offers.
+  const pendingOffers = offers;
 
   const OfferCard = ({ offer, job }) => {
     const isExpiringSoon = () => {
@@ -346,10 +252,9 @@ const ManualOffers = ({ navigation }) => {
                 {pendingOffers.length} {pendingOffers.length === 1 ? 'offer' : 'offers'} pending
               </AppText>
             </View>
-            {pendingOffers.map(offer => {
-              const job = manualJobs.find(j => j.id === offer.jobId);
-              return <OfferCard key={offer.id} offer={offer} job={job} />;
-            })}
+            {pendingOffers.map(offer => (
+              <OfferCard key={offer.id} offer={offer} />
+            ))}
           </>
         )}
       </ScrollView>

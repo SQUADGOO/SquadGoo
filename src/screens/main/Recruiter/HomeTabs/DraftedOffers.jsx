@@ -7,18 +7,17 @@ import {
   Modal,
   TouchableOpacity,
 } from 'react-native'
-import { useDispatch, useSelector } from 'react-redux'
 import { colors, hp, wp } from '@/theme'
 import AppText, { Variant } from '@/core/AppText'
 import AppHeader from '@/core/AppHeader'
 import JobCard from '@/components/Recruiter/JobCard'
 import JobFiltersBar from '@/components/Recruiter/JobFilterBar'
 import { screenNames } from '@/navigation/screenNames'
-import { deleteDraftJob } from '@/store/jobsSlice'
+import { useMyJobs, useDeleteJob } from '@/api/jobs/jobs.query'
 
 const DraftedOffers = ({ navigation, route }) => {
-  const dispatch = useDispatch()
-  const draftedJobs = useSelector((state) => state.jobs?.draftedJobs || [])
+  const { data: draftedJobs = [], refetch } = useMyJobs('draft')
+  const deleteDraft = useDeleteJob()
   const fromDrawer = route?.params?.fromDrawer
   const headerTitle = route?.params?.headerTitle || 'Drafted Offers'
 
@@ -65,7 +64,7 @@ const DraftedOffers = ({ navigation, route }) => {
       return
     }
 
-    dispatch(deleteDraftJob(selectedDraft.id))
+    deleteDraft.mutate(selectedDraft.id)
     closeDeleteModal()
   }
 
@@ -115,9 +114,8 @@ const DraftedOffers = ({ navigation, route }) => {
 
   const handleRefresh = async () => {
     setRefreshing(true)
-    setTimeout(() => {
-      setRefreshing(false)
-    }, 500)
+    await refetch()
+    setRefreshing(false)
   }
 
   const renderDraftCard = ({ item }) => (

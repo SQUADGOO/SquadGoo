@@ -1,23 +1,15 @@
 import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
 import AppHeader from '@/core/AppHeader';
 import AppText, { Variant } from '@/core/AppText';
 import AppButton from '@/core/AppButton';
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
 import { colors, getFontSize, hp, wp } from '@/theme';
-import { selectManualJobById, selectManualMatchesByJobId, selectManualOffers, sendManualOffer } from '@/store/manualOffersSlice';
-import { DUMMY_JOB_SEEKERS } from '@/utilities/dummyJobSeekers';
+import { useJob } from '@/api/jobs/jobs.query';
+import { useSendOffer, useSentOffers } from '@/api/offers/offers.query';
 import SendManualOfferModal from '@/components/Recruiter/ManualSearch/SendManualOfferModal';
-import { showToast, toastTypes } from '@/utilities/toastConfig';
 import { screenNames } from '@/navigation/screenNames';
 import CandidateProfileView from '@/components/Recruiter/CandidateProfileView';
-
-const computeIsVerified = (candidate) => {
-  const docs = candidate?.documents;
-  if (!Array.isArray(docs)) return false;
-  return docs.some(d => (d?.type === 'ID' || d?.type === 'Photo ID') && d?.verified);
-};
 
 const formatDateTime = (value) => {
   if (!value) return '';
@@ -35,12 +27,13 @@ const formatReason = (value) => {
 };
 
 const ManualCandidateProfile = ({ route, navigation }) => {
-  const { jobId, candidateId, mode } = route.params || {};
-  const dispatch = useDispatch();
-  const job = useSelector(state => selectManualJobById(state, jobId));
-  const matches = useSelector(state => selectManualMatchesByJobId(state, jobId));
-  const allOffers = useSelector(selectManualOffers);
-  const acceptanceRatings = useSelector(state => state.manualOffers.acceptanceRatings);
+  const { jobId, candidate: candidateParam, mode } = route.params || {};
+  const { data: job } = useJob(jobId);
+  const { data: sentOffers = [] } = useSentOffers();
+  const sendOffer = useSendOffer();
+
+  const candidate = candidateParam || null;
+  const candidateId = candidate?.id;
 
   const isDeclinedReview = mode === 'declined_review';
   const isExpiredReview = mode === 'expired_review';
@@ -48,36 +41,28 @@ const ManualCandidateProfile = ({ route, navigation }) => {
   const offerMeta = route?.params?.offerMeta || null;
 
   const offerForContext = useMemo(
-    () => allOffers.find(o => o.candidateId === candidateId && o.jobId === jobId) || null,
-    [allOffers, candidateId, jobId],
+    () =>
+      candidateId
+        ? sentOffers.find(o => o.jobId === jobId && o.jobseekerId === candidateId) || null
+        : null,
+    [sentOffers, candidateId, jobId],
   );
 
   const acceptedOffer = useMemo(() => {
     if (!jobId || !candidateId) return null;
-    return allOffers.find(o => o.jobId === jobId && o.candidateId === candidateId && o.status === 'accepted') || null;
-  }, [allOffers, jobId, candidateId]);
-
-  const candidate = useMemo(() => {
-    const baseCandidate = DUMMY_JOB_SEEKERS.find(js => js.id === candidateId) || null;
-    const foundCandidate = matches.find(match => match.id === candidateId) || null;
-    if (!baseCandidate && !foundCandidate) return null;
-
-    const offer = allOffers.find(o => o.candidateId === candidateId && o.jobId === jobId) || null;
-    const merged = {
-      ...(baseCandidate || {}),
-      ...(foundCandidate || {}),
-      matchPercentage: offer?.matchPercentage ?? foundCandidate?.matchPercentage ?? 0,
-      acceptanceRating: offer?.acceptanceRating ?? acceptanceRatings[candidateId] ?? foundCandidate?.acceptanceRating ?? baseCandidate?.acceptanceRating ?? 0,
-    };
-    return { ...merged, isVerified: typeof merged.isVerified === 'boolean' ? merged.isVerified : computeIsVerified(merged) };
-  }, [matches, candidateId, jobId, allOffers, acceptanceRatings]);
+    return sentOffers.find(o => o.jobId === jobId && o.jobseekerId === candidateId && o.status === 'accepted') || null;
+  }, [sentOffers, jobId, candidateId]);
 
   const [offerModal, setOfferModal] = useState(false);
 
-  const handleSendOffer = ({ expiresAt, message }) => {
-    dispatch(sendManualOffer({ jobId, candidateId, expiresAt, message }));
-    showToast('Offer sent successfully', 'Success', toastTypes.success);
-    navigation.navigate(screenNames.MANUAL_OFFERS, { jobId });
+  const handleSendOffer = async ({ expiryHours, message }) => {
+    if (!candidate) return;
+    try {
+      await sendOffer.mutateAsync({ jobId, candidateId: candidate.id, expiryHours, message });
+      navigation.navigate(screenNames.MANUAL_OFFERS, { jobId });
+    } catch {
+      // hook surfaces the error toast
+    }
   };
 
   const handleContact = () => {
@@ -121,7 +106,7 @@ const ManualCandidateProfile = ({ route, navigation }) => {
             dateLabel="Expired date"
             dateValue={formatDateTime(offerMeta?.expiresAt || offerForContext?.expiresAt)}
             reasonLabel="Expiry reason"
-            reasonValue={formatReason(offerMeta?.expiryReason || offerForContext?.response?.message)}
+            reasonValue={formatReason(offerMeta?.expiryReason)}
           />
         ) : null}
 
@@ -132,9 +117,9 @@ const ManualCandidateProfile = ({ route, navigation }) => {
             iconColor="#EF4444"
             title="Declined"
             dateLabel="Date declined"
-            dateValue={formatDateTime(offerMeta?.declinedAt || offerForContext?.response?.declinedAt)}
+            dateValue={formatDateTime(offerMeta?.declinedAt || offerForContext?.declinedAt)}
             reasonLabel="Decline reason"
-            reasonValue={formatReason(offerMeta?.declineReason || offerForContext?.response?.reason)}
+            reasonValue={formatReason(offerMeta?.declineReason || offerForContext?.declineReason)}
           />
         ) : null}
 
