@@ -241,7 +241,5 @@ export const formatStageName = (stage) => {
   };
   return stageNames[stage] || stage;
 };
-
-// Export stage constants for use in components
-export { LOCATION_STAGES };
+// LOCATION_STAGES is already exported at its declaration above.
 
