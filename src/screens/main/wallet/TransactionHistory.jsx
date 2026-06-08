@@ -13,7 +13,7 @@ import { colors, hp, wp, getFontSize } from '@/theme';
 import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
 import AppText, { Variant } from '@/core/AppText';
 import PoolHeader from '@/core/PoolHeader';
-import RNFS from 'react-native-fs';
+import RNFS from '@/utilities/rnfsCompat';
 import Share from 'react-native-share';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import {
