@@ -1,4 +1,4 @@
-package com.squadgoo
+package com.squadgoo.au
 
 import android.app.Application
 import com.facebook.react.PackageList
