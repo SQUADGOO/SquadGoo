@@ -1,14 +1,10 @@
 import axios from 'axios';
 import { Platform } from 'react-native';
 import { store } from '@/store/store';
-import { API_BASE_URL } from '@/config/appConfig';
+import { DEV_URL } from '@/config/appConfig';
 
-// ─── Base URL ────────────────────────────────────────────────────────────────
-// Centralised in src/config/appConfig.js (reads .env with platform-aware fallbacks).
-// To change the backend host/port: edit `.env` (API_HOST / API_PORT) and restart Metro.
-// ─────────────────────────────────────────────────────────────────────────────
-const BASE_URL = API_BASE_URL;
-// ─────────────────────────────────────────────────────────────────────────────
+// Backend base URL — from src/config/appConfig.js (DEV_URL for local; swap to BASE_URL for prod).
+const BASE_URL = DEV_URL;
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
