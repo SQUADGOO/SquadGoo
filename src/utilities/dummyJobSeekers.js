@@ -1,0 +1,283 @@
+const badgeLevels = ['Bronze', 'Silver', 'Gold', 'Platinum'];
+
+export const DUMMY_JOB_SEEKERS = [
+  {
+    id: 'js-001',
+    name: 'Jane Jobseeker',
+    avatar: null,
+    badge: 'Gold',
+    acceptanceRating: 92,
+    experienceYears: 4,
+    industries: ['Construction', 'Maintenance'],
+    preferredRoles: ['Painter', 'Decorator'],
+    location: 'Sydney',
+    suburb: 'Parramatta',
+    radiusKm: 25,
+    taxTypes: ['ABN'],
+    languages: ['English'],
+    qualifications: ['Certificate III in Painting and Decorating'],
+    education: 'TAFE NSW',
+    availability: {
+      summary: 'Mon - Fri, 8 AM - 5 PM',
+      days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+    },
+    payPreference: {
+      min: 28,
+      max: 38,
+    },
+    bio: 'Detail-oriented painter with experience across residential and commercial projects.',
+    skills: ['Painting', 'Surface Prep', 'Team Leadership'],
+    workHistory: [
+      {
+        role: 'Senior Painter',
+        company: 'Sydney Coatings Pty Ltd',
+        period: 'Jan 2023 – Present',
+        summary: 'Led small crews on commercial repaint projects; consistent high-quality finishes and safe work practices.',
+      },
+      {
+        role: 'Painter / Decorator',
+        company: 'Westside Renovations',
+        period: 'Feb 2021 – Dec 2022',
+        summary: 'Residential interior/exterior painting, surface preparation, patching, masking, and cleanup.',
+      },
+    ],
+    documents: [
+      { type: 'ID', title: 'Driver License', verified: true },
+      { type: 'Certificate', title: 'Cert III Painting & Decorating', verified: true },
+      { type: 'License', title: 'White Card', verified: true },
+    ],
+    reviewSummary: { average: 4.7, count: 18 },
+    reviews: [
+      { reviewer: 'Recruiter – Commercial Site', rating: 4.8, comment: 'Great workmanship and punctual. Easy to coordinate with.', date: '12 Aug 2024' },
+      { reviewer: 'Recruiter – Residential', rating: 4.6, comment: 'Excellent finish quality. Would rehire.', date: '03 May 2024' },
+    ],
+    references: [
+      { name: 'Mark Evans', relationship: 'Site Supervisor', contact: '+61 4XX XXX XXX' },
+      { name: 'Priya Nair', relationship: 'Project Manager', contact: 'priya@example.com' },
+    ],
+  },
+  {
+    id: 'js-002',
+    name: 'Michael Torres',
+    avatar: null,
+    badge: 'Platinum',
+    acceptanceRating: 88,
+    experienceYears: 6,
+    industries: ['Logistics', 'Warehousing'],
+    preferredRoles: ['Warehouse Manager', 'Inventory Lead'],
+    location: 'Melbourne',
+    suburb: 'Footscray',
+    radiusKm: 30,
+    taxTypes: ['TFN', 'ABN'],
+    languages: ['English', 'Spanish'],
+    qualifications: ['Diploma in Logistics Management'],
+    education: 'Victoria University',
+    availability: {
+      summary: 'Mon - Sat, Day shifts',
+      days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+    },
+    payPreference: {
+      min: 32,
+      max: 45,
+    },
+    bio: 'Warehouse professional focused on process optimisation and safety.',
+    skills: ['Inventory Systems', 'Team Training', 'Forklift Operation'],
+    workHistory: [
+      {
+        role: 'Warehouse Manager',
+        company: 'Metro Logistics',
+        period: 'Mar 2022 – Present',
+        summary: 'Managed inventory accuracy, inbound/outbound operations, and safety compliance across 2 shifts.',
+      },
+      {
+        role: 'Inventory Lead',
+        company: 'QuickShip Warehousing',
+        period: 'Jun 2019 – Feb 2022',
+        summary: 'Cycle counts, slotting, and process improvements that reduced picking errors.',
+      },
+    ],
+    documents: [
+      { type: 'ID', title: 'Driver License', verified: true },
+      { type: 'License', title: 'Forklift License', verified: true },
+      { type: 'Certificate', title: 'Diploma in Logistics', verified: true },
+    ],
+    reviewSummary: { average: 4.5, count: 11 },
+    reviews: [
+      { reviewer: 'Recruiter – Warehouse', rating: 4.5, comment: 'Strong leadership and safety focus.', date: '20 Nov 2024' },
+    ],
+    references: [
+      { name: 'Samantha Lee', relationship: 'Operations Manager', contact: '+61 4XX XXX XXX' },
+    ],
+  },
+  {
+    id: 'js-003',
+    name: 'Aisha Khan',
+    avatar: null,
+    badge: 'Bronze',
+    acceptanceRating: 78,
+    experienceYears: 2,
+    industries: ['Events', 'Hospitality'],
+    preferredRoles: ['Event Crew', 'Logistics Assistant'],
+    location: 'Brisbane',
+    suburb: 'Fortitude Valley',
+    radiusKm: 20,
+    taxTypes: ['ABN'],
+    languages: ['English', 'Hindi'],
+    qualifications: ['Certificate II in Hospitality'],
+    education: 'TAFE Queensland',
+    availability: {
+      summary: 'Thu - Sun, Afternoon & Night',
+      days: ['Thursday', 'Friday', 'Saturday', 'Sunday'],
+    },
+    payPreference: {
+      min: 22,
+      max: 32,
+    },
+    bio: 'Reliable event crew member experienced with rapid setup and packdown.',
+    skills: ['Customer Service', 'Manual Handling', 'Scheduling'],
+    workHistory: [
+      {
+        role: 'Event Crew',
+        company: 'Brisbane Events Co.',
+        period: 'Oct 2023 – Present',
+        summary: 'Setup/packdown, staging, signage, and guest flow support for corporate functions.',
+      },
+    ],
+    documents: [
+      { type: 'ID', title: 'Photo ID', verified: false },
+      { type: 'Certificate', title: 'Cert II Hospitality', verified: true },
+    ],
+    reviewSummary: { average: 4.3, count: 6 },
+    reviews: [
+      { reviewer: 'Recruiter – Event', rating: 4.2, comment: 'Fast learner and reliable on shift.', date: '07 Sep 2024' },
+    ],
+    references: [
+      { name: 'Daniel Price', relationship: 'Team Lead', contact: 'daniel@example.com' },
+    ],
+  },
+  {
+    id: 'js-004',
+    name: 'Liam Chen',
+    avatar: null,
+    badge: 'Silver',
+    acceptanceRating: 84,
+    experienceYears: 5,
+    industries: ['Cleaning Services', 'Facilities'],
+    preferredRoles: ['Cleaning Supervisor', 'Deep Cleaning Specialist'],
+    location: 'Perth',
+    suburb: 'Scarborough',
+    radiusKm: 35,
+    taxTypes: ['TFN'],
+    languages: ['English', 'Mandarin'],
+    qualifications: ['Workplace Health & Safety (Level 2)'],
+    education: 'North Metropolitan TAFE',
+    availability: {
+      summary: 'Mon - Fri, Evening & Night',
+      days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+    },
+    payPreference: {
+      min: 26,
+      max: 36,
+    },
+    bio: 'Cleaning supervisor experienced with large commercial kitchens and hospitality venues.',
+    skills: ['Team Leadership', 'Chemical Handling', 'Quality Assurance'],
+    workHistory: [
+      {
+        role: 'Cleaning Supervisor',
+        company: 'Perth Facility Services',
+        period: 'Jan 2021 – Present',
+        summary: 'Supervised night shift teams; QA inspections, chemical handling, and compliance.',
+      },
+    ],
+    documents: [
+      { type: 'ID', title: 'Driver License', verified: true },
+      { type: 'Certificate', title: 'WHS Level 2', verified: true },
+    ],
+    reviewSummary: { average: 4.6, count: 9 },
+    reviews: [
+      { reviewer: 'Recruiter – Hospitality', rating: 4.7, comment: 'Very thorough, strong attention to detail.', date: '15 Feb 2025' },
+    ],
+    references: [
+      { name: 'Olivia Grant', relationship: 'Operations Supervisor', contact: '+61 4XX XXX XXX' },
+    ],
+  },
+  {
+    id: 'js-005',
+    name: 'Sofia Romero',
+    avatar: null,
+    badge: 'Gold',
+    acceptanceRating: 95,
+    experienceYears: 7,
+    industries: ['Landscaping', 'Outdoor Projects'],
+    preferredRoles: ['Landscape Designer', 'Project Lead'],
+    location: 'Adelaide',
+    suburb: 'Norwood',
+    radiusKm: 40,
+    taxTypes: ['ABN'],
+    languages: ['English', 'Spanish'],
+    qualifications: ['Bachelor of Landscape Architecture'],
+    education: 'University of Adelaide',
+    availability: {
+      summary: 'Mon - Sat, Flexible',
+      days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+    },
+    payPreference: {
+      min: 35,
+      max: 55,
+    },
+    bio: 'Landscape professional specialising in bespoke outdoor experiences.',
+    skills: ['Design', 'Site Management', 'Client Liaison'],
+    workHistory: [
+      {
+        role: 'Landscape Designer',
+        company: 'Adelaide Outdoor Spaces',
+        period: 'May 2020 – Present',
+        summary: 'Design and site coordination for residential landscape upgrades and garden installations.',
+      },
+    ],
+    documents: [
+      { type: 'ID', title: 'Photo ID', verified: true },
+      { type: 'Certificate', title: 'Bachelor of Landscape Architecture', verified: true },
+    ],
+    reviewSummary: { average: 4.8, count: 14 },
+    reviews: [
+      { reviewer: 'Recruiter – Landscaping', rating: 4.9, comment: 'Excellent communication and planning. Great results.', date: '01 Oct 2024' },
+    ],
+    references: [
+      { name: 'Tom Harris', relationship: 'Client', contact: 'tom@example.com' },
+    ],
+  },
+  {
+    id: 'js-006',
+    name: 'Noah Wilson',
+    avatar: null,
+    badge: 'Bronze',
+    acceptanceRating: 70,
+    experienceYears: 1,
+    industries: ['Retail', 'Customer Service'],
+    preferredRoles: ['Store Assistant', 'Visual Merchandiser'],
+    location: 'Gold Coast',
+    suburb: 'Southport',
+    radiusKm: 15,
+    taxTypes: ['TFN'],
+    languages: ['English'],
+    qualifications: ['Certificate III in Retail'],
+    education: 'TAFE Queensland',
+    availability: {
+      summary: 'Wed - Sun, Morning shifts',
+      days: ['Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    },
+    payPreference: {
+      min: 20,
+      max: 28,
+    },
+    bio: 'Retail professional with an eye for detail and merchandising layouts.',
+    skills: ['POS Systems', 'Visual Merchandising', 'Stock Control'],
+  },
+];
+
+export const getRandomBadge = () => {
+  const index = Math.floor(Math.random() * badgeLevels.length);
+  return badgeLevels[index];
+};
+

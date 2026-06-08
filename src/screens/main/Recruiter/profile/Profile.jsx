@@ -1,0 +1,353 @@
+// screens/Profile.tsx
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  View,
+  Image,
+  TouchableOpacity,
+  ImageBackground,
+  Text,
+  Switch,
+} from 'react-native';
+import AppText, { Variant } from '@/core/AppText';
+import { colors, getFontSize, hp, wp } from '@/theme';
+import Spacer from '@/core/Spacer';
+import VectorIcons, { iconLibName } from '@/theme/vectorIcon';
+import images from '@/assets/images';
+import { useNavigation } from '@react-navigation/native';
+import icons from '@/assets/icons';
+import MenuCard from '@/components/Recruiter/MenuCard';
+import Scrollable from '@/core/Scrollable';
+import { fonts } from '@/assets/fonts';
+import AppHeader from '@/core/AppHeader';
+import { useSelector } from 'react-redux';
+import FastImageView from '@/core/FastImageView';
+import { screenNames } from '@/navigation/screenNames';
+import { useGetMe } from '@/api/user/user.query';
+
+const Profile = () => {
+  const navigation = useNavigation();
+  // Fetch fresh user from GET /users/me; the hook syncs the result into Redux.
+  useGetMe();
+  const userInfo = useSelector((state) => state.auth.userInfo);
+  const role = useSelector((state) => state.auth.role);
+
+  const fullName =
+    [userInfo?.firstName, userInfo?.lastName].filter(Boolean).join(' ') ||
+    userInfo?.name ||
+    '';
+
+  const isRecruiter = ((role || '').toString().toLowerCase() === 'recruiter');
+  const businessName =
+    userInfo?.businessName ||
+    userInfo?.companyName ||
+    userInfo?.kycKyb?.business?.business_name ||
+    '';
+  const abnOrAcn =
+    userInfo?.abn ||
+    userInfo?.acn ||
+    userInfo?.kycKyb?.business?.abn_or_acn ||
+    '';
+  const phoneValue = userInfo?.contactNumber || userInfo?.phone || '';
+  const idValue = userInfo?._id || userInfo?.id || '';
+
+  const [isActive, setIsActive] = useState(true);
+
+  // Calculate dynamic profile completion percentage
+  const profileFields = [
+    userInfo?.firstName,
+    userInfo?.lastName,
+    userInfo?.email,
+    phoneValue,
+    userInfo?.dateOfBirth,
+    userInfo?.homeAddress,
+    userInfo?.bio,
+    userInfo?.profilePhoto,
+    businessName,
+    abnOrAcn,
+    userInfo?.kycStatus === 'verified',
+    userInfo?.linkedinProfile || userInfo?.facebookProfile || userInfo?.instagramProfile,
+  ];
+  const filledFields = profileFields.filter(Boolean).length;
+  const profileCompletion = Math.round((filledFields / profileFields.length) * 100);
+
+  // Backend (safeUser) returns kycStatus / kybStatus as 'pending' | 'verified' | 'rejected'.
+  const kycVerified = userInfo?.kycStatus === 'verified';
+  const kybVerified = userInfo?.kybStatus === 'verified';
+  const isRejected =
+    userInfo?.kycStatus === 'rejected' || (isRecruiter && userInfo?.kybStatus === 'rejected');
+  const verificationStatus = kycVerified && (isRecruiter ? kybVerified : true)
+    ? 'Verified'
+    : isRejected
+    ? 'Rejected'
+    : 'Pending';
+  const verificationColor =
+    verificationStatus === 'Verified'
+      ? colors.green
+      : verificationStatus === 'Pending'
+      ? colors.paleyYellow
+      : colors.gray;
+
+  const handleBackPress = () => {
+    // Profile sits in a stack above the Drawer; open drawer on back.
+    const parent = navigation.getParent?.();
+    if (parent?.openDrawer) {
+      parent.openDrawer();
+    } else if (navigation.openDrawer) {
+      navigation.openDrawer();
+    } else {
+      if (navigation.canGoBack?.()) navigation.goBack();
+    }
+  };
+
+  return (
+    <>
+      <AppHeader
+        onBackPress={handleBackPress}
+        showBackButton={true}
+        rightComponent={false}
+        showTopIcons={false}
+        title='My Profile'
+        children={
+          <View style={styles.headerCard}>
+
+            <View style={[styles.row, { marginVertical: 15, bottom: 5 }]}>
+              <View>
+                <FastImageView
+                  source={{ uri: userInfo?.companyLogo || userInfo?.profilePhoto }}
+                  style={styles.avatar}
+                // resizeMode={'contain'}
+                />
+                <TouchableOpacity style={styles.cameraButton}>
+                  <Image
+                    source={icons.cam}
+                    style={{ height: 30, width: 30, left: wp(1.5) }}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <View style={{ flex: 1, marginLeft: wp(4) }}>
+                {!!businessName && (
+                  <AppText
+                    variant={Variant.caption}
+                    style={[styles.subtitle, { fontFamily: fonts.poppinsSemiBold }]}
+                    numberOfLines={1}
+                  >
+                    {businessName}
+                  </AppText>
+                )}
+                <View style={{ flexDirection: 'row', width: wp(45) }}>
+                  <Text style={styles.name}>
+                    {fullName || 'John Doe'}
+                  </Text>
+                  <Image
+                    source={icons.time}
+                    style={{ height: 20, width: 20, left: wp(1) }}
+                  />
+                </View>
+                <AppText variant={Variant.caption} style={styles.subtitle}>
+                  #{isRecruiter ? 'Recruiter' : 'Jobseeker'}{idValue ? `-${idValue}` : ''}
+                </AppText>
+
+                <Spacer size={8} />
+
+                <View style={styles.row}>
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <VectorIcons
+                      key={index}
+                      name={iconLibName.Ionicons}
+                      iconName="star"
+                      size={14}
+                      color={colors.primary}
+                      style={{ marginRight: 2 }}
+                    />
+                  ))}
+                  <AppText
+                    variant={Variant.caption}
+                    style={{ marginLeft: 4 }}
+                    color={colors.white}>
+                    4.9 (20 reviews)
+                  </AppText>
+                </View>
+              </View>
+            </View>
+
+            {/* <Spacer size={20} /> */}
+
+            <View style={styles.infoRow}>
+              <Image resizeMode='contain' source={icons.msg} style={{ height: 18, width: 18 }} />
+              <AppText variant={Variant.caption} style={styles.infoText}>
+                Email: <Text style={{ fontFamily: fonts.poppinsSemiBold }}>{userInfo?.email}</Text>
+              </AppText>
+            </View>
+
+
+            <TouchableOpacity
+              style={styles.infoRow}
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate(screenNames.EDIT_PROFILE)}
+            >
+              <Image resizeMode='contain' source={icons.call} style={{ height: 18, width: 18 }} />
+              <AppText variant={Variant.caption} style={styles.infoText}>
+                Phone:{' '}
+                <Text style={{ fontFamily: fonts.poppinsSemiBold }}>
+                  {phoneValue ? phoneValue : 'Add phone number'}
+                </Text>
+              </AppText>
+            </TouchableOpacity>
+
+            {!!abnOrAcn && (
+              <View style={styles.infoRow}>
+                <Image resizeMode='contain' source={icons.pf} style={{ height: 18, width: 18 }} />
+                <AppText variant={Variant.caption} style={styles.infoText}>
+                  ABN/ACN:{' '}
+                  <Text style={{ fontFamily: fonts.poppinsSemiBold }}>{abnOrAcn}</Text>
+                </AppText>
+              </View>
+            )}
+
+            <View style={styles.infoRow}>
+              <Image resizeMode='contain' source={icons.pf} style={{ height: 18, width: 18 }} />
+              <AppText variant={Variant.caption} style={styles.infoText}>
+                {isRecruiter ? 'KYC/KYB Status:' : 'KYC Status:'}{' '}
+                <Text style={{ fontFamily: fonts.poppinsSemiBold, color: verificationColor }}>
+                  {verificationStatus}
+                </Text>
+              </AppText>
+            </View>
+
+
+            {/* Active/Inactive Toggle (Jobseeker only) */}
+            {!isRecruiter ? (
+              <View style={styles.toggleRow}>
+                <View style={{ flex: 1 }}>
+                  <AppText variant={Variant.caption} style={[styles.infoText, { fontFamily: fonts.poppinsSemiBold }]}>
+                    {isActive ? 'Active – Receiving Offers' : 'Inactive – Not Receiving Offers'}
+                  </AppText>
+                  {!isActive ? (
+                    <AppText variant={Variant.caption} style={[styles.infoText, { fontSize: getFontSize(10), marginTop: 2 }]}>
+                      You won't receive new job offers.
+                    </AppText>
+                  ) : null}
+                </View>
+                <Switch
+                  value={isActive}
+                  onValueChange={setIsActive}
+                  trackColor={{ false: '#9CA3AF', true: '#4ADE80' }}
+                  thumbColor="#FFFFFF"
+                />
+              </View>
+            ) : null}
+
+            {/* Profile Completion Bar */}
+            <View style={styles.completionRow}>
+              <View style={{ flex: 1 }}>
+                <AppText variant={Variant.caption} style={styles.infoText}>
+                  Profile <Text style={{ fontFamily: fonts.poppinsSemiBold }}>{profileCompletion}% Complete</Text>
+                </AppText>
+                <View style={styles.progressBarBg}>
+                  <View style={[styles.progressBarFill, { width: `${profileCompletion}%` }]} />
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={() => navigation.navigate(screenNames.EDIT_PROFILE)}
+                style={{ marginLeft: wp(3) }}>
+                <Image resizeMode='contain' source={icons.edit} style={{ height: 22, width: 22 }} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        }
+      />
+      <Scrollable>
+        
+        <View style={{ backgroundColor: colors.white, flex: 1 }}>
+          <MenuCard />
+        </View>
+      </Scrollable>
+    </>
+  );
+};
+
+export default Profile;
+
+const styles = StyleSheet.create({
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: hp(2),
+    paddingBottom: hp(0.5),
+    gap: wp(2),
+    marginVertical: hp(2),
+  },
+  headerCard: {
+    // height: hp(46),
+    paddingHorizontal: wp(2),
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    // marginVertical: hp(1),
+  },
+  avatar: {
+    width: wp(17),
+    height: wp(17),
+    borderRadius: wp(25),
+    // borderWidth: 1,
+    borderColor: colors.white,
+  },
+  cameraButton: {
+    position: 'absolute',
+    zIndex: 2,
+    bottom: 0,
+    right: 0,
+    borderRadius: wp(3),
+  },
+  name: {
+    color: colors.white,
+    fontSize: getFontSize(18),
+    fontFamily: fonts.poppinsSemiBold,
+  },
+  subtitle: {
+    color: colors.white,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: hp(0.5),
+    marginLeft: wp(2),
+  },
+  infoText: {
+    marginLeft: wp(3),
+    color: colors.white,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: hp(0.8),
+    marginLeft: wp(2),
+    paddingTop: hp(1),
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.15)',
+  },
+  completionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: hp(0.5),
+    marginLeft: wp(2),
+    paddingTop: hp(1),
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.15)',
+  },
+  progressBarBg: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    marginTop: hp(0.5),
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 3,
+    backgroundColor: '#4ADE80',
+  },
+});

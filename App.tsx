@@ -1,45 +1,57 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import { LogBox, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import { Provider } from 'react-redux';
+import { NavigationContainer } from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
+import { SocketProvider } from '@/providers/SocketProvider';
+import NetworkProvider from './src/providers/NetworkProvider';
+import { AppNavigator } from './src/navigation';
+import toastConfig from './src/utilities/toastConfig';
+import { store } from './src/store/store';
+import { navigationRef } from './src/navigation/navigationRef';
+import { enableScreens } from 'react-native-screens';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { StripeProvider } from '@stripe/stripe-react-native';
+import { STRIPE_PUBLISHABLE_KEY } from '@/config/stripe';
+import AppWrapper from '@/core/AppWrapper';
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+LogBox.ignoreAllLogs(true);
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+enableScreens();
+
+const App = () => {
+
+  const queryClient = new QueryClient();
+  // useEffect(() => {
+  //   requestUserPermission()
+  //   getFCMToken()
+  //   getMessaging().onMessage(async remoteMessage => {
+  //     console.log('A new FCM message arrived!', JSON.stringify(remoteMessage))
+  //   })
+  //   messaging().onMessage(async remoteMessage => {
+  //     console.log('Foreground message received:', remoteMessage)
+  //   })
+  // }, [])
 
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
+    <QueryClientProvider client={queryClient}>
+      <NetworkProvider>
+        <Provider store={store}>
+          <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY} merchantIdentifier="merchant.com.squadgoo.au">
+            {/* <AppWrapper statusBarColor={'transparent'}> */}
+              <NavigationContainer ref={navigationRef}>
+                <AppNavigator />
+
+                <Toast config={toastConfig} />
+              </NavigationContainer>
+            {/* </AppWrapper> */}
+          </StripeProvider>
+        </Provider>
+      </NetworkProvider>
+    </QueryClientProvider>
   );
-}
-
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
+};
 
 export default App;
+
+const styles = StyleSheet.create({});
