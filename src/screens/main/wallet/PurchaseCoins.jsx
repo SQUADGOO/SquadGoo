@@ -12,12 +12,10 @@ import AppText, { Variant } from '@/core/AppText'
 import AppButton from '@/core/AppButton'
 import FormField from '@/core/FormField'
 import AppHeader from '@/core/AppHeader'
-import { showToast, toastTypes } from '@/utilities/toastConfig'
-import { useDispatch } from 'react-redux'
-import { addCoins } from '@/store/walletSlice'
+import { useWalletTopup } from '@/hooks/usePaymentSheet'
 
 const PurchaseCoins = ({ navigation }) => {
-  const dispatch = useDispatch()
+  const { startTopup, isProcessing } = useWalletTopup()
   const [coinQuantity, setCoinQuantity] = useState(1)
 
   const methods = useForm({
@@ -41,22 +39,14 @@ const PurchaseCoins = ({ navigation }) => {
     }
   }
 
-  const handlePayNow = (data) => {
-    showToast('Payment successful! Coins have been added to your account.', 'success', toastTypes.success)
-    dispatch(addCoins({ amount: totalAmount }))
-    navigation.goBack()
+  // Pay Now launches the Stripe PaymentSheet (its own card UI) for `coinQuantity` coins.
+  // The wallet is credited by the backend webhook; the hook refreshes the balance.
+  const handlePayNow = async () => {
+    const result = await startTopup(coinQuantity)
+    if (result.ok) {
+      navigation.goBack()
+    }
   }
-
-  // const handlePayNow = async () => {
-  //   showToast('Payment successful! Coins have been added to your account.', 'success', toastTypes.success)
-  //   dispatch(addCoins({ amount: totalAmount }))
-
-  //   setTimeout(() => {
-  //   navigation.goBack()
-  //   }, 1500);
-  //   methods.handleSubmit(onSubmit)()
-
-  // }
 
   return (
     <FormProvider {...methods}>
@@ -204,6 +194,7 @@ const PurchaseCoins = ({ navigation }) => {
             text="Pay Now"
             onPress={handlePayNow}
             bgColor={colors.primary}
+            isLoading={isProcessing}
           />
         </View>
 

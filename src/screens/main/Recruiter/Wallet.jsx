@@ -24,6 +24,7 @@ import EscrowStatusBadge from '@/components/escrow/EscrowStatusBadge'
 import EscrowActionButton from '@/components/escrow/EscrowActionButton'
 import EscrowTimeline from '@/components/escrow/EscrowTimeline'
 import { useSelector } from 'react-redux'
+import { useWallet } from '@/api/wallet/wallet.query'
 import RNFS from 'react-native-fs'
 import Share from 'react-native-share'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
@@ -41,6 +42,9 @@ import LiveShiftTracker from '@/screens/main/wallet/LiveShiftTracker'
 
 const Wallet = ({ navigation }) => {
   const { coins, transactions = [], withdrawRequests = [] } = useSelector((state) => state.wallet)
+  // Server wallet balance (Phase 3). availableCoins = total − active escrow holds.
+  const { data: walletData } = useWallet()
+  const serverCoins = walletData?.availableCoins
   const { userInfo, role } = useSelector((state) => state.auth)
   const isJobseeker = role?.toLowerCase() === 'jobseeker'
   const TRANSACTION_SUMMARY = isJobseeker ? JOBSEEKER_TRANSACTION_SUMMARY : RECRUITER_TRANSACTION_SUMMARY
@@ -958,7 +962,7 @@ const Wallet = ({ navigation }) => {
         gradientColors={['#8B5CF6', '#EC4899']}
         children={
           <View style={{}}>
-            <WalletBalanceComponent />
+            <WalletBalanceComponent balance={serverCoins} />
           </View>
         }
       />
@@ -1224,7 +1228,7 @@ const Wallet = ({ navigation }) => {
         )} */}
         {/* Coin Cards */}
         <View style={styles.coinCardsContainer}>
-          {renderCoinCard('Coins\nPurchases', `${coins}`, '#10B981', Icons.purchasecoins)}
+          {renderCoinCard('Coins\nPurchases', `${serverCoins ?? coins}`, '#10B981', Icons.purchasecoins)}
           {renderCoinCard('Referred\nCoins', '100', '#EC4899', Icons.referredcoins)}
         </View>
 

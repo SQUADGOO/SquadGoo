@@ -38,12 +38,15 @@ export const useSendOffer = () => {
       qc.invalidateQueries({queryKey: jobsKeys.lists()}); // job flips to has_applicants
       showToast('Offer sent', 'Success', toastTypes.success);
     },
-    onError: err =>
+    onError: err => {
+      // INSUFFICIENT_FUNDS is handled by the screen (top-up prompt) — don't double-message.
+      if (err?.response?.data?.error?.code === 'INSUFFICIENT_FUNDS') return;
       showToast(
         err?.response?.data?.error?.message || 'Could not send offer',
         'Error',
         toastTypes.error,
-      ),
+      );
+    },
   });
 };
 

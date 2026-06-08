@@ -2837,6 +2837,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@stripe/stripe-react-native@npm:^0.66.0":
+  version: 0.66.0
+  resolution: "@stripe/stripe-react-native@npm:0.66.0"
+  peerDependencies:
+    expo: ">=46.0.9"
+    react: "*"
+    react-native: "*"
+    react-native-webview: "*"
+  peerDependenciesMeta:
+    expo:
+      optional: true
+    react-native-webview:
+      optional: true
+  checksum: bd22adcb9fc81c080afdbc27d61dd47d9fb419bb5abc8cd2448cca01c704a94c91d4266516d47bfcccb07b1fe0bf1af725703af8ee81ffc5c0c31b03d1c15a5b
+  languageName: node
+  linkType: hard
+
 "@tanstack/query-core@npm:5.100.9":
   version: 5.100.9
   resolution: "@tanstack/query-core@npm:5.100.9"
@@ -3394,6 +3411,7 @@ __metadata:
     "@react-navigation/native-stack": ^7.3.25
     "@react-navigation/stack": ^7.4.7
     "@reduxjs/toolkit": ^2.8.2
+    "@stripe/stripe-react-native": ^0.66.0
     "@tanstack/react-query": ^5.90.2
     "@types/react": ^18.2.6
     "@types/react-test-renderer": ^18.0.0

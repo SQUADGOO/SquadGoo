@@ -11,6 +11,8 @@ import { store } from './src/store/store';
 import { navigationRef } from './src/navigation/navigationRef';
 import { enableScreens } from 'react-native-screens';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { StripeProvider } from '@stripe/stripe-react-native';
+import { STRIPE_PUBLISHABLE_KEY } from '@/config/stripe';
 import AppWrapper from '@/core/AppWrapper';
 
 LogBox.ignoreAllLogs(true);
@@ -35,13 +37,15 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <NetworkProvider>
         <Provider store={store}>
-          {/* <AppWrapper statusBarColor={'transparent'}> */}
-            <NavigationContainer ref={navigationRef}>
-              <AppNavigator />
+          <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY} merchantIdentifier="merchant.com.squadgoo.au">
+            {/* <AppWrapper statusBarColor={'transparent'}> */}
+              <NavigationContainer ref={navigationRef}>
+                <AppNavigator />
 
-              <Toast config={toastConfig} />
-            </NavigationContainer>
-          {/* </AppWrapper> */}
+                <Toast config={toastConfig} />
+              </NavigationContainer>
+            {/* </AppWrapper> */}
+          </StripeProvider>
         </Provider>
       </NetworkProvider>
     </QueryClientProvider>

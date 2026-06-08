@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import AppHeader from '@/core/AppHeader';
 import AppText, { Variant } from '@/core/AppText';
 import AppButton from '@/core/AppButton';
@@ -60,8 +60,20 @@ const ManualCandidateProfile = ({ route, navigation }) => {
     try {
       await sendOffer.mutateAsync({ jobId, candidateId: candidate.id, expiryHours, message });
       navigation.navigate(screenNames.MANUAL_OFFERS, { jobId });
-    } catch {
-      // hook surfaces the error toast
+    } catch (err) {
+      if (err?.response?.data?.error?.code === 'INSUFFICIENT_FUNDS') {
+        setOfferModal(false);
+        Alert.alert(
+          'Top up required',
+          "You don't have enough balance to send this offer.",
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Top up', onPress: () => navigation.navigate(screenNames.TOP_UP) },
+          ],
+        );
+        return;
+      }
+      // otherwise the useSendOffer onError toast already fired
     }
   };
 
