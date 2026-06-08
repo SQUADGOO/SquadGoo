@@ -18,11 +18,17 @@ import {
 //   • Physical device    → your Mac's LAN IP — set API_HOST in .env
 // ──────────────────────────────────────────────────────────────────────────────
 
+// 👇 QUICK DAILY OVERRIDE: for a physical device whose IP changes, just paste your
+//    Mac's current LAN IP here (e.g. '192.168.1.50') and save — Fast Refresh picks it up,
+//    no Metro restart needed. Leave '' to use .env / the platform default below.
+const LOCAL_HOST_OVERRIDE = '';
+
 const defaultHost = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
 
+// Precedence: in-file override > .env (API_HOST) > platform default.
 export const API_CONFIG = {
   scheme: API_SCHEME || 'http',
-  host: API_HOST || defaultHost,
+  host: LOCAL_HOST_OVERRIDE || API_HOST || defaultHost,
   port: API_PORT || '5001',
 };
 
